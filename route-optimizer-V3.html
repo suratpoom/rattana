@@ -1,0 +1,2929 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Route Optimizer Rattana</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root,[data-theme="dark"]{
+  --bg:#0a0e1a;--panel:#111827;--border:#1f2937;
+  --accent:#3b82f6;--accent2:#f59e0b;--text:#f1f5f9;
+  --muted:#94a3b8;--success:#10b981;
+  --hover:#374151;--popup-bg:#111827;--popup-text:#f1f5f9;
+  --loading-bg:rgba(17,24,39,0.92);
+}
+[data-theme="light"]{
+  --bg:#f1f5f9;--panel:#ffffff;--border:#e2e8f0;
+  --accent:#2563eb;--accent2:#ea580c;--text:#0f172a;
+  --muted:#475569;--success:#059669;
+  --hover:#cbd5e1;--popup-bg:#ffffff;--popup-text:#0f172a;
+  --loading-bg:rgba(255,255,255,0.95);
+}
+body{transition:background 0.2s,color 0.2s}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+#header{display:flex;align-items:center;gap:12px;padding:12px 20px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0}
+#header h1{font-size:18px;font-weight:700;letter-spacing:-0.5px}
+
+/* Top summary bar — shown under header */
+#top-summary{
+  display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;
+  padding:9px 20px;background:var(--panel);
+  border-bottom:1px solid var(--border);flex-shrink:0;
+  font-size:12px;font-family:'Outfit','Noto Sans Thai',sans-serif;
+}
+.ts-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ts-stats .ts-chip{
+  background:var(--bg);border:1px solid var(--border);
+  padding:4px 10px;border-radius:999px;color:var(--muted);
+  white-space:nowrap;font-size:11px
+}
+.ts-chip b{color:var(--text);font-weight:700;margin-right:2px}
+.ts-actions{margin-left:auto}
+.ts-btn{
+  background:var(--bg);border:1px solid var(--border);color:var(--text);
+  padding:5px 12px;border-radius:6px;font-size:12px;font-weight:500;
+  cursor:pointer;font-family:inherit;white-space:nowrap;transition:all 0.15s
+}
+.ts-btn:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+.ts-btn-primary{
+  background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600
+}
+.ts-btn-primary:hover{background:#2563eb;border-color:#2563eb}
+.ts-btn:disabled{opacity:0.6;cursor:wait}
+.ts-cost{
+  background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(245,158,11,0.05));
+  border:1px solid var(--accent2);padding:5px 12px;border-radius:6px;
+  white-space:nowrap
+}
+.ts-cost-label{color:var(--muted);font-size:11px;margin-right:6px}
+.ts-cost-value{color:var(--accent2);font-weight:700;font-size:13px}
+.ts-cost-value b{color:var(--accent2);font-weight:700;font-size:14px}
+.ts-revenue{
+  background:linear-gradient(135deg,rgba(34,197,94,0.15),rgba(34,197,94,0.05));
+  border:1px solid rgba(34,197,94,0.5);padding:5px 12px;border-radius:6px;
+  white-space:nowrap
+}
+.ts-revenue-value{color:#22c55e;font-weight:700;font-size:13px}
+.ts-revenue-value b{color:#22c55e;font-weight:700;font-size:14px}
+[data-theme="light"] .ts-revenue-value,
+[data-theme="light"] .ts-revenue-value b{color:#16a34a}
+.badge{background:var(--accent);color:white;font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;letter-spacing:1px;text-transform:uppercase}
+
+#main{display:flex;flex:1;overflow:hidden}
+
+#sidebar{width:380px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+
+.tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.tab{flex:1;padding:10px 6px;text-align:center;font-size:12px;font-weight:500;cursor:pointer;color:var(--muted);transition:all 0.15s;border-bottom:2px solid transparent}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+.panel{display:none;flex:1;overflow-y:auto;padding:16px;flex-direction:column;gap:12px}
+.card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.card .stat-card{background:var(--panel)}
+.card .input-field{background:var(--panel)}
+.card .unit-suffix{background:var(--panel)}
+.card-title{font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:2px}
+[data-theme="light"] .card{background:#f8fafc}
+.panel.active{display:flex}
+
+/* Collapsible card using <details> */
+.card-collapsible{padding:0;overflow:hidden}
+.card-collapsible > summary{
+  list-style:none;cursor:pointer;padding:14px;margin:0;
+  border-bottom:1px solid transparent;
+  display:flex;align-items:center;gap:6px;
+  user-select:none;position:relative;
+}
+.card-collapsible > summary::-webkit-details-marker{display:none}
+.card-collapsible > summary::after{
+  content:'▸';margin-left:auto;color:var(--muted);font-size:12px;
+  transition:transform 0.15s
+}
+.card-collapsible[open] > summary{border-bottom-color:var(--border)}
+.card-collapsible[open] > summary::after{transform:rotate(90deg)}
+.card-collapsible > summary:hover{color:var(--accent)}
+.collapsible-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px}
+
+.section-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px}
+
+.input-field{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;padding:10px 12px;outline:none;transition:border-color 0.15s}
+.card .input-field{background:var(--panel)}
+.input-field:focus{border-color:var(--accent)}
+textarea.input-field{resize:vertical;min-height:110px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.5}
+select.input-field{cursor:pointer}
+
+.btn{padding:9px 16px;border-radius:8px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all 0.15s;text-align:center}
+.btn-primary{background:var(--accent);color:white;width:100%}
+.btn-primary:hover{background:#2563eb}
+.btn-secondary{background:var(--border);color:var(--text);width:100%}
+.btn-secondary:hover{background:var(--hover)}
+.btn-danger{background:#991b1b;color:white;font-size:11px;padding:4px 10px}
+.btn-danger:hover{background:#dc2626}
+
+.format-hint{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 10px;line-height:1.7}
+
+/* Vehicle chips */
+.vehicle-chips{display:flex;flex-wrap:wrap;gap:6px}
+.v-chip{background:var(--panel);border:2px solid var(--border);color:var(--text);
+  padding:7px 14px;border-radius:999px;font-size:12px;font-weight:500;cursor:pointer;
+  transition:all 0.15s;user-select:none;white-space:nowrap;
+  font-family:'Outfit','Noto Sans Thai',sans-serif;
+  display:inline-flex;align-items:center;gap:6px;line-height:1.2}
+.v-chip:hover{border-color:var(--accent)}
+/* Active: tinted background + accent border, keep default text color for
+   reliable Thai rendering (avoids iOS Safari fallback-font issues with white text) */
+.v-chip.active{
+  background:rgba(59,130,246,0.18);
+  border-color:var(--accent);
+  color:var(--text);
+  font-weight:700;
+  box-shadow:0 0 0 1px var(--accent) inset;
+}
+[data-theme="light"] .v-chip{background:#fff}
+[data-theme="light"] .v-chip.active{background:rgba(37,99,235,0.12);color:#0f172a}
+
+/* Needs-selection: red dashed border + subtle pulse to prompt user */
+.vehicle-chips.needs-selection{
+  border:2px dashed #ef4444;border-radius:8px;padding:8px;
+  background:rgba(239,68,68,0.05);
+  animation:needs-pulse 2s ease-in-out infinite;
+}
+@keyframes needs-pulse{
+  0%,100%{border-color:#ef4444;background:rgba(239,68,68,0.08)}
+  50%{border-color:rgba(239,68,68,0.5);background:rgba(239,68,68,0.03)}
+}
+.chip-warning{
+  color:#ef4444;font-size:12px;font-weight:600;
+  margin-top:6px;display:flex;align-items:center;gap:4px
+}
+[data-theme="light"] .chip-warning{color:#dc2626}
+
+/* Sales-only info banner (shown when "กระบะเปล่า พนง.ขาย" is selected) */
+.sales-notice{
+  background:linear-gradient(135deg,rgba(59,130,246,0.18),rgba(59,130,246,0.06));
+  border:1px solid var(--accent);
+  border-radius:8px;padding:10px 12px;
+  font-size:12px;line-height:1.55;color:var(--text);
+  margin:6px 0 2px;
+}
+.sales-notice b{color:var(--accent)}
+.sales-notice.flash{animation:sales-flash 0.6s ease-out}
+@keyframes sales-flash{
+  0%  {transform:scale(0.96);box-shadow:0 0 0 0 rgba(59,130,246,0.6)}
+  50% {transform:scale(1.02);box-shadow:0 0 0 8px rgba(59,130,246,0.15)}
+  100%{transform:scale(1.00);box-shadow:0 0 0 0 rgba(59,130,246,0)}
+}
+[data-theme="light"] .sales-notice{
+  background:linear-gradient(135deg,rgba(37,99,235,0.12),rgba(37,99,235,0.03));
+}
+
+/* Fuel summary */
+.fuel-summary{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+[data-theme="light"] .fuel-summary{background:#fff}
+.fuel-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13px;color:var(--muted)}
+.fuel-row b{color:var(--text);font-weight:600}
+.fuel-row.fuel-total{border-top:1px solid var(--border);margin-top:4px;padding-top:10px;font-size:14px;color:var(--text);font-weight:600}
+.fuel-row.fuel-total b{color:var(--accent2);font-size:15px}
+.fuel-row.fuel-revenue{
+  background:linear-gradient(135deg,rgba(34,197,94,0.15),rgba(34,197,94,0.05));
+  border:1px solid rgba(34,197,94,0.4);
+  border-radius:6px;
+  padding:8px 10px;
+  margin-top:8px;
+  font-size:13px;
+  color:var(--text);
+  font-weight:600;
+}
+.fuel-row.fuel-revenue b{color:#22c55e;font-size:15px}
+[data-theme="light"] .fuel-row.fuel-revenue{background:linear-gradient(135deg,rgba(34,197,94,0.1),rgba(34,197,94,0.03))}
+[data-theme="light"] .fuel-row.fuel-revenue b{color:#16a34a}
+
+/* Fuel explain details/summary */
+.fuel-explain{font-size:12px;color:var(--muted)}
+.fuel-explain summary{cursor:pointer;padding:6px 0;user-select:none;color:var(--accent);font-weight:500}
+.fuel-explain summary:hover{color:var(--text)}
+.fuel-explain[open] summary{color:var(--text);margin-bottom:6px}
+.explain-body{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px 14px;line-height:1.65}
+[data-theme="light"] .explain-body{background:#fff}
+.explain-body p{margin:0}
+.explain-body ul{margin:6px 0 0;padding-left:20px}
+.explain-body li{margin:4px 0}
+.explain-body .formula{background:var(--bg);border:1px solid var(--border);border-radius:6px;
+  padding:8px 10px;margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:11px;
+  line-height:1.8;color:var(--text)}
+
+.loc-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s;margin-bottom:6px}
+.loc-item:hover{border-color:var(--accent)}
+.loc-item.start-item{border-color:var(--accent2)}
+
+.loc-num{width:28px;height:28px;border-radius:50%;background:var(--accent);color:white;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'JetBrains Mono',monospace}
+.start-item .loc-num{background:var(--accent2)}
+
+.loc-info{flex:1;min-width:0}
+.loc-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.loc-coords{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.loc-dist{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--accent2);white-space:nowrap;flex-shrink:0}
+
+.delete-btn{width:22px;height:22px;border-radius:4px;border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.delete-btn:hover{background:#dc2626;color:white}
+
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px}
+.stat-value{font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--accent)}
+.stat-label{font-size:11px;color:var(--muted);margin-top:2px}
+
+#map-container{flex:1;position:relative}
+#map{height:100%;width:100%}
+.map-overlay{position:absolute;top:16px;right:16px;z-index:1000;display:flex;flex-direction:column;gap:8px}
+.map-btn{background:var(--panel);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.15s}
+.map-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+.empty-state{text-align:center;padding:32px 20px;color:var(--muted)}
+.empty-state .icon{font-size:36px;margin-bottom:10px}
+.empty-state p{font-size:13px;line-height:1.6}
+
+.divider{border:none;border-top:1px solid var(--border)}
+.row{display:flex;gap:8px}
+.error-msg{font-size:12px;color:#f87171;padding:8px 12px;background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.3);border-radius:6px}
+.success-msg{font-size:12px;color:#34d399;padding:8px 12px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:6px}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.checkbox-row{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer}
+.checkbox-row input{accent-color:var(--accent);width:15px;height:15px;cursor:pointer}
+
+/* Leaflet popup theming */
+.leaflet-popup-content-wrapper{background:var(--popup-bg) !important;color:var(--popup-text) !important;border-radius:8px !important}
+.leaflet-popup-tip{background:var(--popup-bg) !important}
+.leaflet-popup-content{color:var(--popup-text) !important;margin:10px 14px !important;font-family:'Outfit',sans-serif !important}
+.leaflet-popup-close-button{color:var(--muted) !important}
+.leaflet-container{background:var(--bg) !important}
+.leaflet-control-zoom a{background:var(--panel) !important;color:var(--text) !important;border-color:var(--border) !important}
+.leaflet-control-attribution{background:var(--panel) !important;color:var(--muted) !important}
+.leaflet-control-attribution a{color:var(--accent) !important}
+
+/* Theme toggle button */
+.theme-btn{background:transparent;border:1px solid var(--border);color:var(--text);width:34px;height:34px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;padding:0}
+.theme-btn:hover{border-color:var(--accent);color:var(--accent)}
+.theme-btn svg{width:16px;height:16px}
+.icon-light-hide{display:block}
+.icon-light-show{display:none}
+[data-theme="light"] .icon-light-hide{display:none}
+[data-theme="light"] .icon-light-show{display:block}
+
+/* Warning styles for over-distance legs */
+.loc-item.warn-item{border-color:#ef4444 !important;background:rgba(239,68,68,0.08)}
+.loc-item.warn-item .loc-dist{color:#ef4444;font-weight:700}
+.move-input{width:44px;height:32px;background:var(--panel);border:1px solid var(--border);border-radius:6px;color:var(--text);text-align:center;font-family:"JetBrains Mono",monospace;font-size:13px;font-weight:600;flex-shrink:0;padding:0 4px;outline:none;transition:border-color 0.15s;-moz-appearance:textfield}
+.move-input:focus{border-color:var(--accent);background:var(--bg)}
+.move-input:hover{border-color:var(--accent)}
+.move-input::-webkit-outer-spin-button,.move-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+
+/* Geocoding results */
+.geocode-result{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:6px;cursor:pointer;transition:border-color 0.15s}
+.geocode-result:hover{border-color:var(--accent)}
+
+/* Permanent marker labels */
+.stop-label{background:rgba(17,24,39,0.92) !important;color:#f1f5f9 !important;border:1px solid #3b82f6 !important;border-radius:4px !important;padding:3px 9px !important;font-family:"Outfit",sans-serif !important;font-size:11px !important;font-weight:600 !important;box-shadow:0 2px 8px rgba(0,0,0,0.5) !important;white-space:nowrap;margin-bottom:4px !important}
+.stop-label::before{display:none !important}
+.leaflet-tooltip-top.stop-label::before{display:none !important}
+[data-theme="light"] .stop-label{background:rgba(255,255,255,0.97) !important;color:#0f172a !important;border-color:#2563eb !important;box-shadow:0 2px 8px rgba(0,0,0,0.18) !important}
+.stop-label.warn{background:#ef4444 !important;color:#fff !important;border-color:#dc2626 !important;box-shadow:0 2px 10px rgba(239,68,68,0.5) !important}
+[data-theme="light"] .stop-label.warn{background:#ef4444 !important;color:#fff !important;border-color:#b91c1c !important}
+
+/* Print view */
+.print-page{padding:24px;font-family:"Outfit","Noto Sans Thai",sans-serif;color:#111}
+.print-header h1{font-size:22px;font-weight:700;margin-bottom:8px;color:#111}
+.print-meta{display:flex;flex-wrap:wrap;gap:16px;font-size:12px;color:#555;padding-bottom:12px;border-bottom:2px solid #111;margin-bottom:16px}
+.print-table{width:100%;border-collapse:collapse;font-size:12px}
+.print-table th{background:#f3f4f6;border:1px solid #d1d5db;padding:8px;text-align:left;font-weight:600}
+.print-table td{border:1px solid #d1d5db;padding:8px;vertical-align:top}
+.print-footer{margin-top:20px;padding-top:10px;border-top:1px solid #ddd;font-size:10px;color:#888;text-align:center}
+
+@media print {
+  body * { visibility: hidden; }
+  #print-overlay, #print-overlay * { visibility: visible; }
+  #print-overlay { position: absolute !important; inset: 0; background: white !important; padding: 0 !important; }
+  #print-overlay > div { box-shadow: none !important; max-width: none !important; max-height: none !important; }
+  .no-print { display: none !important; }
+  .print-page { padding: 20px; }
+  @page { size: A4; margin: 12mm; }
+}
+.warn-banner{background:rgba(239,68,68,0.12);border:1px solid #ef4444;color:#ef4444;font-size:12px;font-weight:600;padding:10px 12px;border-radius:8px;display:flex;align-items:center;gap:8px;margin-bottom:10px}
+[data-theme="light"] .warn-banner{background:rgba(239,68,68,0.08);color:#b91c1c}
+.warn-icon{font-size:14px}
+.input-row{display:flex;gap:8px;align-items:stretch}
+.input-row .input-field{flex:1}
+.unit-suffix{display:flex;align-items:center;padding:0 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);font-family:"JetBrains Mono",monospace}
+
+/* ============ GOOGLE LOGIN SCREEN ============ */
+#loginScreen{
+  position:fixed;inset:0;z-index:100000;
+  background:linear-gradient(135deg,#0a0e1a 0%,#1a2f5e 60%,#243b73 100%);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  font-family:'Outfit','Noto Sans Thai',sans-serif;
+  overflow-y:auto
+}
+#loginScreen::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(circle at 20% 20%,rgba(245,158,11,0.15),transparent 40%),
+    radial-gradient(circle at 80% 80%,rgba(59,130,246,0.12),transparent 40%)
+}
+#loginCard{
+  position:relative;background:rgba(255,255,255,0.06);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(245,158,11,0.25);border-radius:20px;
+  padding:36px 30px;max-width:400px;width:100%;text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,0.5)
+}
+#loginCard .logo-wrap{
+  width:80px;height:80px;margin:0 auto 18px;border-radius:50%;
+  background:#fff;padding:6px;box-shadow:0 8px 24px rgba(245,158,11,0.3);
+  display:flex;align-items:center;justify-content:center
+}
+#loginCard .logo-wrap img{width:100%;height:100%;object-fit:contain;border-radius:50%}
+#loginCard .brand{color:#f59e0b;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+#loginCard h2{color:#fff;font-size:24px;font-weight:700;margin-bottom:8px;letter-spacing:-0.5px}
+#loginCard .tagline{color:rgba(255,255,255,0.7);font-size:13px;margin-bottom:26px;line-height:1.6}
+#loginCard .g-wrap{display:flex;justify-content:center;min-height:44px}
+#loginCard .divider{height:1px;background:rgba(245,158,11,0.2);margin:22px 0 16px}
+#loginCard .foot{color:rgba(255,255,255,0.5);font-size:11px;line-height:1.6}
+#loginCard .foot b{color:#f59e0b}
+#loginSpinner{
+  display:none;margin:16px auto 0;width:36px;height:36px;
+  border:3px solid rgba(245,158,11,0.2);border-top-color:#f59e0b;
+  border-radius:50%;animation:login-spin 0.8s linear infinite
+}
+#loginStatus{display:none;color:rgba(255,255,255,0.8);font-size:13px;margin-top:12px}
+#loginError{
+  display:none;background:rgba(239,68,68,0.15);
+  border:1px solid rgba(239,68,68,0.4);color:#fca5a5;
+  padding:10px 14px;border-radius:8px;font-size:12.5px;
+  margin-top:16px;line-height:1.5;text-align:left
+}
+@keyframes login-spin{to{transform:rotate(360deg)}}
+
+/* User badge + logout in header */
+.user-badge{
+  display:flex;align-items:center;gap:8px;padding:4px 4px 4px 4px;
+  background:var(--bg);border:1px solid var(--border);border-radius:999px;
+  font-size:12px;color:var(--text);margin-right:4px
+}
+.user-badge .avatar{
+  width:26px;height:26px;border-radius:50%;
+  background:linear-gradient(135deg,#3b82f6,#f59e0b);
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:11px;flex-shrink:0
+}
+.user-badge .info{display:flex;flex-direction:column;gap:0;padding-right:10px;line-height:1.2;min-width:0}
+.user-badge .name{font-weight:600;font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.user-badge .sub{color:var(--muted);font-size:10px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.logout-btn{
+  background:transparent;border:1px solid var(--border);color:var(--muted);
+  padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;
+  font-family:inherit;transition:all 0.15s;margin-right:4px
+}
+.logout-btn:hover{border-color:#ef4444;color:#ef4444;background:rgba(239,68,68,0.08)}
+@media (max-width:640px){
+  .user-badge .info{display:none}
+  .user-badge{padding:4px}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ GOOGLE LOGIN SCREEN ============ -->
+<div id="loginScreen">
+  <div id="loginCard">
+    <div class="logo-wrap">
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAKMGlDQ1BJQ0MgUHJvZmlsZQAAeJydlndUVNcWh8+9d3qhzTAUKUPvvQ0gvTep0kRhmBlgKAMOMzSxIaICEUVEBBVBgiIGjIYisSKKhYBgwR6QIKDEYBRRUXkzslZ05eW9l5ffH2d9a5+99z1n733WugCQvP25vHRYCoA0noAf4uVKj4yKpmP7AQzwAAPMAGCyMjMCQj3DgEg+Hm70TJET+CIIgDd3xCsAN428g+h08P9JmpXBF4jSBInYgs3JZIm4UMSp2YIMsX1GxNT4FDHDKDHzRQcUsbyYExfZ8LPPIjuLmZ3GY4tYfOYMdhpbzD0i3pol5IgY8RdxURaXky3iWyLWTBWmcUX8VhybxmFmAoAiie0CDitJxKYiJvHDQtxEvBQAHCnxK47/igWcHIH4Um7pGbl8bmKSgK7L0qOb2doy6N6c7FSOQGAUxGSlMPlsult6WgaTlwvA4p0/S0ZcW7qoyNZmttbWRubGZl8V6r9u/k2Je7tIr4I/9wyi9X2x/ZVfej0AjFlRbXZ8scXvBaBjMwDy97/YNA8CICnqW/vAV/ehieclSSDIsDMxyc7ONuZyWMbigv6h/+nwN/TV94zF6f4oD92dk8AUpgro4rqx0lPThXx6ZgaTxaEb/XmI/3HgX5/DMISTwOFzeKKIcNGUcXmJonbz2FwBN51H5/L+UxP/YdiftDjXIlEaPgFqrDGQGqAC5Nc+gKIQARJzQLQD/dE3f3w4EL+8CNWJxbn/LOjfs8Jl4iWTm/g5zi0kjM4S8rMW98TPEqABAUgCKlAAKkAD6AIjYA5sgD1wBh7AFwSCMBAFVgEWSAJpgA+yQT7YCIpACdgBdoNqUAsaQBNoASdABzgNLoDL4Dq4AW6DB2AEjIPnYAa8AfMQBGEhMkSBFCBVSAsygMwhBuQIeUD+UAgUBcVBiRAPEkL50CaoBCqHqqE6qAn6HjoFXYCuQoPQPWgUmoJ+h97DCEyCqbAyrA2bwAzYBfaDw+CVcCK8Gs6DC+HtcBVcDx+D2+EL8HX4NjwCP4dnEYAQERqihhghDMQNCUSikQSEj6xDipFKpB5pQbqQXuQmMoJMI+9QGBQFRUcZoexR3qjlKBZqNWodqhRVjTqCakf1oG6iRlEzqE9oMloJbYC2Q/ugI9GJ6Gx0EboS3YhuQ19C30aPo99gMBgaRgdjg/HGRGGSMWswpZj9mFbMecwgZgwzi8ViFbAGWAdsIJaJFWCLsHuxx7DnsEPYcexbHBGnijPHeeKicTxcAa4SdxR3FjeEm8DN46XwWng7fCCejc/Fl+Eb8F34Afw4fp4gTdAhOBDCCMmEjYQqQgvhEuEh4RWRSFQn2hKDiVziBmIV8TjxCnGU+I4kQ9InuZFiSELSdtJh0nnSPdIrMpmsTXYmR5MF5O3kJvJF8mPyWwmKhLGEjwRbYr1EjUS7xJDEC0m8pJaki+QqyTzJSsmTkgOS01J4KW0pNymm1DqpGqlTUsNSs9IUaTPpQOk06VLpo9JXpSdlsDLaMh4ybJlCmUMyF2XGKAhFg+JGYVE2URoolyjjVAxVh+pDTaaWUL+j9lNnZGVkLWXDZXNka2TPyI7QEJo2zYeWSiujnaDdob2XU5ZzkePIbZNrkRuSm5NfIu8sz5Evlm+Vvy3/XoGu4KGQorBToUPhkSJKUV8xWDFb8YDiJcXpJdQl9ktYS4qXnFhyXwlW0lcKUVqjdEipT2lWWUXZSzlDea/yReVpFZqKs0qySoXKWZUpVYqqoypXtUL1nOozuizdhZ5Kr6L30GfUlNS81YRqdWr9avPqOurL1QvUW9UfaRA0GBoJGhUa3RozmqqaAZr5ms2a97XwWgytJK09Wr1ac9o62hHaW7Q7tCd15HV8dPJ0mnUe6pJ1nXRX69br3tLD6DH0UvT2693Qh/Wt9JP0a/QHDGADawOuwX6DQUO0oa0hz7DecNiIZORilGXUbDRqTDP2Ny4w7jB+YaJpEm2y06TX5JOplWmqaYPpAzMZM1+zArMus9/N9c1Z5jXmtyzIFp4W6y06LV5aGlhyLA9Y3rWiWAVYbbHqtvpobWPNt26xnrLRtImz2WczzKAyghiljCu2aFtX2/W2p23f2VnbCexO2P1mb2SfYn/UfnKpzlLO0oalYw7qDkyHOocRR7pjnONBxxEnNSemU73TE2cNZ7Zzo/OEi55Lsssxlxeupq581zbXOTc7t7Vu590Rdy/3Yvd+DxmP5R7VHo891T0TPZs9Z7ysvNZ4nfdGe/t57/Qe9lH2Yfk0+cz42viu9e3xI/mF+lX7PfHX9+f7dwXAAb4BuwIeLtNaxlvWEQgCfQJ3BT4K0glaHfRjMCY4KLgm+GmIWUh+SG8oJTQ29GjomzDXsLKwB8t1lwuXd4dLhseEN4XPRbhHlEeMRJpEro28HqUYxY3qjMZGh0c3Rs+u8Fixe8V4jFVMUcydlTorc1ZeXaW4KnXVmVjJWGbsyTh0XETc0bgPzEBmPXM23id+X/wMy421h/Wc7cyuYE9xHDjlnIkEh4TyhMlEh8RdiVNJTkmVSdNcN24192Wyd3Jt8lxKYMrhlIXUiNTWNFxaXNopngwvhdeTrpKekz6YYZBRlDGy2m717tUzfD9+YyaUuTKzU0AV/Uz1CXWFm4WjWY5ZNVlvs8OzT+ZI5/By+nL1c7flTuR55n27BrWGtaY7Xy1/Y/7oWpe1deugdfHrutdrrC9cP77Ba8ORjYSNKRt/KjAtKC94vSliU1ehcuGGwrHNXpubiySK+EXDW+y31G5FbeVu7d9msW3vtk/F7OJrJaYllSUfSlml174x+6bqm4XtCdv7y6zLDuzA7ODtuLPTaeeRcunyvPKxXQG72ivoFcUVr3fH7r5aaVlZu4ewR7hnpMq/qnOv5t4dez9UJ1XfrnGtad2ntG/bvrn97P1DB5wPtNQq15bUvj/IPXi3zquuvV67vvIQ5lDWoacN4Q293zK+bWpUbCxp/HiYd3jkSMiRniabpqajSkfLmuFmYfPUsZhjN75z/66zxailrpXWWnIcHBcef/Z93Pd3Tvid6D7JONnyg9YP+9oobcXtUHtu+0xHUsdIZ1Tn4CnfU91d9l1tPxr/ePi02umaM7Jnys4SzhaeXTiXd272fMb56QuJF8a6Y7sfXIy8eKsnuKf/kt+lK5c9L1/sdek9d8XhyumrdldPXWNc67hufb29z6qv7Sern9r6rfvbB2wGOm/Y3ugaXDp4dshp6MJN95uXb/ncun572e3BO8vv3B2OGR65y747eS/13sv7WffnH2x4iH5Y/EjqUeVjpcf1P+v93DpiPXJm1H2070nokwdjrLHnv2T+8mG88Cn5aeWE6kTTpPnk6SnPqRvPVjwbf57xfH666FfpX/e90H3xw2/Ov/XNRM6Mv+S/XPi99JXCq8OvLV93zwbNPn6T9mZ+rvitwtsj7xjvet9HvJ+Yz/6A/VD1Ue9j1ye/Tw8X0hYW/gUDmPP8uaxzGQAAOj9JREFUeNrdXXW8lVXWfvZ74nZ3F92NCBIigoooKjY6xjh2YOvn2DXq2IGFWAgGiJSKdFwaLnUTbueJezreeL4/zrmHeyl1HMdx9u93uIfz1t4rnrX22muvV+C/oJEUACQAQgihHO+cTZs2RYwaNTABiEwAEAcgEoAheFgG4AFgB2BtbGy0ZGVluU/wLH3wqyqE4B89dvFfQHQIIdQux9zuXERE9AMwEEBfAIUAMgDE2xVE+VUYhAB8KqBpGowSIEkS9FSV2HCdSwLaATQDOAzgAIA9APYKIQ4f1Qdd8Kv2RzFD/EGE13WW9F2HD8cPys8fDeBMAGMB9DKrCC9vdGBPeTVKyqpQWVOH1rY2OO12+Hw+6PU6qhTQVBVQZQidXgiqCA8zIjEuDoU5mRjQswhD+/ZAn9w0ZCREyRJQCmADgB8aGxs3ZGVlmY7SDE0Iof1PMoBkB8SoAPDoggXGx2bMOAPAJQAmuYGMTeVtWL5uC4p37IKpqVGNMZDd0+LRryBD9M7PFjkZKSI1MQGRERFCp9cjzGiEkCTIigLZ74PPr8Dcbmd9q4kHqmqxu7xa21/ThBaTRUTHJuiG9++FqRNPwxkjByIlPqYNwE8A5n/33Xc/TJs2zd1JK/ifYoT4T0FNB+FNJlN2UlLSVQBmqkCvHw404dNvv8eu7du0RIOqndavUDpjeH8xZEBfkZCWCU3So9kP1FoVHGq1ocZkQ7PVCVKD1emFx+tBBGVExyciSviRFRuB/ORodE9PQF5SNGIiDPC5XCgpreD364u5dN02raqmTvTu0UN31UXnYsbZpyM2MvwQgM9sNttH8fHxhzox4neHJvE7E1/XQfj29vaiuLi42wBc3eBD/BtffI/FS5dpSTo/p48eIE2fdJrI79kHbkjY16pgU1k9NpSU4UB5FQ5VVcHX2gTY2wGvE1D8AetBFVBVgACEHtAIqASEBERGAQmxKMjPxYgeOZg0ciAmDOuPwtx0tFusWPj9Ks5ZsEQrq2kQZ4wdLd1/yzUY0D3fCeBznw+vhIeLg0eP4U/DgCDcUAjByqam1KL09HsB/K3UqsY89uZH2LF5ozKpX45088VnS/2GjoANAmvK2rGsuARrN21F5f49UFtqYKAXOYlR6JGTjqKcTOTlZCEjNRUJCXGIjoqCwWgMWFBNg8vlgt3hRJvZgrrGFlTVNaCsphHltU3wtloBnwzEJyC3RwGmTxqLK887E8MG9kVTYxNe/fBz7ZNvVmgFBfn6Zx64DWOHD/QC+KChoeH57Ozsuo4x/aftw79KfH2n7zeSbDzsJGc88R67TZkpP/7ci5q1sYYkuanJxzvmbWaPa58mBk6lrmAY+4+ZxFvuvJtffDGfBw/so9vp4L/aVNnP+ro6rvxpNZ/6x8s8/YIrGJY/iDBkEpH5zD/1HD77xge0WCzUZB/feG+uljtkojzq/Gu5dX8lSZpIzgJm6I4e238j4UVQ8mGxWPqTXOUhecfsxcw7c6b8yFPPa47WRqokv95v4nkvfM2oCdcQeUM56LQz+cTTz3LH9u1UZP8xhNQ0jYqiUtU6/XYcgmvBj6KqVBTluEypqa7mR599wamXX0cpux8hpRO5Q3jNPY+zqqaO1GS++vYHWuqgSfL0Wx5hi8NLkptdLteIDk0I2rX/KuLrjnxXbiPp+nZPHfOn3ShfcfPdWtPhcpLkV/vaeOaTn9Ew7HxGFw7mlddcz9WrfqKqyF2IpKgqNY00NRxk46HtQSao9HnaaW7YT7u5lh6Hmc3VO2luPMjW2t1sb6uhs72BrvYmauqxxFdUjaqqdvmtrKyMjz37InOHjCPCson0AZx5z1OsbzHR73bw1vsf0+KGTpPfXLSWJP0kHzzemP9QG0BSL4RQtldVxQ0tLHwXwMVXv/g5Nq5YrL59z1W6SVPOxtpaF95YtBrfff4xwlrLcc30M3HzDdeiR89eHXeBqmrQ6QJjUmUPFMWPip1LEJ/WE9ndhgEA9qz7CNbmSoRHRCE8OhU+jx0UOsSn5MNla4LdVIuYxGxExSRAU7wwRqUgLjETkXFpiIhOgk4fBgLQVBVCAJIUeF671Yp5X3+Ll9//DBUllUBhD9z/t5l46pbLUVqyB9PvfkHN7jdYWvbqvSICWLb3UMu1A4rSWzrG/ocxoKMDJpO9T1JSzIIqB/tO/dv9yoAYv27ucw8JR1QqXly6Cx/N+QiWnasw86wxeODeO9GjR08AgM10GAZjFCJjUwOEaK0EKVB9YA08tgYomkBKdj/0HjEdAFB9cCMCLg/RVrsHPYdfCAgBSZJgaTkMr9uOsPAo2M01sJmqEJNYAJ3QYIxKRFhYBCKiYpGQ3hN6YxSEkAAAiqJArw9Au91uw7sffYbn3/kYpmY3ssdPwvt/vxmTB2Tjxodf5Je76tVls5/Rj8xLOGyyuS9JiY/a9u9gwm8ytg6HYyJJ8zc7q5k04XL59bfeIUn+WNXO8Y9+QhSO4shxk7h27dqQ6vv9PpJk1Z5lLN++kHWlq/nTZ/dx2w9vsXz7t9yz/jOW7VjC1oZympqrj4v6zXUHqBwFXSG4URSqauBvU/Uuetw21h1cybXzbmXplnmB6w8V09pSFbpGlo/cq6amhtfdcheR2pcYNpO3fbSKJLngm0WMPG2mPPunEpJ0ulze8/8Q49zxQNnrvZCk/9lvNjJtzHRl49pAR19aXcGsGffTmNmLTzz1TIjgJEN473W20m6uZe2BVdyz5n1uXPg429uquHHJy6zY82NXb0bTqKgaZUWhEvx0Ohr4Vw38LisKFVU9Bu+9HgcbqrayraGU7vZa7l79Fit3L+HeDXPptLWFjH1nRixa/B3zB48lis7i0Ic+ZpPdy8rS/Uyf8lfl7rkrO5h97X+UCR0PouK7jKR26+zFWreJF6n1VaW0yOSNn26ifuj57DHoFK5bv/6IhPm9rDvwA9tqd7B+/xIe2PAhtyy8hwc2fczWun0h+fb7ffR6XEc8GU09rpSbnB7e9ckanvvIbDbZPSd0RRVFoSzLXfTHYall9YE1bGs4yF1r5vDwvh9Ysv5Tyn5vkJlHvKjGpiZecNnVRO5pTLvxbW48ZKLb0sr+l9+jznxtYbBzyo3/KhPEv4L59HovRFjYl1e89AXL1i7FujkvSE36ZNw953t8+9rTOHdILj5853UkJ6dA1TTopADelqx5C3pjDFqr1qD7yKsRnZiDyLhsGAyG0IRKSNIxnWpyayhvdaC0wYyDda2oabXCbLHiQEUVYsIM0PxepKenISMhBgVJUeibk4L++enolZeJuOjI0H00TYOmaSHMdzvMsFsa4HGY4HaYER4RDoowFPafGDLQHe3JZ5/H32cvQuSEy/H5rAtxXq94TLj5Kab1HqZ9MesCHVT1OqHXf/hrbYL4Na6mEEKVPZ4J+vDw7697Y6Fuzw/fYPv8N6WdNgNmvbsIa99+BrdfPgUvv/AcJEkHVZEBKtA0BZpGeFxWNJSuRGrecCRm9g15PZqmQQgBIQLd8RDY2+jE6pJDWLV9L/YfOIiGqnLAbgboR3SYHvERBtRXVwMeF9ILC+GDHlanB3B6ABWAXo/InGyM6tcDZ48egrPHj0KvovzQeLoYX2sT3A4TrM0VEJIRvYZNhex1wu1oQ0xSHghCJ+nw2bz5uPbJt2AcNg0v/fVc3HBaEabe/xrze/bX3rj2DJ2iKNMNBsOiX8ME8QuJLwkhtDa7vVdyTMzmhz9fFf/lB29r+xa+I+20h+GW1+Zj59wX8fSsa/HQ/fcGHUugfMdiGMJi0FS5AQkZfdFn5AVQZD/0hiMhBCAQyweAw3YF324pxfzlq7BnWzEUcz2KkqIwtFcBhvXvjT49uiEnOxtJSYmIiIzCitXrYbFYcMn5UyEJgXZbO1raTDhUXYvdB8uxedd+bN1XDk+TCYiOwamjh+Nvl1+Ai86egMiIyGMY0Vy7DzEJmfA5WnBg27dIyx+K7gMnBVxjVYNOJ2HlmnWYftPD0I88H+/cdhEuGZSBsfe8pZ094VQ8MG2Ez+aWx8VHGbf922JIHTPc4vLyWJIH524qY8Ip0xRT/SHubfVy4H1ziJQe/Ocrr4UmUT53O2WfkzWlm7jm62dZsn4uLS2VVGTfkZltp2ltqdnHuz5ezfSptzCi7ziOP3cGX3ntdZbs3kXZ6+FvaW2tLVz+w4+86d6Hmdx/DBGRy9QhZ/Cf739Ot9cb6nNno11zcA23rZzNhkO76LA2Uva5KPvclIN2YcPmYsYNOZPdZn3IHw800utycvAdr6tfb6skydomB1M7Rwb+PUaX/LKkzUPDyIvk3Vs3scGlccSj84m0vnz2hZdCrpymady9dg7Xfv0kd639jMs/uZ8Om6lLWKFjsCYf+fCCjUyadB3TBo3nPQ88zL27dx1nFquGvB9VValpWjA8Efit4/9qkJBHfu96H7utnfO/XsRTp15CxBYxa+xFXPBT8RFHQVFITaMs+6goMqv3fc896z9hyYYvWLlnBRXZR38wVLJ68zZGjv8Lh/59PkvqzaxpaGbP29+Wy1odJLkSgCCp/01hi47pNslbVJKJ59wiz/loLhWS57z2A5EznLPue6CT7x0gbG35Vu7e8CVLdyyl3++npgWiNKqmhfz5xfua2P2Kh5g4YBwff/JptjY1dGISuxD7t7TOjOrcflq9hqPPvZRIH8pp97/KpnZXgAkhTdBobj7Eqr0reaB4Pg8fWB/SYH/QVf36h3U0nn0Xp76ynCaHm8u37ueI//u0w4/9+29yT4O4D6/X24uk5/SHZiszb7lHI8nrP99G9JrCiy6bSS0odaqqkNRYVbKSu1bPZV35Fvp93i6xGJJ0k7ztg+9pHDSFV//tFtZVHzpqAqXy92odzOjM0y++/IopA09n3Jm3cMXe2k6xqGB/nVauX/gEl390O70ex5H5QpChL89bwqhLn+Kd8zaR1Pjo/LXa9e+vVEiqfnLEvxw3Cl4kSK6fveYAs06brtDr4Htb6ohxN7Lf8DGBMG7Qb+6QGq/bwbqKbbS01XXC+8DxarvKkbe+wOzhZ3DJ4m+7EP63SvqvbZ0ZYTG18qqb7yYGz+A/v99zxC4E5yA2SyOrSzcH+tipn7ISOP7X175k+i3v8fUfdpMkJz7ztfLV9kMkWbJg3z4jSd2vgqJO0PPXdo3Un3q5vH3TepZaZcZd/RKjcvpw67ZtwYGcXGI7iL+t3s6MqTfznEuuYlsQbo43Y/1Pt87Q9NEnn9Iw8mLeP2/9MZpwIo1SNY0Ot4ejH/yAI55cyK0VDaxrs3LMk1/KrsDQHvhVWtBhvevr65NItp719w/U6+96UCXJU55ZTGQO4UuvvHpM57t2TCU7eTrrqsyMHX8l73v4kZANONG1f0TrWG8gye3btjJtyl9518erQtDZYeSPu+gTHOOOqgbm3f0Jz39tOd0eD9/4YZd268drVJION5nzi72iTtL/4qYaKyOHnyf72lv58toqov8Mnn72NMqy/LPS0UH84horo8dezldeez0Y1+EfLvUnarIcEIra6mr2vPRePvn1xi5j+bmxvrS4mBl3zuXTi4pJKjznxW/lksZ2kpzzi7SgY7WHbncuSVefax5XX3njLa1dJhOuepGR2X25Y8eOULzkhEuBQW+nyuJhyuTr+fpbb4cw8z+N9b+aCR0xoMYGDrr+CX60dt/PMkHTAmN2e7285I3l7P3wfB6oaeKaA7XaJW8sU0nKJPv+rBZ0kv7XVhxoYtKo82TKbt48byuRdRrvvPf+n8V9LSjhLoXsPfMhPv3CP7v42H+G1jG+w/VNHHH329xc0dhJsHhSKNpYWsseD87nzLdXkNR46Zsr5A2VrST52Um1oIMzdDrTSdp7z3xYm/3eB1qjQ6Z+4m1M7TWMDfX1XSZSJ+v85c/O5V/uuD9EfO1PQvyjnYctB6s5+akvaHG4GXCCtJNqvqaqfHDBJqbe9iHX7a3k1som7cJXvtNI+kh260xrdORmdvkeFXXthormmNbyPeoNV18mnvh6I5S9m3HLzAuRmZUFTWModnN0U7VAvOSz9ftQsX0D3n3uEagaoZOkUKDtz9J0kgRF1TCiVx6uGN0TzywqhhCBGNdJg2uShKtP7Y68pBi8uHw3hhelC0VV1OKqViOAm45D95DnI/YFfNbKKXc9z8f/8bJq9cgMP+NWJvcazoaGk0t/x7FWp4/9L7mD+/eW/Kyt+HNoQkDiH/hsDZfvrPxZKOrQkke+2cq4a17ltgOVXLitUrvslYUk2dJGxnTKGAxxQhJCsG/fvqe3uOSijRs3ardddbH03vJieHesw8zzzkRmZhbIE0u/Fjz21Idf4+px/dGnX3+oqnrC8/8sTRIACdwzdRiW7zkMh9sLAQGeQBUIQgiBi4bmIzUpDi8s3oJzBheIiiaL2ubwpiYDU4NooDtWFYArPl26hiOK0rWEtEy8+cViGCI0/OWyGSBPrHwaCUkIlNabUFO2D3dcdwVUTfvTEz+YOg+NRFJsFM7sn4dvt5UHoOgE9JCEAAH0zkzA2D55WLqzAi6HHRP6F+GzNbsI4MrgtQQAiaQQQqgmkykWwORPv1okbpxxtm5HeS1q1q7C2FP6o/+AAV3i9scx4BBCYM43S3HTBZOgN4ZDBDv/v9B0UoAJUwYXocHigNXhgiSdWAs0jTDo9ZjcPw+yomHeslW4fGx/afHmvQLQxpFMF0KoJCWpQxWSkpLGVLfZU2qrD2tTJ40Xc5euARwWXHLOmQEp0LQTEl8nSahrs0Jx2zF5wtgQHP2vNZ0kYUzvXKzbXxMa+/G1JvD31G5p6FmQg0/W78egnEThUKAebrZGATijQ2E6U2nKsnXFHFSYqYVHx+GrZT8iPCUWkyaMC6niibgNAKuLd+Ls0UMDmcnk/xzxJRGQ+BHds9Bqc8Evy5AkcVIYyowLx/C+PbCttBatzU0Y0SOXy7fsI4CzOuRXQmAFVQAYu3TlGjF90liporYBTbv3YNSQvsjPzzup8ZUkAVnVYHc6MWb4YPAkUPVnbyRh0EkoTE9AeX1ryP6dSDCFkDC6ZxYUv4pVm7ZhyvA+0ootewSA0fv20SiEUCUhBElmu7z+3iUHSjHltFPEjxu3Q1hNmDR6BCCkk8KPEAK1zW3omZuBsPAIUCP+V5sISvzAggy0tjt/0TVD81MQmZaBZWs3Y0S3TOmwyUmnw5Hbty+6d/aC+te2mI2UfWpRUaH4fv0WMMKIU4cPwZGpB4/5dBzx+/0Y0KOoC/4dz0E78e+/5PNrz/1Xn3/i4yJ4PDk2ConR4VAUBVJowDwGhgCgKCkS3bt3x7o9ZUgwAnq9Ua1psQgAgzszYNDeyhrkZ6VR6PTYsmsPojNS0LtnDwACkk4XRKmuH0kIUFPRPTsdacmJJ7UVJ07AEL/w82vP/deef6xhPf69+xdmHwW14hhDTALRYXrkZ6WjpsUOa1szuuVmYHdVPQAM6syAvttKDmBIr25ot9nRUlOPPkW5SElJgey1QfNZAfihyi6oPgs0nxmazwJN9UNIOugNhk76cHwpk33HU1kNmuyA5rdC81kAeqCpXqg+W+gZqt8Oxe8EQGiyM3iuGdDcoOqD6rd3PddnP/YpqgxF9hxXUmWPGZriATU/qHggRFcmyB5LoI+yHYrHHDqm0+lCDKCmQvG5jtGiDvswuCgT0AyoKC/H0D7dxI7yagDoAwAdC8aFe0vLccWkU0RpdT1gtaJvtwIISYKptR4NexdANm1FcmoGlLAi+LQIGCUvhGM3TGYFWSPuQGG/cSC1UNZx0EgAQsBnq0Hp6qfQ/7z3IQmCmgYh6VCy8lXQsQv6+H5QND3s9cVIigP00fnwShnQS4TOU4bIzHFod6hQGpcgPGUwZITDXr8NidFeGGNz4ZVyIISAwX8YIiILOSNmITzMAGoKhKSDqeJbWJvL0HP8w6Fnd9iwxuo9sOx9A+FGCRazCVLSeIw6/zFomgJJ0qGloQKt++ZAb4gEE8ei15ApCAsLDzIiYAOdLTtQs/NT9DvnNYBaCIcDQilQFG8EoEdJRTX6Dx0rXvvxBwDIW7CAOolkOID0xqYm9CrIE+XV9YCsoHtBLgAgI7cvMnpfhOULV0CWUhGXPxl5w29Ezoi7oEX1R/Hyhfj47+NRu28ZhJBATe1E/8B3a/WPsJR9DofpUFDNA0bd7bTDG3kKkvpch8JTbsX+klKUHaxEYsEZSOp5MXKG3wxD8qnwuGzwuJxwhw1AbM9rUDDyZtQ1WLB3+2YkFUxAXNEFyB1+MyKzp8DtsIDQdYEPc+kCWMq/gqIoEJ1hgxryep8OffJYHNizFxaTGevmPY768g2QJD1URUZ2t5GISD8dTlGEviPPR1hY2BGopRa4f+VimMvnw+OyAkIKaYkIwlJ+ShwQm4D9pWXISU0QLWYrNL83dcYMJEgAkuwud4LD4URWWrKorGsEdBJyszJDKhsdEwWDUUClEQaDQGxMOGKiI5A16FrYEY2e3ZLgM2+FqrGLDRBCB1BD6/5PoJcUtJUv7KL+4XGZSOs2DulpSYiJMsIYZoDMSOgNYYiONCAmKhyZfc6DzS4jLCIayYXjkZWZhphII2KiwkFhhCEsElEROsREhSGz1xR4lDhosiPotejgs9fCVrcG9DXDXLspKABqJwYRyYUTkV4wAPH6w4iK1uGH9/4Cr9sezA8l4pJzEB2bBL3ETvBECEkHTXbDXL4QOrrRVrEsxNjODkl6bDh0MVGoajIjJTocXlmBtd0WCyBFApBgsTmjVEVBQlysqGkyAXod0lKTQ50MIAkBKiABTQuob2xCGmJjwpDcbTxSup8Nj8sZmIiBgUEG1dNmboRPi4Ojeil8XjckXQD5kvNGICU9FyRDHwENJKEx8IzwqHjk9D0TcWm9kZHbG2TguCSIcCOhgwYGz5UkCfmDzuuC4ZaqJXC4BXw+P6yV3wRBQXQxnvS3w5hxBqKSe6IgizDVV2HdvDsgJF1gTkktiO2ik/IEpL+9bjVs7e3wqeGwHVoERdVCWtZxdly4HmE6FQ2mdoTrIKgqsDndRgBJEoAon6zoJUmHsDAjrC4PEGZEfGzMCTwGBrAVgOp3ID3WgrTMHLhd7iDxu3oF1sbdqG7Pwf6ydvjtlbDUrA9JYXbhQERFxYSw9HiBMJJIz+mF/J7DEBuXCATnHnodYNADHUnMoXNz+yI6Jj5AJMUJi6kVB+tjUVvvhKd5PZztTV1gAgBUxY/Y5EIUnjkHsVE65OdFYPePH6G0+PNAGEaVj9M3CaAKa3MZqtoyUF5lg8+8G+1Ne7rALABEhBkQrgNs7TZoigy6bfQrCgDESQCELMvQicBigtfjAQwGREVGniDOoYfRaASEgKN5K/oPH4vUglPg8BoRGRkZkBQGOui318Bmc6L/xFmw2xW0t7thO7yokxT+0knbsT66TgL0umAwRXSZHYYgxlK9DlJcX/Q65TI0NvrhsTXBUrU85IEdmWDpILtNiM8YgPRRjyIl2oOEJCNWfnQr3PY2GMNjOsEWAsQVAq7WPfCo0eg34WaY2mQ47Ta0Vy3q0KsjUGs0ICY2Dl5ZgSChM4ZTDUxYoyQA8MoK9OGREJIODpcb0InQJujOTVH8sNasQeX6F2CpWgpf+yHE9bkRZjkLWYWDgrERAQYHZzq8FojIwYBTzkFCRj4am5zwtGyC3VxzjBT+fBL3sX62JAX+imMiYQFNbKnehrjMoRhxxkzIlGC2eOCoWQJZUYPeWqfnS3qAGgpHP4j4wknITfXD57Ri1cc3gdAF7NlRrfXQeoQl9MSw8ZcgLCYOza1uuBp+gttlAzqdrxMCepcJTrcHqqrCIAFenw8ADIGeSjoIgxGgBikyNjAyascIoV5vQGz2WJjNFmz+7EoUL34Wu1e9i14DxiA6KiI0ICF0gOaHua0e6d0nQZIkDJp4E2pqfXC1t8JatfRnZqe/TCcCtuiouzCw18Bnq4KXMUjJLkR8WnfkD5iIqkPt8Jr3or1x5zEwEVQF6HQC3aa8h5iEFBTmGlC+7WsUf/sIwiJijhhfIUHzt8PmcCO98DQYwqLQd8yVOHTYBU97DayHfwqe2ik7XWcANRWapnbudAC0w8LCAmVfNBXR8UmAPuxY6QyKmV6vw7BpzyIysQj21jq0lK5GRfGcwIA0LTQoR9MOOFpLoZg3o618CbIyE5GSkQSbzQNHzTLIsv9YKfwVTdUARQ0wofMtOvrdWr4CqrsZtqoVaCtfgt4DBkNniIbLbkV71bcnDJtoqoyYxDzknf4WkmJkxMUY4GzZh9j4pMBjguOzVK+Bp70a3sYf0Vq+BIXdChATHw+73YX2w99CC8JwR59UnwfhRgOEEFBkGQZDYJudBABGQcgeJzQCRtkFeHzweP3Hi31CVbyQJGDA+bMRF29EWLiEbYsehMvedmT+DaCtphjhWWfA5gLa2hVoUd2Q0W04qmsd8LUfhLV+Wydvoqvh/UUMUAFZEeh6ecA1pOKC1dyIiIxxMLWrMDkEEgvPgCE6AQ1NLnia1sDlsEJI+q6TRgBC0oOagqx+FyF54I3IS5ExfsZDkAzRR7QbhKlhHyKzJsFsV2GyaQhLGYKEzG6oqXPAb9oJW0t5iMM+WYbT6URkmBGSTg9FUYRBrwMAlx6AyxgerkjRiXrZ70dyTiFgiIDD6QxxLzjpC8wOdeGQ/T4kZQ9Fwahb4Fv1MsymFhR/PQsTr/kEpAbF3Yx2mxM9xt+B6IgjnpHLXI8961fA3NqCmMoFSC0YfWQllRoICYrihxC6gNnl8YNjpAa/KsHt8UPVpECYjASogRCwNW6DGpaL/iPO6WIf9veYhAPrPkRu1n601/yIqH4XBw2qBMkQHtLejvlLt4kvov3wj/C0bkFMytiAgYeAz1IGl9+I/mMvgrGTaWgsvxA/fbId1tYaxFUtREL6/QAIj9cPp9uD7AgjNBIaIIL75mwSAGtCbLRbHxkDu8PJ9OREQNFgNltCEinBj4RYCTHxKVC8FhiNgdlgr4mPISYlC9l5yWjYuwhlW+YHwhfl3yIsOiVIfC00O+435lJExMZDC+8O08EvYG4qhZACBk4ICdFGJ1IzcqDKjhOmsghJDyEkhAk7ElNzoKleSKJjj5kOQgi0VSxFcvaggJ+lKSE3csjE6+CVddBHF+LwhmehKDKEkCD5G+G3lEAIKQAbQoAgjGFR6H7OHFgbdgCaP0SPtvJFiE0uChCfKjQtsB1s0ISrIfRGSNE90LjzLThsrQAErHY7vDYb0pMT4ZVVaoqCmKhIGYBZ99gNNyjhifHXf/TDlriJfXPgj0oW3363CmOGdseIIQNhbS6FqXo9croPQnzmYFTv+wEupxPRCZkIj4yDMTYHcalFKBh6GSp2rYAkAV5HA8xNh6FqGqIT8qDTGyD7nGir3orExDB0P/V6IDwPlSWrkJwzEIIqmirXISpSj7yB58PccBCNh3YhPCYZEdGJnbBawO+xoaV6C/RwIn/wxbBbGlBbuhHh0ckIj0pAc/mPsJmqYW6qgj4sCtHx2RCSDm57I2zNJcgpyEfByBvR3u5Ec205dJIKl7kMjYf2QNUkRCdkQW8wBsIqVBGVkA+/zwev14vEjH5oPbQO1pZSmJurIYQe0Yl50Ek6+NxWmOu2Iy0jCd1G3QivFo1D+zchu9twVDW04f13PsLY0UMwePBgLPp+lZh1zaXtOoPhBb3IynKTbM7IyMg91GzRuncfoENMIqrqGgJGSReDqOwzEB8RB1X2oOi0IfC5gvEWEnkDZ8BkagNJnFI0FV6nGYac05DQS4XfYwu6hAJCMgLhGeg27hEoshfpaaOR7HNC6CMBXRhEVD6yTnkIquxFSvJIJHjtoC6ia3APgNAF7pM+/D5QlWFMlRCV4wZ1AS3SxfZE1ogRUP2OgK8f3H0pdFGISB2OooLJkH1u9Jz0LPzuQEQ3rvtlGNrnL3DbW6FBF/I4AlBE5A6/BZa2+oDrG5WH1EG3I1n1Q5XdgXOFAHRh0MV2Q/fxp0D2u5F/6gi4XRZACkN1YyvgdKFnQS4aWs1MjIsWxojINgDmDit0qG+vHiN2Ha7nbeMnQMotRGllNQAgKSXrWBhOSetivJKTU478PzGp04npoW96QxgycnocdaOE0Les3J5HHUs9rvE1GCOQecx9jrS0zIKOjnT5PTI6HpHR8V2PJcR1OScxMfG4K+w6nR4p6fmBoafnHfe5YeFRnfqVGLxf4Hn7SisAVcaAXt1RUnaIPfJyAKBWCKF2iNeBwUWZ2FVei+QwgczsLOyrb4PP6wVIaJrWJV7TYRwZ7GCL1QGfXz7mnKON6PGP84THTjRRO9m5J76eJ7zu557X2b3t6HNDmwWKopy0X6oasH27D5QBEUb06FaIHfvLOKx/LyBQTjO0ILOnf0EWqu2ygOrHmCH90WBy4lBNTciV6thI3XlDdUenzA43DjWZA/GYo8492sU89j7ihMdO5JKe7NwTXy9OeN3PPa+zeyyEgMevoqTsEHSS1GUWc/R9dDodvD4fth+sQkx2OpJTUnGwsgpD+vYAgN2dGVCSlxApU2fUNTY2ceKAQmhhidi2e99JV/471j2zk+NR2tB20oW//4WmaQHJ3ldVC70IRD15koQFACg7VIvmiiqMGtgbTp+CdrNZV5STBQC7Qplxjz32WG20AeW9u3fDur2HOL5XBgxZefhpa8nPTo40ErGRYfCqRLPFFnDh+D+aGSECtNi4swR9CnJ+Nl+KANbt2AthacfkMSOxs7xay0lLFqlpafUAyjo0QPf4449rANZPPmUgl++u0oriDRg5bAjWljXB7XYHVO1niNo/Lx3F5Q2/Ksb5p5J+EgJAWX0r7DYbsjIzAr+dgAGSFIj3Lt20GzRKOH3MKViyulibOGoIAGwWQvhI6jr7eN9PHlQo9rd5hOrzYNKQnqjx6FG8rzwQ+DpZMiqBPjkpqDE7YXW4Tpo9/GdOyhJC4OMlqzBhSO8u4YvjMUuSJDSb27FuxwFk98pHTkERVm3aKs4/YywArDgS/gtkxgGwrc2O1lkTE5N0m/ZV8rzBBYjNKsJX63afANcZmOEGLb4kBAYWpOPb7ZUQ4sQM+7Niv04I7KlpRV1NNcaMGBIkckdElUedH7ALy4r3wlNRiUsnj0VZg5lC8eoG9e7uBfBDx6kdmXE6IeKtAH68YNxQflFcoQ7MisOoAT2w5EAz7E7ncWBIBLILhAhlCo/tlYNqsxO1bVbopP8dW6AFszuefn8B/jJldCCIx+CykpCOcT060lXmrtwKqE5cNn0qPlm6Wpt62nAaIqI2CCHqOyrQSEdlFX02bWg3sbnGKnweNy4a0R0mRmFh8cFABJJHssT8ziZUFL8Pc1NZcA1XgyQJTB1ciHd+2hfI4/kfoL+qatDrJMxZtQsGtxmnjxsDTQuMVVO8sDTuh9dlCaGCGqx9tOtQIzas24p+A7uhoPcALPx+Na6fMVUA+CxoN6TObqgKAHV1+DEzSlc7sHuebtHWMm36kHz0yU3DZ+v3Q9M06MQRbG+oLEbFnjUw1e8NBuw0aCSGFWXAoNfh840HoZME1D8xFzQSOgmosXrw0jtz8NTNlwcjr4EF+dLNH2Pb92/C5/V0WV8SAN5csQ1a1QHcedWF+HF3BVMjJd3AAX0sAL4NIoMaYkAQhvS5ucIDYO6tZ4/EJ1sPa0nRYTi9Tw52tfmxpqQqtFsEEMjoMQHJ6bnQ0QV7W0VILUngrimD8fmmMuytaf3TMiEQ3Q6Eqmc+9gZumTwUBUXdoakKdDo97K1lqCndgPz+kxCXlBnSeElIqDE5MG/ZBiSkGnDhhRfhmffnq3dfeR4A3RdCCOvq1av1HVXZpS55goH23rCsGHdERIRuc2ktrx/bE2lJCfhoUwWoqaHsA2NYNJLyRqN825dobaiC7HMFVoOpIT46ArMmD8Atc9fA6vIGdpj8iZhAAKqmQqfT4cY3FyHF24SbrpsZ2vPmslSDUgS6DZ2O9IIRodQdBlfZXvlhN9w7NuCev1yEvWYFDRUHdZede6YC4E0hBMaPH3/C2VvHRu331h+28Io3l8kkec8XG9nn4QVcu/dQlz20ss/J6v0/cu/qV7l58fOBXYKqEtpZ+I+vVnPC4/Po9qtdNjP/Nzet027557/dwl6TL2O7qSWwAV0JFGuy1O/gzu/uY+mm2YFa15oa2CNMsrzNyeiLHmdC0UC2WywcftOzysvvfEiS33Sm8ZE1xmN4QAHg+TH5CT4/hbS1vI7Xn9YDOklg9royeH2BtVxN06AzRCImPgOJuSMRG5+Eg5vnBRZYoEHRiHsvHIf8cB/OfuYLeNXA5ETVtP9q2NFUDXqdDm+uLMFLL/wDC196AHFJqSBVSDoDNNkFh7kS0McjrfsU6PSGoF0IYP/D32yDc+MKPHrzldht0VC5e6u4ZeZFGoCnflHJmk5a8NbmGitnvLZEJsn7vtjAwgfm8/P1nWonBOvpeGz1LNs0m5W7FtPnMh+pQKJppOzjtFnPcNDtr7PF6etSZ+e/qXXscifJl5bvYtyIc7lx3Zrg7n+ZmqbSa9nNQ9s/4qavZrFm34qgyqghjf+htJX6KfexYMAI+vx+9vrLo8rsjz4lyfnHk/4TMUAKbtxOJ9l+1Xs/qd9sKdXa2h0c8uiXvPD171nfZgl2WiU1lR6nmQ3lq7j7u9tYsWVOkDEaNU0NlJT3ezjt5oeYcv59LK5qCQ34vwWSOgiokrxr7k+MG3YW161edaSwU7Aa+57vn2T1jrms2PwWA/KnBMahabR5/Bz25CIiuS+XL17IORsrtIKJl6ik7CHZ7VcV8eukBXfW2Pwc+/RXsqKqfHtZMZP/+jrvnreRPr8/0IngrnGvy8rt3z3MgysfZuO+L6gqR6rQaoG3KfCGex8lhl7Kl79Z16U6yR9VR0LtVAeo2qFx0kOzmTVyCndsDRTyU2Q5VF/EbS6j3XSYlZvfpMthOlK6rGMn/bd7iN7ncsblV9JNMur0a+TNmzaR5FO/WPo7MUCQ1D26mnqS259fuouzPlmjkOR5zy9gxp0f85P1+zsVNAqortNSzd3LH+aexX+jtXEnZW97yDB3DOS1t98jisZx/N8e58Gaxj+EEepRBZg+3VbDtHNu4pipM9hQczhYO+jIiyQqNr7ONe+dyZZDm46rOUv2tzBy+v8xvftAeuxWXvDc5+qVtz9AkuUNDYz8l1760EkLBpOUT3/ma2X57sOa2eZg3g3/5OBHv+KmsrpjmWCuYsmyWdy7+C9sKV9Ov8caqqLV4T1t3ryZRaPOJorG8YF/vk+Txdql2oryO9QVUkMVvI7cd3uji+c//SnDBkziA//3KNVgVcSOal6a4uLOZY9xyaunc/OiB2ltqaCmysGxBO5T3upk3/s/IZJ7cMOqH/nlrjot+dTzZcXtIMnxv1r6T8CEB2qsbva5+wO5ze7h6p0HaJj+f5z6ynJWNJo6GeVAp1z2Vu7/4SFWrb6XuxbfSa+zOcSEDhfP7XTwnr8/RaT2ZWSvMXzs5dmsb2w6pmSMfJLylWqngoDHvMokSPCjiU6SOxpd/Nu7Kxhz2mUcfPq5XLdmVae6P4GC4ZaGPVw19xp+/eIkbl3+Ap12S6gaR0exDpPTx2lvriQyhvDZZ55hs580jrpU3r1rJ0m+EKSd/je4ZRSdCreuWLC5lGMf/1wmyVc/X0xMuoOXv7eGTWbbMZ6R03KYh3cvYNXGZ1i68gF67EfgpvN7YvaUlPDcK28gYgspCobz8lmP8/t1xXR5vMev7aaqlBW1SwUrRQ1gsaJqJ6xk0ujSOH9XPS96fj5jx17B/OFn8PU33qQSrJguB8vqa1qg8u+6+bO48NVp3Lvpc/r9/k7ED3x1+WTe/MV2osdEXnrFVSTJgsseVP755jskufnR1av1v7pa4sm8IjuZTLJ61vtLePlri1WSvP3ZN4kzbuPVH21ii9VxjCaQpKl6Hfcuv5dVG5+jpXoVZZ/ruC9NKN66jZfecAeR1Z+I68HEU87jJfc+x/cW/cQ9lXV0uH3HEHVvbStXbd93XIK3ejRuqXfy7fUVvOzVxSy47CEaBkxm/7Fn89XXXqfNYuqkSR1vXXKHfqvas4wHty06ojudJN/rV/j3ZQeIYRdx1PhJJDWe8/gcdcYNd5Jkm5vM66DdL8n7/kVQFCwuMQTA+rP+793wPj274aWZp0uXznoC8zdX4ZJrr8OLFwxCdlIsFI3QC4BUQGGAtb4Y9XsXQHa1ImfgZSAMSMw9Fcbw6NA7XToqqdfW1OCbpd9j/tKVKC4pB5x+ICEFsXn56Nm7N4pyMpGTnY3EpCQs39+IlrpqzJx0CiKjo2F1OFHbYkF1fSOqqg6hte4wZHMDciKBiUN745JpZ2HixAnQG8NDkU6dToLqs8HUdBiVm9/A0HMeQ3hs9lGBCRGqCOOVFby4ugpPPfEU8l2VKNn4Ax76agt/WjBX27XkIwC6SUKI1b+0ePevKV8feHcAOQ2a8u3w2/+pzphyunTf1GHi4mtuxJdb6jH2LzfhrctPQd/sJCjBMG7HEDzOdtTu/gy+9jLYrW2ISRuKwoFTEBabi7CI2CBBAoGujlZ9+BC27tiNDdt2Ytu+MpTXtcJicwKKBETHwZiSBr3XBrfFARiMAPyIMhBZ8VHom5+BkQP74tQRQzF48CBEx8YfRdJA2mJ96Ro425tQs/tL6MNj0fOUmcjpMzmw2CQC8f5A1S8Bm0fGCz+V4YWnn0K+pxrbVy/B7M3VfPW5Z9SqFR/rjZHRVwshPv63l68/DhOu8fr8Hw685hH14mlnS09eOk7cevf9eHPhFuRfcD3evWYcJvXNCa2KBXb4CyiyH40Vq9FUvhp+dysSskeCmkBm4QAYo3MQk5gVTD1naE21c7O3W9Da2gazyYRGkwXPvfUhTM1NeOTOG5Gfm424uDikpaYiJTUVhrCIYwJsHQN2WutRf2ApvE4rPB4PTI0VyCwahqIh5yMmqRAdC7UdCcKSEKhv9+LZ5Xvw1jOPYWSigjXLvsHs9RV85skn1IOLZusTU9JmCSFe/t1f6tPJKN/octjYZ8bt6nVvfaeS5HMvvERkDaXugif4/JLtIe/j6HKVbpeN5btWcP/697ju879x96q3uG3ps6zZOZduWyMVv6dLuTPtBC9uU2Q/HQ77z5ei9DnptjWwuWodD2z6hFsX3cfl71zC7cuf5dZlL9BmbaHP5z9O6c1A21pn4/kvf0fkjuAFMy4jqfGBT1dquWOnK8EqwA/8qx6P+FeZENSE6zS/9/0JNz0KfXKe9tPzN0vffbcYl975ONwxPXDepefj1WvOQF5aErTQ2vGRjQtOWyva2+phbdgG1duCurJiJGd0w7Bpz8MQFg4QsDXvhTE6AxExKTh6p2LXPgU2ias+C2SvC6oiw+exw205CLvDg5aqTdCHRUMKS0VCahb0xmjk9p0MQ1gUdFLXRDMGkw28soqv97XgH+/PR8mXs/HIjRfjiSeewJUvztMOrFkqNnz+uoiMTfhNki9+iyYEmTAd0D677uEXIn6qsCpr3n9Kr7fW4YJrbsW2/W1IGT0ez/91Gq45a0zI8IlgPmsHI7weF2SfC6aGA/A6mtD7lMsAEj63GesX3IPs3pMAbz2Msd0gNCf0eh28ihGJmQPQXP4jdHojZL8bkhCIiI6Fx2FFW81WEBLCY9IRFp0Cv19BevdxkHThyO4+Ep1L/RxNeAA42ObGu2v24/03X4e+egfmvfEsRp0zDZNuekrNVtp0X731nCIZI64XQsz9LbDzb3mRG8mRAOa/88mCvFnvLFZmP3O/fua4/njo74/j2dkLgIgUTD7rNDx+0xUYOaBXiBFAEOuFdNwUELe9CQc3fQq/uyX4nhkj2lurQCqITOyJ9Jxu8PkFjBExUH0WNFWuR0LGAMQnpcAnG5Ccng3JGA9FJZKy+iIsuK8h8JBA5nTHOlEH4U1uGQtLGvHu/O+w/cs5mDI4F59+8Db2OQ249OZ7lVvOGKj/v3vuaAFwhRDipz/sRW5H24TqVmcGyRUl+/YzZ/wl2vT7Xla9JHds384RE88looqIHhN4zQPPcF9ZZZfJlSx3zHbVY9De7/PS6WinrGg0NZaztb6UzbUH2Fy9ixU7F9Fpa6PNVEdLczmb6/bTaW9ju7nhhDUlNU0NVT3vbJfavQq/3tvMc5//itLAc5haNIBzP3yfMsm75yxXs8ddpK5Zs5YkN3jIwt88y/03M6HTyzz5d5e9Xbn2nseZMvpied7ydRpJfjpvPnMHjyXC8igKRnLm7Q9y45btR5X/PTr08FviQdoRgqtqKBZ09Ey52Slz3q5GTn/xG4aPuoThOX35wP3302a3cf1hi9bvinvlC2+4i22N9ST5j3GPPqr/TfGd35EJoYgfydEkt69Zv4m9x1/AEdP/Km/dW06/z8N33p/D3MHjCF06kdSTY6ZfzXc+ns+6hsbjlg+W5a5vx1PVAEEDknzk/TGaFjweLCDbEQc63pqDS9a4rcHBf/x4kKc9+B6lwdMYmTeAt912O+vralllVznj8XeVXlOu4MJvvyPJ/SQndR7rf3MKnx4AHl2wwEjyQcXvbX9rzufMGjKRky67Udmxr1Tzez388ptFPOWsi4joXEKfQWPPMTzr2ll8Y+4ClpRWHuMWnqha78lq+3eRdJfC9dXtfHFlKc/7x9dMPe8uovBU5vQfySefeIJNjQ08ZFe1v77yhVI05SrtmZffpMPS5iL51O6mpqiOsf273yX8e73SPDQNZwAvH7JazFd/MG+R/vU5XyA3L0+5/9ZrdWeOHiqqKirx8VeL8cWSlag+UAnIGpCegbzePTFsyBAM6VWIPj27IT8tCWkJMYiLDEO4UY/jiaBPBdyyinavgia7D002T+DtezUN2Lu/FBX7S+CpLkWc3ovJw/rg6ksvwJiJk1Fm8fPVTxeq2zas1V9y2gDccMk0ZOcXzgPwpBC/77vlxe+oCQKArsNDIDkIwKz2duvFXy1dGfbGR/PhcHvVGeedjSunnyUVZaaKysoKLF+1DivWFWNzSRm8bXZAIZCcBcQnQp+ahuTMHMQlJCE6XI/IhDRoqoIwvQSbywOfzw+PywGrxQxLcxPQ3gq0t0AvfOiVHofxw/rh7DNOx/BTx8BljOXSzXu1eQu/g6e1TnflpFGYcdYENSuv4BsA/xRCFHfCeq0jj+dPw4Cj8FJ00ojeAK4DtEs3bd2VNefLxVi5aTsiouPUs84Yx6mnnyb1L8oWOtUvamtqsP9gGXbvP4D9ldWobmxDq90Fh8cPv6IGKgFoBAwSwgw6RBgkJEWFIyspFj3ystCvZzcM6NcX3Xr2RmRyBmrbvdqaXQe5YtV6NNdU6obkp+GyKadh7IihreGx8V8CeE8IsacT4SmE+F3TOMR/0kgfxYh4AOcAuMRpt40r3r0vdvHK9Vi/6wAsNicy8wvUgf36cGjfnqJvtwKRkRgjoowSJFURqiJDVRR4ve5ADQujEQZjGCS9AdCH0UcJJpefh5vN3Fl6iPtLK1B7uEofTh8GF2Zi8qhBGDmgtzstO289gAUAFgshTJ0N7O9N+P84A7owYs0aSUyYoHT6LRvABABnQlNOLa88VHjwUC12HqjAnopq1LTa4JA1CL0BYRGRCI+OoyTpGRZmhBACqiLDrygCqiJ8Xi8oexGlI7ISY9A7Nx0Du+eiV342enUrrDFExRYH08NXCSGqj3Kl+Z8i/B/GgKNshHT0oEkaAfRAoKzjQAB9NL87v7XVlNpqtsa2O5xGv1+Gomnw+gK718MMBhj0Ouh1EuJiouTkhHh7empyqyEqrhbAQQQ2xO0GUCaE8B6tlb8nxv/XMuA48NTBDPUEx5MAJAf/xgGIAtBR1EgG4AJgA2AGYAJgPsG9dJ2I/oen6f0/A70tRnUe4RoAAAAASUVORK5CYII=" alt="Rattana">
+    </div>
+    <div class="brand">Rattana · รัตนไพบูลย์</div>
+    <h2>Route Optimizer</h2>
+    <div class="tagline">ระบบวางแผนเส้นทางอัจฉริยะ<br>กรุณาเข้าสู่ระบบด้วยบัญชี Google</div>
+
+    <div id="g_id_onload"
+         data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
+         data-callback="handleGoogleLogin"
+         data-auto_prompt="false"></div>
+    <div class="g-wrap">
+      <div class="g_id_signin"
+           data-type="standard"
+           data-size="large"
+           data-theme="filled_blue"
+           data-text="sign_in_with"
+           data-shape="pill"
+           data-logo_alignment="left"></div>
+    </div>
+
+    <div id="loginSpinner"></div>
+    <div id="loginStatus">กำลังตรวจสอบสิทธิ์...</div>
+    <div id="loginError"></div>
+
+    <div class="divider"></div>
+    <div class="foot">เฉพาะพนักงาน <b>Rattana</b> ที่มีสถานะ <b>Active</b><br>มีปัญหาเข้าใช้งาน? ติดต่อฝ่ายบุคคล</div>
+    <div class="foot" id="originHint" style="margin-top:10px;font-size:10px;opacity:0.6">
+      <span id="originText">—</span>
+    </div>
+  </div>
+</div>
+<!-- ============ END LOGIN SCREEN ============ -->
+
+<div id="header">
+  <img src="data:image/png;base64,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" alt="Rattana" width="36" height="36" style="border-radius:50%;flex-shrink:0;background:white;padding:2px">
+  <h1>Route Optimizer Rattana</h1>
+  <div style="flex:1"></div>
+  <span style="font-size:12px;color:var(--muted);margin-right:8px" id="algo-label">NN + 2-opt</span>
+  <div class="user-badge" id="userBadge" style="display:none">
+    <div class="avatar" id="userAvatar">?</div>
+    <div class="info">
+      <div class="name" id="userName">—</div>
+      <div class="sub" id="userSub">—</div>
+    </div>
+  </div>
+  <button class="logout-btn" id="logoutBtn" onclick="logout()" style="display:none" title="ออกจากระบบ">ออก</button>
+  <button class="theme-btn" onclick="toggleTheme()" title="สลับ Light / Dark mode">
+    <svg class="icon-light-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    <svg class="icon-light-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+</div>
+
+<!-- Top Summary Bar — always visible, key info at a glance -->
+<div id="top-summary">
+  <div class="ts-group ts-stats">
+    <span class="ts-chip"><b id="ts-stops">0</b> จุด</span>
+    <span class="ts-chip"><b id="ts-dist">0.0</b> กม.</span>
+    <span class="ts-chip"><b id="ts-time">—</b></span>
+  </div>
+  <div class="ts-group ts-actions">
+    <button class="ts-btn ts-btn-primary" id="btn-optimize" onclick="optimizeRoute()" title="คำนวณเส้นทางใหม่">⚡ คำนวณ</button>
+    <button class="ts-btn" onclick="openInGoogleMaps()" title="เปิดใน Google Maps">🗺 Maps</button>
+    <button class="ts-btn" onclick="exportExcel()" title="ดาวน์โหลด Excel">📊 Excel</button>
+  </div>
+  <div class="ts-group ts-cost">
+    <span class="ts-cost-label">💰 ต้นทุนรวม</span>
+    <span class="ts-cost-value">฿ <b id="ts-total">0.00</b></span>
+  </div>
+  <div class="ts-group ts-revenue">
+    <span class="ts-cost-label">📈 ยอดขายขั้นต่ำ</span>
+    <span class="ts-revenue-value">฿ <b id="ts-minrev">0.00</b></span>
+  </div>
+</div>
+
+<div id="main">
+  <div id="sidebar">
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('import')">📥 นำเข้า</div>
+      <div class="tab" onclick="switchTab('locations')">📍 จุด (<span id="tab-count">0</span>)</div>
+      <div class="tab" onclick="switchTab('route')">🗺 เส้นทาง</div>
+    </div>
+
+    <!-- Import Tab -->
+    <div id="tab-import" class="panel active">
+
+      <div>
+        <div class="section-label">Google Sheets URL</div>
+        <input id="sheets-url" class="input-field" type="text" placeholder="https://docs.google.com/spreadsheets/d/...">
+        <div style="height:8px"></div>
+        <button class="btn btn-primary" id="btn-sheets" onclick="importFromSheets()">📊 โหลดจาก Google Sheets</button>
+        <div class="format-hint" style="margin-top:8px">
+          ⚠️ Sheet ต้องเป็น Public หรือ Publish to Web<br>
+          คอลัมน์: <b>ชื่อ | Latitude | Longitude</b>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div>
+        <div class="section-label">วางข้อมูล CSV / TSV จาก Sheets</div>
+        <textarea id="paste-data" class="input-field" placeholder="รองรับ 2 รูปแบบ:&#10;&#10;ชื่อ&#9;13.7563, 100.5018&#10;บ้าน&#9;13.7563, 100.5018&#10;&#10;หรือ:&#10;&#10;ชื่อ&#9;lat&#9;lng&#10;บ้าน&#9;13.7563&#9;100.5018"></textarea>
+        <div style="height:8px"></div>
+        <button class="btn btn-primary" onclick="importFromPaste()">📋 นำเข้าข้อมูลที่วาง</button>
+      </div>
+
+      <hr class="divider">
+
+      <div>
+        <div class="section-label">🔍 ค้นหาจากที่อยู่ (Geocoding)</div>
+        <input id="geocode-name" class="input-field" type="text" placeholder="ชื่อจุด (ตัวเลือก — เว้นได้)" style="margin-bottom:8px">
+        <input id="geocode-query" class="input-field" type="text" placeholder="ที่อยู่ เช่น ถ.สาทร กรุงเทพ หรือ เซ็นทรัลเวิลด์">
+        <div style="height:8px"></div>
+        <label class="checkbox-row" style="font-size:12px;margin-bottom:6px">
+          <input type="checkbox" id="geocode-th-only" checked>
+          จำกัดเฉพาะประเทศไทย
+        </label>
+        <button class="btn btn-primary" id="btn-geocode" onclick="doGeocode()">🔍 ค้นหา</button>
+        <div id="geocode-results" style="margin-top:8px"></div>
+      </div>
+
+      <hr class="divider">
+
+      <div>
+        <div class="section-label">เพิ่มจุดด้วยตนเอง</div>
+        <input id="add-name" class="input-field" type="text" placeholder="ชื่อจุด" style="margin-bottom:8px">
+        <input id="add-latlng" class="input-field" type="text" placeholder="13.7563, 100.5018  (lat, lng)" style='font-family:&quot;JetBrains Mono&quot;,monospace;font-size:12px'>
+        <div style="height:8px"></div>
+        <button class="btn btn-primary" onclick="addManual()">➕ เพิ่มจุด</button>
+      </div>
+
+      <div id="import-feedback" style="display:none"></div>
+
+      <hr class="divider">
+
+      <div>
+        <div class="section-label">ข้อมูลตัวอย่าง</div>
+        <button class="btn btn-secondary" onclick="loadDemo()">🏙 โหลดตัวอย่าง 15 จุด (กรุงเทพ)</button>
+      </div>
+
+    </div>
+
+    <!-- Locations Tab -->
+    <div id="tab-locations" class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:13px;color:var(--muted)" id="loc-count-label">0 จุด</span>
+        <button class="btn btn-danger" onclick="clearAll()">🗑 ลบทั้งหมด</button>
+      </div>
+      <div id="loc-list"></div>
+    </div>
+
+    <!-- Route Tab -->
+    <div id="tab-route" class="panel">
+
+      <!-- SECTION: Summary card -->
+      <div class="card">
+        <div class="card-title">📊 สรุปเส้นทาง</div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="stat-stops">—</div>
+            <div class="stat-label">จุดทั้งหมด</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-dist">—</div>
+            <div class="stat-label">ระยะรวม (km)</div>
+          </div>
+          <div class="stat-card" style="grid-column:span 2">
+            <div class="stat-value" id="stat-time" style="font-size:20px">—</div>
+            <div class="stat-label">เวลาโดยประมาณ (เฉลี่ย 40 km/h)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION: Start point -->
+      <div class="card">
+        <div class="card-title">🏁 จุดเริ่มต้น</div>
+        <div class="row" style="gap:6px">
+          <select id="start-select" class="input-field" style="flex:1">
+            <option>— เพิ่มจุดก่อน —</option>
+          </select>
+          <button id="btn-apply-start" class="btn btn-primary" onclick="applyStartChange()"
+            style="display:none;width:auto;padding:0 14px;white-space:nowrap">✓ ยืนยัน</button>
+        </div>
+        <div id="start-hint" style="display:none;font-size:11px;color:var(--accent2);margin-top:6px">
+          ℹ️ เลือกแล้วกด "ยืนยัน" เพื่อคำนวณเส้นทางใหม่
+        </div>
+      </div>
+
+      <!-- SECTION: Options (collapsible) -->
+      <details class="card card-collapsible">
+        <summary class="card-title">⚙️ ตัวเลือก</summary>
+        <div class="collapsible-body">
+          <label class="checkbox-row">
+            <input type="checkbox" id="return-start" onchange="optimizeRoute()" checked>
+            วนกลับจุดเริ่มต้น (Round Trip)
+          </label>
+          <label class="checkbox-row">
+            <input type="checkbox" id="use-road-opt" onchange="invalidateMatrix(); optimizeRoute()" checked>
+            🚗 คำนวณตามระยะถนนจริง (แม่นยำกว่า)
+          </label>
+
+          <div style="margin-top:4px">
+            <div class="section-label">ระดับการ optimize</div>
+            <select id="opt-effort" class="input-field" onchange="optimizeRoute()">
+              <option value="fast">⚡ เร็ว — 2-opt เดียว</option>
+              <option value="balanced">⚖️ สมดุล — 2-opt + Or-opt ซ้ำจนนิ่ง</option>
+              <option value="thorough" selected>🎯 ละเอียด — ทดลองหลาย permutation (แนะนำ)</option>
+            </select>
+          </div>
+
+          <div id="opt-status" style="font-size:11px;color:var(--muted);padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;font-family:\'JetBrains Mono\',monospace;margin-top:4px">กำลังรอข้อมูล...</div>
+        </div>
+      </details>
+
+      <!-- SECTION: Warnings -->
+      <div class="card">
+        <div class="card-title">⚠️ การแจ้งเตือน</div>
+        <div class="section-label" style="margin-top:0">เตือนเมื่อ 2 จุดที่ติดกันห่างเกิน</div>
+        <div class="input-row">
+          <input id="max-leg-dist" class="input-field" type="number" placeholder="ปล่อยว่าง = ไม่เตือน" step="0.5" min="0" oninput="drawWarnings(); renderRouteList()">
+          <div class="unit-suffix">กม.</div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5">
+          <b>ไม่นับ</b>ขาออกจากคลังและขากลับคลัง
+        </div>
+      </div>
+
+      <!-- SECTION: Fuel cost -->
+      <div class="card">
+        <div class="card-title">⛽ ค่าน้ำมัน + ค่าเสื่อม</div>
+
+        <!-- Selection chips (grouped at top for quick setup) -->
+        <div>
+          <div class="section-label">ประเภทรถ</div>
+          <div id="vehicle-chips" class="vehicle-chips"></div>
+          <div id="vehicle-warning" class="chip-warning" style="display:none">⚠️ กรุณาเลือกประเภทรถ</div>
+        </div>
+        <div id="sales-notice" class="sales-notice" style="display:none">
+          ℹ️ <b>กระบะเปล่า (พนง.ขาย)</b> — คิดแค่ค่าน้ำมันอย่างเดียว ไม่ได้คิดค่าใช้จ่ายอย่างอื่น
+        </div>
+        <div>
+          <div class="section-label">รูปแบบการขาย</div>
+          <div id="mode-chips" class="vehicle-chips"></div>
+          <div id="mode-warning" class="chip-warning" style="display:none">⚠️ กรุณาเลือกรูปแบบการขาย</div>
+        </div>
+        <div id="workers-section">
+          <div class="section-label">พนักงานยกสินค้า</div>
+          <div id="workers-chips" class="vehicle-chips"></div>
+        </div>
+        <div id="trips-section">
+          <div class="section-label">จำนวนรอบที่วิ่ง</div>
+          <div id="trips-chips" class="vehicle-chips"></div>
+        </div>
+
+        <!-- Numeric inputs -->
+        <div>
+          <div class="section-label">ราคาดีเซล</div>
+          <div style="position:relative">
+            <input id="fuel-price" class="input-field" type="number" step="0.01" min="0"
+                   oninput="onFuelPriceChange()" title="฿/L">
+            <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--muted);pointer-events:none">฿/L</span>
+          </div>
+          <div id="fuel-price-source" style="font-size:11px;color:var(--muted);margin-top:6px"></div>
+        </div>
+        <div>
+          <div class="section-label">ค่าเสื่อม/บำรุง (ยาง · เครื่อง · สึกหรอ)</div>
+          <div style="position:relative">
+            <input id="fuel-wear" class="input-field" type="number" step="0.01" min="0"
+                   placeholder="เลือกรถก่อน"
+                   oninput="onWearChange()" title="฿/km">
+            <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--muted);pointer-events:none">฿/km</span>
+          </div>
+        </div>
+        <div id="fuel-summary" class="fuel-summary">
+          <div class="fuel-row">
+            <span>ระยะทางรวม</span>
+            <b><span id="fuel-dist">0.0</span> กม.</b>
+          </div>
+          <div class="fuel-row">
+            <span>น้ำมันที่ใช้</span>
+            <b><span id="fuel-liters">0.00</span> ลิตร</b>
+          </div>
+          <div class="fuel-row">
+            <span>⛽ ค่าน้ำมัน</span>
+            <b>฿ <span id="fuel-cost">0.00</span></b>
+          </div>
+          <div class="fuel-row">
+            <span>🔧 ค่าเสื่อม/บำรุง</span>
+            <b>฿ <span id="wear-cost">0.00</span></b>
+          </div>
+          <div class="fuel-row" id="labor-row">
+            <span>👷 ค่าแรง + ส่วนกลาง</span>
+            <b>฿ <span id="labor-cost">0.00</span></b>
+          </div>
+          <div class="fuel-row fuel-total">
+            <span>💰 ต้นทุนรวมโดยประมาณ</span>
+            <b>฿ <span id="total-cost">0.00</span></b>
+          </div>
+          <div class="fuel-row fuel-revenue">
+            <span>📈 ยอดขายขั้นต่ำที่ควรมี</span>
+            <b>฿ <span id="min-revenue">0.00</span></b>
+          </div>
+        </div>
+        <details class="fuel-explain">
+          <summary>ℹ️ วิธีคำนวณ (คลิกเพื่อดู)</summary>
+          <div class="explain-body">
+            <p><b>สูตรคำนวณ:</b></p>
+            <div class="formula">
+              ค่าน้ำมัน = ระยะ ÷ km/L × ราคา/L<br>
+              ค่าเสื่อม = ระยะ × บาท/กม.<br>
+              <b>รวม = ค่าน้ำมัน + ค่าเสื่อม + ค่าแรง + ส่วนกลาง</b>
+            </div>
+            <p style="margin-top:10px"><b>ค่าน้ำมัน</b> — ใช้ระยะถนนจริงจาก OSRM × อัตราสิ้นเปลืองที่<b>เผื่อไว้</b> (ต่ำกว่าสเปกโรงงาน ~10% เพราะในงานจริงมีสัญญาณไฟ รถติด จอดสตาร์ท)</p>
+            <p style="margin-top:8px"><b>ค่าเสื่อม/บำรุง (บาท/กม.)</b> — รวมค่าใช้จ่ายที่แบ่งเป็นรายเที่ยวยาก:</p>
+            <ul>
+              <li>🛞 <b>ยาง</b> — ยางรถใหญ่เส้นละ 8,000–15,000 ใช้ 80k–120k กม.</li>
+              <li>⚙️ <b>เครื่อง</b> — น้ำมันเครื่อง/ไส้กรอง ทุก 10–20k กม.</li>
+              <li>🛑 <b>เบรก ช่วงล่าง</b> — ผ้าเบรก โช้ค สปริง</li>
+              <li>📉 <b>ค่าเสื่อมรถ</b> — ตัวรถเองเสื่อมสภาพ</li>
+              <li>🔩 <b>ค่าซ่อมเฉลี่ย</b> — งานฉุกเฉิน เปลี่ยนอะไหล่</li>
+            </ul>
+            <p style="margin-top:8px"><b>ค่าแรง + ส่วนกลาง</b> — เป็นต้นทุน<b>คงที่ต่อวัน</b> ถ้าคันนั้นวิ่งหลายรอบจะถูกหารตาม<b>จำนวนรอบ</b> ที่เลือก (เที่ยวนี้แบ่งรับภาระเท่าไร)</p>
+            <p style="margin-top:8px"><b>ยอดขายขั้นต่ำ</b> — คำนวณกลับจากต้นทุนรวมตาม<b>รูปแบบการขาย</b> เพื่อเช็คว่าเที่ยวนี้คุ้มไหม</p>
+            <p style="margin-top:8px"><b>ตัวเลขเผื่อไว้เล็กน้อย</b> — ใช้เป็น conservative estimate สำหรับต้นทุนคำนวณเที่ยว จะได้ไม่ตีต้นทุนต่ำเกินจริง</p>
+          </div>
+        </details>
+      </div>
+
+      <!-- SECTION: Route list -->
+      <div class="card">
+        <div class="card-title">📍 ลำดับการเดินทาง</div>
+        <div id="route-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="map-container">
+    <div id="map"></div>
+    <div id="road-loading" style="display:none;position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:1000;background:var(--loading-bg);border:1px solid var(--accent);color:var(--text);padding:8px 18px;border-radius:8px;font-size:12px;font-family:Outfit,sans-serif;font-weight:500;backdrop-filter:blur(4px)"><span style="display:inline-block;width:10px;height:10px;border:2px solid var(--muted);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px"></span>กำลังโหลดเส้นทางถนนจริง...</div>
+    <div class="map-overlay">
+      <button class="map-btn" onclick="fitMap()">🎯 Fit Map</button>
+      <button class="map-btn" id="btn-labels" onclick="toggleLabels()">🏷 แสดงชื่อ</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ═══════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════
+let locations = [];       // Valid: has lat/lng, included in routing
+let noLocation = [];      // Shops without coordinates: displayed, but not routed
+let optimizedRoute = [];
+// Currently-APPLIED start index (the select's value may be a pending choice
+// awaiting the user's "ยืนยัน" click).
+let appliedStart = 0;
+
+// ═══════════════════════════════════════
+//  MAP SETUP
+// ═══════════════════════════════════════
+const map = L.map('map', { zoomControl: true }).setView([13.75, 100.52], 11);
+
+const tileUrls = {
+  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+  light: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+};
+let currentTileLayer = null;
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  if (currentTileLayer) map.removeLayer(currentTileLayer);
+  currentTileLayer = L.tileLayer(tileUrls[theme], {
+    attribution: '©OpenStreetMap ©CARTO',
+    subdomains: 'abcd', maxZoom: 19
+  }).addTo(map);
+  try { localStorage.setItem('route-theme', theme); } catch(e) {}
+}
+
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+}
+
+// Load saved preference
+let savedTheme = 'dark';
+try { savedTheme = localStorage.getItem('route-theme') || 'dark'; } catch(e) {}
+applyTheme(savedTheme);
+
+const markersLayer = L.layerGroup().addTo(map);
+const routeLayer = L.layerGroup().addTo(map);
+const warningLayer = L.layerGroup().addTo(map);
+
+function getMaxDist() {
+  const el = document.getElementById('max-leg-dist');
+  if (!el) return null;
+  const v = parseFloat(el.value);
+  return isNaN(v) || v <= 0 ? null : v;
+}
+
+// Returns distance between two locations by index, using road matrix if available
+function getLegDistance(iA, iB) {
+  if (currentCostMode === 'road' && cachedMatrix && cachedMatrix[iA] && cachedMatrix[iA][iB] !== undefined) {
+    return cachedMatrix[iA][iB];
+  }
+  return haversine(locations[iA], locations[iB]);
+}
+
+function distanceMethodLabel() {
+  return currentCostMode === 'road' && cachedMatrix ? 'ระยะถนน' : 'ระยะเส้นตรง';
+}
+
+// warnInfo[order] = { prevName, dist } for markers needing a red color
+let warnInfo = {};
+
+function drawWarnings() {
+  warningLayer.clearLayers();
+  warnInfo = {};
+  const maxD = getMaxDist();
+  if (maxD && optimizedRoute.length >= 2) {
+    const returnStart = document.getElementById('return-start').checked;
+    const seq = returnStart ? [...optimizedRoute, optimizedRoute[0]] : optimizedRoute;
+
+    for (let i = 1; i < seq.length; i++) {
+      // Skip first leg (warehouse → first customer) and last leg (→ warehouse or final stop)
+      if (i === 1 || i === seq.length - 1) continue;
+
+      const iA = seq[i-1], iB = seq[i];
+      const d = getLegDistance(iA, iB);
+      if (d > maxD) {
+        // Mark the destination stop (at order = i) as warning
+        warnInfo[i] = { prevName: locations[iA].name, dist: d };
+      }
+    }
+  }
+  // Refresh marker colors to reflect warnings
+  placeMarkers();
+}
+
+// ═══════════════════════════════════════
+//  TABS
+// ═══════════════════════════════════════
+function switchTab(tab) {
+  ['import','locations','route'].forEach((t, i) => {
+    document.querySelectorAll('.tab')[i].classList.toggle('active', t === tab);
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+  });
+  if (tab === 'route') updateRoutePanel();
+  if (tab === 'locations') renderLocationList();
+}
+
+// ═══════════════════════════════════════
+//  MATH
+// ═══════════════════════════════════════
+function haversine(a, b) {
+  const R = 6371, toRad = x => x * Math.PI / 180;
+  const dLat = toRad(b.lat - a.lat), dLng = toRad(b.lng - a.lng);
+  const h = Math.sin(dLat/2)**2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+
+// Index-based cost function: cost(i, j) returns distance between locations[i] and locations[j]
+// This allows using either haversine or a road-distance matrix.
+
+function nearestNeighborIdx(n, start, cost) {
+  if (n === 0) return [];
+  const visited = new Array(n).fill(false);
+  const route = [start];
+  visited[start] = true;
+  for (let i = 1; i < n; i++) {
+    const last = route[route.length - 1];
+    let nearest = -1, minCost = Infinity;
+    for (let j = 0; j < n; j++) {
+      if (!visited[j]) {
+        const c = cost(last, j);
+        if (c < minCost) { minCost = c; nearest = j; }
+      }
+    }
+    route.push(nearest);
+    visited[nearest] = true;
+  }
+  return route;
+}
+
+// 2-opt: reverse route segments to remove edge crossings
+function twoOptIdx(initialRoute, cost, closed) {
+  let route = [...initialRoute];
+  const n = route.length;
+  if (n < 4) return route;
+  let improved = true, iter = 0;
+  while (improved && iter < 500) {
+    improved = false; iter++;
+    for (let i = 1; i < n - 1; i++) {
+      for (let j = i + 1; j < n; j++) {
+        const A = route[i - 1], B = route[i], C = route[j];
+        let D = null;
+        if (j + 1 < n) D = route[j + 1];
+        else if (closed) D = route[0];
+
+        const oldLen = cost(A, B) + (D !== null ? cost(C, D) : 0);
+        const newLen = cost(A, C) + (D !== null ? cost(B, D) : 0);
+        if (newLen < oldLen - 1e-9) {
+          const seg = route.slice(i, j + 1).reverse();
+          route = [...route.slice(0, i), ...seg, ...route.slice(j + 1)];
+          improved = true;
+        }
+      }
+    }
+  }
+  return route;
+}
+
+// Total tour length (sum of edge costs)
+function tourLength(route, cost, closed) {
+  let total = 0;
+  for (let i = 1; i < route.length; i++) total += cost(route[i-1], route[i]);
+  if (closed && route.length > 1) total += cost(route[route.length-1], route[0]);
+  return total;
+}
+
+// Or-opt: move a segment of size k to its best insertion point.
+// Tries both forward and reversed orientations of the segment.
+// segSize = 1 moves single node; 2 and 3 catch chain improvements 1-node moves miss.
+function orOptSegment(initialRoute, cost, closed, segSize) {
+  let route = [...initialRoute];
+  const n = route.length;
+  if (n < segSize + 3) return route;
+  let improved = true, iter = 0;
+  while (improved && iter < 300) {
+    improved = false; iter++;
+    for (let i = 1; i + segSize <= n; i++) {
+      const segEnd = i + segSize - 1;
+      const prev = route[i - 1];
+      const segFirst = route[i];
+      const segLast = route[segEnd];
+      let next;
+      if (segEnd + 1 < n) next = route[segEnd + 1];
+      else if (closed) next = route[0];
+      else continue;
+
+      const removeGain = cost(prev, segFirst) + cost(segLast, next) - cost(prev, next);
+
+      let bestJ = -1, bestDelta = 0, bestRev = false;
+      for (let j = 0; j < n; j++) {
+        // Skip positions that overlap the segment itself
+        if (j >= i - 1 && j <= segEnd) continue;
+        const a = route[j];
+        const b = j + 1 < n ? route[j + 1] : (closed ? route[0] : null);
+        if (b === null) continue;
+        const abCost = cost(a, b);
+
+        // Forward insert: a → segFirst ... segLast → b
+        const fwd = cost(a, segFirst) + cost(segLast, b) - abCost - removeGain;
+        if (fwd < bestDelta - 1e-9) { bestDelta = fwd; bestJ = j; bestRev = false; }
+
+        // Reverse insert: a → segLast ... segFirst → b (only meaningful for segSize >= 2)
+        if (segSize >= 2) {
+          const rev = cost(a, segLast) + cost(segFirst, b) - abCost - removeGain;
+          if (rev < bestDelta - 1e-9) { bestDelta = rev; bestJ = j; bestRev = true; }
+        }
+      }
+
+      if (bestJ !== -1) {
+        const seg = route.slice(i, segEnd + 1);
+        if (bestRev) seg.reverse();
+        const without = [...route.slice(0, i), ...route.slice(segEnd + 1)];
+        const insertPos = bestJ < i ? bestJ + 1 : bestJ - segSize + 1;
+        without.splice(insertPos, 0, ...seg);
+        route = without;
+        improved = true;
+        break; // restart
+      }
+    }
+  }
+  return route;
+}
+
+// Double-bridge: a 4-opt perturbation that cannot be undone by 2-opt.
+// Used to escape local optima by jumping to a distant but related tour.
+// Preserves route[0] (the warehouse start).
+function doubleBridge(route) {
+  const n = route.length;
+  if (n < 8) return [...route];
+  const rand = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo));
+  const q = Math.floor(n / 4);
+  const p1 = rand(1, q + 1);
+  const p2 = p1 + rand(1, q + 1);
+  const p3 = p2 + rand(1, q + 1);
+  if (p3 >= n) return [...route];
+  return [
+    ...route.slice(0, p1),
+    ...route.slice(p3),
+    ...route.slice(p2, p3),
+    ...route.slice(p1, p2),
+  ];
+}
+
+// Full local search: loop 2-opt + or-opt(1,2,3) until no further improvement
+function fullOptimize(route, cost, closed) {
+  let improved = true;
+  let safety = 0;
+  while (improved && safety < 20) {
+    improved = false; safety++;
+    const before = tourLength(route, cost, closed);
+    route = twoOptIdx(route, cost, closed);
+    route = orOptSegment(route, cost, closed, 1);
+    route = orOptSegment(route, cost, closed, 2);
+    route = orOptSegment(route, cost, closed, 3);
+    const after = tourLength(route, cost, closed);
+    if (after < before - 1e-6) improved = true;
+  }
+  return route;
+}
+
+// Thorough: full local search, then perturb + re-optimize multiple times, keep best
+function thoroughOptimize(route, cost, closed, restarts) {
+  let best = fullOptimize(route, cost, closed);
+  let bestLen = tourLength(best, cost, closed);
+  for (let k = 0; k < restarts; k++) {
+    const perturbed = doubleBridge(best);
+    const candidate = fullOptimize(perturbed, cost, closed);
+    const len = tourLength(candidate, cost, closed);
+    if (len < bestLen - 1e-6) {
+      best = candidate;
+      bestLen = len;
+    }
+  }
+  return best;
+}
+
+// ═══ Road Distance Matrix (OSRM) ═══
+let cachedMatrix = null;
+let cachedMatrixHash = null;
+
+function locationsHash() {
+  return locations.map(l => `${l.lat.toFixed(5)},${l.lng.toFixed(5)}`).join('|');
+}
+
+function invalidateMatrix() {
+  cachedMatrix = null;
+  cachedMatrixHash = null;
+}
+
+// Dedupe concurrent fetches: multiple callers awaiting the same matrix
+// share ONE in-flight request instead of each triggering their own.
+let matrixPromise = null;
+
+async function ensureMatrix() {
+  const hash = locationsHash();
+  if (cachedMatrix && cachedMatrixHash === hash) return cachedMatrix;
+  // Reuse in-flight request for the same locations set
+  if (matrixPromise && matrixPromise.hash === hash) return matrixPromise.promise;
+
+  const coords = locations.map(l => `${l.lng},${l.lat}`).join(';');
+  const url = `https://router.project-osrm.org/table/v1/driving/${coords}?annotations=distance`;
+
+  const promise = (async () => {
+    // 12-second hard timeout so a hung OSRM server can't freeze the app.
+    // On timeout we throw, and the caller falls back to Haversine distances.
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 12000);
+    try {
+      const res = await fetch(url, { signal: ctrl.signal });
+      if (!res.ok) throw new Error('OSRM matrix HTTP ' + res.status);
+      const data = await res.json();
+      if (data.code !== 'Ok' || !data.distances) throw new Error('OSRM matrix not OK');
+      // OSRM returns meters; convert to km
+      cachedMatrix = data.distances.map(row => row.map(m => (m == null ? Infinity : m / 1000)));
+      cachedMatrixHash = hash;
+      return cachedMatrix;
+    } finally {
+      clearTimeout(timer);
+    }
+  })();
+
+  matrixPromise = { hash, promise };
+  // Clear the sentinel when done (success or failure) so future calls can retry
+  promise.finally(() => { if (matrixPromise && matrixPromise.hash === hash) matrixPromise = null; });
+  return promise;
+}
+
+// ═══════════════════════════════════════
+//  OPTIMIZE & RENDER
+// ═══════════════════════════════════════
+let currentCostMode = 'haversine'; // 'haversine' | 'road'
+
+// Generation counter — every new optimizeRoute call bumps this.
+// Stale calls (older gen) abort before writing results, so a late-resolving
+// matrix fetch from a previous start selection can't overwrite newer results.
+let optimizeGen = 0;
+
+// Defensive re-sync of start-select <-> appliedStart. Call after any async
+// boundary that might have changed or race-conditioned the UI.
+function syncStartSelect() {
+  const sel = document.getElementById('start-select');
+  if (!sel) return;
+  if (locations.length >= 2 && typeof appliedStart === 'number' &&
+      appliedStart >= 0 && appliedStart < locations.length) {
+    const target = String(appliedStart);
+    if (sel.value !== target) sel.value = target;
+  }
+  updateStartConfirmUI();
+}
+
+async function optimizeRoute() {
+  if (locations.length < 2) return;
+  const myGen = ++optimizeGen;
+  // Preserve scroll position of the active panel across re-render
+  const activePanel = document.querySelector('.panel.active');
+  const savedScroll = activePanel ? activePanel.scrollTop : 0;
+  // Use appliedStart as source of truth (the select may show a pending unconfirmed value)
+  const sel = document.getElementById('start-select');
+  if (typeof appliedStart !== 'number' || appliedStart >= locations.length) {
+    appliedStart = parseInt(sel.value) || 0;
+  }
+  const start = appliedStart;
+  // Sync select display to applied value in case they differ
+  if (!isNaN(parseInt(sel.value)) && parseInt(sel.value) !== appliedStart) {
+    sel.value = appliedStart;
+  }
+  updateStartConfirmUI();
+  const closed = document.getElementById('return-start').checked;
+  const useRoad = document.getElementById('use-road-opt')?.checked !== false;
+
+  let cost;
+  const btn = document.getElementById('btn-optimize');
+  const statusEl = document.getElementById('opt-status');
+
+  let costLabel = '';
+  if (useRoad && locations.length >= 2 && locations.length <= 80) {
+    try {
+      if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>โหลด...'; }
+      const matrix = await ensureMatrix();
+      // ── Stale-callback guard ──
+      // If another optimizeRoute was started after us (e.g. user pressed "ยืนยัน"
+      // while we were awaiting), we must NOT continue — otherwise we'd overwrite
+      // the newer result with stale data (using the old `start` captured above).
+      if (myGen !== optimizeGen) {
+        if (btn) { btn.disabled = false; btn.innerHTML = '⚡ คำนวณ'; }
+        return;
+      }
+      cost = (i, j) => matrix[i][j];
+      currentCostMode = 'road';
+      costLabel = '🚗 ระยะถนนจริง';
+    } catch (e) {
+      console.warn('Road matrix failed:', e);
+      if (myGen !== optimizeGen) {
+        if (btn) { btn.disabled = false; btn.innerHTML = '⚡ คำนวณ'; }
+        return;
+      }
+      cost = (i, j) => haversine(locations[i], locations[j]);
+      currentCostMode = 'haversine';
+      costLabel = '📏 ระยะเส้นตรง (OSRM ไม่ตอบสนอง)';
+    } finally {
+      if (btn) { btn.disabled = false; btn.innerHTML = '⚡ คำนวณ'; }
+    }
+  } else {
+    cost = (i, j) => haversine(locations[i], locations[j]);
+    currentCostMode = 'haversine';
+    costLabel = '📏 ระยะเส้นตรง (Haversine)';
+  }
+
+  // One more stale check before heavy synchronous work
+  if (myGen !== optimizeGen) return;
+
+  // Optimization pipeline based on effort setting
+  const effortEl = document.getElementById('opt-effort');
+  const effort = effortEl ? effortEl.value : 'thorough';
+
+  let route = nearestNeighborIdx(locations.length, start, cost);
+
+  if (effort === 'fast') {
+    route = twoOptIdx(route, cost, closed);
+    route = orOptSegment(route, cost, closed, 1);
+  } else if (effort === 'balanced') {
+    route = fullOptimize(route, cost, closed);
+  } else {
+    // thorough: full local search + 10 perturbation restarts
+    // Scales compute: up to ~1-2s for 30 points
+    const restarts = locations.length <= 20 ? 15 : (locations.length <= 40 ? 10 : 6);
+    route = thoroughOptimize(route, cost, closed, restarts);
+  }
+
+  // Final stale check: if a newer optimizeRoute has started while we were
+  // doing the synchronous optimization work, abort before publishing results.
+  if (myGen !== optimizeGen) return;
+
+  optimizedRoute = route;
+  const finalLen = tourLength(route, cost, closed);
+  const effortLabel = ({ fast: '⚡ เร็ว', balanced: '⚖️ สมดุล', thorough: '🎯 ละเอียด' })[effort] || '';
+  if (statusEl) statusEl.innerHTML = `${costLabel} · ${effortLabel}<br>ระยะรวม <b>${finalLen.toFixed(2)} km</b>`;
+
+  renderMap(myGen);
+  renderRouteList();
+  updateStats();
+  drawWarnings();
+  syncStartSelect();
+
+  // Restore scroll position. Use double-RAF to ensure layout has settled
+  // after innerHTML replacement before we set scrollTop.
+  if (activePanel && savedScroll > 0) {
+    requestAnimationFrame(() => {
+      activePanel.scrollTop = savedScroll;
+      requestAnimationFrame(() => {
+        activePanel.scrollTop = savedScroll;
+      });
+    });
+  }
+}
+
+// Labels: always ON when app loads. Toggle only persists within the session.
+let showLabels = true;
+// Clean up any legacy value so old '0' doesn't override the new default
+try { localStorage.removeItem('route-labels'); } catch(e) {}
+
+function toggleLabels() {
+  showLabels = !showLabels;
+  const btn = document.getElementById('btn-labels');
+  if (btn) btn.innerHTML = showLabels ? '🏷 ซ่อนชื่อ' : '🏷 แสดงชื่อ';
+  placeMarkers();
+}
+
+function placeMarkers() {
+  markersLayer.clearLayers();
+  // Sync button label with state
+  const btn = document.getElementById('btn-labels');
+  if (btn) btn.innerHTML = showLabels ? '🏷 ซ่อนชื่อ' : '🏷 แสดงชื่อ';
+
+  optimizedRoute.forEach((locIdx, order) => {
+    const loc = locations[locIdx];
+    const isStart = order === 0;
+    const warn = warnInfo[order];
+    const isWarn = !!warn;
+
+    // Priority: start (orange) > warn (red) > normal (blue)
+    let color;
+    if (isStart) color = '#f59e0b';
+    else if (isWarn) color = '#ef4444';
+    else color = '#3b82f6';
+
+    const label = isStart ? '★' : (order + 1);
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="
+        width:32px;height:32px;border-radius:50%;
+        background:${color};border:3px solid #fff;
+        display:flex;align-items:center;justify-content:center;
+        color:#fff;font-weight:700;font-size:12px;
+        font-family:'Outfit',sans-serif;
+        box-shadow:0 3px 10px rgba(0,0,0,0.5);
+        margin-left:-16px;margin-top:-16px;
+      ">${label}</div>`,
+      iconSize: [32, 32], iconAnchor: [16, 16]
+    });
+
+    const warnPopup = isWarn
+      ? `<br><span style="color:#ef4444;font-weight:600">⚠️ ห่างจาก ${escHtml(warn.prevName)} ${warn.dist.toFixed(1)} km</span>`
+      : '';
+    const m = L.marker([loc.lat, loc.lng], { icon })
+      .bindPopup(`<b style="font-family:Outfit">${isWarn ? '⚠️ ' : ''}${loc.name}</b><br>
+        <span style="font-family:monospace;font-size:11px;color:#6b7280">
+          Stop ${order + 1} · ${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}
+        </span>${warnPopup}`);
+
+    if (showLabels) {
+      const labelText = isStart
+        ? `★ ${loc.name}`
+        : `${order + 1}. ${loc.name}`;
+      const labelClass = isWarn ? 'stop-label warn' : 'stop-label';
+      m.bindTooltip(labelText, {
+        permanent: true, direction: 'top',
+        offset: [0, -18], className: labelClass
+      });
+    }
+    m.addTo(markersLayer);
+  });
+}
+
+async function fetchRoadRoute(routeIndices) {
+  const returnStart = document.getElementById('return-start').checked;
+  const full = returnStart ? [...routeIndices, routeIndices[0]] : routeIndices;
+  // OSRM uses lng,lat order
+  const coords = full.map(i => `${locations[i].lng},${locations[i].lat}`).join(';');
+  const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`;
+  // 12-second timeout so a hung request doesn't leave the map in limbo
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 12000);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal });
+    if (!res.ok) throw new Error('OSRM ' + res.status);
+    const data = await res.json();
+    if (data.code !== 'Ok') throw new Error('No route found');
+    return data.routes[0].geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function renderMap(callerGen) {
+  markersLayer.clearLayers();
+  routeLayer.clearLayers();
+  if (locations.length === 0 || optimizedRoute.length < 2) return;
+
+  placeMarkers();
+
+  // Show straight-line fallback first (fast)
+  const returnStart = document.getElementById('return-start').checked;
+  const fullRoute = returnStart ? [...optimizedRoute, optimizedRoute[0]] : optimizedRoute;
+  const straight = fullRoute.map(i => [locations[i].lat, locations[i].lng]);
+  const fallbackLine = L.polyline(straight, { color: '#3b82f6', weight: 3, opacity: 0.4, dashArray: '8 5' }).addTo(routeLayer);
+
+  // Show loading indicator on map
+  const loadEl = document.getElementById('road-loading');
+  if (loadEl) loadEl.style.display = 'block';
+
+  // Preserve sidebar scroll across the late-resolving road-route fetch
+  const sidebarPanelBeforeFetch = document.querySelector('.panel.active');
+  const sidebarScrollBeforeFetch = sidebarPanelBeforeFetch ? sidebarPanelBeforeFetch.scrollTop : 0;
+
+  // Snapshot route + gen so late resolves can verify they're still relevant
+  const snapshot = [...optimizedRoute];
+  const myGen = callerGen != null ? callerGen : optimizeGen;
+
+  try {
+    const roadCoords = await fetchRoadRoute(snapshot);
+    // Stale check: if user triggered a new optimize in the meantime,
+    // discard this polyline — it belongs to the old route.
+    if (myGen !== optimizeGen) {
+      if (loadEl) loadEl.style.display = 'none';
+      return;
+    }
+    routeLayer.clearLayers();
+    L.polyline(roadCoords, {
+      color: '#3b82f6', weight: 4, opacity: 0.92,
+    }).addTo(routeLayer);
+    // Re-place markers on top
+    placeMarkers();
+  } catch(e) {
+    console.warn('Road routing failed, using straight lines:', e.message);
+    // fallback stays
+  } finally {
+    if (loadEl) loadEl.style.display = 'none';
+    drawWarnings();
+    // Belt-and-braces: re-sync the start select one more time after the
+    // latest async boundary so nothing can leave it out of sync with appliedStart.
+    syncStartSelect();
+    // Restore sidebar scroll if something shifted it during the fetch
+    if (sidebarPanelBeforeFetch && sidebarScrollBeforeFetch > 0 &&
+        sidebarPanelBeforeFetch.scrollTop !== sidebarScrollBeforeFetch) {
+      sidebarPanelBeforeFetch.scrollTop = sidebarScrollBeforeFetch;
+    }
+  }
+}
+
+function fitMap() {
+  if (locations.length === 0) return;
+  map.fitBounds(L.latLngBounds(locations.map(l => [l.lat, l.lng])), { padding: [40, 40] });
+}
+
+// ═══════════════════════════════════════
+//  PANELS
+// ═══════════════════════════════════════
+function renderLocationList() {
+  const el = document.getElementById('loc-list');
+  const count = locations.length;
+  const noCount = noLocation.length;
+  const label = noCount > 0
+    ? `${count} จุด · <span style="color:#ef4444">${noCount} ไม่มีพิกัด</span>`
+    : `${count} จุด`;
+  document.getElementById('loc-count-label').innerHTML = label;
+  document.getElementById('tab-count').textContent = count + noCount;
+
+  if (count === 0 && noCount === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="icon">📍</div><p>ยังไม่มีจุดที่บันทึก<br>เพิ่มจุดจากแท็บ "นำเข้า"</p></div>`;
+    return;
+  }
+
+  let html = '';
+
+  if (count > 0) {
+    html += locations.map((loc, i) => `
+      <div class="loc-item">
+        <div class="loc-num">${i + 1}</div>
+        <div class="loc-info">
+          <div class="loc-name">${escHtml(loc.name)}</div>
+          <div class="loc-coords">${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}</div>
+        </div>
+        <button class="delete-btn" onclick="deleteLocation(${i})" title="ลบ">✕</button>
+      </div>
+    `).join('');
+  }
+
+  if (noCount > 0) {
+    html += `<div style="margin-top:14px;padding:8px 10px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:8px">
+      <div style="font-size:11px;color:#ef4444;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">
+        ⚠️ ร้านที่ไม่มีพิกัด (${noCount}) — จัดเส้นทางไม่ได้
+      </div>
+      ${noLocation.map((s, i) => `
+        <div class="loc-item" style="margin-bottom:6px;border-color:rgba(239,68,68,0.3)">
+          <div class="loc-num" style="background:#ef4444">!</div>
+          <div class="loc-info">
+            <div class="loc-name">${escHtml(s.name)}</div>
+            <div class="loc-coords" style="color:#ef4444">${escHtml(s.reason || 'ไม่มีพิกัด')}</div>
+          </div>
+          <button class="delete-btn" onclick="deleteNoLocation(${i})" title="ลบ">✕</button>
+        </div>
+      `).join('')}
+    </div>`;
+  }
+
+  el.innerHTML = html;
+}
+
+function deleteNoLocation(i) {
+  noLocation.splice(i, 1);
+  renderLocationList();
+}
+
+function renderRouteList() {
+  const el = document.getElementById('route-list');
+  if (optimizedRoute.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="icon">🗺</div><p>เพิ่มอย่างน้อย 2 จุด<br>แล้วกด "คำนวณเส้นทาง"</p></div>`;
+    return;
+  }
+
+  const maxD = getMaxDist();
+  const returnStart = document.getElementById('return-start').checked;
+  let html = '', cumDist = 0, warnCount = 0;
+  const warnings = []; // collect for banner
+
+  const totalStops = optimizedRoute.length;
+  optimizedRoute.forEach((locIdx, order) => {
+    const loc = locations[locIdx];
+    let distLabel = '', isWarn = false, legDist = 0;
+    if (order > 0) {
+      legDist = getLegDistance(optimizedRoute[order-1], locIdx);
+      cumDist += legDist;
+      distLabel = `+${legDist.toFixed(1)} km`;
+
+      // Exempt legs: first (warehouse→c1) and last-before-end (when no round-trip)
+      const isFirstLeg = order === 1;
+      const isLastLegNoRT = !returnStart && order === totalStops - 1;
+      const exempt = isFirstLeg || isLastLegNoRT;
+
+      if (maxD && legDist > maxD && !exempt) {
+        isWarn = true;
+        warnCount++;
+        warnings.push({ from: locations[optimizedRoute[order-1]].name, to: loc.name, dist: legDist });
+      }
+    }
+    const isStart = order === 0;
+    const classes = [isStart ? 'start-item' : '', isWarn ? 'warn-item' : ''].filter(Boolean).join(' ');
+    const warnIcon = isWarn ? '⚠️ ' : '';
+    const reorderBtns = isStart ? '' : `
+      <input type="number" inputmode="numeric" class="move-input"
+        min="2" max="${totalStops}" value="${order + 1}"
+        onchange="moveStopTo(${order}, parseInt(this.value))"
+        onfocus="this.select()"
+        title="พิมพ์ตำแหน่งใหม่ แล้วกด Enter">`;
+    html += `
+      <div class="loc-item ${classes}">
+        <div class="loc-num">${isStart ? '★' : order + 1}</div>
+        <div class="loc-info">
+          <div class="loc-name">${warnIcon}${escHtml(loc.name)}</div>
+          <div class="loc-coords">รวม ${cumDist.toFixed(1)} km</div>
+        </div>
+        <div class="loc-dist">${distLabel}</div>
+        ${reorderBtns}
+      </div>`;
+  });
+
+  if (returnStart && optimizedRoute.length > 1) {
+    const d = getLegDistance(optimizedRoute.at(-1), optimizedRoute[0]);
+    cumDist += d;
+    // Warehouse return leg — always exempt from warning
+    html += `
+      <div class="loc-item start-item" style="opacity:0.65">
+        <div class="loc-num">↩</div>
+        <div class="loc-info">
+          <div class="loc-name">${escHtml(locations[optimizedRoute[0]].name)} (กลับ)</div>
+          <div class="loc-coords">รวม ${cumDist.toFixed(1)} km</div>
+        </div>
+        <div class="loc-dist">+${d.toFixed(1)} km</div>
+      </div>`;
+  }
+
+  let banner = '';
+  if (warnCount > 0) {
+    const method = distanceMethodLabel();
+    banner = `<div class="warn-banner">
+      <span class="warn-icon">⚠️</span>
+      <span>พบ <b>${warnCount}</b> จุดที่${method}จากจุดก่อนหน้าเกิน ${maxD} กม.</span>
+    </div>`;
+  }
+  el.innerHTML = banner + html;
+}
+
+function moveStopTo(fromOrder, toPos) {
+  const n = optimizedRoute.length;
+  const toOrder = toPos - 1;
+  // Validate: can't move the start, can't move to position 1, must be within bounds
+  if (isNaN(toPos) || fromOrder <= 0 || toOrder <= 0 || toOrder >= n) {
+    renderRouteList(); // revert invalid input value
+    return;
+  }
+  if (fromOrder === toOrder) {
+    renderRouteList(); // same position — just re-render to reset value
+    return;
+  }
+  // Remove from current position, insert at new position
+  const [moved] = optimizedRoute.splice(fromOrder, 1);
+  optimizedRoute.splice(toOrder, 0, moved);
+
+  renderMap();
+  renderRouteList();
+  updateStats();
+  drawWarnings();
+
+  // Status bar indicator of manual edit
+  const statusEl = document.getElementById('opt-status');
+  if (statusEl) {
+    const closed = document.getElementById('return-start').checked;
+    const mx = cachedMatrix;
+    const cost = currentCostMode === 'road' && mx
+      ? (i, j) => mx[i][j]
+      : (i, j) => haversine(locations[i], locations[j]);
+    const len = tourLength(optimizedRoute, cost, closed);
+    statusEl.innerHTML = `✏️ <b>แก้ไขด้วยตนเอง</b> · ระยะรวม <b>${len.toFixed(2)} km</b>`;
+  }
+}
+
+function moveStop(order, direction) {
+  // order is the position in optimizedRoute (0 = start, can't move)
+  const newOrder = order + direction;
+  if (order <= 0 || newOrder <= 0 || newOrder >= optimizedRoute.length) return;
+  // Swap positions in optimizedRoute (in-place manual reorder, no re-optimize)
+  const tmp = optimizedRoute[order];
+  optimizedRoute[order] = optimizedRoute[newOrder];
+  optimizedRoute[newOrder] = tmp;
+  renderMap();
+  renderRouteList();
+  updateStats();
+  drawWarnings();
+  // Update status to show manual edit
+  const statusEl = document.getElementById('opt-status');
+  if (statusEl) {
+    const closed = document.getElementById('return-start').checked;
+    const mx = cachedMatrix;
+    const cost = currentCostMode === 'road' && mx
+      ? (i, j) => mx[i][j]
+      : (i, j) => haversine(locations[i], locations[j]);
+    const len = tourLength(optimizedRoute, cost, closed);
+    statusEl.innerHTML = `✏️ <b>แก้ไขด้วยตนเอง</b> · ระยะรวม <b>${len.toFixed(2)} km</b>`;
+  }
+}
+
+function updateStats() {
+  if (optimizedRoute.length < 2) return;
+  const returnStart = document.getElementById('return-start').checked;
+  let total = 0;
+  for (let i = 1; i < optimizedRoute.length; i++)
+    total += getLegDistance(optimizedRoute[i-1], optimizedRoute[i]);
+  if (returnStart)
+    total += getLegDistance(optimizedRoute.at(-1), optimizedRoute[0]);
+
+  document.getElementById('stat-stops').textContent = locations.length;
+  document.getElementById('stat-dist').textContent = total.toFixed(1);
+
+  const hrs = total / 40;
+  const h = Math.floor(hrs), m = Math.round((hrs - h) * 60);
+  const timeTxt = h > 0 ? `${h} ชม. ${m} นาที` : `${m} นาที`;
+  const timeTxtShort = h > 0 ? `${h}ชม ${m}น` : `${m} นาที`;
+  document.getElementById('stat-time').textContent = timeTxt;
+
+  // Update top summary bar
+  const tsStops = document.getElementById('ts-stops');
+  const tsDist  = document.getElementById('ts-dist');
+  const tsTime  = document.getElementById('ts-time');
+  if (tsStops) tsStops.textContent = locations.length;
+  if (tsDist)  tsDist.textContent  = total.toFixed(1);
+  if (tsTime)  tsTime.textContent  = timeTxtShort;
+
+  // Update fuel cost based on total distance (also refreshes ts-total)
+  updateFuelCost(total);
+}
+
+function updateRoutePanel() {
+  const sel = document.getElementById('start-select');
+  sel.innerHTML = locations.length === 0
+    ? '<option>— เพิ่มจุดก่อน —</option>'
+    : locations.map((l, i) => `<option value="${i}">${i+1}. ${escHtml(l.name)}</option>`).join('');
+  if (locations.length >= 2) {
+    // Keep appliedStart in range
+    if (appliedStart >= locations.length) appliedStart = 0;
+    sel.value = appliedStart;
+    updateStartConfirmUI();
+    optimizeRoute();
+  } else {
+    renderRouteList();
+  }
+}
+
+// ═══════════════════════════════════════
+//  DATA MANAGEMENT
+// ═══════════════════════════════════════
+function addLocations(newLocs) {
+  const wasEmpty = locations.length === 0;
+  locations.push(...newLocs); invalidateMatrix();
+  document.getElementById('tab-count').textContent = locations.length;
+  if (locations.length >= 2) {
+    // Preserve applied start selection
+    const sel = document.getElementById('start-select');
+    sel.innerHTML = locations.map((l, i) => `<option value="${i}">${i+1}. ${escHtml(l.name)}</option>`).join('');
+    if (appliedStart >= locations.length) appliedStart = 0;
+    sel.value = appliedStart;
+    updateStartConfirmUI();
+    // When wasEmpty, switchTab('route') below will call updateRoutePanel() which
+    // calls optimizeRoute() — so skip the redundant call here. Firing both
+    // doubles load on OSRM's public server and can push it into slow/timeout territory.
+    if (!wasEmpty) optimizeRoute();
+    fitMap();
+  }
+  renderLocationList();
+  // Only auto-switch to route tab on first add
+  if (wasEmpty) switchTab('route');
+}
+
+function deleteLocation(i) {
+  locations.splice(i, 1);
+  invalidateMatrix();
+  optimizedRoute = [];
+  renderLocationList();
+  if (locations.length >= 2) optimizeRoute();
+  else { markersLayer.clearLayers(); routeLayer.clearLayers(); warningLayer.clearLayers(); }
+}
+
+function clearAll() {
+  if (!confirm('ลบจุดทั้งหมด?')) return;
+  locations = []; optimizedRoute = []; noLocation = []; invalidateMatrix();
+  markersLayer.clearLayers(); routeLayer.clearLayers(); warningLayer.clearLayers();
+  renderLocationList();
+  document.getElementById('tab-count').textContent = '0';
+  switchTab('import');
+}
+
+// ═══════════════════════════════════════
+//  IMPORT
+// ═══════════════════════════════════════
+function parseData(text) {
+  const lines = text.trim().split('\n').filter(l => l.trim());
+  const results = [];      // valid locations with coords
+  const skipped = [];      // rows with only a name but no valid coords
+  const errors = [];
+
+  lines.forEach((line, i) => {
+    // Prefer tab as primary separator (Google Sheets paste)
+    let parts;
+    if (line.includes('\t')) {
+      parts = line.split('\t').map(p => p.trim().replace(/^"|"$/g, ''));
+    } else {
+      parts = line.split(',').map(p => p.trim().replace(/^"|"$/g, ''));
+    }
+
+    let name, lat, lng;
+
+    // Format A: name | lat | lng  (3+ fields)
+    if (parts.length >= 3) {
+      const testLat = parseFloat(parts[parts.length - 2]);
+      const testLng = parseFloat(parts[parts.length - 1]);
+      if (!isNaN(testLat) && !isNaN(testLng)) {
+        name = parts.slice(0, -2).join(' ').trim();
+        lat = testLat; lng = testLng;
+      }
+    }
+
+    // Format B: name | "lat, lng"  (2 fields, combined coords)
+    if ((lat === undefined || isNaN(lat)) && parts.length >= 2) {
+      const sub = parts[parts.length - 1].split(/[,\s]+/).filter(Boolean);
+      if (sub.length >= 2) {
+        const testLat = parseFloat(sub[0]);
+        const testLng = parseFloat(sub[1]);
+        if (!isNaN(testLat) && !isNaN(testLng)) {
+          name = parts.slice(0, -1).join(' ').trim();
+          lat = testLat; lng = testLng;
+        }
+      }
+    }
+
+    // Format C: single field "lat, lng"  (coords only, no name)
+    if ((lat === undefined || isNaN(lat)) && parts.length === 1) {
+      const sub = parts[0].split(/[,\s]+/).filter(Boolean);
+      if (sub.length >= 2) {
+        const testLat = parseFloat(sub[0]);
+        const testLng = parseFloat(sub[1]);
+        if (!isNaN(testLat) && !isNaN(testLng)) {
+          name = ''; lat = testLat; lng = testLng;
+        }
+      }
+    }
+
+    // No valid coordinates → treat as a locationless entry if there's any text
+    if (lat === undefined || isNaN(lat) || isNaN(lng)) {
+      // Detect rows that look like just a name (no numbers that could be coords)
+      const textOnly = parts.join(' ').trim();
+      const looksLikeHeader = /(latitude|longitude|lat|lng|lon|ชื่อ|name)/i.test(textOnly) && i === 0;
+      if (textOnly && !looksLikeHeader) {
+        skipped.push({ name: textOnly, reason: 'ไม่มีพิกัด' });
+      }
+      return;
+    }
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      errors.push(`แถว ${i+1}: พิกัดเกินช่วง`);
+      return;
+    }
+    results.push({ name: name || `จุด ${results.length + 1}`, lat, lng });
+  });
+
+  return { results, errors, skipped };
+}
+
+function showFeedback(msg, type = 'error') {
+  const el = document.getElementById('import-feedback');
+  el.style.display = 'block';
+  el.innerHTML = `<div class="${type}-msg">${msg}</div>`;
+  setTimeout(() => el.style.display = 'none', 5000);
+}
+
+async function importFromSheets() {
+  const url = document.getElementById('sheets-url').value.trim();
+  if (!url) { showFeedback('กรุณาใส่ URL'); return; }
+
+  let csvUrl = url;
+  const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  if (match) csvUrl = `https://docs.google.com/spreadsheets/d/${match[1]}/export?format=csv&gid=0`;
+
+  const btn = document.getElementById('btn-sheets');
+  btn.innerHTML = '<span class="spinner"></span>กำลังโหลด...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(csvUrl);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    const { results, errors, skipped } = parseData(text);
+    if (errors.length) showFeedback(errors.join('<br>'), 'error');
+    if (skipped && skipped.length) {
+      noLocation.push(...skipped);
+      renderLocationList();
+    }
+    if (results.length) {
+      addLocations(results);
+      const skipMsg = skipped && skipped.length ? ` · ข้าม ${skipped.length} ร้าน (ไม่มีพิกัด)` : '';
+      showFeedback(`✅ นำเข้าสำเร็จ ${results.length} จุด${skipMsg}`, 'success');
+    } else if (skipped && skipped.length) {
+      showFeedback(`⚠️ พบ ${skipped.length} ร้าน แต่ไม่มีพิกัดเลย`, 'error');
+    } else {
+      showFeedback('ไม่พบข้อมูลที่ถูกต้อง');
+    }
+  } catch(e) {
+    showFeedback(`โหลดไม่ได้: ${e.message}<br>💡 ลองวางข้อมูล CSV โดยตรงแทน`);
+  } finally {
+    btn.innerHTML = '📊 โหลดจาก Google Sheets';
+    btn.disabled = false;
+  }
+}
+
+function importFromPaste() {
+  const text = document.getElementById('paste-data').value;
+  if (!text.trim()) { showFeedback('กรุณาวางข้อมูลก่อน'); return; }
+  const { results, errors, skipped } = parseData(text);
+  if (errors.length) showFeedback(errors.join('<br>'));
+  if (skipped && skipped.length) {
+    noLocation.push(...skipped);
+    renderLocationList();
+  }
+  if (results.length) {
+    addLocations(results);
+    document.getElementById('paste-data').value = '';
+    const skipMsg = skipped && skipped.length ? ` · ข้าม ${skipped.length} ร้าน (ไม่มีพิกัด)` : '';
+    showFeedback(`✅ นำเข้าสำเร็จ ${results.length} จุด${skipMsg}`, 'success');
+  } else if (skipped && skipped.length) {
+    document.getElementById('paste-data').value = '';
+    showFeedback(`⚠️ พบ ${skipped.length} ร้าน แต่ไม่มีพิกัดเลย`, 'error');
+  } else {
+    showFeedback('ไม่พบข้อมูลที่ถูกต้อง');
+  }
+}
+
+async function doGeocode() {
+  const q = document.getElementById('geocode-query').value.trim();
+  if (!q) { showFeedback('กรุณาใส่ที่อยู่'); return; }
+  const thOnly = document.getElementById('geocode-th-only').checked;
+  const resEl = document.getElementById('geocode-results');
+  const btn = document.getElementById('btn-geocode');
+  btn.innerHTML = '<span class="spinner"></span>กำลังค้นหา...';
+  btn.disabled = true;
+  resEl.innerHTML = '';
+
+  const params = new URLSearchParams({
+    q, format: 'json', limit: '5', addressdetails: '1'
+  });
+  if (thOnly) params.set('countrycodes', 'th');
+  const url = `https://nominatim.openstreetmap.org/search?${params}`;
+
+  try {
+    const r = await fetch(url, { headers: { 'Accept-Language': 'th,en' } });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    if (!data.length) {
+      resEl.innerHTML = '<div class="error-msg" style="font-size:12px">ไม่พบผลลัพธ์ · ลองปรับคำค้น</div>';
+      return;
+    }
+    resEl.innerHTML = data.map((r, i) => `
+      <div class="geocode-result" onclick="pickGeocode(${i})">
+        <div style="font-size:13px;font-weight:500;color:var(--text)">${escHtml(r.display_name.split(',')[0])}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${escHtml(r.display_name)}</div>
+        <div style="font-size:10px;color:var(--accent);font-family:'JetBrains Mono',monospace;margin-top:3px">${(+r.lat).toFixed(5)}, ${(+r.lon).toFixed(5)}</div>
+      </div>
+    `).join('');
+    window._geocodeResults = data;
+  } catch(e) {
+    resEl.innerHTML = `<div class="error-msg" style="font-size:12px">ค้นหาไม่สำเร็จ: ${e.message}</div>`;
+  } finally {
+    btn.innerHTML = '🔍 ค้นหา';
+    btn.disabled = false;
+  }
+}
+
+function pickGeocode(i) {
+  const r = window._geocodeResults[i];
+  if (!r) return;
+  const customName = document.getElementById('geocode-name').value.trim();
+  const autoName = r.display_name.split(',')[0].trim();
+  const name = customName || autoName || `จุด ${locations.length + 1}`;
+  addLocations([{ name, lat: +r.lat, lng: +r.lon }]);
+  // Clear form and fly to it
+  document.getElementById('geocode-name').value = '';
+  document.getElementById('geocode-query').value = '';
+  document.getElementById('geocode-results').innerHTML = '';
+  map.flyTo([+r.lat, +r.lon], 14, { duration: 0.8 });
+  showFeedback(`✅ เพิ่ม "${name}" แล้ว`, 'success');
+}
+
+function addManual() {
+  const name = document.getElementById('add-name').value.trim() || `จุด ${locations.length + 1}`;
+  const raw = document.getElementById('add-latlng').value.trim();
+  const parts = raw.split(/[\s,]+/).filter(Boolean);
+  if (parts.length < 2) { showFeedback('กรุณาใส่พิกัด เช่น 13.7563, 100.5018'); return; }
+  const lat = parseFloat(parts[0]), lng = parseFloat(parts[1]);
+  if (isNaN(lat) || isNaN(lng)) { showFeedback('กรุณาใส่พิกัดให้ถูกต้อง'); return; }
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) { showFeedback('พิกัดเกินช่วงที่ถูกต้อง'); return; }
+  addLocations([{ name, lat, lng }]);
+  document.getElementById('add-name').value = '';
+  document.getElementById('add-latlng').value = '';
+  showFeedback(`✅ เพิ่ม "${name}" แล้ว`, 'success');
+}
+
+function loadDemo() {
+  locations = [];
+  addLocations([
+    { name: 'สนามบินสุวรรณภูมิ',    lat: 13.6900, lng: 100.7501 },
+    { name: 'เซ็นทรัลเวิลด์',        lat: 13.7466, lng: 100.5397 },
+    { name: 'วัดพระแก้ว',             lat: 13.7516, lng: 100.4931 },
+    { name: 'เยาวราช',                lat: 13.7381, lng: 100.5125 },
+    { name: 'ไอคอนสยาม',             lat: 13.7267, lng: 100.5120 },
+    { name: 'จุฬาลงกรณ์มหาวิทยาลัย', lat: 13.7380, lng: 100.5305 },
+    { name: 'สยามพารากอน',            lat: 13.7462, lng: 100.5347 },
+    { name: 'ตลาดนัดจตุจักร',         lat: 13.7999, lng: 100.5500 },
+    { name: 'สนามบินดอนเมือง',        lat: 13.9126, lng: 100.6069 },
+    { name: 'ตลาดนัดรถไฟ',            lat: 13.8145, lng: 100.5606 },
+    { name: 'แยกอโศก',                lat: 13.7366, lng: 100.5607 },
+    { name: 'ทองหล่อ',                lat: 13.7240, lng: 100.5852 },
+    { name: 'เอกมัย',                 lat: 13.7190, lng: 100.5880 },
+    { name: 'อ่อนนุช',                lat: 13.7008, lng: 100.5980 },
+    { name: 'บางนา',                  lat: 13.6802, lng: 100.6036 },
+  ]);
+}
+
+// ═══════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ═══ Google Maps export ═══
+function openInGoogleMaps() {
+  if (optimizedRoute.length < 2) {
+    showFeedback('ต้องมีอย่างน้อย 2 จุด');
+    return;
+  }
+  const returnStart = document.getElementById('return-start').checked;
+  const seq = returnStart ? [...optimizedRoute, optimizedRoute[0]] : [...optimizedRoute];
+  const pts = seq.map(i => ({ lat: locations[i].lat, lng: locations[i].lng, name: locations[i].name }));
+
+  // Google Maps URL supports up to 10 points (1 origin + ≤8 waypoints + 1 destination).
+  // For more, split into segments with overlap.
+  const MAX = 10;
+
+  if (pts.length <= MAX) {
+    window.open(buildMapsUrl(pts), '_blank');
+    return;
+  }
+
+  // Split into overlapping segments
+  const segments = [];
+  let i = 0;
+  while (i < pts.length - 1) {
+    const end = Math.min(i + MAX, pts.length);
+    segments.push(pts.slice(i, end));
+    if (end >= pts.length) break;
+    i = end - 1; // overlap by 1 so driver continues smoothly
+  }
+
+  // Show modal with list of segment links
+  showSegmentsModal(segments);
+}
+
+function buildMapsUrl(pts) {
+  const origin = `${pts[0].lat},${pts[0].lng}`;
+  const destination = `${pts[pts.length-1].lat},${pts[pts.length-1].lng}`;
+  const mid = pts.slice(1, -1).map(p => `${p.lat},${p.lng}`).join('|');
+  const params = new URLSearchParams({
+    api: '1', origin, destination, travelmode: 'driving'
+  });
+  if (mid) params.set('waypoints', mid);
+  return `https://www.google.com/maps/dir/?${params}`;
+}
+
+function showSegmentsModal(segments) {
+  const overlay = document.getElementById('seg-modal');
+  const body = document.getElementById('seg-modal-body');
+  body.innerHTML = `
+    <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.6">
+      Google Maps รับได้ครั้งละ 10 จุด · แบ่งเป็น <b>${segments.length} ส่วน</b><br>
+      เปิดทีละส่วน · จบส่วนแรกแล้วค่อยกดส่วนถัดไป
+    </p>
+    ${segments.map((seg, i) => `
+      <button class="btn btn-primary" style="margin-bottom:8px;text-align:left;padding:12px 14px"
+        onclick="window.open('${buildMapsUrl(seg)}', '_blank')">
+        <div style="font-weight:600">ส่วนที่ ${i+1} — ${seg.length} จุด</div>
+        <div style="font-size:11px;opacity:0.85;margin-top:2px;font-weight:400">
+          ${escHtml(seg[0].name)} → ${escHtml(seg[seg.length-1].name)}
+        </div>
+      </button>
+    `).join('')}
+  `;
+  overlay.style.display = 'flex';
+}
+
+function closeSegModal() {
+  document.getElementById('seg-modal').style.display = 'none';
+}
+
+// ═══ Print / PDF view ═══
+function openPrintView() {
+  if (optimizedRoute.length < 2) {
+    showFeedback('ต้องมีอย่างน้อย 2 จุด');
+    return;
+  }
+  const returnStart = document.getElementById('return-start').checked;
+  const today = new Date().toLocaleDateString('th-TH', { year:'numeric', month:'long', day:'numeric' });
+
+  let cum = 0;
+  let rows = '';
+  optimizedRoute.forEach((idx, order) => {
+    const loc = locations[idx];
+    let legKm = 0;
+    if (order > 0) {
+      legKm = haversine(locations[optimizedRoute[order-1]], loc);
+      cum += legKm;
+    }
+    const isStart = order === 0;
+    rows += `
+      <tr>
+        <td style="text-align:center;width:36px">${isStart ? '★' : order+1}</td>
+        <td style="width:24px"><input type="checkbox" style="width:16px;height:16px"></td>
+        <td><b>${escHtml(loc.name)}</b><br><span style="font-family:monospace;font-size:10px;color:#666">${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}</span></td>
+        <td style="text-align:right;white-space:nowrap">${order === 0 ? '—' : '+' + legKm.toFixed(1) + ' km'}</td>
+        <td style="text-align:right;white-space:nowrap">${cum.toFixed(1)} km</td>
+      </tr>`;
+  });
+  if (returnStart && optimizedRoute.length > 1) {
+    const d = haversine(locations[optimizedRoute[optimizedRoute.length-1]], locations[optimizedRoute[0]]);
+    cum += d;
+    rows += `
+      <tr style="background:#f9fafb">
+        <td style="text-align:center">↩</td>
+        <td></td>
+        <td><i>กลับคลังสินค้า — ${escHtml(locations[optimizedRoute[0]].name)}</i></td>
+        <td style="text-align:right">+${d.toFixed(1)} km</td>
+        <td style="text-align:right"><b>${cum.toFixed(1)} km</b></td>
+      </tr>`;
+  }
+
+  const stops = optimizedRoute.length;
+  const hrs = cum / 40;
+  const h = Math.floor(hrs), m = Math.round((hrs - h) * 60);
+  const timeStr = h > 0 ? `${h} ชม. ${m} นาที` : `${m} นาที`;
+
+  const content = `
+    <div class="print-page">
+      <div class="print-header">
+        <h1>Route Optimizer Rattana</h1>
+        <div class="print-meta">
+          <span><b>วันที่:</b> ${today}</span>
+          <span><b>จุดทั้งหมด:</b> ${stops}</span>
+          <span><b>ระยะรวม:</b> ${cum.toFixed(1)} km</span>
+          <span><b>เวลาโดยประมาณ:</b> ${timeStr}</span>
+        </div>
+      </div>
+      <table class="print-table">
+        <thead>
+          <tr>
+            <th style="width:36px">#</th>
+            <th style="width:24px">✓</th>
+            <th>ชื่อจุด / พิกัด</th>
+            <th style="width:80px;text-align:right">ระยะ</th>
+            <th style="width:80px;text-align:right">รวม</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="print-footer">
+        พิมพ์เมื่อ ${new Date().toLocaleString('th-TH')} · Route Optimizer Rattana
+      </div>
+    </div>
+  `;
+
+  document.getElementById('print-content').innerHTML = content;
+  document.getElementById('print-overlay').style.display = 'flex';
+}
+
+function closePrintView() {
+  document.getElementById('print-overlay').style.display = 'none';
+}
+
+function doPrint() {
+  window.print();
+}
+
+// ═══ Excel Export ═══
+function exportExcel() {
+  if (typeof XLSX === 'undefined') {
+    showFeedback('กำลังโหลดไลบรารี Excel รอสักครู่แล้วลองใหม่');
+    return;
+  }
+  if (optimizedRoute.length < 2 && noLocation.length === 0) {
+    showFeedback('ยังไม่มีข้อมูลให้ export');
+    return;
+  }
+
+  const returnStart = document.getElementById('return-start').checked;
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('th-TH', { year:'numeric', month:'long', day:'numeric' });
+  const fileDate = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+
+  const wb = XLSX.utils.book_new();
+
+  // ─── Sheet 1: Route (เส้นทางที่จัดแล้ว) ───
+  const routeRows = [
+    ['ลำดับ', 'ชื่อจุด', 'Latitude', 'Longitude', 'ระยะจากจุดก่อน (km)', 'ระยะสะสม (km)', 'หมายเหตุ']
+  ];
+  let cum = 0;
+  optimizedRoute.forEach((idx, order) => {
+    const loc = locations[idx];
+    let leg = 0;
+    if (order > 0) {
+      leg = getLegDistance(optimizedRoute[order-1], idx);
+      cum += leg;
+    }
+    const note = order === 0 ? '🏁 จุดเริ่มต้น (คลังสินค้า)' : '';
+    routeRows.push([
+      order === 0 ? 'เริ่ม' : order + 1,
+      loc.name,
+      loc.lat.toFixed(6),
+      loc.lng.toFixed(6),
+      order === 0 ? '' : +leg.toFixed(2),
+      +cum.toFixed(2),
+      note,
+    ]);
+  });
+  if (returnStart && optimizedRoute.length > 1) {
+    const d = getLegDistance(optimizedRoute.at(-1), optimizedRoute[0]);
+    cum += d;
+    const back = locations[optimizedRoute[0]];
+    routeRows.push([
+      'กลับ', back.name, back.lat.toFixed(6), back.lng.toFixed(6),
+      +d.toFixed(2), +cum.toFixed(2), '🏁 กลับคลังสินค้า'
+    ]);
+  }
+
+  const ws1 = XLSX.utils.aoa_to_sheet(routeRows);
+  ws1['!cols'] = [ {wch:8}, {wch:36}, {wch:12}, {wch:12}, {wch:16}, {wch:14}, {wch:30} ];
+  XLSX.utils.book_append_sheet(wb, ws1, 'เส้นทาง');
+
+  // ─── Sheet 2: Summary ───
+  const stops = optimizedRoute.length;
+  const hrs = cum / 40;
+  const h = Math.floor(hrs), m = Math.round((hrs - h) * 60);
+  const timeStr = h > 0 ? `${h} ชม. ${m} นาที` : `${m} นาที`;
+  const methodLabel = distanceMethodLabel();
+
+  // Cost calculations (match fuel card)
+  const litersX  = fuelState.kmpl > 0 ? cum / fuelState.kmpl : 0;
+  const fuelBahtX = litersX * fuelState.price;
+  const wearBahtX = cum * fuelState.wear;
+  const laborCommonX = computeLaborAndCommon();
+  const totalCostX = fuelBahtX + wearBahtX + laborCommonX;
+  const modeX = MARGIN_MODES[fuelState.salesMode] || MARGIN_MODES.wholesale;
+  const minRevenueX = totalCostX / modeX.margin;
+  const vehX = VEHICLES.find(v => v.id === fuelState.vehicleId);
+
+  const summaryRows = [
+    ['Route Optimizer Rattana — สรุปเส้นทาง'],
+    [],
+    ['วันที่ส่งออก', dateStr],
+    ['จำนวนจุดที่จัดเส้นทาง', stops],
+    ['จำนวนร้านที่ไม่มีพิกัด', noLocation.length],
+    ['ระยะรวม (km)', +cum.toFixed(2)],
+    ['เวลาโดยประมาณ (40 km/h)', timeStr],
+    ['วิธีคำนวณระยะ', methodLabel],
+    ['วนกลับจุดเริ่มต้น', returnStart ? 'ใช่' : 'ไม่'],
+    [],
+    ['— ต้นทุนโดยประมาณ —'],
+    ['ประเภทรถ', vehX ? vehX.name : '—'],
+    ['รูปแบบการขาย', modeX.label],
+    ['จำนวนรอบที่วิ่ง', `${fuelState.trips || 1} รอบ`],
+    ['ค่าน้ำมัน (฿)', +fuelBahtX.toFixed(2)],
+    ['ค่าเสื่อม/บำรุง (฿)', +wearBahtX.toFixed(2)],
+    ['ค่าแรง + ส่วนกลาง (ต่อรอบ) (฿)', +laborCommonX.toFixed(2)],
+    ['💰 ต้นทุนรวม (฿)', +totalCostX.toFixed(2)],
+    ['📈 ยอดขายขั้นต่ำที่ควรมี (฿)', +minRevenueX.toFixed(2)],
+  ];
+  const ws2 = XLSX.utils.aoa_to_sheet(summaryRows);
+  ws2['!cols'] = [ {wch:42}, {wch:30} ];
+  XLSX.utils.book_append_sheet(wb, ws2, 'สรุป');
+
+  // ─── Sheet 3: ร้านที่ไม่มีพิกัด (สำคัญ!) ───
+  const noLocRows = [
+    ['⚠️ ร้านที่ไม่มีพิกัด — จัดเส้นทางไม่ได้'],
+    [],
+    ['ลำดับ', 'ชื่อร้าน', 'สาเหตุ', 'ควรทำอะไรต่อ']
+  ];
+  if (noLocation.length === 0) {
+    noLocRows.push(['—', 'ไม่มีร้านที่ขาดพิกัด', '', '']);
+  } else {
+    noLocation.forEach((s, i) => {
+      noLocRows.push([
+        i + 1,
+        s.name,
+        s.reason || 'ไม่มีพิกัด',
+        'ค้นหาที่อยู่ / ใช้ Geocoding เพื่อเพิ่มพิกัด'
+      ]);
+    });
+  }
+  const ws3 = XLSX.utils.aoa_to_sheet(noLocRows);
+  ws3['!cols'] = [ {wch:8}, {wch:40}, {wch:18}, {wch:50} ];
+  XLSX.utils.book_append_sheet(wb, ws3, 'ร้านไม่มีพิกัด');
+
+  const fname = `route_${fileDate}.xlsx`;
+  XLSX.writeFile(wb, fname);
+  showFeedback(`✅ ดาวน์โหลดไฟล์ ${fname}`, 'success');
+}
+
+// ═══════════════════════════════════════
+//  FUEL COST MODULE
+// ═══════════════════════════════════════
+// Vehicle presets — km/L + wear cost (฿/km) for Thai fleet, slightly padded
+// km/L is "conservative" (~10% lower than optimal to reflect city driving, traffic, idling)
+// wear covers: tires + engine/oil + brakes + suspension + vehicle depreciation + misc repairs
+// common = ค่าส่วนกลาง (฿/trip) — hidden from UI, used in backend cost calc
+// กระบะ (4 ล้อ) = 400 · 6 ล้อขึ้นไป = 700
+const VEHICLES = [
+  { id:'sales',   name:'🚗 กระบะเปล่า (พนง.ขาย)', kmpl:11,  wear:1.50, common:400, noTransportCost:true, note:'รถพนักงานขาย ไม่บรรทุก' },
+  { id:'pickup',  name:'🛻 กระบะบรรทุก',          kmpl:9,   wear:2.50, common:400, note:'กระบะ 1 ตัน บรรทุกเต็ม' },
+  { id:'jumbo',   name:'🚙 จัมโบ้ 4 ล้อ',         kmpl:7,   wear:3.50, common:400, note:'กระบะตอนเดียวยาว บรรทุกเต็ม' },
+  { id:'6wheel',  name:'🚚 6 ล้อ',                kmpl:5.5, wear:5.00, common:700, note:'บรรทุก 6 ล้อ เต็ม' },
+  { id:'10wheel', name:'🚛 10 ล้อ',               kmpl:3.2, wear:8.50, common:700, note:'บรรทุก 10 ล้อ เต็ม' },
+  { id:'12wheel', name:'🚛 12 ล้อ',               kmpl:2.7, wear:11.00,common:700, note:'บรรทุก 12 ล้อ เต็ม' },
+  { id:'trailer', name:'🚜 รถพ่วง',               kmpl:2.2, wear:14.00,common:700, note:'รถหัวลาก + พ่วง เต็ม' },
+];
+
+// Labor constants — hidden from UI (backend only)
+const LABOR_DRIVER = 700;   // ฿/trip (fixed)
+const LABOR_WORKER = 400;   // ฿/คน
+const WORKERS_OPTIONS = [0, 1, 2, 3];  // chip options (0 = ไม่มีพนง.ยก, ค่าแรง worker = 0)
+const DEFAULT_WORKERS = 2;  // จำนวนพนง.ยกสินค้า (default)
+
+// Sales mode — retail (พรีปลีก 3%) / wholesale (พรีส่ง 1%) / distributor (6%)
+// ยอดขายขั้นต่ำ = ต้นทุนรวม ÷ margin
+const MARGIN_MODES = {
+  retail:      { label: '🏪 พรีปลีก',    margin: 0.03 },
+  wholesale:   { label: '📦 พรีส่ง',     margin: 0.01 },
+  distributor: { label: '🏬 Distributor', margin: 0.06 },
+};
+// 4-wheel vehicles default to retail; 6-wheel+ default to wholesale
+const RETAIL_DEFAULT_IDS = ['sales', 'pickup', 'jumbo'];
+function defaultSalesModeFor(vehicleId) {
+  return RETAIL_DEFAULT_IDS.includes(vehicleId) ? 'retail' : 'wholesale';
+}
+// Trips per day — labor+common is a daily cost, split across trips.
+// Fuel + wear are still billed per actual km (OSRM distance).
+const TRIPS_OPTIONS = [1, 2, 3];
+const DEFAULT_TRIPS = 1;
+
+// Default fallback price if fetch fails and no cache (updated periodically)
+const FUEL_DEFAULT_PRICE = 42.90;
+const FUEL_CACHE_KEY = 'route-fuel-cache';
+const FUEL_PREFS_KEY = 'route-fuel-prefs';
+// codetabs proxy was the only one that worked across our testing
+const FUEL_PROXY = 'https://api.codetabs.com/v1/proxy/?quest=';
+const FUEL_TARGET = 'https://www.pttor.com/oilprice-board.aspx';
+
+let fuelState = {
+  vehicleId: null,           // null = ยังไม่ได้เลือก → แสดง warning
+  kmpl: null,                // ได้ค่าตอนเลือกรถ
+  wear: null,                // ได้ค่าตอนเลือกรถ
+  workers: DEFAULT_WORKERS,  // จำนวนพนง.ยกสินค้า (default 2)
+  salesMode: null,           // null = ยังไม่ได้เลือก → auto-set ตามรถ เมื่อเลือกรถ
+  trips: DEFAULT_TRIPS,      // จำนวนรอบที่วิ่ง (1/2/3) — หาร labor+common
+  price: FUEL_DEFAULT_PRICE,
+  priceSource: 'default',   // 'fetched' | 'cache' | 'manual' | 'default'
+  priceDate: null,
+};
+
+function loadFuelPrefs() {
+  try {
+    const raw = localStorage.getItem(FUEL_PREFS_KEY);
+    if (!raw) return;
+    const p = JSON.parse(raw);
+    // Intentionally DO NOT load vehicleId / salesMode / kmpl / wear.
+    // Each trip may use a different vehicle/sales-mode — user must re-select
+    // every session. saveFuelPrefs still persists them (schema kept intact),
+    // just not restored here.
+    if (typeof p.workers === 'number' && WORKERS_OPTIONS.includes(p.workers)) {
+      fuelState.workers = p.workers;
+    }
+    if (typeof p.manualPrice === 'number' && p.manualPrice > 0) {
+      fuelState.price = p.manualPrice;
+      fuelState.priceSource = 'manual';
+    }
+  } catch(e) {}
+}
+
+function saveFuelPrefs() {
+  try {
+    const p = {
+      vehicleId: fuelState.vehicleId,
+      kmpl: fuelState.kmpl,
+      wear: fuelState.wear,
+      workers: fuelState.workers,
+      salesMode: fuelState.salesMode,
+      manualPrice: fuelState.priceSource === 'manual' ? fuelState.price : null,
+    };
+    localStorage.setItem(FUEL_PREFS_KEY, JSON.stringify(p));
+  } catch(e) {}
+}
+
+function loadFuelCache() {
+  try {
+    const raw = localStorage.getItem(FUEL_CACHE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch(e) { return null; }
+}
+
+function saveFuelCache(price, date) {
+  try {
+    localStorage.setItem(FUEL_CACHE_KEY, JSON.stringify({
+      price, date, fetchedAt: new Date().toISOString(),
+    }));
+  } catch(e) {}
+}
+
+// Parse PTT oilprice-board HTML to find diesel B7 price
+function parseDieselPrice(html) {
+  // The "Diesel" image on PTT board = ดีเซลหมุนเร็วธรรมดา (B7 reformulated)
+  // Match alt="Diesel" NOT followed by B20 or Premium, then find price within ~800 chars
+  const re = /Diesel(?!\s*B20)(?!\s*Premium)[\s\S]{0,800}?(\d{2}\.\d{2})/;
+  const m = html.match(re);
+  const price = m ? parseFloat(m[1]) : null;
+  // Also try to grab the update date
+  const dm = html.match(/ปรับราคาเมื่อ\s*([^<\n]{3,60})/);
+  const date = dm ? dm[1].trim().replace(/\s+/g, ' ') : null;
+  return { price, date };
+}
+
+async function fetchFuelPrice() {
+  // 8s timeout - if slow, just use cache
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 8000);
+  try {
+    const res = await fetch(FUEL_PROXY + encodeURIComponent(FUEL_TARGET), { signal: ctrl.signal });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const html = await res.text();
+    const { price, date } = parseDieselPrice(html);
+    if (!price || price < 10 || price > 100) throw new Error('Price parse invalid');
+    return { price, date };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function initFuelPrice() {
+  // Don't overwrite manual price
+  if (fuelState.priceSource === 'manual') {
+    updateFuelPriceSourceLabel();
+    return;
+  }
+  // Try cache first for fast initial render
+  const cache = loadFuelCache();
+  if (cache && cache.price) {
+    fuelState.price = cache.price;
+    fuelState.priceDate = cache.date;
+    fuelState.priceSource = 'cache';
+    document.getElementById('fuel-price').value = cache.price.toFixed(2);
+    updateFuelPriceSourceLabel();
+    updateFuelCost();
+  }
+  // Then try to fetch fresh (in background)
+  try {
+    const { price, date } = await fetchFuelPrice();
+    // Don't overwrite if user started typing a manual value while we awaited
+    if (fuelState.priceSource === 'manual') return;
+    fuelState.price = price;
+    fuelState.priceDate = date;
+    fuelState.priceSource = 'fetched';
+    saveFuelCache(price, date);
+    document.getElementById('fuel-price').value = price.toFixed(2);
+    updateFuelPriceSourceLabel();
+    updateFuelCost();
+  } catch(e) {
+    console.warn('Fuel price fetch failed:', e.message);
+    // Keep whatever we have (cache or default)
+    if (fuelState.priceSource !== 'cache') {
+      fuelState.priceSource = 'default';
+      updateFuelPriceSourceLabel();
+    }
+  }
+}
+
+function updateFuelPriceSourceLabel() {
+  const el = document.getElementById('fuel-price-source');
+  if (!el) return;
+  let txt = '', color = 'var(--muted)';
+  switch (fuelState.priceSource) {
+    case 'fetched':
+      txt = `✓ ราคาดีเซล PTT (${fuelState.priceDate || 'วันนี้'})`;
+      color = '#22c55e';
+      break;
+    case 'cache':
+      txt = `💾 ใช้ราคาที่เคยดึงไว้ (${fuelState.priceDate || 'ไม่ทราบวันที่'}) — กำลังเช็คอัปเดต...`;
+      color = '#f59e0b';
+      break;
+    case 'manual':
+      txt = `✎ ใส่ราคาเอง — กด "↻" เพื่อดึงราคา PTT ใหม่`;
+      color = 'var(--accent)';
+      break;
+    default:
+      txt = `ใช้ราคา default — กำลังพยายามดึงราคา PTT...`;
+      color = 'var(--muted)';
+  }
+  el.innerHTML = txt +
+    (fuelState.priceSource === 'manual'
+      ? ` <a href="#" onclick="event.preventDefault();refetchFuel()" style="color:var(--accent);margin-left:4px">↻ ดึงใหม่</a>`
+      : '');
+  el.style.color = color;
+}
+
+function refetchFuel() {
+  fuelState.priceSource = 'fetched'; // allow overwrite
+  initFuelPrice();
+  saveFuelPrefs();
+}
+
+function renderVehicleChips() {
+  const el = document.getElementById('vehicle-chips');
+  if (!el) return;
+  el.innerHTML = VEHICLES.map(v =>
+    `<div class="v-chip${v.id === fuelState.vehicleId ? ' active' : ''}"
+          data-vid="${v.id}" onclick="selectVehicle('${v.id}')"
+          title="${v.note} · ${v.kmpl} km/L">${v.name}</div>`
+  ).join('');
+}
+
+function renderModeChips() {
+  const el = document.getElementById('mode-chips');
+  if (!el) return;
+  el.innerHTML = Object.entries(MARGIN_MODES).map(([key, m]) =>
+    `<div class="v-chip${key === fuelState.salesMode ? ' active' : ''}"
+          data-mid="${key}" onclick="selectSalesMode('${key}')">${m.label}</div>`
+  ).join('');
+}
+
+function renderTripsChips() {
+  const el = document.getElementById('trips-chips');
+  if (!el) return;
+  el.innerHTML = TRIPS_OPTIONS.map(n =>
+    `<div class="v-chip${n === fuelState.trips ? ' active' : ''}"
+          onclick="selectTrips(${n})">${n} รอบ</div>`
+  ).join('');
+}
+
+function selectTrips(n) {
+  if (!TRIPS_OPTIONS.includes(n)) return;
+  fuelState.trips = n;
+  renderTripsChips();
+  updateFuelCost();
+}
+
+function renderWorkersChips() {
+  const el = document.getElementById('workers-chips');
+  if (!el) return;
+  el.innerHTML = WORKERS_OPTIONS.map(n =>
+    `<div class="v-chip${n === fuelState.workers ? ' active' : ''}"
+          onclick="selectWorkers(${n})">${n} คน</div>`
+  ).join('');
+}
+
+function selectWorkers(n) {
+  if (!WORKERS_OPTIONS.includes(n)) return;
+  fuelState.workers = n;
+  renderWorkersChips();
+  saveFuelPrefs();
+  updateFuelCost();
+}
+
+function selectVehicle(id) {
+  const v = VEHICLES.find(x => x.id === id);
+  if (!v) return;
+  const changed = fuelState.vehicleId !== id;
+  fuelState.vehicleId = id;
+  fuelState.kmpl = v.kmpl;
+  fuelState.wear = v.wear;
+  // Only reset salesMode to default when actually switching to a different vehicle
+  // (re-tapping the same chip shouldn't clobber user's manual mode choice)
+  if (changed) {
+    fuelState.salesMode = defaultSalesModeFor(id);
+  }
+  // km/L is hidden from UI now (auto-applied from vehicle preset);
+  // only the ฿/km field is visible for manual override.
+  document.getElementById('fuel-wear').value = v.wear.toFixed(2);
+  renderVehicleChips();
+  renderModeChips();
+  updateChipWarnings();
+  updateSalesNotice();
+  saveFuelPrefs();
+  updateFuelCost();
+}
+
+function selectSalesMode(modeKey) {
+  if (!MARGIN_MODES[modeKey]) return;
+  fuelState.salesMode = modeKey;
+  renderModeChips();
+  updateChipWarnings();
+  saveFuelPrefs();
+  updateFuelCost();
+}
+
+// Toggle visual warning (red dashed border + message) on chip groups
+// that the user hasn't chosen yet. Called after init, select, and state changes.
+function updateChipWarnings() {
+  const vBox = document.getElementById('vehicle-chips');
+  const mBox = document.getElementById('mode-chips');
+  const vWarn = document.getElementById('vehicle-warning');
+  const mWarn = document.getElementById('mode-warning');
+  if (vBox && vWarn) {
+    const missing = !fuelState.vehicleId;
+    vBox.classList.toggle('needs-selection', missing);
+    vWarn.style.display = missing ? '' : 'none';
+  }
+  if (mBox && mWarn) {
+    const missing = !fuelState.salesMode;
+    mBox.classList.toggle('needs-selection', missing);
+    mWarn.style.display = missing ? '' : 'none';
+  }
+}
+
+// onFuelInputChange removed — km/L input was removed from UI;
+// kmpl is now applied silently from VEHICLES preset in selectVehicle().
+
+function onWearChange() {
+  const v = parseFloat(document.getElementById('fuel-wear').value);
+  if (v >= 0 && isFinite(v)) {
+    fuelState.wear = v;
+    saveFuelPrefs();
+    updateFuelCost();
+  }
+}
+
+function onFuelPriceChange() {
+  const v = parseFloat(document.getElementById('fuel-price').value);
+  if (v > 0 && isFinite(v)) {
+    fuelState.price = v;
+    fuelState.priceSource = 'manual';
+    saveFuelPrefs();
+    updateFuelPriceSourceLabel();
+    updateFuelCost();
+  }
+}
+
+// onWorkersChange removed — workers input replaced with chip group (1/2/3);
+// chip click goes through selectWorkers() above.
+
+function fmtBaht(n) {
+  return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// Compute labor+common (hidden backend calc)
+// labor = driver(700) + workers×400 · common = vehicle.common (400/700)
+// Labor+common is a DAILY cost — split across the number of trips the driver
+// runs that day. Fuel+wear remain per-km and are not affected by trips.
+// Returns 0 when vehicle not selected, or vehicle is flagged noTransportCost
+// (e.g., salesperson's empty pickup — not a delivery trip).
+function computeLaborAndCommon() {
+  if (!fuelState.vehicleId) return 0;
+  const v = VEHICLES.find(x => x.id === fuelState.vehicleId);
+  if (!v) return 0;
+  if (v.noTransportCost) return 0;
+  const common = v.common || 400;
+  const workers = typeof fuelState.workers === 'number' ? fuelState.workers : DEFAULT_WORKERS;
+  const trips = (fuelState.trips && fuelState.trips > 0) ? fuelState.trips : 1;
+  const labor = LABOR_DRIVER + (workers * LABOR_WORKER);
+  return (labor + common) / trips;
+}
+
+// Does the current vehicle selection imply "no transport cost"?
+// (Currently only "sales" qualifies — png.ขาย ไปหาลูกค้า ไม่ได้ขนของ)
+function isNoTransportVehicle() {
+  if (!fuelState.vehicleId) return false;
+  const v = VEHICLES.find(x => x.id === fuelState.vehicleId);
+  return !!(v && v.noTransportCost);
+}
+
+// Toggle the sales-only info banner + hide workers/trips chips + hide labor row.
+// Flash the banner briefly on transition into sales mode.
+let _wasNoTransport = false;
+function updateSalesNotice() {
+  const notice = document.getElementById('sales-notice');
+  const workersSec = document.getElementById('workers-section');
+  const tripsSec = document.getElementById('trips-section');
+  const laborRow = document.getElementById('labor-row');
+  const active = isNoTransportVehicle();
+  if (notice) {
+    notice.style.display = active ? '' : 'none';
+    if (active && !_wasNoTransport) {
+      // Just transitioned into sales mode — flash banner once
+      notice.classList.remove('flash');
+      // Force reflow so animation retriggers
+      void notice.offsetWidth;
+      notice.classList.add('flash');
+    }
+  }
+  if (workersSec) workersSec.style.display = active ? 'none' : '';
+  if (tripsSec)   tripsSec.style.display   = active ? 'none' : '';
+  if (laborRow)   laborRow.style.display   = active ? 'none' : '';
+  _wasNoTransport = active;
+}
+
+function updateFuelCost(totalKm) {
+  const hasVehicle = !!fuelState.vehicleId;
+  const hasMode = !!fuelState.salesMode;
+  const laborCommon = computeLaborAndCommon();       // 0 if no vehicle
+  const margin = hasMode ? MARGIN_MODES[fuelState.salesMode].margin : null;
+
+  // If no distance passed, recompute from current route
+  if (typeof totalKm !== 'number') {
+    if (optimizedRoute.length < 2 || !hasVehicle) {
+      // No route yet OR no vehicle chosen → show 0 everywhere
+      document.getElementById('fuel-dist').textContent = '0.0';
+      document.getElementById('fuel-liters').textContent = '0.00';
+      document.getElementById('fuel-cost').textContent = '0.00';
+      document.getElementById('wear-cost').textContent = '0.00';
+      document.getElementById('labor-cost').textContent = '0.00';
+      document.getElementById('total-cost').textContent = '0.00';
+      document.getElementById('min-revenue').textContent = '0.00';
+      const tsTotal = document.getElementById('ts-total');
+      if (tsTotal) tsTotal.textContent = '0.00';
+      const tsMinRev = document.getElementById('ts-minrev');
+      if (tsMinRev) tsMinRev.textContent = '0.00';
+      return;
+    }
+    const returnStart = document.getElementById('return-start').checked;
+    totalKm = 0;
+    for (let i = 1; i < optimizedRoute.length; i++)
+      totalKm += getLegDistance(optimizedRoute[i-1], optimizedRoute[i]);
+    if (returnStart)
+      totalKm += getLegDistance(optimizedRoute.at(-1), optimizedRoute[0]);
+  }
+
+  // Guard: if vehicle not selected (when totalKm was passed), still zero out
+  if (!hasVehicle) {
+    document.getElementById('fuel-dist').textContent   = totalKm.toFixed(1);
+    document.getElementById('fuel-liters').textContent = '0.00';
+    document.getElementById('fuel-cost').textContent   = '0.00';
+    document.getElementById('wear-cost').textContent   = '0.00';
+    document.getElementById('labor-cost').textContent  = '0.00';
+    document.getElementById('total-cost').textContent  = '0.00';
+    document.getElementById('min-revenue').textContent = '0.00';
+    const tsTotal = document.getElementById('ts-total');
+    if (tsTotal) tsTotal.textContent = '0.00';
+    const tsMinRev = document.getElementById('ts-minrev');
+    if (tsMinRev) tsMinRev.textContent = '0.00';
+    return;
+  }
+
+  const liters  = fuelState.kmpl > 0 ? totalKm / fuelState.kmpl : 0;
+  const fuelBaht = liters * fuelState.price;
+  const wearBaht = totalKm * (fuelState.wear || 0);
+  const total   = fuelBaht + wearBaht + laborCommon;
+  // Only compute ยอดขายขั้นต่ำ when mode is chosen; otherwise show 0
+  const minRevenue = margin ? total / margin : 0;
+  document.getElementById('fuel-dist').textContent   = totalKm.toFixed(1);
+  document.getElementById('fuel-liters').textContent = liters.toFixed(2);
+  document.getElementById('fuel-cost').textContent   = fmtBaht(fuelBaht);
+  document.getElementById('wear-cost').textContent   = fmtBaht(wearBaht);
+  document.getElementById('labor-cost').textContent  = fmtBaht(laborCommon);
+  document.getElementById('total-cost').textContent  = fmtBaht(total);
+  document.getElementById('min-revenue').textContent = fmtBaht(minRevenue);
+  // Mirror to top summary bar
+  const tsTotal = document.getElementById('ts-total');
+  if (tsTotal) tsTotal.textContent = fmtBaht(total);
+  const tsMinRev = document.getElementById('ts-minrev');
+  if (tsMinRev) tsMinRev.textContent = fmtBaht(minRevenue);
+}
+
+function initFuelUI() {
+  loadFuelPrefs();
+  // Set initial UI values. wear stays empty until a vehicle is chosen.
+  document.getElementById('fuel-wear').value    = fuelState.wear != null ? fuelState.wear.toFixed(2) : '';
+  document.getElementById('fuel-price').value   = fuelState.price.toFixed(2);
+  renderVehicleChips();
+  renderModeChips();
+  renderWorkersChips();
+  renderTripsChips();
+  updateChipWarnings();
+  updateSalesNotice();
+  updateFuelPriceSourceLabel();
+  updateFuelCost();
+  // Kick off background fetch
+  initFuelPrice();
+}
+
+// Init
+renderLocationList();
+initFuelUI();
+
+function applyStartChange() {
+  const sel = document.getElementById('start-select');
+  const v = parseInt(sel.value);
+  if (isNaN(v)) return;
+  appliedStart = v;
+  // Immediately invalidate any in-flight optimizeRoute so its late-resolving
+  // matrix/road fetch can't overwrite our new start with stale results.
+  optimizeGen++;
+  updateStartConfirmUI();
+  if (locations.length >= 2) optimizeRoute();
+}
+
+function updateStartConfirmUI() {
+  const sel = document.getElementById('start-select');
+  const btn = document.getElementById('btn-apply-start');
+  const hint = document.getElementById('start-hint');
+  const pending = parseInt(sel.value);
+  const different = !isNaN(pending) && pending !== appliedStart;
+  if (btn) btn.style.display = different ? 'block' : 'none';
+  if (hint) hint.style.display = different ? 'block' : 'none';
+}
+
+// Listen for select changes to show/hide confirm button — but do NOT auto-optimize.
+document.getElementById('sidebar').addEventListener('change', (ev) => {
+  if (ev.target && ev.target.id === 'start-select') {
+    updateStartConfirmUI();
+  }
+});
+
+/* ============================================================
+   GOOGLE LOGIN AUTHENTICATION
+   ============================================================ */
+const AUTH_CONFIG = {
+  clientId: '615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com',
+  usersSheetId: '1M6HdISsLN684qRWyQ73CA4AmUzmYtZaOlffDJXZZIXQ',
+  usersSheetName: 'Rattana Users for apps',
+  sessionKey: 'rattanaRouteOptimizerUser',
+  sessionTTL: 30 * 24 * 60 * 60 * 1000  // 30 days
+};
+
+let currentUser = null;
+
+function parseUsersCsv(text) {
+  const parseRow = (row) => {
+    const cells = [];
+    let cur = '', q = false;
+    for (let i = 0; i < row.length; i++) {
+      const ch = row[i];
+      if (ch === '"') {
+        if (q && row[i+1] === '"') { cur += '"'; i++; }
+        else q = !q;
+      } else if (ch === ',' && !q) { cells.push(cur); cur = ''; }
+      else cur += ch;
+    }
+    cells.push(cur);
+    return cells.map(c => c.trim());
+  };
+  const rows = text.replace(/\r/g, '').split('\n').filter(r => r.length);
+  if (!rows.length) return [];
+  const headers = parseRow(rows[0]);
+  return rows.slice(1).map(r => {
+    const cells = parseRow(r);
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = cells[i] || '');
+    return obj;
+  });
+}
+
+async function loadUsersSheet() {
+  const url = `https://docs.google.com/spreadsheets/d/${AUTH_CONFIG.usersSheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(AUTH_CONFIG.usersSheetName)}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`โหลดรายชื่อพนักงานไม่สำเร็จ (${res.status})`);
+  return parseUsersCsv(await res.text());
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('loginError');
+  el.innerHTML = msg;
+  el.style.display = 'block';
+  document.getElementById('loginSpinner').style.display = 'none';
+  document.getElementById('loginStatus').style.display = 'none';
+}
+
+function setLoginLoading(on, msg) {
+  document.getElementById('loginSpinner').style.display = on ? 'block' : 'none';
+  const s = document.getElementById('loginStatus');
+  s.textContent = msg || 'กำลังตรวจสอบสิทธิ์...';
+  s.style.display = on ? 'block' : 'none';
+  if (on) document.getElementById('loginError').style.display = 'none';
+}
+
+async function handleGoogleLogin(response) {
+  setLoginLoading(true, 'กำลังตรวจสอบสิทธิ์...');
+  try {
+    // Decode JWT payload
+    const payload = JSON.parse(atob(response.credential.split('.')[1]));
+    const email = (payload.email || '').toLowerCase().trim();
+    if (!email) throw new Error('ไม่พบ email ใน token');
+
+    setLoginLoading(true, 'กำลังโหลดรายชื่อพนักงาน...');
+    const users = await loadUsersSheet();
+
+    // Find user by email (column: E-mail)
+    const user = users.find(u => {
+      const e = (u['E-mail'] || u['Email'] || u['email'] || '').toLowerCase().trim();
+      return e === email;
+    });
+
+    if (!user) {
+      showLoginError(`❌ ไม่พบ email นี้ในระบบ<br><span style="color:rgba(255,255,255,0.6)">${email}</span><br>กรุณาติดต่อ Admin เพื่อเพิ่มสิทธิ์`);
+      return;
+    }
+
+    const status = (user['Status'] || '').trim();
+    if (status !== 'Active') {
+      showLoginError(`❌ บัญชีของคุณมีสถานะ <b>${status || 'ไม่ระบุ'}</b><br>กรุณาติดต่อ Admin`);
+      return;
+    }
+
+    currentUser = {
+      email,
+      name: user['ชื่อ - สกุล'] || user['Name'] || payload.name || email,
+      nickname: user['ชื่อเล่น'] || '',
+      role: parseInt(user['User Role']) || 1,
+      dept: user['แผนก'] || '',
+      company: user['บริษัท'] || '',
+      warehouse: user['W'] || '',
+      empId: user['รหัสพนักงาน'] || '',
+      picture: payload.picture || '',
+      loginAt: Date.now()
+    };
+
+    // Persist for 30 days in localStorage
+    try {
+      localStorage.setItem(AUTH_CONFIG.sessionKey, JSON.stringify({
+        user: currentUser,
+        expiresAt: Date.now() + AUTH_CONFIG.sessionTTL
+      }));
+    } catch(e) { /* storage quota / disabled — ignore */ }
+
+    enterApp();
+  } catch(err) {
+    console.error('Login error:', err);
+    showLoginError(`❌ เกิดข้อผิดพลาด: ${err.message || err}<br>กรุณาลองใหม่อีกครั้ง`);
+  }
+}
+
+function warehouseName(code) {
+  const m = { W1: 'สมุทรสงคราม', W2: 'สุพรรณบุรี', W3: 'ราชบุรี', W4: 'นครปฐม', HQ: 'สำนักงานใหญ่' };
+  return m[code] || code || '';
+}
+
+function renderUserBadge() {
+  if (!currentUser) return;
+  const badge = document.getElementById('userBadge');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const avatar = document.getElementById('userAvatar');
+  const nameEl = document.getElementById('userName');
+  const subEl = document.getElementById('userSub');
+
+  // Avatar: first letter of nickname or name
+  const firstLetter = (currentUser.nickname || currentUser.name || '?').trim().charAt(0).toUpperCase();
+  avatar.textContent = firstLetter;
+
+  // Name: prefer nickname, fallback to name
+  nameEl.textContent = currentUser.nickname || currentUser.name || currentUser.email;
+
+  // Sub-line: warehouse + dept
+  const parts = [];
+  if (currentUser.warehouse) parts.push(warehouseName(currentUser.warehouse));
+  if (currentUser.dept) parts.push(currentUser.dept);
+  subEl.textContent = parts.join(' · ') || currentUser.email;
+  subEl.title = currentUser.email;
+
+  badge.style.display = 'flex';
+  logoutBtn.style.display = 'inline-block';
+}
+
+function enterApp() {
+  renderUserBadge();
+  document.getElementById('loginScreen').style.display = 'none';
+  // Fix map sizing after reveal (Leaflet needs invalidateSize after being hidden)
+  setTimeout(() => {
+    try { if (typeof map !== 'undefined' && map && map.invalidateSize) map.invalidateSize(); } catch(e) {}
+  }, 100);
+}
+
+function logout() {
+  if (!confirm('ต้องการออกจากระบบใช่หรือไม่?')) return;
+  try {
+    localStorage.removeItem(AUTH_CONFIG.sessionKey);
+    if (window.google && google.accounts && google.accounts.id) {
+      google.accounts.id.disableAutoSelect();
+    }
+  } catch(e) {}
+  currentUser = null;
+  location.reload();
+}
+
+function checkSession() {
+  try {
+    const raw = localStorage.getItem(AUTH_CONFIG.sessionKey);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (!data || !data.user || !data.expiresAt) return false;
+    if (Date.now() > data.expiresAt) {
+      localStorage.removeItem(AUTH_CONFIG.sessionKey);
+      return false;
+    }
+    currentUser = data.user;
+    enterApp();
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+// Expose globals for GSI callback + inline onclick
+window.handleGoogleLogin = handleGoogleLogin;
+window.logout = logout;
+
+// Show current origin on login screen + detect file:// protocol
+(function showOriginHint() {
+  const el = document.getElementById('originText');
+  if (!el) return;
+  const isFile = location.protocol === 'file:';
+  const origin = isFile ? 'file:// (ใช้กับ Google OAuth ไม่ได้)' : location.origin;
+  el.textContent = 'Origin: ' + origin;
+  if (isFile) {
+    // Pre-emptive warning: file:// can NEVER work with Google OAuth
+    const errEl = document.getElementById('loginError');
+    errEl.innerHTML = '⚠️ <b>เปิดไฟล์จาก file:// ไม่ได้</b><br>' +
+      'Google OAuth บล็อก file:// protocol<br>' +
+      'ต้องเข้าผ่าน HTTP(S) เท่านั้น เช่น:<br>' +
+      '• <b>https://suratpoom.github.io/rattana-apps/...</b><br>' +
+      '• หรือ run local server (python -m http.server)';
+    errEl.style.display = 'block';
+  }
+})();
+
+// Check for existing session on load
+checkSession();
+</script>
+
+
+<!-- Segments modal -->
+<div id="seg-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:440px;width:100%;max-height:85vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h2 style="font-size:16px;font-weight:700">🗺 เปิดใน Google Maps</h2>
+      <button onclick="closeSegModal()" style="background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:0 6px">✕</button>
+    </div>
+    <div id="seg-modal-body"></div>
+  </div>
+</div>
+
+<!-- Print overlay -->
+<div id="print-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center;padding:20px" class="no-print">
+  <div style="background:white;color:#111;border-radius:12px;max-width:800px;width:100%;max-height:90vh;overflow-y:auto;display:flex;flex-direction:column">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid #e5e7eb" class="no-print">
+      <span style="font-weight:600;color:#111">ตัวอย่างก่อนพิมพ์</span>
+      <div style="display:flex;gap:8px">
+        <button onclick="doPrint()" style="background:#2563eb;color:white;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;font-family:inherit">🖨 พิมพ์ / Save PDF</button>
+        <button onclick="closePrintView()" style="background:#e5e7eb;color:#111;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;font-family:inherit">ปิด</button>
+      </div>
+    </div>
+    <div id="print-content" style="overflow-y:auto"></div>
+  </div>
+</div>
+</body>
+</html>
