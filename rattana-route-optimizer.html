@@ -1903,8 +1903,8 @@ function openInGoogleMaps() {
   const seq = returnStart ? [...optimizedRoute, optimizedRoute[0]] : [...optimizedRoute];
   const pts = seq.map(i => ({ lat: locations[i].lat, lng: locations[i].lng, name: locations[i].name }));
 
-  // Google Maps URL supports up to 10 points (1 origin + ≤8 waypoints + 1 destination).
-  // For more, split into segments with overlap.
+  // Google Maps rejects URLs that are too long. Path format /dir/a/b/c/
+  // stays safe up to ~10 points. For more, split into overlapping segments.
   const MAX = 10;
 
   if (pts.length <= MAX) {
@@ -1927,14 +1927,12 @@ function openInGoogleMaps() {
 }
 
 function buildMapsUrl(pts) {
-  const origin = `${pts[0].lat},${pts[0].lng}`;
-  const destination = `${pts[pts.length-1].lat},${pts[pts.length-1].lng}`;
-  const mid = pts.slice(1, -1).map(p => `${p.lat},${p.lng}`).join('|');
-  const params = new URLSearchParams({
-    api: '1', origin, destination, travelmode: 'driving'
-  });
-  if (mid) params.set('waypoints', mid);
-  return `https://www.google.com/maps/dir/?${params}`;
+  // Use path-style URL /dir/lat,lng/lat,lng/... which GUARANTEES the order.
+  // The api=1 + waypoints format lets Google reorder waypoints (bad for us).
+  // Path format: /maps/dir/<origin>/<wp1>/<wp2>/.../<destination>/data=!4m2!4m1!3e0
+  // The trailing data param forces driving mode.
+  const path = pts.map(p => `${p.lat},${p.lng}`).join('/');
+  return `https://www.google.com/maps/dir/${path}/data=!4m2!4m1!3e0`;
 }
 
 function showSegmentsModal(segments) {
