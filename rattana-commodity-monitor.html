@@ -314,17 +314,25 @@ function toggleDark(){
 // ================================================================
 // COMMODITY SCRAPING ENGINE
 // ================================================================
-// Pattern inherited from Route Optimizer's diesel scraper:
-//   1. codetabs proxy (same as FUEL_PROXY) — proven CORS bypass
-//   2. 10-second timeout per fetch
-//   3. Parse HTML/JSON with regex or JSON.parse
-//   4. localStorage cache per commodity (fast initial load)
-//   5. Fallback chain: fetched → cache → baseline → error
-//   6. Source badge on every card: ✓ fetched / 💾 cache / ✎ manual / — baseline
+// Pattern inherited from Route Optimizer's diesel scraper, then upgraded:
+//   1. Multi-proxy RACE (codetabs + corsproxy.io + allorigins) — first wins
+//   2. Direct fetch from Stooq (CORS-enabled) for commodity futures — no proxy
+//   3. 5-second timeout per fetch (was 10s) — fail fast
+//   4. Request dedup for shared URLs (e.g. rice 5% + glutinous share one fetch)
+//   5. localStorage cache per commodity (fast initial paint)
+//   6. Fallback chain: fetched → cache → baseline → error
+//   7. Source badge on every card: ✓ fetched / 💾 cache / ✎ manual / — baseline
 
-const PROXY = 'https://api.codetabs.com/v1/proxy/?quest=';
-const FETCH_TIMEOUT = 10000;
-const CACHE_TTL = 6 * 60 * 60 * 1000; // 6 hours
+// Multi-proxy fetch — races multiple CORS proxies, first success wins.
+// Single proxies are often slow/down in real life. Parallel attack guarantees
+// we get SOMETHING back in under 5s if at least ONE proxy is alive.
+const PROXIES = [
+  (url) => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}`,
+  (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+];
+const FETCH_TIMEOUT = 5000;                 // was 10s — fail fast, fallback faster
+const CACHE_TTL = 6 * 60 * 60 * 1000;       // 6 hours
 
 async function fetchWithTimeout(url, timeoutMs = FETCH_TIMEOUT){
   const ctrl = new AbortController();
@@ -334,6 +342,49 @@ async function fetchWithTimeout(url, timeoutMs = FETCH_TIMEOUT){
     if(!res.ok) throw new Error('HTTP ' + res.status);
     return await res.text();
   } finally { clearTimeout(timer); }
+}
+
+// Direct fetch — for sources with CORS enabled (stooq.com). No proxy = 1-2s.
+async function fetchDirect(url, timeoutMs = FETCH_TIMEOUT){
+  return await fetchWithTimeout(url, timeoutMs);
+}
+
+// Multi-proxy race — for sources WITHOUT CORS. Fires all proxies in parallel,
+// resolves with the FIRST one to succeed. If all fail, throws.
+// Typical wallclock: ~1-3s (fastest proxy wins); much better than sequential 10s+.
+async function fetchViaAnyProxy(targetUrl, timeoutMs = FETCH_TIMEOUT){
+  const attempts = PROXIES.map(p => fetchWithTimeout(p(targetUrl), timeoutMs));
+  try {
+    return await Promise.any(attempts);
+  } catch(e){
+    throw new Error('all proxies failed');
+  }
+}
+
+// Request dedup — when 2 commodities share one URL (e.g. both rice types),
+// this ensures ONE network request instead of 2 racing the same proxies.
+const inflightFetches = new Map();
+async function fetchViaAnyProxyDedup(targetUrl, timeoutMs = FETCH_TIMEOUT){
+  if(inflightFetches.has(targetUrl)) return inflightFetches.get(targetUrl);
+  const p = fetchViaAnyProxy(targetUrl, timeoutMs);
+  inflightFetches.set(targetUrl, p);
+  p.finally(() => setTimeout(() => inflightFetches.delete(targetUrl), 2000));
+  return p;
+}
+
+// Stooq CSV fetch — direct, no proxy. Stooq publishes live commodity quotes
+// with Access-Control-Allow-Origin: *. FAST (~1-2s). Returns close price.
+async function fetchStooq(symbol){
+  const url = `https://stooq.com/q/l/?s=${symbol}&f=sd2t2ohlc&h&e=csv`;
+  const text = await fetchDirect(url);
+  const lines = text.trim().split('\n');
+  if(lines.length < 2) throw new Error('empty stooq response');
+  const cols = lines[1].split(',');
+  // Format: Symbol,Date,Time,Open,High,Low,Close
+  if(cols.length < 7 || cols[6] === 'N/D' || !cols[6]) throw new Error('stooq: no data for '+symbol);
+  const price = parseFloat(cols[6]);
+  if(isNaN(price) || price <= 0) throw new Error('invalid stooq price');
+  return { price, date: `${cols[1]} ${cols[2] || ''}`.trim() };
 }
 
 function loadCache(key){
@@ -378,25 +429,33 @@ const COMMODITIES = {
     historyValues: [33.6, 35.4, 38.0, 40.5, 40.75],
     description: 'ราคาน้ำมันปาล์มดิบในประเทศ (อ้างอิง MPOB + DIT)',
     fetch: async () => {
-      // MPOB daily local CPO price — in MYR/tonne
-      // Convert MYR → THB (~7.6) and /1000 for kg
-      const url = PROXY + encodeURIComponent('https://bepi.mpob.gov.my/admin2/price_local_daily_view_cpo_msia.php');
-      const html = await fetchWithTimeout(url);
-      // Look for price pattern in table cells (typically "4,500.00" format MYR/tonne)
-      const matches = [...html.matchAll(/<td[^>]*>\s*([\d,]+\.\d{2})\s*<\/td>/g)];
-      if(!matches.length) throw new Error('no price in MPOB page');
-      // First numeric cell is usually today's weighted avg
-      const myrPerTonne = parseFloat(matches[0][1].replace(/,/g,''));
-      if(!myrPerTonne || myrPerTonne < 1000 || myrPerTonne > 20000) throw new Error('invalid MPOB price '+myrPerTonne);
-      // MYR→THB ~7.65 (approx), /1000 for kg
       const MYR_TO_THB = 7.65;
-      const thbPerKg = (myrPerTonne * MYR_TO_THB) / 1000;
-      const dateMatch = html.match(/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/);
-      return {
-        price: parseFloat(thbPerKg.toFixed(2)),
-        date: dateMatch ? dateMatch[1] : todayThai(),
-        extra: `MPOB: RM ${myrPerTonne.toLocaleString()}/ตัน × ${MYR_TO_THB} ÷ 1000`
-      };
+      // Primary: Stooq FCPO (Bursa Malaysia palm oil futures) — direct, 1-2s.
+      try {
+        const r = await fetchStooq('po.f');
+        // Stooq po.f returns MYR/tonne. Convert to THB/kg.
+        if(r.price < 1000 || r.price > 20000) throw new Error('stooq po.f out of range');
+        const thbPerKg = (r.price * MYR_TO_THB) / 1000;
+        return {
+          price: parseFloat(thbPerKg.toFixed(2)),
+          date: r.date,
+          extra: `FCPO stooq: RM ${r.price.toLocaleString()}/ตัน × ${MYR_TO_THB} ÷ 1000`
+        };
+      } catch(e1){
+        // Fallback: MPOB via multi-proxy race
+        const html = await fetchViaAnyProxy('https://bepi.mpob.gov.my/admin2/price_local_daily_view_cpo_msia.php');
+        const matches = [...html.matchAll(/<td[^>]*>\s*([\d,]+\.\d{2})\s*<\/td>/g)];
+        if(!matches.length) throw new Error('no MPOB price (stooq also failed: '+e1.message+')');
+        const myrPerTonne = parseFloat(matches[0][1].replace(/,/g,''));
+        if(!myrPerTonne || myrPerTonne < 1000 || myrPerTonne > 20000) throw new Error('invalid MPOB price '+myrPerTonne);
+        const thbPerKg = (myrPerTonne * MYR_TO_THB) / 1000;
+        const dateMatch = html.match(/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/);
+        return {
+          price: parseFloat(thbPerKg.toFixed(2)),
+          date: dateMatch ? dateMatch[1] : todayThai(),
+          extra: `MPOB: RM ${myrPerTonne.toLocaleString()}/ตัน × ${MYR_TO_THB} ÷ 1000`
+        };
+      }
     }
   },
 
@@ -411,11 +470,8 @@ const COMMODITIES = {
     historyValues: [580, 410, 395, 384, 423],
     description: 'ราคาส่งออก FOB ข้าวขาว 5% (สมาคมผู้ส่งออกข้าวไทย)',
     fetch: async () => {
-      const url = PROXY + encodeURIComponent('http://www.thairiceexporters.or.th/price_eng_all.html');
-      const html = await fetchWithTimeout(url);
-      // Thai Rice Exporters weekly page has rows like:
-      // "Thai 100% B - $XXX" or "Thai 5% - $XXX" in an HTML table
-      // Try multiple regex patterns to be robust to format changes
+      // Thai Rice Exporters — shared URL with glutinous rice (dedup saves a request)
+      const html = await fetchViaAnyProxyDedup('http://www.thairiceexporters.or.th/price_eng_all.html');
       const patterns = [
         /Thai\s+5%[\s\S]{0,400}?\$?\s*([4-9]\d{2}|1\d{3})/i,
         /5%\s*Parboiled[\s\S]{0,400}?\$?\s*([4-9]\d{2}|1\d{3})/i,
@@ -443,8 +499,8 @@ const COMMODITIES = {
     historyValues: [680, 590, 540, 530, 520],
     description: 'ราคาส่งออก FOB ข้าวเหนียว 10% (สมาคมผู้ส่งออกข้าวไทย)',
     fetch: async () => {
-      const url = PROXY + encodeURIComponent('http://www.thairiceexporters.or.th/price_eng_all.html');
-      const html = await fetchWithTimeout(url);
+      // Shares URL with rice_5 — dedup ensures only ONE network request for both.
+      const html = await fetchViaAnyProxyDedup('http://www.thairiceexporters.or.th/price_eng_all.html');
       const patterns = [
         /Thai\s+Glutinous[\s\S]{0,400}?\$?\s*([4-9]\d{2}|1\d{3})/i,
         /Glutinous\s+Rice[\s\S]{0,400}?\$?\s*([4-9]\d{2}|1\d{3})/i,
@@ -466,23 +522,15 @@ const COMMODITIES = {
     title: '🫘 น้ำมันถั่วเหลือง (CBOT)',
     unit: 'US¢/lb',
     baseline: 48.5,
-    sourceLabel: 'Yahoo Finance ZL=F',
+    sourceLabel: 'Stooq ZL.F (direct)',
     category: 'food',
     historyLabels: ['2567','2568','ม.ค.69','มี.ค.69','ปัจจุบัน'],
     historyValues: [52, 50, 49, 48.8, 48.5],
     description: 'ราคาล่วงหน้าน้ำมันถั่วเหลือง CBOT (สินค้าทดแทนปาล์ม)',
     fetch: async () => {
-      // Yahoo Finance quote API — returns JSON
-      const url = PROXY + encodeURIComponent('https://query1.finance.yahoo.com/v7/finance/quote?symbols=ZL=F');
-      const text = await fetchWithTimeout(url);
-      const data = JSON.parse(text);
-      const q = data?.quoteResponse?.result?.[0];
-      if(!q || !q.regularMarketPrice) throw new Error('no soybean oil quote');
-      return {
-        price: parseFloat(q.regularMarketPrice.toFixed(2)),
-        date: q.regularMarketTime ? new Date(q.regularMarketTime * 1000).toLocaleDateString('th-TH') : todayThai(),
-        extra: `Change: ${q.regularMarketChange?.toFixed(2)} (${q.regularMarketChangePercent?.toFixed(2)}%)`
-      };
+      // Direct from Stooq — no proxy needed (CORS enabled). Fast, ~1-2s.
+      const r = await fetchStooq('zl.f');
+      return { price: r.price, date: r.date };
     }
   },
 
@@ -491,22 +539,15 @@ const COMMODITIES = {
     title: '🍬 น้ำตาลทราย (ตลาดโลก)',
     unit: 'US¢/lb',
     baseline: 20.5,
-    sourceLabel: 'Yahoo Finance SB=F',
+    sourceLabel: 'Stooq SB.F (direct)',
     category: 'food',
     historyLabels: ['2567','2568','ม.ค.69','มี.ค.69','ปัจจุบัน'],
     historyValues: [24, 22, 21, 20.8, 20.5],
     description: 'ราคาล่วงหน้าน้ำตาลตลาดโลก (Thai retail ควบคุมที่ 24.00/25.00 ฿/กก.)',
     fetch: async () => {
-      const url = PROXY + encodeURIComponent('https://query1.finance.yahoo.com/v7/finance/quote?symbols=SB=F');
-      const text = await fetchWithTimeout(url);
-      const data = JSON.parse(text);
-      const q = data?.quoteResponse?.result?.[0];
-      if(!q || !q.regularMarketPrice) throw new Error('no sugar quote');
-      return {
-        price: parseFloat(q.regularMarketPrice.toFixed(2)),
-        date: q.regularMarketTime ? new Date(q.regularMarketTime * 1000).toLocaleDateString('th-TH') : todayThai(),
-        extra: `Change: ${q.regularMarketChange?.toFixed(2)} (${q.regularMarketChangePercent?.toFixed(2)}%)`
-      };
+      // Sugar #11 ICE futures — direct from Stooq, no proxy, ~1-2s
+      const r = await fetchStooq('sb.f');
+      return { price: r.price, date: r.date };
     }
   },
 
