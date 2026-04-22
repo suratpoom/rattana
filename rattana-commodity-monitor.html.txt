@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Rattana Commodity Price Monitor</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root {
+  --navy:#0d1b3e; --navy-mid:#1a2f5e; --navy-light:#243b73;
+  --gold:#c9a84c; --gold-light:#e8c86a;
+  --white:#ffffff; --off-white:#f4f6fb;
+  --success:#2ecc71; --danger:#e74c3c; --warning:#f39c12;
+  --bg:var(--off-white); --text:var(--navy); --card-bg:var(--white); --border:#dde3f0;
+}
+body.dark { --bg:#0a1020; --text:#e8eaf0; --card-bg:#111c35; --border:#243b73; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sarabun',sans-serif;min-height:100dvh;overflow-x:hidden;background:var(--bg);color:var(--text);-webkit-overflow-scrolling:touch}
+
+/* LOGIN SCREEN */
+#loginScreen{position:fixed;inset:0;background:linear-gradient(135deg,var(--navy) 0%,var(--navy-mid) 50%,var(--navy-light) 100%);display:flex;align-items:center;justify-content:center;z-index:10000;padding:20px}
+.login-box{background:#fff;border-radius:20px;padding:40px 32px;max-width:420px;width:100%;text-align:center;border-top:5px solid var(--gold);box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.login-box h1{color:var(--navy);font-size:22px;margin-bottom:4px}
+.login-box .sub{color:#64748b;font-size:13px;margin-bottom:24px}
+.login-box .logo{margin-bottom:16px}
+.login-err{background:#fee2e2;color:#b91c1c;padding:10px;border-radius:8px;font-size:13px;margin-top:14px;display:none}
+
+/* APP HEADER */
+#appScreen{display:none}
+header{background:var(--navy);color:#fff;padding:10px 16px;position:sticky;top:0;z-index:100;padding-top:max(10px,env(safe-area-inset-top));display:flex;align-items:center;gap:12px;border-bottom:3px solid var(--gold)}
+header .brand{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+header .brand .txt{display:flex;flex-direction:column;min-width:0}
+header .brand .txt b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header .brand .txt span{font-size:11px;color:var(--gold-light)}
+header button{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);width:40px;height:40px;border-radius:8px;cursor:pointer;font-size:16px;touch-action:manipulation}
+header button:hover{background:rgba(255,255,255,.2)}
+header .user-chip{font-size:12px;background:rgba(201,168,76,.2);color:var(--gold-light);padding:6px 10px;border-radius:16px;border:1px solid var(--gold);display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* TABS */
+.tab-bar{background:var(--navy-mid);padding:6px 10px;display:flex;gap:6px;overflow-x:auto;position:sticky;top:60px;z-index:99;border-bottom:1px solid var(--navy-light)}
+.tab-bar::-webkit-scrollbar{display:none}
+.tab-bar button{background:transparent;color:#cbd5e1;border:none;padding:8px 14px;border-radius:6px;font-size:13px;cursor:pointer;white-space:nowrap;min-height:36px}
+.tab-bar button.active{background:var(--gold);color:var(--navy);font-weight:600}
+
+/* CONTENT */
+.container{max-width:1300px;margin:0 auto;padding:16px}
+.summary-box{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-light) 100%);color:#fff;padding:18px;border-radius:14px;margin-bottom:16px;border-top:3px solid var(--gold)}
+.summary-box h2{font-size:15px;margin-bottom:10px;color:var(--gold-light)}
+.summary-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.1);font-size:12.5px;gap:10px}
+.summary-row:last-child{border:0}
+.summary-row b{text-align:right}
+
+.grid{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:16px}
+@media(min-width:640px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1024px){.grid{grid-template-columns:repeat(3,1fr)}}
+
+.card{background:var(--card-bg);border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.06);border-top:3px solid var(--gold);border:1px solid var(--border);border-top:3px solid var(--gold)}
+.card.featured{border:2px solid var(--gold);background:linear-gradient(180deg,#fff7ed 0%,#fff 40%);box-shadow:0 4px 16px rgba(201,168,76,.3)}
+body.dark .card.featured{background:linear-gradient(180deg,#2a1a0a 0%,var(--card-bg) 40%)}
+.card h3{font-size:15px;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.trend{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
+.up{background:#fee2e2;color:#b91c1c}
+.down{background:#dcfce7;color:#15803d}
+.flat{background:#e0e7ff;color:#3730a3}
+.warn{background:var(--gold);color:var(--navy)}
+canvas{max-height:190px !important}
+.kpi{display:flex;justify-content:space-between;margin:8px 0;font-size:12.5px}
+.kpi b{color:var(--text)}
+.takeaway{font-size:12px;color:#64748b;line-height:1.55;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)}
+body.dark .takeaway{color:#94a3b8}
+
+.forecast-wrap{overflow-x:auto;margin-bottom:16px;border-radius:10px;border:1px solid var(--border)}
+.forecast-table{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--card-bg);min-width:600px}
+.forecast-table th{background:var(--navy);color:#fff;padding:10px;text-align:left;border-bottom:2px solid var(--gold)}
+.forecast-table td{padding:8px 10px;border-bottom:1px solid var(--border)}
+.arrow-up{color:#dc2626;font-weight:bold}
+.arrow-down{color:#16a34a;font-weight:bold}
+.arrow-flat{color:#2563eb;font-weight:bold}
+.hot-row{background:rgba(201,168,76,.12)}
+
+footer{text-align:center;color:#94a3b8;font-size:11px;padding:20px;border-top:1px solid var(--border);margin-top:20px}
+
+/* TOAST + SPINNER */
+#spinner{display:none;position:fixed;inset:0;background:rgba(13,27,62,.6);align-items:center;justify-content:center;z-index:99999;backdrop-filter:blur(3px)}
+#spinner.on{display:flex}
+.sp-box{background:#fff;border-radius:16px;padding:30px 36px;text-align:center;border-top:4px solid var(--gold)}
+.sp-box .ring{width:44px;height:44px;border:5px solid #dde3f0;border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+.toast{position:fixed;bottom:max(24px,env(safe-area-inset-bottom));right:24px;padding:12px 20px;border-radius:10px;color:#fff;z-index:9999;font-size:13px;animation:slideIn .3s ease}
+.toast-success{background:var(--success)}
+.toast-error{background:var(--danger)}
+@keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+#backToTop{position:fixed;bottom:max(28px,calc(16px + env(safe-area-inset-bottom)));right:max(24px,calc(16px + env(safe-area-inset-right)));background:var(--gold);color:var(--navy);border:none;border-radius:50%;width:48px;height:48px;display:none;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.25);z-index:999;cursor:pointer;font-weight:bold}
+</style>
+</head>
+<body>
+
+<!-- ============== LOGIN SCREEN ============== -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="logo">
+      <div style="background:var(--navy);color:var(--gold);width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:28px;font-weight:700;border:3px solid var(--gold)">R</div>
+    </div>
+    <h1>Rattana Commodity Monitor</h1>
+    <p class="sub">ระบบติดตามราคาสินค้าโภคภัณฑ์ • บริษัท รัตนไพบูลย์</p>
+    <div id="g_id_onload"
+      data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
+      data-callback="handleGoogleLogin"
+      data-auto_prompt="false"></div>
+    <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="rectangular" data-logo_alignment="left"></div>
+    <div id="loginErr" class="login-err"></div>
+    <p style="font-size:11px;color:#94a3b8;margin-top:16px">เข้าสู่ระบบด้วย Google Account ที่ได้รับอนุญาต</p>
+  </div>
+</div>
+
+<!-- ============== APP ============== -->
+<div id="appScreen">
+<header>
+  <div style="background:var(--gold);color:var(--navy);width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;flex-shrink:0">R</div>
+  <div class="brand">
+    <div class="txt">
+      <b>Rattana Commodity Monitor</b>
+      <span>ราคาสินค้าโภคภัณฑ์ & แนวโน้ม</span>
+    </div>
+  </div>
+  <button id="btnRefresh" onclick="refreshData()" title="Refresh">&#x1F504;</button>
+  <button onclick="toggleDark()" title="Dark mode">&#x1F319;</button>
+  <div class="user-chip" id="userChip" onclick="logout()" title="Click to logout">
+    <span id="userName">-</span>
+  </div>
+</header>
+
+<nav class="tab-bar">
+  <button class="active" onclick="switchTab(event,'all')">ทั้งหมด</button>
+  <button onclick="switchTab(event,'packager')">บรรจุภัณฑ์</button>
+  <button onclick="switchTab(event,'food')">อาหาร</button>
+  <button onclick="switchTab(event,'plastic')">พลาสติก</button>
+  <button onclick="switchTab(event,'table')">ตารางสรุป</button>
+</nav>
+
+<div class="container">
+
+  <div class="summary-box">
+    <h2>⚡ Bottom Line — ณ 22 เม.ย. 2026</h2>
+    <div class="summary-row"><span>อาทิตย์นี้</span><b>ต้นทุนพุ่ง — ปาล์ม +15% YoY, พลาสติก +60-90%</b></div>
+    <div class="summary-row"><span>1 อาทิตย์ข้างหน้า</span><b>น้ำมันปาล์มขวดปรับขึ้น 1-2 บาท (ได้ไฟเขียว)</b></div>
+    <div class="summary-row"><span>1 เดือนข้างหน้า</span><b>ปาล์ม/พลาสติกยังตึงตัว → ต้นทุนบรรจุสูงต่อเนื่อง</b></div>
+    <div class="summary-row"><span>ครึ่งหลังปี 2026</span><b>ปาล์ม/ถั่วเหลืองเริ่มลง, พลาสติกทยอยคลายตัว</b></div>
+  </div>
+
+  <div class="grid" id="gridAll">
+
+    <!-- PACKAGER IMPACT - MOVED TO TOP -->
+    <div class="card featured" data-tab="all packager">
+      <h3>🏭 วิเคราะห์ "โอลีน / หยก" (ผู้บรรจุน้ำมันปาล์ม) <span class="trend warn">⚠ สำคัญ</span></h3>
+      <canvas id="packagerChart"></canvas>
+      <div class="kpi"><span>ต้นทุน CPO</span><b class="arrow-up">↑ +15% YoY</b></div>
+      <div class="kpi"><span>ต้นทุนขวด PE/PP</span><b class="arrow-up">↑↑ +60-90%</b></div>
+      <div class="kpi"><span>ราคาขวดปลีก</span><b class="arrow-up">อนุมัติ +1-2 ฿/ขวด</b></div>
+      <div class="takeaway"><b>อาทิตย์นี้:</b> ขึ้น (ประกาศใหม่) | <b>1 เดือน:</b> ยังสูง ต้นทุน 2 ทางกดมาร์จิ้น | <b>ครึ่งหลังปี:</b> ผ่อนคลายถ้า CPO ลงตาม SCB EIC คาด</div>
+    </div>
+
+    <!-- PALM OIL -->
+    <div class="card" data-tab="all food packager">
+      <h3>🌴 น้ำมันปาล์มดิบ (CPO) <span class="trend up">▲ +15% YoY</span></h3>
+      <canvas id="palmChart"></canvas>
+      <div class="kpi"><span>ปัจจุบัน (10 เม.ย. 69)</span><b>40.50-41.00 ฿/กก.</b></div>
+      <div class="kpi"><span>เม.ย. 68</span><b>35.38 ฿/กก.</b></div>
+      <div class="kpi"><span>คาดเฉลี่ยปี 69</span><b>33.9 ฿/กก. (-6.8%)</b></div>
+      <div class="takeaway">สั้น: <b>ยังสูง</b> | 1 เดือน: ทรงตัวสูง | ครึ่งหลัง: <b>ลง</b></div>
+    </div>
+
+    <!-- PLASTIC -->
+    <div class="card" data-tab="all plastic packager">
+      <h3>♻️ เม็ดพลาสติก PE/PP <span class="trend up">▲▲ พุ่งแรง</span></h3>
+      <canvas id="plasticChart"></canvas>
+      <div class="kpi"><span>PE ก่อนวิกฤต</span><b>30-36 ฿/กก.</b></div>
+      <div class="kpi"><span>PE ปัจจุบัน</span><b>52-60 ฿/กก. (+70%)</b></div>
+      <div class="kpi"><span>บางเกรด</span><b>+80-90%</b></div>
+      <div class="takeaway">สั้น: <b>พุ่งแรง</b> (ขาดแคลน 40-50%) | รัฐคุมราคา 1 ปี | ปลายปี 69: คลายตัว</div>
+    </div>
+
+    <!-- RICE -->
+    <div class="card" data-tab="all food">
+      <h3>🌾 ข้าวสาร 5% FOB <span class="trend up">▲ สั้น</span></h3>
+      <canvas id="riceChart"></canvas>
+      <div class="kpi"><span>ปัจจุบัน (8 เม.ย. 69)</span><b>$423/ตัน</b></div>
+      <div class="kpi"><span>ต้นเดือน</span><b>$384/ตัน (+10%)</b></div>
+      <div class="takeaway">สั้น: <b>ขึ้น</b> | ยาว: Q1/69 ตกจากผลผลิตล้น, ฟื้นเล็กน้อยปีหน้า</div>
+    </div>
+
+    <!-- SOYBEAN OIL -->
+    <div class="card" data-tab="all food">
+      <h3>🫘 น้ำมันถั่วเหลือง <span class="trend down">▼ แนวโน้ม</span></h3>
+      <canvas id="soyChart"></canvas>
+      <div class="kpi"><span>แนวโน้มปี 69</span><b>ลดลง</b></div>
+      <div class="kpi"><span>บทบาท</span><b>สินค้าทดแทนปาล์ม</b></div>
+      <div class="takeaway">1 เดือน: <b>ลง</b> ผลผลิตถั่วเหลืองโลกเพิ่ม → กดราคาปาล์มตาม</div>
+    </div>
+
+    <!-- SUGAR -->
+    <div class="card" data-tab="all food">
+      <h3>🍬 น้ำตาลทราย <span class="trend flat">● คุมราคา</span></h3>
+      <canvas id="sugarChart"></canvas>
+      <div class="kpi"><span>ทรายขาว</span><b>24.00 ฿/กก.</b></div>
+      <div class="kpi"><span>ทรายขาวบริสุทธิ์</span><b>25.00 ฿/กก.</b></div>
+      <div class="takeaway">รัฐคุมประกาศราชกิจจาฯ | ลานีญาหนุน | <b>ทรงตัว</b>สัปดาห์/เดือนหน้า</div>
+    </div>
+
+  </div>
+
+  <div class="forecast-wrap" id="tableWrap">
+    <h2 style="padding:14px 14px 6px;font-size:15px;color:var(--navy)">📋 ตารางสรุปแนวโน้มราคา</h2>
+    <table class="forecast-table">
+      <thead>
+        <tr><th>สินค้า</th><th>อาทิตย์นี้</th><th>1 อาทิตย์</th><th>1 เดือน</th><th>ครึ่งหลัง 69</th></tr>
+      </thead>
+      <tbody>
+        <tr class="hot-row"><td><b>โอลีน / หยก (ขวดปาล์ม)</b></td><td class="arrow-up">▲ +1-2 ฿</td><td class="arrow-up">▲ ยังขึ้น</td><td class="arrow-flat">● สูง</td><td class="arrow-down">▼ ผ่อน</td></tr>
+        <tr><td>น้ำมันปาล์ม</td><td class="arrow-up">▲ ขึ้น</td><td class="arrow-up">▲ ขึ้น</td><td class="arrow-flat">● สูง</td><td class="arrow-down">▼ -6.8%</td></tr>
+        <tr><td>พลาสติก PE/PP</td><td class="arrow-up">▲▲ พุ่ง</td><td class="arrow-up">▲ ขึ้น</td><td class="arrow-flat">● สูง</td><td class="arrow-down">▼ คลาย</td></tr>
+        <tr><td>ข้าวสาร</td><td class="arrow-up">▲ ขึ้น</td><td class="arrow-flat">● ทรง</td><td class="arrow-flat">● ทรง</td><td class="arrow-down">▼ ลง</td></tr>
+        <tr><td>น้ำมันถั่วเหลือง</td><td class="arrow-flat">● ทรง</td><td class="arrow-down">▼ ลง</td><td class="arrow-down">▼ ลง</td><td class="arrow-down">▼ ลงต่อ</td></tr>
+        <tr><td>น้ำตาลทราย</td><td class="arrow-flat">● คุม</td><td class="arrow-flat">● คุม</td><td class="arrow-flat">● คุม</td><td class="arrow-flat">● ทรง</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<footer>
+  ข้อมูล: สมาคมผู้ส่งออกข้าวไทย • SCB EIC • วิจัยกรุงศรี • KResearch • กรมการค้าภายใน • TPIA<br>
+  © Rattana (รัตนไพบูลย์) — Commodity Price Monitor v1.0
+</footer>
+</div>
+
+<button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">▲</button>
+
+<div id="spinner"><div class="sp-box"><div class="ring"></div><p id="spMsg">Loading...</p></div></div>
+
+<script>
+// =============================
+// AUTH CONFIG (Rattana standard)
+// =============================
+const AUTH_CONFIG = {
+  clientId: '615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com',
+  usersSheetId: '1M6HdISsLN684qRWyQ73CA4AmUzmYtZaOlffDJXZZIXQ',
+  usersSheetName: 'Rattana Users for apps',
+};
+let currentUser = null;
+
+const showSpinner = m => { document.getElementById('spMsg').textContent=m||'Loading...'; document.getElementById('spinner').classList.add('on'); };
+const hideSpinner = () => document.getElementById('spinner').classList.remove('on');
+function showLoginError(msg){ const e=document.getElementById('loginErr'); e.textContent=msg; e.style.display='block'; }
+function showToast(msg, type='success'){
+  const t=document.createElement('div'); t.className='toast toast-'+type; t.textContent=msg;
+  document.body.appendChild(t); setTimeout(()=>t.remove(),3500);
+}
+
+function parseCsv(text){
+  const parse = r => { const c=[]; let cur='',q=false; for(const ch of r+','){ if(ch==='"'){q=!q}else if(ch===','&&!q){c.push(cur.trim());cur=''}else{cur+=ch} } return c; };
+  const rows=text.trim().split('\n'), h=parse(rows[0]);
+  return rows.slice(1).map(r=>Object.fromEntries(h.map((k,i)=>[k,(parse(r)[i]||'')])));
+}
+async function loadFromSheets(sheetId, sheetName){
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('fetch failed');
+  return parseCsv(await res.text());
+}
+
+async function handleGoogleLogin(r){
+  showSpinner('Verifying...');
+  try {
+    const email = JSON.parse(atob(r.credential.split('.')[1])).email.toLowerCase().trim();
+    const users = await loadFromSheets(AUTH_CONFIG.usersSheetId, AUTH_CONFIG.usersSheetName);
+    const user = users.find(u => (u['E-mail']||'').toLowerCase().trim() === email);
+    if(!user){ showLoginError('Email not found in Rattana user list. Contact Admin.'); return; }
+    if((user['Status']||'').trim() !== 'Active'){ showLoginError('Account suspended. Contact Admin.'); return; }
+    currentUser = {
+      email, name:user['ชื่อ - สกุล']||email, nickname:user['ชื่อเล่น']||'',
+      role:parseInt(user['User Role'])||1, dept:user['แผนก']||'',
+      company:user['บริษัท']||'', warehouse:user['W']||'', empId:user['รหัสพนักงาน']||'',
+    };
+    sessionStorage.setItem('rattanaUser', JSON.stringify(currentUser));
+    enterApp();
+  } catch(e) {
+    console.error(e);
+    showLoginError('Login error. Check network & try again.');
+  } finally { hideSpinner(); }
+}
+function enterApp(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('appScreen').style.display='block';
+  document.getElementById('userName').textContent = (currentUser.nickname || currentUser.name || currentUser.email).substring(0,20);
+  initCharts();
+  showToast('ยินดีต้อนรับ '+(currentUser.nickname||currentUser.name), 'success');
+}
+function checkSession(){
+  const s=sessionStorage.getItem('rattanaUser');
+  if(s){ currentUser=JSON.parse(s); enterApp(); }
+}
+function logout(){
+  if(confirm('ออกจากระบบ?')){ sessionStorage.removeItem('rattanaUser'); location.reload(); }
+}
+function toggleDark(){ document.body.classList.toggle('dark'); }
+async function refreshData(){
+  const b=document.getElementById('btnRefresh');
+  b.style.animation='spin .6s linear'; b.disabled=true;
+  await new Promise(r=>setTimeout(r,600));
+  b.style.animation=''; b.disabled=false;
+  showToast('อัปเดตแล้ว ✓','success');
+}
+function switchTab(ev, key){
+  document.querySelectorAll('.tab-bar button').forEach(b=>b.classList.remove('active'));
+  ev.target.classList.add('active');
+  const tableWrap=document.getElementById('tableWrap');
+  if(key==='table'){ document.getElementById('gridAll').style.display='none'; tableWrap.style.display='block'; return; }
+  tableWrap.style.display = key==='all' ? 'block' : 'none';
+  document.getElementById('gridAll').style.display='grid';
+  document.querySelectorAll('#gridAll .card').forEach(c=>{
+    c.style.display = (key==='all' || (c.dataset.tab||'').includes(key)) ? '' : 'none';
+  });
+}
+window.addEventListener('scroll',()=>{
+  document.getElementById('backToTop').style.display = window.scrollY>300?'flex':'none';
+});
+
+// =============================
+// CHARTS
+// =============================
+function initCharts(){
+  const isDark = document.body.classList.contains('dark');
+  const txt = isDark ? '#e8eaf0' : '#0d1b3e';
+  const baseOpts = {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false, labels:{color:txt}}},
+    scales:{y:{beginAtZero:false,ticks:{font:{size:10},color:txt}},x:{ticks:{font:{size:10},color:txt}}}
+  };
+  const legendOpts = {...baseOpts, plugins:{legend:{display:true,labels:{font:{size:10},color:txt}}}};
+
+  new Chart(document.getElementById('packagerChart'),{
+    type:'bar',
+    data:{labels:['เม.ย.68','มี.ค.69','เม.ย.69','พ.ค.69','ครึ่งหลัง 69'],
+      datasets:[
+        {label:'CPO',data:[100,110,115,115,96],backgroundColor:'#dc2626'},
+        {label:'ขวด PE/PP',data:[100,135,170,170,130],backgroundColor:'#c9a84c'}
+      ]},
+    options:{...legendOpts,scales:{y:{beginAtZero:true,title:{display:true,text:'ดัชนี (100=เม.ย.68)',font:{size:10},color:txt},ticks:{color:txt}},x:{ticks:{color:txt}}}}
+  });
+  new Chart(document.getElementById('palmChart'),{type:'line',
+    data:{labels:['2567','2568','ม.ค.69','เม.ย.69','คาด.ปลาย69'],
+      datasets:[{label:'CPO',data:[33.6,35.4,38.0,40.75,33.9],borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,.15)',fill:true,tension:.3}]},
+    options:baseOpts});
+  new Chart(document.getElementById('plasticChart'),{type:'line',
+    data:{labels:['2567','ต้น68','กลาง68','มี.ค.69','เม.ย.69'],
+      datasets:[
+        {label:'PE',data:[32,34,36,45,56],borderColor:'#0d1b3e',backgroundColor:'rgba(13,27,62,.12)',fill:true,tension:.3},
+        {label:'PP',data:[34,36,38,46,58],borderColor:'#c9a84c',backgroundColor:'rgba(201,168,76,.15)',fill:true,tension:.3}
+      ]},options:legendOpts});
+  new Chart(document.getElementById('riceChart'),{type:'line',
+    data:{labels:['เม.ย.67','เม.ย.68','มี.ค.69','1 เม.ย.69','8 เม.ย.69'],
+      datasets:[{label:'$/ตัน',data:[580,410,395,384,423],borderColor:'#d97706',backgroundColor:'rgba(217,119,6,.15)',fill:true,tension:.3}]},
+    options:baseOpts});
+  new Chart(document.getElementById('soyChart'),{type:'line',
+    data:{labels:['2567','2568','ม.ค.69','เม.ย.69','ปลาย69'],
+      datasets:[{label:'ดัชนี',data:[105,100,98,95,88],borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.15)',fill:true,tension:.3}]},
+    options:baseOpts});
+  new Chart(document.getElementById('sugarChart'),{type:'bar',
+    data:{labels:['ทรายขาว','ทรายขาวบริสุทธิ์'],
+      datasets:[{label:'฿/กก.',data:[24.00,25.00],backgroundColor:['#c9a84c','#0d1b3e']}]},
+    options:baseOpts});
+}
+
+window.onload = checkSession;
+</script>
+</body>
+</html>
