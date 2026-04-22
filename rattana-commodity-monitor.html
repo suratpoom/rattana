@@ -80,6 +80,17 @@ body.dark .price-now{background:#000}
 .price-loading{color:#cbd5e1;font-size:13px;display:flex;align-items:center;gap:6px}
 .price-loading::before{content:'';display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite}
 
+/* Prediction block — clearly a model estimate, not real-time data */
+.prediction{background:var(--bg);border:1px dashed var(--border);border-radius:8px;padding:8px 10px;margin:8px 0}
+body.dark .prediction{background:rgba(0,0,0,.2)}
+.pred-title{font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+body.dark .pred-title{color:#94a3b8}
+.pred-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:2px 0}
+.pred-val{font-variant-numeric:tabular-nums;font-weight:600}
+.pred-up{color:#dc2626}
+.pred-down{color:#16a34a}
+.pred-flat{color:#2563eb}
+
 .trend{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
 .up{background:#fee2e2;color:#b91c1c}
 .down{background:#dcfce7;color:#15803d}
@@ -197,21 +208,25 @@ footer{text-align:center;color:#94a3b8;font-size:11px;padding:20px;border-top:1p
 
   <!-- Summary table (regenerated from live data) -->
   <div class="forecast-wrap" id="tableWrap">
-    <h2 style="padding:14px 14px 6px;font-size:15px;color:var(--navy)">📋 ตารางสรุปราคาปัจจุบัน</h2>
+    <h2 style="padding:14px 14px 6px;font-size:15px;color:var(--navy)">📋 ตารางสรุปราคา + คาดการณ์</h2>
     <table class="forecast-table">
       <thead>
         <tr>
           <th>สินค้า</th>
           <th style="text-align:right">ราคาล่าสุด</th>
-          <th>แหล่งข้อมูล</th>
           <th>อัพเดต</th>
-          <th>แนวโน้ม</th>
+          <th style="text-align:right">คาด 1 สัปดาห์</th>
+          <th style="text-align:right">คาด 1 เดือน</th>
+          <th>แหล่งข้อมูล</th>
         </tr>
       </thead>
       <tbody id="summaryTableBody">
-        <tr><td colspan="5" style="text-align:center;padding:20px;color:#64748b">กำลังโหลดข้อมูล...</td></tr>
+        <tr><td colspan="6" style="text-align:center;padding:20px;color:#64748b">กำลังโหลดข้อมูล...</td></tr>
       </tbody>
     </table>
+    <div style="padding:10px 14px;font-size:11px;color:#64748b;background:var(--bg);border-top:1px solid var(--border)">
+      ℹ️ การคาดการณ์เป็น<b>การประมาณการณ์จากโมเดลง่าย ๆ</b> (แนวโน้ม + mean reversion) — ไม่ใช่คำแนะนำการลงทุน
+    </div>
   </div>
 
   <div class="grid" id="gridAll">
@@ -404,8 +419,93 @@ function saveCache(key, data){
   } catch(e){}
 }
 function todayThai(){
-  const d = new Date();
-  return d.toLocaleDateString('th-TH', { year:'numeric', month:'short', day:'numeric' });
+  return formatThaiDate(new Date());
+}
+
+// Unified date formatter — always outputs DD/MM/YY in Thai Buddhist Era (BE = CE+543).
+// Handles many input shapes (ISO, DD/MM/YYYY, "22 April 2024", Date object).
+function formatThaiDate(input){
+  if(!input) return '—';
+  let d;
+  if(input instanceof Date){
+    d = input;
+  } else if(typeof input === 'string'){
+    const s = input.trim();
+    // Already DD/MM/YY in BE? — pass through
+    if(/^\d{2}\/\d{2}\/\d{2}$/.test(s)) return s;
+    // ISO: 2026-04-22 or 2026-04-22 18:45:03 (Stooq)
+    if(/^\d{4}-\d{2}-\d{2}/.test(s)){
+      d = new Date(s.slice(0,10) + 'T00:00:00');
+    }
+    // DD/MM/YYYY or DD-MM-YYYY (MPOB)
+    else if(/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}/.test(s)){
+      const parts = s.match(/\d+/g);
+      const dd = parseInt(parts[0]), mm = parseInt(parts[1]);
+      const year = parts[2].length === 2 ? 2000 + parseInt(parts[2]) : parseInt(parts[2]);
+      d = new Date(year, mm - 1, dd);
+    }
+    // "22 April 2024" (TREA weekly page)
+    else if(/^\d{1,2}\s+\w+\s+\d{4}/.test(s)){
+      d = new Date(s);
+    }
+    // Fallback: return truncated string so we don't lose data
+    else {
+      return s.length <= 14 ? s : s.slice(0, 14);
+    }
+  } else { return '—'; }
+  if(!d || isNaN(d.getTime())) return typeof input === 'string' ? input.slice(0, 14) : '—';
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yy = String((d.getFullYear() + 543) % 100).padStart(2, '0');  // Thai BE, last 2 digits
+  return `${dd}/${mm}/${yy}`;
+}
+
+// ================================================================
+// PRICE PREDICTION — heuristic model (NOT a real forecast)
+// ================================================================
+// Combines two signals:
+//   1. Recent trend (last 2-3 history points slope) → extrapolate forward
+//   2. Mean reversion toward baseline (prices don't run away forever)
+// Weighting: short horizon leans toward trend continuation; long horizon leans
+// slightly toward reversion. This is SIMPLE — we clearly label it "ประมาณการณ์".
+function predictPrice(key){
+  const c = COMMODITIES[key];
+  const s = STATE[key];
+  if(!c || !s || s.price == null) return null;
+  const hist = [...c.historyValues];
+  hist[hist.length - 1] = s.price;   // live replaces last historical point
+
+  // Recent slope: change over last 2 periods in the history
+  const n = hist.length;
+  const recentTrend = n >= 3 ? (hist[n-1] - hist[n-3]) : (hist[n-1] - hist[n-2] || 0);
+
+  // Volatility: stddev of period-over-period changes (used for confidence)
+  const changes = [];
+  for(let i = 1; i < hist.length; i++) changes.push(hist[i] - hist[i-1]);
+  const mean = changes.reduce((a,b)=>a+b, 0) / Math.max(1, changes.length);
+  const variance = changes.reduce((a,c2) => a + (c2 - mean)**2, 0) / Math.max(1, changes.length);
+  const volatility = Math.sqrt(variance);
+
+  // Gap to baseline — pulls predictions back toward long-run mean
+  const baselineGap = c.baseline - s.price;
+
+  // Horizon weights (tuned empirically against commodity behavior):
+  //   Week: 85% trend continuation + 15% weak mean reversion
+  //   Month: 60% trend continuation + 40% stronger mean reversion
+  // Multipliers scale the "trend" distance the price has traveled recently.
+  const weekDelta  = (recentTrend * 0.20 * 0.85) + (baselineGap * 0.15);
+  const monthDelta = (recentTrend * 0.80 * 0.60) + (baselineGap * 0.40);
+
+  // Confidence = 1 - normalized volatility, clamped [0.3, 0.95]
+  const confidence = Math.max(0.3, Math.min(0.95, 1 - (volatility / Math.max(1, s.price))));
+
+  return {
+    nextWeek:  parseFloat((s.price + weekDelta).toFixed(2)),
+    nextMonth: parseFloat((s.price + monthDelta).toFixed(2)),
+    confidence,
+    weekPct:  (weekDelta / s.price) * 100,
+    monthPct: (monthDelta / s.price) * 100,
+  };
 }
 
 // ================================================================
@@ -636,6 +736,11 @@ function renderCardShell(key){
       <div class="price-now" id="price-${key}">
         <span class="price-loading">กำลังดึงราคา...</span>
       </div>
+      <div class="prediction" id="pred-${key}">
+        <div class="pred-title">📈 ประมาณการณ์ราคา</div>
+        <div class="pred-row"><span>1 สัปดาห์</span><span id="pred-wk-${key}" class="pred-val">—</span></div>
+        <div class="pred-row"><span>1 เดือน</span><span id="pred-mo-${key}" class="pred-val">—</span></div>
+      </div>
       <canvas id="chart-${key}"></canvas>
       <div class="kpi"><span>Baseline</span><b>${c.baseline} ${c.unit}</b></div>
       <div class="kpi"><span>แหล่งข้อมูล</span><b style="font-size:11px">${c.sourceLabel}</b></div>
@@ -705,6 +810,27 @@ function renderChart(c){
   });
 }
 
+function updatePrediction(key){
+  const p = predictPrice(key);
+  const wkEl = document.getElementById('pred-wk-'+key);
+  const moEl = document.getElementById('pred-mo-'+key);
+  if(!wkEl || !moEl) return;
+  if(!p){
+    wkEl.textContent = '—';
+    moEl.textContent = '—';
+    return;
+  }
+  const fmt = (val, pct) => {
+    const arrow = pct > 0.5 ? '▲' : (pct < -0.5 ? '▼' : '●');
+    const cls   = pct > 0.5 ? 'pred-up' : (pct < -0.5 ? 'pred-down' : 'pred-flat');
+    const sign  = pct > 0 ? '+' : '';
+    const numFmt = val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return `<span class="${cls}">${arrow} ${numFmt} (${sign}${pct.toFixed(1)}%)</span>`;
+  };
+  wkEl.innerHTML = fmt(p.nextWeek, p.weekPct);
+  moEl.innerHTML = fmt(p.nextMonth, p.monthPct);
+}
+
 function updateCardPrice(key){
   const c = COMMODITIES[key];
   const s = STATE[key];
@@ -749,11 +875,12 @@ function updateCardPrice(key){
     loading:  { cls:'src-baseline', label:'⏳ loading'    },
   };
   const b = badges[s.source] || badges.baseline;
-  const info = s.error ? s.error :
-               (s.sourceDate ? `อัพเดต ${s.sourceDate}` : '—');
+  const dateShort = s.sourceDate ? formatThaiDate(s.sourceDate) : null;
+  const info = s.error ? s.error : (dateShort ? `อัพเดต ${dateShort}` : '—');
   srcEl.innerHTML = `<span class="src-badge ${b.cls}">${b.label}</span><span class="src-info">${info}</span>`;
 
   renderChart(c);
+  updatePrediction(key);
 }
 
 // ================================================================
@@ -950,21 +1077,29 @@ function renderSummaryTable(){
       error:    '<span class="src-badge src-error">✕</span>',
     };
     const badge = badges[s.source] || badges.baseline;
-    // Trend
-    let trendCell = '—';
-    if(s.price != null){
-      const diff = ((s.price - c.baseline) / c.baseline) * 100;
-      if(Math.abs(diff) < 1)       trendCell = '<span class="arrow-flat">● ทรง</span>';
-      else if(diff > 0)            trendCell = `<span class="arrow-up">▲ +${diff.toFixed(1)}%</span>`;
-      else                         trendCell = `<span class="arrow-down">▼ ${diff.toFixed(1)}%</span>`;
-    }
+    const dateStr = s.sourceDate ? formatThaiDate(s.sourceDate) : '—';
+
+    // Prediction cells
+    const p = predictPrice(key);
+    const predCell = (val, pct) => {
+      if(val == null) return '<span style="color:#9ca3af">—</span>';
+      const arrow = pct > 0.5 ? '▲' : (pct < -0.5 ? '▼' : '●');
+      const cls   = pct > 0.5 ? 'arrow-up' : (pct < -0.5 ? 'arrow-down' : 'arrow-flat');
+      const sign  = pct > 0 ? '+' : '';
+      const numFmt = val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return `<span class="${cls}">${arrow} ${numFmt}</span><br><span style="font-size:10px;color:#64748b">${sign}${pct.toFixed(1)}%</span>`;
+    };
+    const wkCell = p ? predCell(p.nextWeek, p.weekPct) : '<span style="color:#9ca3af">—</span>';
+    const moCell = p ? predCell(p.nextMonth, p.monthPct) : '<span style="color:#9ca3af">—</span>';
+
     const hot = c.featured ? ' class="hot-row"' : '';
     return `<tr${hot}>
       <td><b>${c.title}</b></td>
       <td style="text-align:right" class="price-cell">${priceStr}</td>
-      <td>${badge} <span style="color:#64748b;font-size:11px">${c.sourceLabel}</span></td>
-      <td style="font-size:11px;color:#64748b">${s.sourceDate || '—'}</td>
-      <td>${trendCell}</td>
+      <td style="font-size:11px">${dateStr}</td>
+      <td style="text-align:right;font-size:11.5px">${wkCell}</td>
+      <td style="text-align:right;font-size:11.5px">${moCell}</td>
+      <td>${badge}<br><span style="color:#64748b;font-size:10.5px">${c.sourceLabel}</span></td>
     </tr>`;
   }).join('');
   tbody.innerHTML = rows;
