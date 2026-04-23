@@ -92,29 +92,40 @@ body.dark .pred-title{color:#94a3b8}
 .pred-flat{color:#2563eb}
 
 /* BIG RECOMMENDATION BADGE — the most prominent element on each card.
-   Color-coded: green=buy, yellow=wait, orange=minimum, red=delay. */
-.recommendation{border-radius:10px;padding:12px 14px;margin:10px 0;text-align:center;border:2px solid}
-.rec-label{font-size:17px;font-weight:700;letter-spacing:.3px;margin-bottom:3px;display:flex;align-items:center;justify-content:center;gap:6px}
-.rec-advice{font-size:11.5px;opacity:.85;line-height:1.4}
-.rec-score{display:inline-block;font-size:10px;background:rgba(0,0,0,.1);padding:2px 8px;border-radius:8px;margin-top:6px;font-variant-numeric:tabular-nums}
-body.dark .rec-score{background:rgba(255,255,255,.08)}
-.rec-buy-heavy {background:#dcfce7;border-color:#16a34a;color:#15803d}
-.rec-buy-normal{background:#ecfccb;border-color:#65a30d;color:#3f6212}
-.rec-buy-watch {background:#fef9c3;border-color:#eab308;color:#854d0e}
-.rec-buy-min   {background:#ffedd5;border-color:#f97316;color:#9a3412}
-.rec-buy-delay {background:#fee2e2;border-color:#dc2626;color:#991b1b}
-body.dark .rec-buy-heavy  {background:#052e16;color:#86efac}
-body.dark .rec-buy-normal {background:#1a2e05;color:#bef264}
-body.dark .rec-buy-watch  {background:#422006;color:#fde68a}
-body.dark .rec-buy-min    {background:#431407;color:#fdba74}
-body.dark .rec-buy-delay  {background:#450a0a;color:#fca5a5}
+   Color-coded with procurement logic:
+     RED   = urgent buy (price going up) — attention-grabbing
+     YELLOW= normal
+     GREEN = hold/wait (price going down) — calm down signal */
+.recommendation{border-radius:14px;padding:18px 16px;margin:12px 0;text-align:center;border:3px solid;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.rec-label{font-size:24px;font-weight:800;letter-spacing:.3px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px;line-height:1.2}
+.rec-advice{font-size:14px;line-height:1.5;font-weight:500;opacity:.95}
+.rec-score{display:inline-block;font-size:11px;background:rgba(0,0,0,.12);padding:3px 10px;border-radius:10px;margin-top:10px;font-variant-numeric:tabular-nums;font-weight:600}
+body.dark .rec-score{background:rgba(255,255,255,.12)}
 
-/* Compact change block — shows 3 directional signals without emphasizing numbers */
-.changes{margin:8px 0;font-size:12px}
-.changes .ch-row{display:flex;justify-content:space-between;align-items:center;padding:3px 2px;gap:8px}
-.changes .ch-label{color:#64748b;font-size:11px;white-space:nowrap}
+/* Red-to-green gradient (procurement logic: RED = buy now, GREEN = hold) */
+.rec-buy-heavy {background:#fee2e2;border-color:#dc2626;color:#991b1b}
+.rec-buy-normal{background:#ffedd5;border-color:#f97316;color:#9a3412}
+.rec-buy-watch {background:#fef9c3;border-color:#eab308;color:#854d0e}
+.rec-buy-min   {background:#d1fae5;border-color:#10b981;color:#065f46}
+.rec-buy-delay {background:#dcfce7;border-color:#16a34a;color:#14532d}
+body.dark .rec-buy-heavy  {background:#450a0a;color:#fca5a5;border-color:#ef4444}
+body.dark .rec-buy-normal {background:#431407;color:#fdba74;border-color:#f97316}
+body.dark .rec-buy-watch  {background:#422006;color:#fde68a;border-color:#eab308}
+body.dark .rec-buy-min    {background:#022c22;color:#6ee7b7;border-color:#10b981}
+body.dark .rec-buy-delay  {background:#052e16;color:#86efac;border-color:#16a34a}
+
+/* Featured card — even larger badge */
+.card.featured .recommendation{padding:22px 18px}
+.card.featured .rec-label{font-size:28px}
+.card.featured .rec-advice{font-size:15px}
+
+/* Compact change block — larger text, easier to read */
+.changes{margin:10px 0;font-size:13px;background:var(--bg);border-radius:8px;padding:8px 12px}
+body.dark .changes{background:rgba(0,0,0,.15)}
+.changes .ch-row{display:flex;justify-content:space-between;align-items:center;padding:4px 2px;gap:8px}
+.changes .ch-label{color:#64748b;font-size:12px;white-space:nowrap;font-weight:500}
 body.dark .changes .ch-label{color:#94a3b8}
-.changes .ch-val{font-weight:600;text-align:right}
+.changes .ch-val{font-weight:600;text-align:right;font-size:13px}
 
 /* Source link styling */
 .src-link{color:var(--navy);text-decoration:none;border-bottom:1px dotted var(--navy)}
@@ -540,25 +551,29 @@ function predictPrice(key){
 }
 
 // ================================================================
-// BUY RECOMMENDATION ENGINE
+// BUY RECOMMENDATION ENGINE — PROCUREMENT MINDSET
 // ================================================================
-// Translates price signals into a practical BUY decision for the business:
-//   "Should I stock up, buy normally, wait, or delay?"
+// Rattana's procurement policy:
+//   • Price EXPECTED TO RISE   → BUY HEAVY (lock in cheap stock before it goes up)
+//   • Price EXPECTED TO FALL   → HOLD / DELAY (wait for cheaper price next week)
+//   • Price RISING FAST already → BUY MORE (if still rising, don't wait longer)
+//   • Price FALLING already    → HOLD (don't catch a falling knife)
 //
-// Inputs (all converted to % from current price):
-//   A = baseline gap      (current vs long-run avg) — negative = cheap
-//   B = recent change     (current vs 1 month ago)  — positive = rising
-//   C = predicted change  (next month prediction)   — positive = will rise
+// Inputs (all % changes):
+//   B = recent change     (current vs 1 month ago)  — momentum signal
+//   C = predicted 1-week change                     — near-term forecast
+//   D = predicted 1-month change                    — medium-term forecast
 //
 // Score formula (neutral = 50, range clamped [0, 100]):
-//   score = 50 + (-A × 2.0) + (-B × 1.5) + (C × 1.0)
+//   score = 50 + (B × 1.0) + (C × 2.5) + (D × 1.5)
 //
-// Rationale:
-//   -A×2    — if price is below baseline, strong signal to buy now (weight 2x)
-//   -B×1.5  — if price rose recently, negative signal (it already got expensive)
-//   +C×1.0  — if predicted to rise, buy now to lock in (urgency)
+// Weights:
+//   C×2.5  — next week is the biggest driver (decide this week's orders)
+//   D×1.5  — 1-month prediction still matters for bulk commitments
+//   B×1.0  — momentum from past month gives trend confirmation
 //
-// Thresholds tuned so typical "neutral market" lands 40-60 → รอดูก่อน.
+// Higher score = stronger BUY signal (price expected UP).
+// Lower score  = stronger HOLD signal (price expected DOWN).
 function getRecommendation(key){
   const c = COMMODITIES[key];
   const s = STATE[key];
@@ -568,37 +583,38 @@ function getRecommendation(key){
   const baselineGapPct = ((s.price - c.baseline) / c.baseline) * 100;
   const recentChangePct = monthAgo ? ((s.price - monthAgo) / monthAgo) * 100 : 0;
   const pred = predictPrice(key);
-  const predictedChangePct = pred ? pred.monthPct : 0;
+  const predictedWeekPct  = pred ? pred.weekPct  : 0;
+  const predictedMonthPct = pred ? pred.monthPct : 0;
 
   let score = 50
-    + (-baselineGapPct   * 2.0)
-    + (-recentChangePct  * 1.5)
-    + ( predictedChangePct * 1.0);
+    + (recentChangePct    * 1.0)
+    + (predictedWeekPct   * 2.5)
+    + (predictedMonthPct  * 1.5);
   score = Math.max(0, Math.min(100, score));
 
-  // Recommendation tiers
+  // Recommendation tiers (procurement logic)
   let tier, emoji, label, color, advice;
-  if(score >= 80){
-    tier='bulk';       emoji='🟢'; label='ซื้อเยอะ'; color='buy-heavy';
-    advice='ราคาต่ำกว่าปกติมาก — สต็อกได้ครั้งใหญ่';
-  } else if(score >= 60){
-    tier='normal';     emoji='🟢'; label='ซื้อปกติ'; color='buy-normal';
-    advice='ราคาอยู่ในเกณฑ์ดี — สั่งตามแผนได้';
-  } else if(score >= 40){
-    tier='watch';      emoji='🟡'; label='รอดู 1-2 สัปดาห์'; color='buy-watch';
-    advice='ราคากลาง ยังไม่ชัดเจน — รอสัญญาณก่อน';
-  } else if(score >= 20){
-    tier='minimum';    emoji='🟠'; label='ซื้อเท่าที่ใช้'; color='buy-min';
-    advice='ราคาเริ่มสูง — สั่ง just-in-time';
+  if(score >= 70){
+    tier='bulk';    emoji='🔴'; label='ซื้อเยอะที่สุด'; color='buy-heavy';
+    advice='ราคากำลังจะพุ่ง — รีบล็อกสต็อกก่อนขึ้นอีก';
+  } else if(score >= 58){
+    tier='buy';     emoji='🟠'; label='ซื้อเพิ่ม'; color='buy-normal';
+    advice='แนวโน้มขึ้น — เพิ่มสต็อกมากกว่าปกติ';
+  } else if(score >= 45){
+    tier='normal';  emoji='🟡'; label='ซื้อปกติ'; color='buy-watch';
+    advice='ราคาทรงตัว — สั่งตามแผนปกติได้';
+  } else if(score >= 32){
+    tier='hold';    emoji='🟢'; label='ถือไว้ก่อน'; color='buy-min';
+    advice='แนวโน้มลง — สั่งแค่ที่จำเป็น รอราคาลงอีก';
   } else {
-    tier='delay';      emoji='🔴'; label='ชะลอการซื้อ'; color='buy-delay';
-    advice='ราคาสูงมาก — รอให้ราคาลงก่อน';
+    tier='delay';   emoji='🟢'; label='รอซื้อ'; color='buy-delay';
+    advice='ราคากำลังจะลงแรง — ชะลอให้นานที่สุด';
   }
 
   return {
     score: Math.round(score), tier, emoji, label, color, advice,
-    baselineGapPct, recentChangePct, predictedChangePct,
-    predictedWeekPct: pred ? pred.weekPct : 0,
+    baselineGapPct, recentChangePct,
+    predictedWeekPct, predictedChangePct: predictedMonthPct,
     monthAgo,
   };
 }
@@ -1192,10 +1208,10 @@ function renderSummaryTable(){
       recCell = '<span style="color:#9ca3af">กำลังประเมิน...</span>';
     } else {
       recCell = `
-        <div style="display:inline-block;padding:4px 10px;border-radius:8px;border:1.5px solid;font-weight:700;font-size:12px" class="rec-${rec.color}">
+        <div style="display:inline-block;padding:8px 14px;border-radius:10px;border:2px solid;font-weight:800;font-size:15px" class="rec-${rec.color}">
           ${rec.emoji} ${rec.label}
         </div>
-        <div style="font-size:10.5px;color:#64748b;margin-top:3px">${rec.advice}</div>
+        <div style="font-size:11.5px;color:#64748b;margin-top:5px;max-width:200px">${rec.advice}</div>
       `;
     }
 
