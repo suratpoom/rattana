@@ -1,0 +1,2428 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0d1b3e">
+<title>Rattana Face Check-in v3.2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+<style>
+:root {
+  --navy:#0d1b3e; --navy-mid:#1a2f5e; --navy-light:#243b73;
+  --gold:#c9a84c; --gold-light:#e8c86a;
+  --white:#ffffff; --off-white:#f4f6fb;
+  --success:#2ecc71; --danger:#e74c3c; --warning:#f39c12; --info:#3498db;
+  --bg:var(--off-white); --text:var(--navy); --card-bg:var(--white);
+  --border:#dde3f0; --muted:#6b7693;
+  --shadow: 0 2px 8px rgba(13,27,62,.08); --shadow-lg: 0 10px 30px rgba(13,27,62,.15);
+}
+body.dark {
+  --bg:#0a1020; --text:#e8eaf0; --card-bg:#111c35;
+  --border:#243b73; --muted:#8b94b3; --off-white:#0a1020;
+  --shadow: 0 2px 8px rgba(0,0,0,.3); --shadow-lg: 0 10px 30px rgba(0,0,0,.4);
+}
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+html, body { height:100%; }
+body {
+  font-family:'Sarabun', -apple-system, sans-serif;
+  background:var(--bg); color:var(--text); min-height:100dvh;
+  overflow-x:hidden; -webkit-overflow-scrolling:touch; scroll-behavior:smooth;
+  transition: background .3s, color .3s;
+}
+button { font-family:inherit; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+input, select, textarea { font-family:inherit; font-size:16px; }
+
+/* ---- HEADER ---- */
+header {
+  position:sticky; top:0; z-index:100;
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+  color:#fff; padding:12px 16px; padding-top:max(12px, env(safe-area-inset-top));
+  box-shadow:var(--shadow-lg); display:flex; align-items:center; gap:12px;
+}
+.brand { display:flex; align-items:center; gap:10px; flex:1; min-width:0; }
+.brand-logo { width:40px; height:40px; border-radius:8px; background:var(--gold); color:var(--navy); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:20px; flex-shrink:0; }
+.brand-text { display:flex; flex-direction:column; min-width:0; }
+.brand-name { font-weight:700; font-size:15px; line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.brand-sub { font-size:11px; color:var(--gold-light); line-height:1.2; }
+.role-badge { background:var(--gold); color:var(--navy); padding:2px 8px; border-radius:10px; font-size:10px; font-weight:700; margin-left:6px; }
+.header-actions { display:flex; gap:6px; align-items:center; }
+.icon-btn {
+  background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.15);
+  color:#fff; width:38px; height:38px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center; font-size:16px;
+  transition:all .2s;
+}
+.icon-btn:hover { background:rgba(255,255,255,.2); }
+.icon-btn:active { transform:scale(.95); }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* ---- TABS ---- */
+.tabs {
+  display:flex; gap:4px; padding:8px; overflow-x:auto;
+  background:var(--card-bg); border-bottom:1px solid var(--border);
+  scrollbar-width:none; -ms-overflow-style:none; position:sticky; top:62px; z-index:90;
+}
+.tabs::-webkit-scrollbar { display:none; }
+.tab {
+  border:none; background:transparent; padding:10px 14px; border-radius:8px;
+  font-size:14px; color:var(--muted); white-space:nowrap; font-weight:500;
+  display:flex; align-items:center; gap:6px; transition:all .2s;
+}
+.tab.active { background:var(--navy); color:#fff; }
+body.dark .tab.active { background:var(--gold); color:var(--navy); }
+.tab .badge { background:var(--gold); color:var(--navy); border-radius:10px; padding:1px 6px; font-size:10px; font-weight:700; }
+
+/* ---- LAYOUT ---- */
+main { padding:12px; padding-bottom:max(80px, calc(60px + env(safe-area-inset-bottom))); }
+.page { display:none; }
+.page.active { display:block; animation:fadeIn .3s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+.card {
+  background:var(--card-bg); border-radius:14px; padding:16px;
+  box-shadow:var(--shadow); border:1px solid var(--border);
+  border-top:3px solid var(--gold); margin-bottom:12px;
+}
+.card-header { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.card-title { font-size:15px; font-weight:600; flex:1; }
+.card-icon { width:32px; height:32px; border-radius:8px; background:var(--off-white); display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+body.dark .card-icon { background:var(--navy-mid); }
+
+.grid { display:grid; gap:12px; }
+@media(min-width:768px) { .grid-2 { grid-template-columns:1fr 1fr; } }
+
+/* ---- BUTTONS ---- */
+.btn {
+  border:none; padding:12px 18px; border-radius:10px; font-size:15px; font-weight:600;
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  min-height:44px; transition:all .2s; width:100%;
+}
+.btn:disabled { opacity:.5; cursor:not-allowed; }
+.btn-primary { background:var(--navy); color:#fff; }
+.btn-primary:hover:not(:disabled) { background:var(--navy-light); }
+.btn-gold { background:var(--gold); color:var(--navy); }
+.btn-gold:hover:not(:disabled) { background:var(--gold-light); }
+.btn-success { background:var(--success); color:#fff; }
+.btn-danger { background:var(--danger); color:#fff; }
+.btn-outline { background:transparent; color:var(--text); border:1.5px solid var(--border); }
+.btn-outline:hover:not(:disabled) { border-color:var(--gold); }
+.btn-lg { padding:18px 24px; font-size:17px; min-height:56px; }
+.btn-row { display:flex; gap:8px; }
+.btn-row > .btn { flex:1; }
+
+/* ---- LOGIN ---- */
+#loginScreen {
+  position:fixed; inset:0; background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 60%, var(--gold) 130%);
+  display:flex; align-items:center; justify-content:center; padding:20px; z-index:200;
+  overflow-y:auto;
+}
+.login-card {
+  background:var(--card-bg); border-radius:20px; padding:32px 28px; width:100%; max-width:440px;
+  box-shadow:0 20px 60px rgba(0,0,0,.3); text-align:center; border-top:4px solid var(--gold);
+  margin:20px 0;
+}
+.login-logo { width:72px; height:72px; border-radius:18px; background:var(--gold); color:var(--navy); display:flex; align-items:center; justify-content:center; font-size:34px; font-weight:700; margin:0 auto 16px; }
+.login-title { font-size:22px; font-weight:700; margin-bottom:6px; color:var(--navy); }
+body.dark .login-title { color:var(--text); }
+.login-sub { color:var(--muted); font-size:13px; margin-bottom:24px; }
+
+.role-select {
+  display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px;
+}
+.role-card {
+  padding:18px 12px; border:2px solid var(--border); border-radius:12px;
+  background:var(--bg); cursor:pointer; transition:all .2s; text-align:center;
+}
+.role-card:hover { border-color:var(--gold-light); }
+.role-card.selected { border-color:var(--gold); background:rgba(201,168,76,.08); }
+.role-card .ico { font-size:32px; margin-bottom:6px; }
+.role-card .name { font-weight:700; font-size:14px; color:var(--text); margin-bottom:2px; }
+.role-card .desc { font-size:11px; color:var(--muted); line-height:1.3; }
+
+.input-group { text-align:left; margin-bottom:14px; }
+.input-group label { display:block; font-size:13px; color:var(--muted); margin-bottom:6px; font-weight:500; }
+.input-group input, .input-group select {
+  width:100%; padding:12px 14px; border:1.5px solid var(--border); border-radius:10px;
+  background:var(--bg); color:var(--text); font-size:16px; transition:border-color .2s;
+}
+.input-group input:focus, .input-group select:focus { outline:none; border-color:var(--gold); }
+
+/* ---- CAMERA ---- */
+.camera-wrap {
+  position:relative; width:100%; max-width:480px; margin:0 auto; aspect-ratio:1;
+  background:#000; border-radius:16px; overflow:hidden; border:3px solid var(--border);
+  transition: border-color .2s, box-shadow .2s;
+}
+.camera-wrap.matching { border-color:var(--gold); box-shadow:0 0 0 4px rgba(201,168,76,.3); }
+.camera-wrap.success { border-color:var(--success); box-shadow:0 0 0 4px rgba(46,204,113,.3); }
+.camera-wrap.error { border-color:var(--danger); box-shadow:0 0 0 4px rgba(231,76,60,.3); }
+.cam-video { width:100%; height:100%; object-fit:cover; transform:scaleX(-1); }
+.cam-canvas { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; transform:scaleX(-1); }
+.cam-overlay {
+  position:absolute; inset:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; pointer-events:none;
+  background:rgba(13,27,62,.5); color:#fff; text-align:center; padding:20px;
+}
+.cam-overlay.hidden { display:none; }
+.cam-overlay-text { font-size:14px; font-weight:500; margin-top:12px; }
+.cam-spinner { width:40px; height:40px; border:4px solid rgba(255,255,255,.3); border-top-color:var(--gold); border-radius:50%; animation:spin 1s linear infinite; }
+.face-guide {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:60%; aspect-ratio:1; border:3px dashed rgba(255,255,255,.7);
+  border-radius:50%; pointer-events:none;
+}
+
+/* ---- STATUS ROWS ---- */
+.status-row {
+  display:flex; align-items:center; gap:12px; padding:12px;
+  background:var(--off-white); border-radius:10px; margin-bottom:8px;
+}
+body.dark .status-row { background:var(--navy-mid); }
+.status-row .icon { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+.status-row .label { font-size:12px; color:var(--muted); margin-bottom:2px; }
+.status-row .value { font-size:14px; font-weight:600; }
+.status-row.ok .icon { background:rgba(46,204,113,.15); color:var(--success); }
+.status-row.warn .icon { background:rgba(243,156,18,.15); color:var(--warning); }
+.status-row.err .icon { background:rgba(231,76,60,.15); color:var(--danger); }
+.status-row.pending .icon { background:rgba(108,117,125,.15); color:var(--muted); }
+
+/* ---- BIG ACTION ---- */
+.big-action {
+  background:linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+  color:var(--navy); border-radius:16px; padding:20px; text-align:center;
+  font-size:18px; font-weight:700; min-height:80px; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:4px; border:none; width:100%;
+  box-shadow:0 6px 20px rgba(201,168,76,.4); transition:all .2s;
+}
+.big-action:disabled { opacity:.5; cursor:not-allowed; box-shadow:none; }
+.big-action:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 10px 30px rgba(201,168,76,.5); }
+.big-action.checkout { background:linear-gradient(135deg, #e74c3c 0%, #ec7063 100%); color:#fff; box-shadow:0 6px 20px rgba(231,76,60,.4); }
+.big-action.kiosk { background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); color:#fff; box-shadow:0 6px 20px rgba(13,27,62,.4); }
+.big-action .sub { font-size:12px; font-weight:500; opacity:.85; }
+
+/* ---- KIOSK MODE ---- */
+#kioskOverlay {
+  display:none; position:fixed; inset:0; z-index:300; background:#000;
+  flex-direction:column;
+}
+#kioskOverlay.active { display:flex; }
+.kiosk-bar {
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+  color:#fff; padding:10px 14px; padding-top:max(10px, env(safe-area-inset-top));
+  display:flex; align-items:center; gap:10px; flex-shrink:0;
+}
+.kiosk-bar .info { flex:1; min-width:0; }
+.kiosk-bar .title { font-size:13px; font-weight:700; }
+.kiosk-bar .sub { font-size:11px; color:var(--gold-light); }
+.kiosk-stats { display:flex; gap:8px; }
+.kiosk-stat { background:rgba(255,255,255,.1); padding:5px 10px; border-radius:8px; text-align:center; min-width:50px; }
+.kiosk-stat .num { font-size:16px; font-weight:700; line-height:1; }
+.kiosk-stat .lbl { font-size:9px; color:var(--gold-light); }
+
+.kiosk-mode-toggle {
+  display:flex; gap:6px; padding:8px 14px; background:#0a1020;
+}
+.kiosk-mode-btn {
+  flex:1; padding:10px; border:none; border-radius:8px; font-weight:600; font-size:13px;
+  background:rgba(255,255,255,.1); color:#fff; transition:all .2s;
+}
+.kiosk-mode-btn.active.in { background:var(--success); }
+.kiosk-mode-btn.active.out { background:var(--warning); color:var(--navy); }
+
+.kiosk-main {
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:20px 16px; gap:16px; overflow-y:auto; background:radial-gradient(circle at center, #1a2f5e 0%, #000 100%);
+}
+.kiosk-camera {
+  position:relative; width:min(90vw, 360px); aspect-ratio:1;
+  border-radius:24px; overflow:hidden; border:4px solid rgba(255,255,255,.2);
+  background:#000; box-shadow:0 0 60px rgba(201,168,76,.2);
+  transition: border-color .3s, box-shadow .3s;
+}
+.kiosk-camera.matched { border-color:var(--gold); box-shadow:0 0 60px rgba(201,168,76,.6); }
+.kiosk-camera.success { border-color:var(--success); box-shadow:0 0 80px rgba(46,204,113,.6); }
+.kiosk-camera.error { border-color:var(--danger); box-shadow:0 0 60px rgba(231,76,60,.4); }
+.kiosk-camera video { width:100%; height:100%; object-fit:cover; transform:scaleX(-1); }
+.kiosk-camera canvas { position:absolute; inset:0; width:100%; height:100%; transform:scaleX(-1); pointer-events:none; }
+.kiosk-camera .face-guide {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:65%; aspect-ratio:1; border:3px dashed rgba(255,255,255,.4);
+  border-radius:50%; pointer-events:none;
+}
+
+.kiosk-status {
+  text-align:center; color:#fff; max-width:480px; min-height:120px;
+}
+.kiosk-headline {
+  font-size:24px; font-weight:800; margin-bottom:8px; line-height:1.2;
+}
+.kiosk-headline.success { color:var(--success); }
+.kiosk-headline.warn { color:var(--gold-light); }
+.kiosk-headline.error { color:var(--danger); }
+.kiosk-detail { font-size:14px; color:rgba(255,255,255,.7); margin-bottom:8px; }
+.kiosk-instruction {
+  display:none; padding:14px 24px; background:var(--gold); color:var(--navy);
+  border-radius:14px; font-size:18px; font-weight:700; animation:pulse 1.5s ease infinite;
+}
+.kiosk-instruction.active { display:inline-block; }
+@keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.05);} }
+.kiosk-countdown {
+  display:inline-block; min-width:36px; height:36px; line-height:36px;
+  background:rgba(255,255,255,.15); border-radius:50%; margin-left:8px; font-size:14px; vertical-align:middle;
+}
+
+.kiosk-recent {
+  width:min(90vw, 480px); background:rgba(255,255,255,.05); border-radius:14px;
+  padding:10px 12px; margin-top:8px;
+}
+.kiosk-recent-title { color:var(--gold-light); font-size:12px; font-weight:600; margin-bottom:6px; }
+.kiosk-recent-list { display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; }
+.kiosk-recent-list::-webkit-scrollbar { display:none; }
+.kiosk-recent-item {
+  flex-shrink:0; background:rgba(255,255,255,.1); padding:6px 10px; border-radius:10px;
+  display:flex; align-items:center; gap:6px; color:#fff;
+}
+.kiosk-recent-item .photo { width:24px; height:24px; border-radius:50%; object-fit:cover; }
+.kiosk-recent-item .nm { font-size:12px; font-weight:600; }
+.kiosk-recent-item .tm { font-size:10px; color:var(--gold-light); }
+
+/* ---- DASHBOARD GRID ---- */
+.team-grid {
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:8px;
+}
+.member-tile {
+  position:relative; aspect-ratio:1; background:var(--off-white); border-radius:12px;
+  border:2px solid var(--border); cursor:pointer; overflow:hidden; transition:all .2s;
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+  padding:8px;
+}
+body.dark .member-tile { background:var(--navy-mid); }
+.member-tile:hover { transform:translateY(-2px); border-color:var(--gold); box-shadow:var(--shadow-lg); }
+.member-tile.in { border-color:var(--success); }
+.member-tile.late { border-color:var(--warning); }
+.member-tile.out { border-color:var(--info); }
+.member-tile.absent { border-color:var(--border); opacity:.7; }
+.member-tile .photo {
+  width:60%; aspect-ratio:1; border-radius:50%; background:var(--card-bg); margin-bottom:6px;
+  border:2px solid currentColor; overflow:hidden; display:flex; align-items:center; justify-content:center;
+  font-size:24px; color:var(--muted);
+}
+.member-tile .photo img { width:100%; height:100%; object-fit:cover; }
+.member-tile .name { font-size:11px; font-weight:600; text-align:center; line-height:1.2; }
+.member-tile .time { font-size:10px; color:var(--muted); margin-top:2px; }
+.member-tile .status-dot {
+  position:absolute; top:8px; right:8px; width:14px; height:14px; border-radius:50%;
+  background:var(--muted); border:2px solid var(--card-bg);
+}
+.member-tile.in .status-dot { background:var(--success); }
+.member-tile.late .status-dot { background:var(--warning); }
+.member-tile.out .status-dot { background:var(--info); }
+.member-tile.absent .status-dot { background:#ccc; }
+
+/* ---- TABLES ---- */
+.table-wrap { overflow-x:auto; border-radius:10px; border:1px solid var(--border); }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+thead { background:var(--navy); color:#fff; }
+body.dark thead { background:var(--navy-mid); }
+th, td { padding:10px 12px; text-align:left; border-bottom:1px solid var(--border); white-space:nowrap; }
+tbody tr:hover { background:var(--off-white); }
+body.dark tbody tr:hover { background:var(--navy-mid); }
+.tag { padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600; display:inline-block; }
+.tag-in  { background:rgba(46,204,113,.15); color:var(--success); }
+.tag-out { background:rgba(243,156,18,.15); color:var(--warning); }
+.tag-late { background:rgba(231,76,60,.15); color:var(--danger); }
+.tag-retro { background:rgba(155,89,182,.15); color:#9b59b6; }
+.tag-supervisor { background:rgba(52,152,219,.15); color:var(--info); }
+
+/* ---- LIST ITEMS ---- */
+.list-item {
+  display:flex; align-items:center; gap:12px; padding:12px;
+  border:1px solid var(--border); border-radius:10px; margin-bottom:8px;
+  background:var(--off-white);
+}
+body.dark .list-item { background:var(--navy-mid); }
+.list-item .num { width:36px; height:36px; border-radius:50%; background:var(--gold); color:var(--navy); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; flex-shrink:0; overflow:hidden; }
+.list-item .num img { width:100%; height:100%; object-fit:cover; }
+.list-item .info { flex:1; min-width:0; }
+.list-item .info .title { font-size:14px; font-weight:600; }
+.list-item .info .sub { font-size:12px; color:var(--muted); margin-top:2px; }
+.list-item .actions { display:flex; gap:6px; }
+.mini-btn { background:var(--card-bg); border:1px solid var(--border); padding:6px 10px; border-radius:8px; font-size:12px; min-height:34px; color:var(--text); }
+.mini-btn:hover { border-color:var(--gold); }
+
+/* ---- KPI ---- */
+.kpi-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+@media(min-width:640px) { .kpi-grid { grid-template-columns:repeat(4,1fr); } }
+.kpi {
+  background:var(--off-white); border-radius:12px; padding:14px;
+  text-align:center; border:1px solid var(--border);
+}
+body.dark .kpi { background:var(--navy-mid); }
+.kpi .num { font-size:24px; font-weight:700; color:var(--navy); line-height:1; margin-bottom:4px; }
+body.dark .kpi .num { color:var(--gold); }
+.kpi .num.success { color:var(--success); }
+.kpi .num.warning { color:var(--warning); }
+.kpi .num.danger { color:var(--danger); }
+.kpi .label { font-size:11px; color:var(--muted); }
+
+/* ---- MODAL ---- */
+.modal {
+  display:none; position:fixed; inset:0; background:rgba(13,27,62,.7); z-index:400;
+  align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(4px);
+}
+.modal.active { display:flex; animation:fadeIn .2s; }
+.modal-card {
+  background:var(--card-bg); border-radius:16px; padding:24px 22px; width:100%; max-width:480px;
+  max-height:90vh; overflow-y:auto; border-top:4px solid var(--gold);
+}
+.modal-title { font-size:18px; font-weight:700; margin-bottom:6px; }
+.modal-sub { font-size:13px; color:var(--muted); margin-bottom:18px; }
+
+/* ---- TOAST ---- */
+.toast-area { position:fixed; top:80px; right:16px; z-index:9999; display:flex; flex-direction:column; gap:8px; pointer-events:none; }
+.toast {
+  pointer-events:auto; padding:12px 16px; border-radius:10px; color:#fff;
+  font-size:14px; min-width:240px; max-width:340px; box-shadow:var(--shadow-lg);
+  animation:slideIn .3s ease; display:flex; align-items:center; gap:10px;
+}
+.toast.success { background:var(--success); }
+.toast.error { background:var(--danger); }
+.toast.warning { background:var(--warning); color:var(--navy); }
+.toast.info { background:var(--navy-mid); border-left:3px solid var(--gold); }
+@keyframes slideIn { from { transform:translateX(120%); opacity:0; } to { transform:translateX(0); opacity:1; } }
+
+/* ---- SPINNER ---- */
+#spinner {
+  display:none; position:fixed; inset:0; background:rgba(13,27,62,.6); z-index:9998;
+  align-items:center; justify-content:center; backdrop-filter:blur(3px);
+}
+.spin-card { background:var(--card-bg); border-radius:16px; padding:32px 40px; text-align:center; border-top:4px solid var(--gold); max-width:300px; }
+.spin-circle { width:48px; height:48px; border:5px solid var(--border); border-top-color:var(--gold); border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 14px; }
+#spinMsg { font-size:14px; }
+#progressBar { height:6px; background:var(--border); border-radius:3px; margin-top:12px; overflow:hidden; display:none; }
+#progressFill { height:100%; background:var(--gold); width:0; transition:width .3s; }
+
+/* ---- HELPERS ---- */
+.text-muted { color:var(--muted); }
+.text-sm { font-size:12px; }
+.text-center { text-align:center; }
+.mb-8 { margin-bottom:8px; } .mb-12 { margin-bottom:12px; } .mb-16 { margin-bottom:16px; }
+.mt-8 { margin-top:8px; } .mt-12 { margin-top:12px; } .mt-16 { margin-top:16px; }
+.flex { display:flex; } .gap-8 { gap:8px; } .gap-12 { gap:12px; }
+.divider { height:1px; background:var(--border); margin:14px 0; border:none; }
+.empty { text-align:center; padding:30px 20px; color:var(--muted); font-size:13px; }
+.empty .ico { font-size:42px; margin-bottom:8px; opacity:.4; }
+.alert { padding:12px 14px; border-radius:10px; font-size:13px; line-height:1.5; }
+.alert-info { background:rgba(52,152,219,.1); color:var(--info); border-left:3px solid var(--info); }
+.alert-warn { background:rgba(243,156,18,.1); color:var(--warning); border-left:3px solid var(--warning); }
+.alert-success { background:rgba(46,204,113,.1); color:var(--success); border-left:3px solid var(--success); }
+body.dark .alert-info { background:rgba(52,152,219,.15); color:#7fc5e8; }
+body.dark .alert-warn { background:rgba(243,156,18,.15); color:#f7c873; }
+
+/* small mobile */
+@media(max-width:380px){ .brand-name{font-size:13px} .icon-btn{width:34px;height:34px;font-size:14px} .tab{padding:8px 12px;font-size:13px} }
+</style>
+</head>
+<body>
+
+<!-- ============== LOGIN ============== -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">R</div>
+    <div class="login-title">Rattana Face Check-in</div>
+    <div class="login-sub">v3.2 · ระบบลงเวลาด้วยใบหน้าและ GPS</div>
+
+    <!-- Google Sign-In View -->
+    <div id="loginGoogleView">
+      <div class="alert alert-info mb-16" style="text-align:left">
+        <strong>เข้าสู่ระบบด้วย Google</strong><br>
+        <span class="text-sm">ใช้ email ที่ลงทะเบียนใน Users Sheet ของรัตนไพบูลย์</span>
+      </div>
+
+      <div id="googleSignInBtn" style="display:flex;justify-content:center;margin:18px 0;min-height:50px"></div>
+
+      <div id="loginStatus" class="text-sm text-muted text-center mt-12"></div>
+
+      <hr class="divider">
+      <div class="text-sm text-muted text-center">
+        ⚠️ ไม่มี Google account หรือไม่มี email ในระบบ?<br>
+        ขอให้หัวหน้าสแกนผ่าน Kiosk ให้
+      </div>
+      <div class="text-sm text-center mt-12">
+        <a href="#" onclick="showSetupWizard();return false" style="color:var(--gold);text-decoration:underline">⚙ ตั้งค่า Admin (Client ID + Sheet ID)</a>
+      </div>
+    </div>
+
+    <!-- Setup Wizard View -->
+    <div id="loginSetupView" style="display:none">
+      <div class="alert alert-warn mb-16" style="text-align:left">
+        <strong>การตั้งค่าครั้งแรก</strong> · ทำครั้งเดียวต่อเครื่อง
+      </div>
+      <div class="input-group">
+        <label>Google OAuth Client ID</label>
+        <input id="cfgClientId" type="text" placeholder="xxxxx.apps.googleusercontent.com" style="font-family:monospace;font-size:13px">
+        <div class="text-sm text-muted mt-8">
+          สร้างที่ <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color:var(--gold)">Google Cloud Console</a><br>
+          Authorized origin: <code style="background:var(--off-white);padding:2px 6px;border-radius:4px">https://suratpoom.github.io</code>
+        </div>
+      </div>
+      <div class="input-group">
+        <label>Users Sheet ID หรือ URL</label>
+        <input id="cfgUsersSheet" type="text" placeholder="วาง URL หรือ Sheet ID" style="font-family:monospace;font-size:13px">
+        <div class="text-sm text-muted mt-8">Sheet ต้องเปิด "Anyone with the link can view"</div>
+      </div>
+      <div class="input-group">
+        <label>FaceData Sheet ID (Phase 2 · ยังไม่ใช้)</label>
+        <input id="cfgFaceSheet" type="text" placeholder="optional" style="font-family:monospace;font-size:13px">
+      </div>
+      <div class="btn-row mt-16">
+        <button class="btn btn-outline" onclick="hideSetupWizard()">กลับ</button>
+        <button class="btn btn-primary" onclick="saveSetupConfig()">💾 บันทึก</button>
+      </div>
+    </div>
+
+    <div class="text-sm text-muted mt-12">v3.2 · 28 เม.ย. 2569</div>
+  </div>
+</div>
+
+<!-- ============== APP ============== -->
+<div id="appScreen" style="display:none">
+
+  <header>
+    <div class="brand">
+      <div class="brand-logo">R</div>
+      <div class="brand-text">
+        <div class="brand-name">Face Check-in <span class="role-badge" id="roleBadge">EMP</span></div>
+        <div class="brand-sub" id="userSub">รัตนไพบูลย์</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="btnRefresh" onclick="refreshAll()" title="รีเฟรช">&#x1F504;</button>
+      <button class="icon-btn" onclick="toggleTheme()" title="ธีม">🌓</button>
+      <button class="icon-btn" onclick="logout()" title="ออกจากระบบ">⏏</button>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabsBar">
+    <!-- tabs filled by role -->
+  </nav>
+
+  <main>
+
+    <!-- ===== Page: Home (สแกนตัวเอง — ทุก role เห็น) ===== -->
+    <div id="page-home" class="page active">
+      <div class="card">
+        <div style="display:inline-flex;background:rgba(13,27,62,.06);color:var(--text);padding:8px 14px;border-radius:30px;align-items:center;gap:6px">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--success)"></div>
+          <span id="userInfo">ยินดีต้อนรับ</span>
+        </div>
+        <div id="todayStatus" class="mt-12"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">📷</div>
+          <div class="card-title">สแกนใบหน้าตัวเอง</div>
+          <span id="faceModelStatus" class="text-sm text-muted"></span>
+        </div>
+        <div class="camera-wrap" id="empCamWrap">
+          <video id="empVideo" class="cam-video" autoplay muted playsinline></video>
+          <canvas id="empCanvas" class="cam-canvas"></canvas>
+          <div class="face-guide"></div>
+          <div class="cam-overlay" id="empCamOverlay">
+            <div class="cam-spinner"></div>
+            <div class="cam-overlay-text" id="empCamText">กำลังเปิดกล้อง...</div>
+          </div>
+        </div>
+        <div class="btn-row mt-12">
+          <button class="btn btn-outline" onclick="startEmpCamera()">เปิดกล้อง</button>
+          <button class="btn btn-outline" onclick="stopEmpCamera()">ปิดกล้อง</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">📍</div>
+          <div class="card-title">ตำแหน่งและระยะ</div>
+          <button class="mini-btn" onclick="getGps()">รีเฟรช GPS</button>
+        </div>
+        <div id="gpsStatus">
+          <div class="status-row pending"><div class="icon">⌖</div><div><div class="label">GPS</div><div class="value">รอดึงพิกัด...</div></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-icon">✓</div><div class="card-title">ตรวจสอบและบันทึก</div></div>
+        <div id="checks">
+          <div class="status-row pending"><div class="icon">📷</div><div><div class="label">ใบหน้า</div><div class="value" id="chkFace">รอสแกน</div></div></div>
+          <div class="status-row pending"><div class="icon">📍</div><div><div class="label">พิกัด</div><div class="value" id="chkLoc">รอ GPS</div></div></div>
+          <div class="status-row pending"><div class="icon">⏱</div><div><div class="label">เวลา</div><div class="value" id="chkTime">--:--</div></div></div>
+        </div>
+        <button class="big-action mt-12" id="btnAction" onclick="doSelfCheckIn()" disabled>
+          <span id="btnActionText">บันทึกเข้างาน</span>
+          <span class="sub" id="btnActionSub">กรุณาสแกนใบหน้าและรอ GPS</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== Page: Kiosk (Supervisor/HR เท่านั้น — สแกนให้ลูกน้อง) ===== -->
+    <div id="page-kiosk" class="page">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">📷</div>
+          <div class="card-title">Kiosk Mode · สแกนให้ลูกน้อง</div>
+        </div>
+        <div class="alert alert-info mb-12">
+          <strong>วิธีใช้:</strong> เลือกสาขาที่อยู่ → กดเริ่ม Kiosk → ลูกน้องเดินมาหน้ากล้องทีละคน<br>
+          <span class="text-sm">ใช้พิกัดของสาขาเป็น lock — ลูกน้องไม่ต้องเปิด GPS</span>
+        </div>
+        <div class="input-group">
+          <label>เลือกสาขา (ใช้พิกัดจาก Sheets)</label>
+          <select id="kioskBranch"></select>
+        </div>
+        <div class="input-group">
+          <label>โหมดเริ่มต้น</label>
+          <select id="kioskStartMode">
+            <option value="in">เข้างาน (Check-in)</option>
+            <option value="out">ออกงาน (Check-out)</option>
+          </select>
+        </div>
+        <button class="big-action kiosk" onclick="startKiosk()">
+          <span>🚀 เริ่ม Kiosk Mode</span>
+          <span class="sub">เปิดเต็มจอเพื่อสแกนลูกน้อง</span>
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-icon">📊</div><div class="card-title">สรุปทีมวันนี้</div></div>
+        <div class="kpi-grid" id="supHomeKpi"></div>
+      </div>
+    </div>
+
+    <!-- ===== Page: Dashboard (Supervisor only) ===== -->
+    <div id="page-dashboard" class="page">
+      <div class="card">
+        <div class="card-header"><div class="card-icon">📊</div><div class="card-title">Dashboard ทีม · วันนี้</div></div>
+        <div class="kpi-grid mb-12" id="dashKpi"></div>
+        <div class="alert alert-info mb-12 text-sm">
+          คลิกที่รูปลูกน้อง → ดูรายละเอียด · บันทึกย้อนหลัง · แก้ไข
+        </div>
+        <div class="team-grid" id="teamGrid"></div>
+      </div>
+    </div>
+
+    <!-- ===== Page: Team Mgmt (Supervisor only) ===== -->
+    <div id="page-team" class="page">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">👥</div>
+          <div class="card-title" id="teamPageTitle">จัดการทีม</div>
+          <button class="mini-btn" onclick="refreshUsersSheet()">🔄 รีเฟรช</button>
+        </div>
+        <div class="alert alert-info mb-12 text-sm">
+          รายชื่อทีมสร้างจาก <strong>Users Sheet</strong> (คอลัมน์ "ชื่อหัวหน้างาน")<br>
+          ลงทะเบียนใบหน้าเพื่อให้ Kiosk จดจำได้ — ใบหน้าเก็บใน <strong>localStorage เครื่องนี้</strong> (Phase 2 จะ sync เข้า FaceData Sheet)
+        </div>
+        <div id="teamList"></div>
+      </div>
+    </div>
+
+    <!-- ===== Page: Today (Employee) / Today's logs ===== -->
+    <div id="page-today" class="page">
+      <div class="card">
+        <div class="card-header"><div class="card-icon">📅</div><div class="card-title">รายการวันนี้</div></div>
+        <div class="kpi-grid mb-12" id="todayKpi"></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>เวลา</th><th>ชื่อ</th><th>สาขา</th><th>ประเภท</th><th>ระยะ</th><th>สแกนโดย</th></tr></thead>
+          <tbody id="todayTbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- ===== Page: History ===== -->
+    <div id="page-history" class="page">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">📊</div>
+          <div class="card-title">ประวัติ</div>
+          <button class="mini-btn" onclick="exportExcel()">⬇ Excel</button>
+        </div>
+        <div class="kpi-grid mb-12" id="historyKpi"></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>วันที่</th><th>เวลา</th><th>ประเภท</th><th>ชื่อ</th><th>สาขา</th><th>สแกนโดย</th></tr></thead>
+          <tbody id="historyTbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- ===== Page: Locations ===== -->
+    <div id="page-locations" class="page">
+      <div class="card">
+        <div class="card-header"><div class="card-icon">📍</div><div class="card-title">รายชื่อสาขา</div></div>
+        <div class="alert alert-info mb-12">
+          <strong>เวอร์ชันจริง:</strong> ดึงจาก Google Sheets อัตโนมัติ<br>
+          คอลัมน์: code, name, lat, lng, radius
+        </div>
+        <div class="input-group mb-12">
+          <label>Google Sheets ID หรือ URL</label>
+          <input id="sheetIdInput" type="text" placeholder="วาง Sheet ID หรือ URL">
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="loadLocationsFromSheet()">โหลดจาก Sheets</button>
+          <button class="btn btn-outline" onclick="addLocationManual()">+ เพิ่มเอง</button>
+        </div>
+        <hr class="divider">
+        <div id="locationsList"></div>
+      </div>
+    </div>
+
+    <!-- ===== Page: Setup ===== -->
+    <div id="page-setup" class="page">
+
+      <div class="card">
+        <div class="card-header"><div class="card-icon">🔗</div><div class="card-title">Google Sheets & Config</div></div>
+        <div class="alert alert-info mb-12 text-sm">
+          ข้อมูลพนักงานดึงจาก <strong>Users Sheet</strong> · กดรีเฟรชเมื่อ HR แก้ไข Sheet
+        </div>
+        <div id="configInfo"></div>
+        <div class="btn-row mt-12">
+          <button class="btn btn-primary" onclick="refreshUsersSheet()">🔄 รีเฟรชจาก Sheet</button>
+          <button class="btn btn-outline" onclick="showConfigEdit()">✎ แก้ไข Config</button>
+        </div>
+        <div id="configEditPanel" style="display:none" class="mt-12">
+          <hr class="divider">
+          <div class="input-group">
+            <label>Google OAuth Client ID</label>
+            <input id="cfgClientId2" type="text" style="font-family:monospace;font-size:13px">
+          </div>
+          <div class="input-group">
+            <label>Users Sheet ID</label>
+            <input id="cfgUsersSheet2" type="text" style="font-family:monospace;font-size:13px">
+          </div>
+          <div class="input-group">
+            <label>FaceData Sheet ID</label>
+            <input id="cfgFaceSheet2" type="text" style="font-family:monospace;font-size:13px">
+          </div>
+          <button class="btn btn-primary" onclick="saveConfigFromEdit()">บันทึก + รีโหลด</button>
+        </div>
+
+        <hr class="divider">
+        <details style="font-size:13px">
+          <summary style="cursor:pointer;font-weight:600;color:var(--gold)">📖 วิธีตั้งค่า Google OAuth (5 นาที)</summary>
+          <div class="mt-12 text-muted" style="line-height:1.7">
+            <p><strong>1.</strong> ไปที่ <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color:var(--gold)">Google Cloud Console → Credentials</a></p>
+            <p><strong>2.</strong> เลือกโปรเจคหรือสร้างใหม่ (เช่น "Rattana Apps")</p>
+            <p><strong>3.</strong> ถ้ายังไม่มี OAuth consent screen → กดสร้าง User Type = Internal (สำหรับ Google Workspace) หรือ External</p>
+            <p><strong>4.</strong> Credentials → "+ CREATE CREDENTIALS" → "OAuth client ID"</p>
+            <p><strong>5.</strong> Application type = <strong>Web application</strong></p>
+            <p><strong>6.</strong> Authorized JavaScript origins → เพิ่ม URL ที่ใช้ deploy เช่น<br>
+            <code style="font-family:monospace;background:var(--off-white);padding:2px 6px;border-radius:4px">https://suratpoom.github.io</code></p>
+            <p><strong>7.</strong> CREATE → Copy Client ID มาวางในช่องด้านบน</p>
+            <p><strong>8.</strong> เปิด Users Sheet → Share → "Anyone with the link can view"</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="card" id="ownFaceCard">
+        <div class="card-header">
+          <div class="card-icon">👤</div>
+          <div class="card-title">ลงทะเบียนใบหน้าของฉัน</div>
+          <span id="faceRegStatus" class="text-sm"></span>
+        </div>
+        <div class="alert alert-warn mb-12 text-sm">
+          ระบบเก็บเป็น <strong>face descriptor</strong> (เลข 128 ตัว) ไม่ใช่รูปต้นฉบับ — ปลอดภัย PDPA
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-gold" onclick="registerOwnFace()">📷 ลงทะเบียนใหม่</button>
+          <button class="btn btn-outline" onclick="clearOwnFace()">🗑 ลบ</button>
+        </div>
+        <div id="faceRegPreview" class="mt-12"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-icon">⚙</div><div class="card-title">ค่าตั้งค่า</div></div>
+        <div class="input-group">
+          <label>รัศมีอนุญาต (เมตร) — ค่าเริ่มต้น</label>
+          <input id="cfgRadius" type="number" min="5" max="500" step="5" value="20">
+        </div>
+        <div class="input-group">
+          <label>เกณฑ์เปรียบเทียบใบหน้า</label>
+          <input id="cfgFaceThr" type="number" min="0.3" max="0.7" step="0.05" value="0.5">
+          <div class="text-sm text-muted mt-8">ต่ำ=เข้ม · สูง=หลวม · แนะนำ 0.5</div>
+        </div>
+        <div class="input-group">
+          <label>เวลาเข้างาน</label>
+          <input id="cfgStartTime" type="time" value="08:30">
+        </div>
+        <div class="input-group">
+          <label>ระดับ Liveness</label>
+          <select id="cfgLiveness">
+            <option value="off">ปิด</option>
+            <option value="light">Light - กระพริบอัตโนมัติ</option>
+            <option value="medium" selected>Medium - สุ่ม 1 อย่าง (~6 วิ)</option>
+            <option value="strict">Strict - สุ่ม 2 อย่าง (~12 วิ)</option>
+          </select>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="saveSettings()">💾 บันทึก</button>
+          <button class="btn btn-outline" onclick="resetAll()">🗑 รีเซ็ต</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-icon">ℹ</div><div class="card-title">ข้อมูลระบบ</div></div>
+        <div id="systemInfo"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ============== KIOSK OVERLAY ============== -->
+<div id="kioskOverlay">
+  <div class="kiosk-bar">
+    <button class="icon-btn" onclick="exitKiosk()">✕</button>
+    <div class="info">
+      <div class="title" id="kioskTitle">Kiosk Mode</div>
+      <div class="sub" id="kioskSub">สำนักงานใหญ่</div>
+    </div>
+    <div class="kiosk-stats">
+      <div class="kiosk-stat"><div class="num" id="kStatIn">0</div><div class="lbl">เข้า</div></div>
+      <div class="kiosk-stat"><div class="num" id="kStatOut">0</div><div class="lbl">ออก</div></div>
+      <div class="kiosk-stat"><div class="num" id="kStatRem">0</div><div class="lbl">เหลือ</div></div>
+    </div>
+  </div>
+
+  <div class="kiosk-mode-toggle">
+    <button class="kiosk-mode-btn in" id="kModeIn" onclick="setKioskMode('in')">→ เข้างาน</button>
+    <button class="kiosk-mode-btn out" id="kModeOut" onclick="setKioskMode('out')">← ออกงาน</button>
+  </div>
+
+  <div class="kiosk-main">
+    <div class="kiosk-camera" id="kioskCam">
+      <video id="kioskVideo" autoplay muted playsinline></video>
+      <canvas id="kioskCanvas"></canvas>
+      <div class="face-guide" id="kioskGuide"></div>
+    </div>
+
+    <div class="kiosk-status">
+      <div class="kiosk-headline" id="kHeadline">มองตรงกล้อง</div>
+      <div class="kiosk-detail" id="kDetail">วางใบหน้าให้อยู่ในกรอบ</div>
+      <div class="kiosk-instruction" id="kInstruction">
+        <span id="kInstructionText"></span>
+        <span class="kiosk-countdown" id="kCountdown">6</span>
+      </div>
+    </div>
+
+    <div class="kiosk-recent">
+      <div class="kiosk-recent-title">เพิ่งสแกน</div>
+      <div class="kiosk-recent-list" id="kRecentList">
+        <div style="color:rgba(255,255,255,.4);font-size:11px;padding:6px">ยังไม่มีรายการ</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============== MODAL: ADD/EDIT TEAM MEMBER ============== -->
+<div class="modal" id="modalMember">
+  <div class="modal-card">
+    <div class="modal-title" id="memberModalTitle">เพิ่มลูกน้อง</div>
+    <div class="modal-sub">ระบุข้อมูลและจับใบหน้า — Demo: เก็บใน localStorage</div>
+    <div class="input-group">
+      <label>รหัสพนักงาน</label>
+      <input id="newMemberEmpId" type="text" placeholder="EMP002" maxlength="20">
+    </div>
+    <div class="input-group">
+      <label>ชื่อ - นามสกุล</label>
+      <input id="newMemberName" type="text" maxlength="60">
+    </div>
+
+    <div class="camera-wrap" id="addCamWrap" style="max-width:320px">
+      <video id="addVideo" class="cam-video" autoplay muted playsinline></video>
+      <canvas id="addCanvas" class="cam-canvas"></canvas>
+      <div class="face-guide"></div>
+      <div class="cam-overlay" id="addCamOverlay">
+        <div class="cam-overlay-text">กดเปิดกล้องด้านล่าง</div>
+      </div>
+    </div>
+    <div class="btn-row mt-12">
+      <button class="btn btn-outline" onclick="startAddCamera()">เปิดกล้อง</button>
+      <button class="btn btn-gold" onclick="captureMemberFace()">📷 จับใบหน้า</button>
+    </div>
+    <div id="addFaceStatus" class="text-sm text-center mt-8 text-muted">ยังไม่ได้จับใบหน้า</div>
+
+    <hr class="divider">
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="closeModal('modalMember')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveMember()" id="saveMemberBtn" disabled>บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== MODAL: MEMBER DETAIL / RETROACTIVE ============== -->
+<div class="modal" id="modalDetail">
+  <div class="modal-card">
+    <div class="modal-title" id="detailTitle">รายละเอียดลูกน้อง</div>
+    <div id="detailBody"></div>
+    <hr class="divider">
+    <div id="retroSection" style="display:none">
+      <div class="modal-sub" style="margin-bottom:10px"><strong>บันทึกย้อนหลัง</strong></div>
+      <div class="input-group">
+        <label>เวลา</label>
+        <input id="retroTime" type="time">
+      </div>
+      <div class="input-group">
+        <label>ประเภท</label>
+        <select id="retroType">
+          <option value="in">เข้างาน</option>
+          <option value="out">ออกงาน</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>เหตุผล</label>
+        <select id="retroReason">
+          <option value="forgot">ลืมสแกน</option>
+          <option value="camera_issue">กล้องเสีย / สแกนไม่ได้</option>
+          <option value="no_supervisor">ไม่มีหัวหน้าตอนนั้น</option>
+          <option value="late_arrival">มาสาย ลืมแจ้ง</option>
+          <option value="other">อื่นๆ</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>หมายเหตุเพิ่มเติม (ถ้ามี)</label>
+        <input id="retroNote" type="text">
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="closeModal('modalDetail')">ปิด</button>
+        <button class="btn btn-primary" onclick="saveRetroactive()">💾 บันทึกย้อนหลัง</button>
+      </div>
+    </div>
+    <div id="detailActions" class="btn-row" style="display:none">
+      <button class="btn btn-outline" onclick="closeModal('modalDetail')">ปิด</button>
+      <button class="btn btn-gold" onclick="showRetroForm()">+ บันทึกย้อนหลัง</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-area" id="toastArea"></div>
+<div id="spinner"><div class="spin-card"><div class="spin-circle"></div><div id="spinMsg">Loading...</div><div id="progressBar"><div id="progressFill"></div></div></div></div>
+
+<script>
+/* ============================================================
+   Rattana Face Check-in v2.0
+   ============================================================ */
+
+const APP_VERSION = '3.1';
+const FACE_MODELS_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
+
+const DEFAULT_LOCATIONS = [
+  { code:'HQ', name:'สำนักงานใหญ่ สมุทรสาคร', lat:13.5475, lng:100.2745, radius:20 },
+  { code:'W1', name:'คลังสมุทรสงคราม',          lat:13.4099, lng:100.0023, radius:30 },
+  { code:'W2', name:'คลังสุพรรณบุรี',            lat:14.4716, lng:100.1177, radius:30 },
+  { code:'W3', name:'คลังราชบุรี',               lat:13.5365, lng:99.8175,  radius:30 },
+  { code:'W4', name:'คลังนครปฐม',                lat:13.8196, lng:100.0625, radius:30 },
+];
+
+/* Default config — pre-populated with Rattana's existing Users Sheet ID */
+const DEFAULT_CONFIG = {
+  googleClientId: '',  // ตั้งใน admin setup wizard
+  usersSheetId: '1M6HdISsLN684qRWyQ73CA4AmUzmYtZaOlffDJXZZIXQ',
+  faceDataSheetId: '',
+};
+
+/* Column mapping for Rattana Users Sheet (existing structure) */
+const SHEET_COLS = {
+  company:0, branch:1, empId:2, prefix:3, name:4, nationality:5,
+  nickname:6, gender:7, email:8, dob:9, startDate:10, status:11,
+  jobCode:12, supervisorName:13, glideApp:14, userRole:15,
+  approvalStage:16, department:17,
+};
+
+/* ---------- State ---------- */
+let currentUser = null;            // { empId, name, email, role, branch, supervisorName, ... }
+let team = [];                     // supervisor's team members (with descriptors)
+let locations = [];
+let logs = [];
+let settings = { radius:20, faceThr:0.5, startTime:'08:30', liveness:'medium' };
+let config = { ...DEFAULT_CONFIG }; // Google Client ID + Sheet IDs
+let allUsers = [];                 // All rows from Users Sheet
+let selectedLoginUser = null;       // Picked user before login confirm
+
+let faceapiReady = false;
+let registeredDescriptor = null;   // own face descriptor
+
+/* Employee mode state */
+let empStream = null, empMatchInterval = null;
+let lastFaceMatch = null;
+let lastGps = null;
+
+/* Kiosk mode state */
+let kioskState = {
+  active: false, mode: 'in', branch: null,
+  stream: null, detectInterval: null,
+  phase: 'searching', candidate: null, liveness: null, recent: [],
+};
+
+/* Selected member for detail modal */
+let selectedMember = null;
+
+/* ============================================================
+   STORAGE
+   ============================================================ */
+const LS = {
+  get: (k, d) => { try { const v = localStorage.getItem('rfc3_'+k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set: (k, v) => localStorage.setItem('rfc3_'+k, JSON.stringify(v)),
+  del: (k) => localStorage.removeItem('rfc3_'+k),
+};
+function loadAll() {
+  locations = LS.get('locations', DEFAULT_LOCATIONS);
+  settings  = Object.assign({radius:20, faceThr:0.5, startTime:'08:30', liveness:'medium'}, LS.get('settings', {}));
+  logs      = LS.get('logs', []);
+  team      = (LS.get('team', []) || []).map(m => ({...m, descriptor: m.descriptor ? new Float32Array(m.descriptor) : null}));
+  config    = Object.assign({}, DEFAULT_CONFIG, LS.get('config', {}));
+  allUsers  = LS.get('allUsers', []);
+  const desc = LS.get('faceDescriptor', null);
+  registeredDescriptor = desc ? new Float32Array(desc) : null;
+}
+function saveLocations(){ LS.set('locations', locations); }
+function saveLogs(){ LS.set('logs', logs); }
+function saveTeam(){
+  LS.set('team', team.map(m => ({...m, descriptor: m.descriptor ? Array.from(m.descriptor) : null})));
+}
+function saveConfig(){ LS.set('config', config); }
+function saveAllUsers(){ LS.set('allUsers', allUsers); }
+function saveSettings() {
+  settings.radius   = +document.getElementById('cfgRadius').value || 20;
+  settings.faceThr  = +document.getElementById('cfgFaceThr').value || 0.5;
+  settings.startTime= document.getElementById('cfgStartTime').value || '08:30';
+  settings.liveness = document.getElementById('cfgLiveness').value || 'medium';
+  LS.set('settings', settings);
+  toast('บันทึกค่าตั้งค่าแล้ว', 'success');
+  renderSystemInfo();
+}
+
+/* ============================================================
+   SETUP WIZARD (login screen)
+   ============================================================ */
+function showSetupWizard() {
+  document.getElementById('loginGoogleView').style.display = 'none';
+  document.getElementById('loginSetupView').style.display = 'block';
+  document.getElementById('cfgClientId').value    = config.googleClientId || '';
+  document.getElementById('cfgUsersSheet').value  = config.usersSheetId || '';
+  document.getElementById('cfgFaceSheet').value   = config.faceDataSheetId || '';
+}
+function hideSetupWizard() {
+  document.getElementById('loginGoogleView').style.display = 'block';
+  document.getElementById('loginSetupView').style.display = 'none';
+}
+function extractSheetId(input) {
+  if (!input) return '';
+  const m = input.match(/[-\w]{25,}/);
+  return m ? m[0] : input.trim();
+}
+function saveSetupConfig() {
+  config.googleClientId  = document.getElementById('cfgClientId').value.trim();
+  config.usersSheetId    = extractSheetId(document.getElementById('cfgUsersSheet').value);
+  config.faceDataSheetId = extractSheetId(document.getElementById('cfgFaceSheet').value);
+  saveConfig();
+  toast('บันทึกการตั้งค่าแล้ว · รีโหลดหน้า', 'success');
+  setTimeout(() => location.reload(), 1000);
+}
+
+/* ============================================================
+   GOOGLE SIGN-IN
+   ============================================================ */
+function initGoogleSignIn() {
+  if (!config.googleClientId) {
+    document.getElementById('loginStatus').innerHTML =
+      '⚠️ ยังไม่ได้ตั้งค่า Google Client ID<br><a href="#" onclick="showSetupWizard();return false" style="color:var(--gold)">คลิกตั้งค่าครั้งแรก</a>';
+    return;
+  }
+  if (typeof google === 'undefined' || !google.accounts) {
+    setTimeout(initGoogleSignIn, 500);
+    return;
+  }
+  try {
+    google.accounts.id.initialize({
+      client_id: config.googleClientId,
+      callback: handleGoogleCredential,
+      auto_select: false,
+    });
+    google.accounts.id.renderButton(
+      document.getElementById('googleSignInBtn'),
+      { theme:'outline', size:'large', text:'signin_with', shape:'pill', width:280 }
+    );
+    document.getElementById('loginStatus').textContent = '';
+  } catch (e) {
+    document.getElementById('loginStatus').innerHTML =
+      `❌ เริ่ม Google Sign-In ไม่ได้: ${e.message}<br>ตรวจสอบ Client ID และ allowed origins`;
+  }
+}
+
+function handleGoogleCredential(response) {
+  try {
+    const payload = JSON.parse(atob(response.credential.split('.')[1]));
+    const email = (payload.email || '').toLowerCase();
+    const googleName = payload.name || '';
+    const picture = payload.picture || '';
+    document.getElementById('loginStatus').textContent = `กำลังตรวจสอบสิทธิ์: ${email}...`;
+    authorizeUser(email, googleName, picture);
+  } catch (e) {
+    document.getElementById('loginStatus').textContent = '❌ อ่าน credential ไม่ได้';
+  }
+}
+
+async function authorizeUser(email, googleName, picture) {
+  // Load Users Sheet if not yet loaded
+  if (!allUsers || allUsers.length === 0) {
+    document.getElementById('loginStatus').textContent = 'กำลังโหลด Users Sheet...';
+    const ok = await loadUsersSheet();
+    if (!ok) {
+      document.getElementById('loginStatus').innerHTML = '❌ โหลด Users Sheet ไม่ได้<br>ตรวจสอบว่า Sheet เปิด "Anyone with the link can view"';
+      return;
+    }
+  }
+  // Find matches by email
+  const matches = allUsers.filter(u =>
+    (u.email || '').toLowerCase() === email && (u.status || '').toLowerCase() === 'active'
+  );
+  if (matches.length === 0) {
+    document.getElementById('loginStatus').innerHTML =
+      `❌ ไม่พบ ${email} ใน Users Sheet หรือ Status ไม่ใช่ Active<br>ติดต่อ HR เพื่อเพิ่มสิทธิ์`;
+    return;
+  }
+  if (matches.length > 1) {
+    document.getElementById('loginStatus').innerHTML =
+      `⚠️ Email นี้ใช้กับพนักงาน ${matches.length} คน<br>ติดต่อ HR ให้แยก email`;
+    return;
+  }
+  const u = matches[0];
+  const role = resolveRole(u);
+  currentUser = {
+    empId: u.empId || `auto-${Math.random().toString(36).slice(2,8)}`,
+    name: u.name,
+    email: u.email,
+    nickname: u.nickname,
+    branch: u.branch,
+    role,
+    supervisorName: u.supervisorName,
+    department: u.department,
+    googlePicture: picture,
+    loginAt: Date.now(),
+  };
+  sessionStorage.setItem('rfc3_user', JSON.stringify(currentUser));
+  // Build team for supervisor
+  if (role === 'supervisor' || role === 'hr') {
+    buildTeamFromSheet();
+  }
+  // Show app
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+  initApp();
+}
+
+function resolveRole(u) {
+  const role = (u.userRole || '').toString().trim();
+  const stage = (u.approvalStage || '').toString().trim().toLowerCase();
+  const dept = (u.department || '').toString();
+  // HR
+  if (dept.includes('ทรัพยากรบุคคล') || role === '7' || stage === 'all') return 'hr';
+  // Supervisor: MGT level OR appears as supervisor for someone
+  if (stage === 'mgt' || isSupervisorOf(u)) return 'supervisor';
+  return 'employee';
+}
+function isSupervisorOf(u) {
+  if (!u.name) return false;
+  const myName = u.name.trim();
+  return allUsers.some(other => (other.supervisorName || '').trim() === myName && (other.status || '').toLowerCase() === 'active');
+}
+function buildTeamFromSheet() {
+  if (!currentUser?.name) return;
+  const myName = currentUser.name.trim();
+  // For HR: see all active users; for supervisor: only direct reports
+  const subordinates = currentUser.role === 'hr'
+    ? allUsers.filter(u => (u.status||'').toLowerCase()==='active' && u.empId)
+    : allUsers.filter(u =>
+        (u.supervisorName || '').trim() === myName &&
+        (u.status || '').toLowerCase() === 'active'
+      );
+  // Merge with locally-stored descriptors (face data)
+  const localTeam = LS.get('team', []) || [];
+  const localMap = {};
+  localTeam.forEach(m => { localMap[m.empId] = m; });
+  team = subordinates.map(u => {
+    const local = localMap[u.empId];
+    return {
+      empId: u.empId,
+      name: u.name,
+      nickname: u.nickname,
+      email: u.email,
+      branch: u.branch,
+      department: u.department,
+      supervisorName: u.supervisorName,
+      descriptor: local?.descriptor ? new Float32Array(local.descriptor) : null,
+      photo: local?.photo || null,
+      registeredAt: local?.registeredAt || null,
+      registeredBy: local?.registeredBy || null,
+    };
+  });
+  saveTeam();
+}
+
+/* ============================================================
+   USERS SHEET LOADER
+   ============================================================ */
+async function loadUsersSheet() {
+  if (!config.usersSheetId) return false;
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${config.usersSheetId}/gviz/tq?tqx=out:csv&sheet=Sheet1`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('fetch failed');
+    const text = await res.text();
+    allUsers = parseUsersSheet(text);
+    saveAllUsers();
+    return true;
+  } catch (e) {
+    console.error('loadUsersSheet error', e);
+    return false;
+  }
+}
+function parseUsersSheet(text) {
+  const lines = text.replace(/\r/g,'').split('\n').filter(l => l.length > 0);
+  if (lines.length < 2) return [];
+  const out = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cells = parseCsvLine(lines[i]);
+    if (cells.length < 5) continue;
+    const u = {
+      company: cells[SHEET_COLS.company] || '',
+      branch:  cells[SHEET_COLS.branch] || '',
+      empId:   cells[SHEET_COLS.empId] || '',
+      name:    cells[SHEET_COLS.name] || '',
+      nickname:cells[SHEET_COLS.nickname] || '',
+      email:   (cells[SHEET_COLS.email] || '').trim(),
+      status:  cells[SHEET_COLS.status] || '',
+      supervisorName: cells[SHEET_COLS.supervisorName] || '',
+      userRole:cells[SHEET_COLS.userRole] || '',
+      approvalStage: cells[SHEET_COLS.approvalStage] || '',
+      department: cells[SHEET_COLS.department] || '',
+    };
+    if (u.name) out.push(u);
+  }
+  return out;
+}
+function parseCsvLine(r) {
+  const cells = []; let cur='', q=false;
+  for (let i=0; i<r.length; i++) {
+    const c = r[i];
+    if (c === '"') { if (q && r[i+1]==='"') { cur+='"'; i++; } else q = !q; }
+    else if (c === ',' && !q) { cells.push(cur.trim()); cur = ''; }
+    else cur += c;
+  }
+  cells.push(cur.trim());
+  return cells;
+}
+async function refreshUsersSheet() {
+  showSpinner('โหลด Users Sheet ใหม่...');
+  try {
+    const ok = await loadUsersSheet();
+    if (!ok) { toast('โหลดไม่สำเร็จ', 'error'); return; }
+    if (currentUser?.role === 'supervisor' || currentUser?.role === 'hr') {
+      buildTeamFromSheet();
+    }
+    renderTeamList(); renderDashboard(); renderSystemInfo();
+    toast(`โหลดแล้ว ${allUsers.length} คน ✓`, 'success');
+  } finally { hideSpinner(); }
+}
+
+function logout() {
+  if (!confirm('ออกจากระบบ?')) return;
+  stopEmpCamera(); exitKiosk();
+  if (typeof google !== 'undefined' && google.accounts) {
+    try { google.accounts.id.disableAutoSelect(); } catch(e) {}
+  }
+  sessionStorage.removeItem('rfc3_user');
+  location.reload();
+}
+function checkSession() {
+  const s = sessionStorage.getItem('rfc3_user');
+  if (s) {
+    currentUser = JSON.parse(s);
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'block';
+    if (currentUser.role === 'supervisor' || currentUser.role === 'hr') {
+      buildTeamFromSheet();
+    }
+    initApp();
+  } else {
+    setTimeout(initGoogleSignIn, 200);
+  }
+}
+
+/* ============================================================
+   FACE-API
+   ============================================================ */
+async function loadFaceModels() {
+  if (faceapiReady) return true;
+  if (typeof faceapi === 'undefined') { setFaceModelStatus('❌ face-api ไม่พร้อม', 'err'); return false; }
+  try {
+    setFaceModelStatus('⏳ โหลดโมเดล...', 'pending');
+    showSpinner('กำลังโหลดโมเดลสแกนใบหน้า...', true);
+    setProgress(10);
+    await faceapi.nets.tinyFaceDetector.loadFromUri(FACE_MODELS_URL); setProgress(40);
+    await faceapi.nets.faceLandmark68Net.loadFromUri(FACE_MODELS_URL); setProgress(70);
+    await faceapi.nets.faceRecognitionNet.loadFromUri(FACE_MODELS_URL); setProgress(100);
+    faceapiReady = true;
+    setFaceModelStatus('✓ พร้อม', 'ok');
+    return true;
+  } catch (e) {
+    console.error(e);
+    setFaceModelStatus('⚠ โหลดโมเดลไม่ได้', 'warn');
+    toast('โหลดโมเดลไม่ได้ — ใช้แค่ถ่ายรูป', 'warning');
+    return false;
+  } finally { hideSpinner(); }
+}
+function setFaceModelStatus(text, kind) {
+  const el = document.getElementById('faceModelStatus'); if (!el) return;
+  el.textContent = text;
+  el.style.color = kind==='ok'?'var(--success)':kind==='err'?'var(--danger)':kind==='warn'?'var(--warning)':'var(--muted)';
+}
+
+/* ============================================================
+   FACE LANDMARKS HELPERS (for liveness)
+   ============================================================ */
+function eyeAspectRatio(eyePoints) {
+  // 6 points per eye: p1-p6
+  const dist = (a,b) => Math.hypot(a.x-b.x, a.y-b.y);
+  return (dist(eyePoints[1], eyePoints[5]) + dist(eyePoints[2], eyePoints[4])) / (2 * dist(eyePoints[0], eyePoints[3]));
+}
+function nosePositionRatio(landmarks) {
+  // 0..1 across face width: 0=หันขวา (มุมมองเรา) 0.5=ตรง 1=หันซ้าย
+  const positions = landmarks.positions;
+  const noseX = positions[30].x;
+  const jawL = positions[0].x;
+  const jawR = positions[16].x;
+  return (noseX - jawL) / (jawR - jawL);
+}
+function detectLivenessAction(action, history) {
+  // history: [{t, ear, noseRatio}]
+  if (history.length < 3) return false;
+  if (action === 'blink') {
+    // EAR drops below 0.21 then back above 0.27
+    let dropped = false;
+    for (const h of history) {
+      if (!dropped && h.ear < 0.21) dropped = true;
+      else if (dropped && h.ear > 0.27) return true;
+    }
+    return false;
+  }
+  if (action === 'turn_left') {
+    // จากมุมเรา: ผู้ใช้หันซ้าย = noseRatio > 0.65 (ภาพถูก mirror แล้ว แต่ landmark ใช้ภาพ raw)
+    // ใน face-api landmarks ใช้พิกัดของวิดีโอ raw (ก่อน mirror) — turning left = nose moves to right side of face
+    // ดังนั้น: หันซ้าย → noseRatio < 0.35
+    return history.some(h => h.noseRatio < 0.35);
+  }
+  if (action === 'turn_right') {
+    return history.some(h => h.noseRatio > 0.65);
+  }
+  return false;
+}
+function pickRandomLivenessAction() {
+  const actions = ['blink', 'turn_left', 'turn_right'];
+  return actions[Math.floor(Math.random() * actions.length)];
+}
+function livenessActionLabel(a) {
+  return { blink:'กระพริบตา 1 ครั้ง', turn_left:'หันซ้ายช้าๆ', turn_right:'หันขวาช้าๆ' }[a] || a;
+}
+
+/* ============================================================
+   EMPLOYEE CAMERA + MATCHING
+   ============================================================ */
+async function startEmpCamera() {
+  try {
+    setEmpOverlay(true, 'กำลังเปิดกล้อง...');
+    empStream = await navigator.mediaDevices.getUserMedia({ audio:false, video:{ facingMode:'user', width:{ideal:640}, height:{ideal:640} } });
+    const v = document.getElementById('empVideo'); v.srcObject = empStream; await v.play();
+    setEmpOverlay(false);
+    if (!faceapiReady) await loadFaceModels();
+    if (faceapiReady) startEmpMatching();
+  } catch (e) {
+    console.error(e);
+    setEmpOverlay(true, '⚠ เปิดกล้องไม่สำเร็จ');
+    toast('เปิดกล้องไม่ได้', 'error');
+  }
+}
+function stopEmpCamera() {
+  if (empMatchInterval) { clearInterval(empMatchInterval); empMatchInterval = null; }
+  if (empStream) { empStream.getTracks().forEach(t => t.stop()); empStream = null; }
+  document.getElementById('empVideo').srcObject = null;
+  document.getElementById('empCamWrap').className = 'camera-wrap';
+  setEmpOverlay(true, 'กล้องปิด · กดเปิดเพื่อเริ่ม');
+  updateFaceCheck(null);
+}
+function setEmpOverlay(show, text) {
+  const o = document.getElementById('empCamOverlay'); o.classList.toggle('hidden', !show);
+  document.getElementById('empCamText').textContent = text || '';
+}
+function startEmpMatching() {
+  if (!faceapiReady) return;
+  if (empMatchInterval) clearInterval(empMatchInterval);
+  empMatchInterval = setInterval(empMatchTick, 800);
+}
+async function empMatchTick() {
+  const v = document.getElementById('empVideo');
+  if (!v || !v.videoWidth) return;
+  const det = await faceapi
+    .detectSingleFace(v, new faceapi.TinyFaceDetectorOptions({ inputSize:320, scoreThreshold:0.5 }))
+    .withFaceLandmarks().withFaceDescriptor();
+  if (!det) {
+    document.getElementById('empCamWrap').className = 'camera-wrap';
+    updateFaceCheck({found:false}); return;
+  }
+  drawBox('empCanvas', 'empVideo', det);
+  if (!registeredDescriptor) {
+    document.getElementById('empCamWrap').className = 'camera-wrap matching';
+    updateFaceCheck({found:true, registered:false}); return;
+  }
+  const dist = faceapi.euclideanDistance(det.descriptor, registeredDescriptor);
+  const ok = dist <= settings.faceThr;
+  document.getElementById('empCamWrap').className = 'camera-wrap ' + (ok ? 'success' : 'matching');
+  lastFaceMatch = { ok, distance:dist, descriptor:det.descriptor, time:Date.now() };
+  updateFaceCheck({found:true, registered:true, ok, distance:dist});
+  evaluateAction();
+}
+function drawBox(canvasId, videoId, det) {
+  const v = document.getElementById(videoId);
+  const c = document.getElementById(canvasId);
+  c.width = v.videoWidth; c.height = v.videoHeight;
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0,0,c.width,c.height);
+  const b = det.detection.box;
+  ctx.strokeStyle = '#c9a84c'; ctx.lineWidth = 4;
+  ctx.strokeRect(b.x, b.y, b.width, b.height);
+}
+function updateFaceCheck(info) {
+  const el = document.getElementById('chkFace'); if (!el) return;
+  const row = el.closest('.status-row');
+  row.classList.remove('ok','warn','err','pending');
+  if (!info)            { row.classList.add('pending'); el.textContent = 'รอสแกน'; return; }
+  if (!info.found)      { row.classList.add('warn');    el.textContent = 'ไม่พบใบหน้า'; return; }
+  if (!info.registered) { row.classList.add('warn');    el.textContent = 'ยังไม่ลงทะเบียนใบหน้า'; return; }
+  if (info.ok)          { row.classList.add('ok');      el.textContent = `✓ ตรงกัน (${info.distance.toFixed(3)})`; }
+  else                  { row.classList.add('err');     el.textContent = `ไม่ตรง (${info.distance.toFixed(3)} > ${settings.faceThr})`; }
+}
+
+/* ============================================================
+   OWN FACE REGISTRATION (employee/supervisor's own face)
+   ============================================================ */
+async function registerOwnFace() {
+  if (!empStream) await startEmpCamera();
+  if (!faceapiReady) { toast('โมเดลยังไม่พร้อม', 'warning'); return; }
+  toast('มองตรงกล้อง 3 วินาที...', 'info');
+  showSpinner('กำลังจับใบหน้า...');
+  try {
+    let descriptor = null, photoData = null;
+    for (let i = 0; i < 8 && !descriptor; i++) {
+      await sleep(400);
+      const v = document.getElementById('empVideo');
+      const det = await faceapi.detectSingleFace(v, new faceapi.TinyFaceDetectorOptions({inputSize:320,scoreThreshold:0.6}))
+        .withFaceLandmarks().withFaceDescriptor();
+      if (det) { descriptor = det.descriptor; photoData = capturePhoto(v); }
+    }
+    if (!descriptor) { toast('ไม่พบใบหน้า ลองใหม่', 'error'); return; }
+    registeredDescriptor = descriptor;
+    LS.set('faceDescriptor', Array.from(descriptor));
+    LS.set('facePhoto', photoData);
+    LS.set('faceRegisteredAt', Date.now());
+    toast('ลงทะเบียนสำเร็จ ✓', 'success');
+    renderFaceReg();
+  } finally { hideSpinner(); }
+}
+function clearOwnFace() {
+  if (!confirm('ลบใบหน้าที่ลงทะเบียน?')) return;
+  registeredDescriptor = null;
+  LS.del('faceDescriptor'); LS.del('facePhoto'); LS.del('faceRegisteredAt');
+  renderFaceReg(); toast('ลบแล้ว', 'info');
+}
+function renderFaceReg() {
+  const status = document.getElementById('faceRegStatus');
+  const preview = document.getElementById('faceRegPreview');
+  if (!status || !preview) return;
+  if (registeredDescriptor) {
+    const at = LS.get('faceRegisteredAt', null);
+    status.textContent = '✓ ลงทะเบียนแล้ว'; status.style.color='var(--success)';
+    const photo = LS.get('facePhoto', null);
+    preview.innerHTML = `
+      <div style="display:flex;gap:14px;align-items:center;padding:12px;background:var(--off-white);border-radius:10px">
+        ${photo?`<img src="${photo}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--gold)">`:''}
+        <div><div style="font-weight:600">${currentUser?.name||''}</div>
+        <div class="text-sm text-muted">เมื่อ ${at?new Date(at).toLocaleString('th-TH'):'-'}</div></div>
+      </div>`;
+  } else {
+    status.textContent = '✗ ยังไม่ลงทะเบียน'; status.style.color='var(--warning)';
+    preview.innerHTML = '<div class="empty"><div class="ico">👤</div>ยังไม่มีใบหน้า</div>';
+  }
+}
+function capturePhoto(video) {
+  const c = document.createElement('canvas'); c.width = 200; c.height = 200;
+  const ctx = c.getContext('2d');
+  const min = Math.min(video.videoWidth, video.videoHeight);
+  const sx = (video.videoWidth-min)/2, sy = (video.videoHeight-min)/2;
+  ctx.translate(c.width, 0); ctx.scale(-1, 1);
+  ctx.drawImage(video, sx, sy, min, min, 0, 0, c.width, c.height);
+  return c.toDataURL('image/jpeg', .7);
+}
+
+/* ============================================================
+   GPS (employee mode only)
+   ============================================================ */
+function getGps() {
+  if (!navigator.geolocation) { toast('ไม่รองรับ GPS', 'error'); return; }
+  setGpsRow('pending', '⌖', 'กำลังดึงพิกัด...', '');
+  navigator.geolocation.getCurrentPosition(
+    pos => onGpsOk(pos),
+    err => onGpsErr(err),
+    { enableHighAccuracy:true, timeout:15000, maximumAge:0 }
+  );
+}
+function onGpsOk(pos) {
+  const { latitude:lat, longitude:lng, accuracy } = pos.coords;
+  if (locations.length === 0) {
+    lastGps = { lat, lng, accuracy, nearestIdx:-1, distance:null, withinRadius:false };
+    setGpsRow('warn','📍','ได้พิกัดแล้ว','ไม่มีรายการสาขา'); updateLocCheck(); return;
+  }
+  let bestIdx = 0, bestDist = Infinity;
+  for (let i = 0; i < locations.length; i++) {
+    const d = haversine(lat, lng, locations[i].lat, locations[i].lng);
+    if (d < bestDist) { bestDist = d; bestIdx = i; }
+  }
+  const loc = locations[bestIdx];
+  const radius = loc.radius || settings.radius;
+  const effDist = Math.max(0, bestDist - accuracy/2);
+  const within = effDist <= radius;
+  lastGps = { lat, lng, accuracy, nearestIdx:bestIdx, distance:bestDist, effDist, withinRadius:within, locCode:loc.code, locName:loc.name, radius };
+  renderGpsCard(); updateLocCheck(); evaluateAction();
+}
+function onGpsErr(err) {
+  const msgs = { 1:'ปฏิเสธการเข้าถึงตำแหน่ง', 2:'หาตำแหน่งไม่ได้', 3:'หมดเวลา' };
+  setGpsRow('err','✗','GPS ไม่พร้อม', msgs[err.code]||err.message);
+  lastGps = null; updateLocCheck(); evaluateAction();
+}
+function setGpsRow(kind, icon, label, value) {
+  document.getElementById('gpsStatus').innerHTML =
+    `<div class="status-row ${kind}"><div class="icon">${icon}</div><div><div class="label">${label}</div><div class="value">${value}</div></div></div>`;
+}
+function renderGpsCard() {
+  if (!lastGps) return;
+  const g = lastGps; const acc = g.accuracy.toFixed(0);
+  let html = `
+    <div class="status-row ${g.accuracy<=15?'ok':g.accuracy<=30?'warn':'err'}">
+      <div class="icon">⌖</div>
+      <div style="flex:1"><div class="label">พิกัด · ±${acc} ม.</div>
+      <div class="value">${g.lat.toFixed(5)}, ${g.lng.toFixed(5)}</div></div></div>`;
+  if (g.nearestIdx >= 0) {
+    html += `<div class="status-row ${g.withinRadius?'ok':'err'}"><div class="icon">${g.withinRadius?'✓':'✗'}</div>
+      <div style="flex:1"><div class="label">${g.locName}</div>
+      <div class="value">${g.distance.toFixed(1)} ม. · เกณฑ์ ≤ ${g.radius} ม.</div></div></div>`;
+  }
+  if (g.accuracy > 30) html += `<div class="alert alert-warn mt-8">⚠ GPS ไม่แม่น (±${acc} ม.) ลองออกที่โล่ง</div>`;
+  document.getElementById('gpsStatus').innerHTML = html;
+}
+function updateLocCheck() {
+  const el = document.getElementById('chkLoc'); if (!el) return;
+  const row = el.closest('.status-row');
+  row.classList.remove('ok','warn','err','pending');
+  if (!lastGps) { row.classList.add('pending'); el.textContent = 'รอ GPS'; return; }
+  if (lastGps.nearestIdx < 0) { row.classList.add('warn'); el.textContent = 'ไม่มีสาขา'; return; }
+  if (lastGps.withinRadius) { row.classList.add('ok'); el.textContent = `✓ ${lastGps.locName} (${lastGps.distance.toFixed(1)} ม.)`; }
+  else { row.classList.add('err'); el.textContent = `${lastGps.distance.toFixed(1)} ม. > ${lastGps.radius}`; }
+}
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371000, toRad = d => d*Math.PI/180;
+  const dLat = toRad(lat2-lat1), dLon = toRad(lon2-lon1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+/* ============================================================
+   EMPLOYEE: SELF CHECK-IN/OUT
+   ============================================================ */
+function todayKey() { return new Date().toISOString().split('T')[0]; }
+function todayLogsForUser(empId) {
+  return logs.filter(l => l.dateKey === todayKey() && l.empId === empId);
+}
+function nextActionType(empId) {
+  const tl = todayLogsForUser(empId);
+  if (tl.length === 0) return 'in';
+  return tl[tl.length-1].type === 'in' ? 'out' : 'in';
+}
+function evaluateAction() {
+  const btn = document.getElementById('btnAction');
+  if (!btn) return;
+  const txt = document.getElementById('btnActionText');
+  const sub = document.getElementById('btnActionSub');
+  const next = nextActionType(currentUser.empId);
+  btn.classList.toggle('checkout', next==='out');
+  txt.textContent = next==='in' ? 'บันทึกเข้างาน' : 'บันทึกออกงาน';
+  const reasons = [];
+  if (faceapiReady && registeredDescriptor && (!lastFaceMatch || !lastFaceMatch.ok)) reasons.push('สแกนใบหน้าให้ตรง');
+  if (faceapiReady && !registeredDescriptor) reasons.push('ลงทะเบียนใบหน้าก่อน');
+  if (!lastGps) reasons.push('รอ GPS');
+  else if (!lastGps.withinRadius) reasons.push(`นอกรัศมี ${lastGps.radius} ม.`);
+  document.getElementById('chkTime').textContent = new Date().toLocaleTimeString('th-TH');
+  const ready = reasons.length === 0;
+  btn.disabled = !ready;
+  sub.textContent = ready ? 'พร้อมบันทึก' : reasons.join(' · ');
+}
+function doSelfCheckIn() {
+  if (!lastGps?.withinRadius) { toast('นอกรัศมี', 'error'); return; }
+  if (faceapiReady && registeredDescriptor && (!lastFaceMatch?.ok)) { toast('ใบหน้าไม่ตรง', 'error'); return; }
+  const v = document.getElementById('empVideo');
+  const photo = (empStream && v.videoWidth) ? capturePhoto(v) : null;
+  saveLog({
+    empId: currentUser.empId, name: currentUser.name, branch: currentUser.branch,
+    type: nextActionType(currentUser.empId),
+    lat: lastGps.lat, lng: lastGps.lng, accuracy: lastGps.accuracy,
+    distance: lastGps.distance, locCode: lastGps.locCode, locName: lastGps.locName,
+    faceDist: lastFaceMatch ? +lastFaceMatch.distance.toFixed(3) : null,
+    photo, scannedBy: 'self',
+  });
+  toast(nextActionType(currentUser.empId)==='out'?'✓ บันทึกออก':'✓ บันทึกเข้า', 'success');
+  evaluateAction(); renderTodayStatus(); renderTodayPage(); renderHistory(); renderDashboard();
+}
+function saveLog(data) {
+  const now = new Date();
+  logs.unshift({
+    id: Date.now() + Math.random(),
+    dateKey: todayKey(),
+    ts: now.toISOString(),
+    timeStr: now.toLocaleTimeString('th-TH', {hour:'2-digit',minute:'2-digit'}),
+    ...data,
+  });
+  saveLogs();
+}
+
+/* ============================================================
+   KIOSK MODE
+   ============================================================ */
+function setKioskMode(m) {
+  kioskState.mode = m;
+  document.getElementById('kModeIn').classList.toggle('active', m==='in');
+  document.getElementById('kModeOut').classList.toggle('active', m==='out');
+  resetKioskPhase();
+}
+function startKiosk() {
+  const branchCode = document.getElementById('kioskBranch').value;
+  if (!branchCode) { toast('เลือกสาขาก่อน', 'warning'); return; }
+  if (team.length === 0) { toast('ยังไม่มีลูกน้อง — เพิ่มที่แท็บ "ทีม"', 'warning'); return; }
+  const branch = locations.find(l => l.code === branchCode);
+  if (!branch) { toast('ไม่พบสาขา', 'error'); return; }
+  kioskState.branch = branch;
+  kioskState.mode = document.getElementById('kioskStartMode').value;
+  kioskState.recent = [];
+  document.getElementById('kioskTitle').textContent = `Kiosk · ${branch.name}`;
+  document.getElementById('kioskSub').textContent = `พิกัด ${branch.lat.toFixed(5)}, ${branch.lng.toFixed(5)} · รัศมี ${branch.radius||settings.radius} ม.`;
+  document.getElementById('kioskOverlay').classList.add('active');
+  setKioskMode(kioskState.mode);
+  kioskState.active = true;
+  renderKioskStats(); renderKioskRecent();
+  startKioskCamera();
+}
+async function startKioskCamera() {
+  try {
+    if (!faceapiReady) await loadFaceModels();
+    kioskState.stream = await navigator.mediaDevices.getUserMedia({ audio:false, video:{ facingMode:'user', width:{ideal:640}, height:{ideal:640} } });
+    const v = document.getElementById('kioskVideo'); v.srcObject = kioskState.stream; await v.play();
+    setKioskHeadline('มองตรงกล้อง', 'วางใบหน้าให้อยู่ในกรอบ', '');
+    kioskState.detectInterval = setInterval(kioskDetectTick, 400);
+  } catch (e) {
+    console.error(e);
+    setKioskHeadline('⚠ เปิดกล้องไม่ได้', 'อนุญาตการใช้กล้องในเบราว์เซอร์', 'error');
+  }
+}
+function exitKiosk() {
+  if (kioskState.detectInterval) { clearInterval(kioskState.detectInterval); kioskState.detectInterval = null; }
+  if (kioskState.stream) { kioskState.stream.getTracks().forEach(t => t.stop()); kioskState.stream = null; }
+  document.getElementById('kioskVideo').srcObject = null;
+  document.getElementById('kioskOverlay').classList.remove('active');
+  kioskState.active = false;
+  kioskState.phase = 'searching';
+  kioskState.candidate = null;
+  kioskState.liveness = null;
+}
+function setKioskHeadline(headline, detail, kind) {
+  const h = document.getElementById('kHeadline');
+  h.textContent = headline;
+  h.className = 'kiosk-headline ' + (kind || '');
+  document.getElementById('kDetail').textContent = detail || '';
+  const cam = document.getElementById('kioskCam');
+  cam.classList.remove('matched','success','error');
+  if (kind === 'success') cam.classList.add('success');
+  else if (kind === 'error') cam.classList.add('error');
+  else if (kind === 'warn') cam.classList.add('matched');
+}
+function showKioskInstruction(text, seconds) {
+  document.getElementById('kInstruction').classList.add('active');
+  document.getElementById('kInstructionText').textContent = text;
+  document.getElementById('kCountdown').textContent = seconds;
+}
+function hideKioskInstruction() {
+  document.getElementById('kInstruction').classList.remove('active');
+}
+function resetKioskPhase() {
+  kioskState.phase = 'searching';
+  kioskState.candidate = null;
+  kioskState.liveness = null;
+  hideKioskInstruction();
+  setKioskHeadline('มองตรงกล้อง', 'วางใบหน้าให้อยู่ในกรอบ', '');
+}
+
+async function kioskDetectTick() {
+  if (!kioskState.active || !faceapiReady) return;
+  const v = document.getElementById('kioskVideo');
+  if (!v.videoWidth) return;
+
+  /* Phase: searching → look for face → match against team */
+  if (kioskState.phase === 'searching') {
+    const det = await faceapi
+      .detectSingleFace(v, new faceapi.TinyFaceDetectorOptions({inputSize:320,scoreThreshold:0.55}))
+      .withFaceLandmarks().withFaceDescriptor();
+    if (!det) return;
+    drawBox('kioskCanvas', 'kioskVideo', det);
+
+    // Match against all team members, find best
+    const results = team
+      .filter(m => m.descriptor)
+      .map(m => ({ member:m, distance: faceapi.euclideanDistance(det.descriptor, m.descriptor) }))
+      .sort((a,b) => a.distance - b.distance);
+
+    if (results.length === 0) {
+      setKioskHeadline('ไม่พบใบหน้าในทีม', 'ลูกน้องยังไม่ได้ลงทะเบียน', 'error');
+      return;
+    }
+    const top = results[0];
+    const second = results[1];
+    const margin = second ? second.distance - top.distance : 1.0;
+
+    // accept if best is well below threshold AND clearly better than 2nd
+    if (top.distance <= settings.faceThr && (margin >= 0.08 || results.length === 1)) {
+      kioskState.candidate = { member: top.member, distance: top.distance, descriptor: det.descriptor, photo: capturePhoto(v) };
+      onKioskMatched();
+    } else if (top.distance <= settings.faceThr) {
+      setKioskHeadline('ใกล้เคียงหลายคน', 'ขยับเข้าใกล้กล้องอีกนิด', 'warn');
+    } else {
+      setKioskHeadline('ไม่พบในทีม', `ใกล้สุด: ${top.member.name} (${top.distance.toFixed(2)})`, 'warn');
+    }
+  }
+
+  /* Phase: liveness → run check */
+  else if (kioskState.phase === 'liveness') {
+    await kioskLivenessTick(v);
+  }
+}
+
+function onKioskMatched() {
+  const c = kioskState.candidate;
+  setKioskHeadline(`สวัสดี ${c.member.name}`, `ระยะใบหน้า ${c.distance.toFixed(3)}`, 'warn');
+
+  if (settings.liveness === 'off') {
+    kioskCommit();
+    return;
+  }
+  // start liveness
+  const action = pickRandomLivenessAction();
+  kioskState.phase = 'liveness';
+  kioskState.liveness = { action, startMs: Date.now(), history: [], duration: 6000, secondsLeft: 6 };
+  showKioskInstruction(livenessActionLabel(action), 6);
+  // countdown ticker
+  kioskState.liveness.tickerInterval = setInterval(() => {
+    if (!kioskState.liveness) return;
+    const elapsed = Date.now() - kioskState.liveness.startMs;
+    const left = Math.max(0, Math.ceil((kioskState.liveness.duration - elapsed) / 1000));
+    document.getElementById('kCountdown').textContent = left;
+    if (elapsed >= kioskState.liveness.duration) {
+      onLivenessFail();
+    }
+  }, 200);
+}
+
+async function kioskLivenessTick(v) {
+  if (!kioskState.liveness) return;
+  const det = await faceapi
+    .detectSingleFace(v, new faceapi.TinyFaceDetectorOptions({inputSize:320,scoreThreshold:0.5}))
+    .withFaceLandmarks();
+  if (!det) return;
+  drawBox('kioskCanvas', 'kioskVideo', det);
+  const lm = det.landmarks;
+  const leftEye = lm.getLeftEye(), rightEye = lm.getRightEye();
+  const ear = (eyeAspectRatio(leftEye) + eyeAspectRatio(rightEye)) / 2;
+  const noseRatio = nosePositionRatio(lm);
+  kioskState.liveness.history.push({ t: Date.now(), ear, noseRatio });
+  // keep last 20
+  if (kioskState.liveness.history.length > 20) kioskState.liveness.history.shift();
+
+  if (detectLivenessAction(kioskState.liveness.action, kioskState.liveness.history)) {
+    onLivenessPass();
+  }
+}
+
+function onLivenessPass() {
+  if (kioskState.liveness?.tickerInterval) clearInterval(kioskState.liveness.tickerInterval);
+  hideKioskInstruction();
+  setKioskHeadline('✓ ผ่าน Liveness', 'กำลังบันทึก...', 'success');
+  kioskCommit();
+}
+function onLivenessFail() {
+  if (kioskState.liveness?.tickerInterval) clearInterval(kioskState.liveness.tickerInterval);
+  hideKioskInstruction();
+  setKioskHeadline('⚠ Liveness ไม่ผ่าน', 'ลองใหม่ใน 3 วิ', 'error');
+  kioskState.phase = 'cooldown';
+  setTimeout(() => { resetKioskPhase(); }, 3000);
+}
+
+function kioskCommit() {
+  const c = kioskState.candidate;
+  const branch = kioskState.branch;
+  // duplicate guard: same person same mode within last 60s → skip
+  const recent = logs.find(l =>
+    l.empId === c.member.empId &&
+    l.type === kioskState.mode &&
+    (Date.now() - new Date(l.ts).getTime()) < 60000
+  );
+  if (recent) {
+    setKioskHeadline('⚠ บันทึกซ้ำ', 'เพิ่งบันทึกไปเมื่อกี้', 'warn');
+    kioskState.phase = 'cooldown';
+    setTimeout(resetKioskPhase, 2500);
+    return;
+  }
+  saveLog({
+    empId: c.member.empId, name: c.member.name, branch: c.member.branch || branch.code,
+    type: kioskState.mode,
+    lat: branch.lat, lng: branch.lng, accuracy: 0,
+    distance: 0, locCode: branch.code, locName: branch.name,
+    faceDist: +c.distance.toFixed(3),
+    photo: c.photo,
+    scannedBy: `supervisor:${currentUser.empId}`,
+    livenessAction: kioskState.liveness?.action || null,
+  });
+  // update recent
+  kioskState.recent.unshift({
+    name: c.member.name, photo: c.photo, time: new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}),
+    type: kioskState.mode,
+  });
+  if (kioskState.recent.length > 8) kioskState.recent.pop();
+
+  setKioskHeadline(`✓ บันทึก${kioskState.mode==='in'?'เข้า':'ออก'}งาน`, c.member.name, 'success');
+  renderKioskStats(); renderKioskRecent();
+  // update behind-the-scenes pages
+  renderTodayPage(); renderHistory(); renderDashboard();
+
+  kioskState.phase = 'cooldown';
+  setTimeout(resetKioskPhase, 3000);
+}
+
+function renderKioskStats() {
+  const today = logs.filter(l => l.dateKey === todayKey() && team.some(m => m.empId === l.empId));
+  const ins = today.filter(l => l.type==='in').length;
+  const outs = today.filter(l => l.type==='out').length;
+  const checkedIn = new Set(today.filter(l => l.type==='in').map(l => l.empId));
+  const remaining = team.filter(m => !checkedIn.has(m.empId)).length;
+  document.getElementById('kStatIn').textContent = ins;
+  document.getElementById('kStatOut').textContent = outs;
+  document.getElementById('kStatRem').textContent = remaining;
+}
+function renderKioskRecent() {
+  const list = document.getElementById('kRecentList');
+  if (kioskState.recent.length === 0) {
+    list.innerHTML = '<div style="color:rgba(255,255,255,.4);font-size:11px;padding:6px">ยังไม่มีรายการ</div>';
+    return;
+  }
+  list.innerHTML = kioskState.recent.map(r => `
+    <div class="kiosk-recent-item">
+      ${r.photo ? `<img src="${r.photo}" class="photo">` : ''}
+      <div><div class="nm">${r.name}</div><div class="tm">${r.type==='in'?'→':'←'} ${r.time}</div></div>
+    </div>`).join('');
+}
+
+/* ============================================================
+   TEAM MANAGEMENT
+   ============================================================ */
+let addStream = null, capturedDescriptor = null, capturedPhoto = null, editingMember = null;
+
+function openAddMember(member) {
+  editingMember = member || null;
+  capturedDescriptor = member?.descriptor ? new Float32Array(member.descriptor) : null;
+  capturedPhoto = member?.photo || null;
+  document.getElementById('memberModalTitle').textContent = member ? 'แก้ไขลูกน้อง' : 'เพิ่มลูกน้อง';
+  document.getElementById('newMemberEmpId').value = member?.empId || '';
+  document.getElementById('newMemberName').value = member?.name || '';
+  document.getElementById('addFaceStatus').textContent = capturedDescriptor ? '✓ มีใบหน้าแล้ว' : 'ยังไม่ได้จับใบหน้า';
+  document.getElementById('saveMemberBtn').disabled = !capturedDescriptor;
+  openModal('modalMember');
+}
+async function startAddCamera() {
+  try {
+    addStream = await navigator.mediaDevices.getUserMedia({ audio:false, video:{ facingMode:'user', width:{ideal:480}, height:{ideal:480} } });
+    const v = document.getElementById('addVideo'); v.srcObject = addStream; await v.play();
+    document.getElementById('addCamOverlay').classList.add('hidden');
+    if (!faceapiReady) await loadFaceModels();
+  } catch (e) { toast('เปิดกล้องไม่ได้', 'error'); }
+}
+async function captureMemberFace() {
+  if (!addStream) { toast('เปิดกล้องก่อน', 'warning'); return; }
+  if (!faceapiReady) { toast('โมเดลยังไม่พร้อม', 'warning'); return; }
+  showSpinner('จับใบหน้า...');
+  try {
+    let descriptor = null, photo = null;
+    for (let i = 0; i < 8 && !descriptor; i++) {
+      await sleep(400);
+      const v = document.getElementById('addVideo');
+      const det = await faceapi.detectSingleFace(v, new faceapi.TinyFaceDetectorOptions({inputSize:320,scoreThreshold:0.6}))
+        .withFaceLandmarks().withFaceDescriptor();
+      if (det) { descriptor = det.descriptor; photo = capturePhoto(v); }
+    }
+    if (!descriptor) { toast('ไม่พบใบหน้า', 'error'); return; }
+    capturedDescriptor = descriptor; capturedPhoto = photo;
+    document.getElementById('addFaceStatus').innerHTML = '✓ จับใบหน้าได้แล้ว';
+    document.getElementById('addFaceStatus').style.color = 'var(--success)';
+    document.getElementById('saveMemberBtn').disabled = false;
+    toast('จับใบหน้าได้แล้ว', 'success');
+  } finally { hideSpinner(); }
+}
+function saveMember() {
+  if (!editingMember) { toast('ไม่พบข้อมูล', 'error'); return; }
+  if (!capturedDescriptor) { toast('จับใบหน้าก่อน', 'warning'); return; }
+  const m = team.find(x => x.empId === editingMember.empId);
+  if (m) {
+    m.descriptor = capturedDescriptor;
+    m.photo = capturedPhoto;
+    m.registeredAt = Date.now();
+    m.registeredBy = currentUser.empId;
+  }
+  saveTeam();
+  toast(`ลงทะเบียนใบหน้า ${m.name} แล้ว ✓`, 'success');
+  closeAddCamera();
+  closeModal('modalMember');
+  renderTeamList(); renderDashboard();
+}
+function closeAddCamera() {
+  if (addStream) { addStream.getTracks().forEach(t => t.stop()); addStream = null; }
+  document.getElementById('addVideo').srcObject = null;
+  document.getElementById('addCamOverlay').classList.remove('hidden');
+  capturedDescriptor = null; capturedPhoto = null; editingMember = null;
+}
+function deleteMember(empId) {
+  if (!confirm('ลบลูกน้องคนนี้?')) return;
+  team = team.filter(m => m.empId !== empId);
+  saveTeam();
+  renderTeamList(); renderDashboard();
+  toast('ลบแล้ว', 'info');
+}
+function renderTeamList() {
+  const el = document.getElementById('teamList');
+  if (!el) return;
+  if (currentUser) {
+    const titleEl = document.getElementById('teamPageTitle');
+    if (titleEl) {
+      titleEl.textContent = currentUser.role === 'hr' ? `พนักงานทั้งหมด (${team.length})` : `ทีมของคุณ (${team.length})`;
+    }
+  }
+  if (team.length === 0) {
+    el.innerHTML = `<div class="empty"><div class="ico">👥</div>ไม่พบลูกน้อง<br><span class="text-sm">ตรวจสอบว่าใน Users Sheet มีคนระบุคุณเป็น "ชื่อหัวหน้างาน"</span></div>`;
+    return;
+  }
+  el.innerHTML = team.map(m => `
+    <div class="list-item">
+      <div class="num">${m.photo ? `<img src="${m.photo}">` : (m.nickname?.[0] || m.name?.[0] || '?')}</div>
+      <div class="info">
+        <div class="title">${m.name}${m.nickname?` <span class="text-muted text-sm">(${m.nickname})</span>`:''}</div>
+        <div class="sub">${m.empId || '-'} · ${m.department || ''} · ${m.descriptor ? '✓ ลงใบหน้าแล้ว' : '✗ ไม่มีใบหน้า'}</div>
+      </div>
+      <div class="actions">
+        <button class="mini-btn" onclick="openRegisterMemberFace('${m.empId}')">${m.descriptor?'✎ แก้ใบหน้า':'📷 ลงใบหน้า'}</button>
+        ${m.descriptor?`<button class="mini-btn" onclick="clearMemberFace('${m.empId}')">🗑</button>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function clearMemberFace(empId) {
+  const m = team.find(x => x.empId === empId);
+  if (!m) return;
+  if (!confirm(`ลบใบหน้าของ ${m.name}?`)) return;
+  m.descriptor = null; m.photo = null; m.registeredAt = null; m.registeredBy = null;
+  saveTeam(); renderTeamList(); renderDashboard();
+  toast('ลบแล้ว', 'info');
+}
+
+function openRegisterMemberFace(empId) {
+  const m = team.find(x => x.empId === empId);
+  if (!m) return;
+  editingMember = m;
+  capturedDescriptor = null;
+  capturedPhoto = null;
+  document.getElementById('memberModalTitle').textContent = `ลงทะเบียนใบหน้า: ${m.name}`;
+  document.getElementById('newMemberEmpId').value = m.empId;
+  document.getElementById('newMemberName').value = m.name + (m.nickname?` (${m.nickname})`:'');
+  document.getElementById('newMemberEmpId').readOnly = true;
+  document.getElementById('newMemberName').readOnly = true;
+  document.getElementById('addFaceStatus').textContent = 'กดเปิดกล้องและจับใบหน้า';
+  document.getElementById('saveMemberBtn').disabled = true;
+  openModal('modalMember');
+}
+
+/* ============================================================
+   DASHBOARD (Supervisor)
+   ============================================================ */
+function getMemberStatus(member) {
+  const tl = logs.filter(l => l.dateKey === todayKey() && l.empId === member.empId).sort((a,b) => new Date(a.ts)-new Date(b.ts));
+  if (tl.length === 0) return { status:'absent', label:'ยังไม่มา', time:null, log:null };
+  const last = tl[tl.length-1];
+  if (last.type === 'out') return { status:'out', label:`ออก ${last.timeStr}`, time:last.timeStr, log:last };
+  // last is 'in'
+  const start = settings.startTime.split(':');
+  const startMs = new Date(last.ts); startMs.setHours(+start[0], +start[1], 0, 0);
+  const isLate = new Date(last.ts) - startMs > 60000;
+  return { status: isLate ? 'late' : 'in', label: `เข้า ${last.timeStr}${isLate?' (สาย)':''}`, time:last.timeStr, log:last };
+}
+function renderDashboard() {
+  const grid = document.getElementById('teamGrid');
+  if (!grid) return;
+  if (team.length === 0) {
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="ico">👥</div>ยังไม่มีลูกน้อง</div>`;
+    document.getElementById('dashKpi').innerHTML = '';
+    return;
+  }
+  let cIn=0, cLate=0, cOut=0, cAbs=0;
+  grid.innerHTML = team.map(m => {
+    const s = getMemberStatus(m);
+    if (s.status==='in') cIn++; else if (s.status==='late') cLate++;
+    else if (s.status==='out') cOut++; else cAbs++;
+    return `
+      <div class="member-tile ${s.status}" onclick="openMemberDetail('${m.empId}')">
+        <div class="status-dot"></div>
+        <div class="photo">${m.photo?`<img src="${m.photo}">`:'👤'}</div>
+        <div class="name">${m.name}</div>
+        <div class="time">${s.time||s.label}</div>
+      </div>`;
+  }).join('');
+  document.getElementById('dashKpi').innerHTML = `
+    <div class="kpi"><div class="num success">${cIn}</div><div class="label">เข้าตรงเวลา</div></div>
+    <div class="kpi"><div class="num warning">${cLate}</div><div class="label">สาย</div></div>
+    <div class="kpi"><div class="num">${cOut}</div><div class="label">ออกแล้ว</div></div>
+    <div class="kpi"><div class="num danger">${cAbs}</div><div class="label">ยังไม่มา</div></div>`;
+  // also update home page kpi for supervisor
+  const supKpi = document.getElementById('supHomeKpi');
+  if (supKpi) {
+    supKpi.innerHTML = `
+      <div class="kpi"><div class="num">${team.length}</div><div class="label">ลูกน้องทั้งหมด</div></div>
+      <div class="kpi"><div class="num success">${cIn+cLate}</div><div class="label">เข้างานแล้ว</div></div>
+      <div class="kpi"><div class="num">${cOut}</div><div class="label">ออกแล้ว</div></div>
+      <div class="kpi"><div class="num danger">${cAbs}</div><div class="label">ยังไม่มา</div></div>`;
+  }
+}
+
+function openMemberDetail(empId) {
+  const m = team.find(x => x.empId === empId);
+  if (!m) return;
+  selectedMember = m;
+  const tl = logs.filter(l => l.dateKey === todayKey() && l.empId === empId).sort((a,b) => new Date(a.ts) - new Date(b.ts));
+  const s = getMemberStatus(m);
+  document.getElementById('detailTitle').textContent = m.name;
+  let body = `
+    <div style="display:flex;gap:14px;align-items:center;margin-bottom:14px">
+      ${m.photo ? `<img src="${m.photo}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid var(--gold)">` : ''}
+      <div><div style="font-weight:700">${m.name}</div>
+      <div class="text-sm text-muted">${m.empId} · ${m.branch||''}</div>
+      <div class="text-sm" style="color:var(--${s.status==='in'?'success':s.status==='late'?'warning':s.status==='out'?'info':'muted'})">${s.label}</div></div>
+    </div>`;
+  if (tl.length === 0) {
+    body += '<div class="alert alert-warn">ยังไม่มีรายการวันนี้</div>';
+  } else {
+    body += '<div class="text-sm text-muted mb-8">รายการวันนี้:</div>';
+    body += tl.map(l => `
+      <div class="status-row ${l.retroactive?'warn':'ok'}">
+        <div class="icon">${l.type==='in'?'→':'←'}</div>
+        <div style="flex:1"><div class="label">${l.type==='in'?'เข้างาน':'ออกงาน'}</div>
+        <div class="value">${l.timeStr}
+          ${l.retroactive ? '<span class="tag tag-retro">ย้อนหลัง</span>' : ''}
+          ${l.scannedBy?.startsWith('supervisor:') ? '<span class="tag tag-supervisor">หัวหน้าสแกน</span>' : ''}
+        </div></div>
+      </div>`).join('');
+  }
+  document.getElementById('detailBody').innerHTML = body;
+  document.getElementById('retroSection').style.display = 'none';
+  document.getElementById('detailActions').style.display = 'flex';
+  // default retro time: now
+  const now = new Date();
+  document.getElementById('retroTime').value = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  document.getElementById('retroType').value = nextActionType(empId);
+  openModal('modalDetail');
+}
+function showRetroForm() {
+  document.getElementById('retroSection').style.display = 'block';
+  document.getElementById('detailActions').style.display = 'none';
+}
+function saveRetroactive() {
+  if (!selectedMember) return;
+  const time = document.getElementById('retroTime').value;
+  const type = document.getElementById('retroType').value;
+  const reason = document.getElementById('retroReason').value;
+  const note = document.getElementById('retroNote').value.trim();
+  if (!time) { toast('กรอกเวลา', 'warning'); return; }
+  const [h, mi] = time.split(':').map(Number);
+  const ts = new Date(); ts.setHours(h, mi, 0, 0);
+  const branch = locations.find(l => l.code === (selectedMember.branch||currentUser.branch)) || locations[0];
+  logs.unshift({
+    id: Date.now() + Math.random(),
+    empId: selectedMember.empId, name: selectedMember.name, branch: branch?.code||'',
+    dateKey: todayKey(), ts: ts.toISOString(), timeStr: time,
+    type,
+    lat: branch?.lat||0, lng: branch?.lng||0, accuracy: 0,
+    distance: 0, locCode: branch?.code||'', locName: branch?.name||'',
+    faceDist: null, photo: null,
+    scannedBy: `supervisor:${currentUser.empId}`,
+    retroactive: { reason, note, recordedAt: new Date().toISOString(), recordedBy: currentUser.empId },
+  });
+  saveLogs();
+  toast('บันทึกย้อนหลังเรียบร้อย', 'success');
+  closeModal('modalDetail');
+  renderDashboard(); renderTodayPage(); renderHistory();
+}
+
+/* ============================================================
+   PAGE RENDERS
+   ============================================================ */
+function renderTodayStatus() {
+  const tl = todayLogsForUser(currentUser.empId);
+  const el = document.getElementById('todayStatus');
+  if (!el) return;
+  if (tl.length === 0) { el.innerHTML = '<div class="text-sm text-muted">ยังไม่มีรายการวันนี้</div>'; return; }
+  const inEvt = tl.find(l => l.type==='in');
+  const outEvt = tl.slice().reverse().find(l => l.type==='out');
+  let html = '';
+  if (inEvt) {
+    const start = settings.startTime.split(':');
+    const startMs = new Date(inEvt.ts); startMs.setHours(+start[0], +start[1], 0, 0);
+    const lateMin = Math.max(0, Math.round((new Date(inEvt.ts) - startMs)/60000));
+    html += `<div class="status-row ok"><div class="icon">→</div><div><div class="label">เข้างาน</div><div class="value">${inEvt.timeStr} ${lateMin>0?`<span class="tag tag-late">สาย ${lateMin} นาที</span>`:''}</div></div></div>`;
+  }
+  if (outEvt) html += `<div class="status-row ok"><div class="icon">←</div><div><div class="label">ออกงาน</div><div class="value">${outEvt.timeStr}</div></div></div>`;
+  else if (inEvt) html += `<div class="status-row pending"><div class="icon">⏳</div><div><div class="label">ออกงาน</div><div class="value">ยังไม่ได้บันทึก</div></div></div>`;
+  el.innerHTML = html;
+}
+function renderTodayPage() {
+  const all = logs.filter(l => l.dateKey === todayKey());
+  const tbody = document.getElementById('todayTbody');
+  const kpi = document.getElementById('todayKpi');
+  if (!tbody) return;
+  const ins = all.filter(l=>l.type==='in').length;
+  const outs = all.filter(l=>l.type==='out').length;
+  const uniq = new Set(all.map(l=>l.empId)).size;
+  kpi.innerHTML = `
+    <div class="kpi"><div class="num">${ins}</div><div class="label">เข้า</div></div>
+    <div class="kpi"><div class="num">${outs}</div><div class="label">ออก</div></div>
+    <div class="kpi"><div class="num">${uniq}</div><div class="label">คน</div></div>
+    <div class="kpi"><div class="num">${all.length}</div><div class="label">รายการ</div></div>`;
+  if (all.length === 0) { tbody.innerHTML='<tr><td colspan="6" class="empty">ยังไม่มีรายการ</td></tr>'; return; }
+  tbody.innerHTML = all.map(l => `
+    <tr><td>${l.timeStr}</td><td>${l.name}</td><td>${l.locName||l.branch}</td>
+    <td><span class="tag ${l.type==='in'?'tag-in':'tag-out'}">${l.type==='in'?'เข้า':'ออก'}</span>
+        ${l.retroactive?'<span class="tag tag-retro">ย้อน</span>':''}</td>
+    <td>${l.distance?l.distance.toFixed(1):'-'} ม.</td>
+    <td>${l.scannedBy==='self'?'ตนเอง':l.scannedBy?.startsWith('supervisor:')?'หัวหน้า':'-'}</td></tr>`).join('');
+}
+function renderHistory() {
+  // employee sees only own logs; supervisor sees team's logs
+  const filter = currentUser.role === 'supervisor'
+    ? l => team.some(m => m.empId === l.empId) || l.empId === currentUser.empId
+    : l => l.empId === currentUser.empId;
+  const myLogs = logs.filter(filter);
+  const tbody = document.getElementById('historyTbody');
+  const kpi = document.getElementById('historyKpi');
+  if (!tbody) return;
+  const days = new Set(myLogs.map(l=>l.dateKey)).size;
+  const ins = myLogs.filter(l=>l.type==='in').length;
+  const outs = myLogs.filter(l=>l.type==='out').length;
+  const lateCnt = myLogs.filter(l => {
+    if (l.type !== 'in') return false;
+    const s = settings.startTime.split(':');
+    const ms = new Date(l.ts); ms.setHours(+s[0], +s[1], 0, 0);
+    return new Date(l.ts) - ms > 60000;
+  }).length;
+  kpi.innerHTML = `
+    <div class="kpi"><div class="num">${days}</div><div class="label">วัน</div></div>
+    <div class="kpi"><div class="num">${ins}</div><div class="label">เข้า</div></div>
+    <div class="kpi"><div class="num">${outs}</div><div class="label">ออก</div></div>
+    <div class="kpi"><div class="num danger">${lateCnt}</div><div class="label">สาย</div></div>`;
+  if (myLogs.length === 0) { tbody.innerHTML='<tr><td colspan="6" class="empty">ยังไม่มีประวัติ</td></tr>'; return; }
+  tbody.innerHTML = myLogs.slice(0, 200).map(l => `
+    <tr><td>${l.dateKey}</td><td>${l.timeStr}</td>
+    <td><span class="tag ${l.type==='in'?'tag-in':'tag-out'}">${l.type==='in'?'เข้า':'ออก'}</span>
+        ${l.retroactive?'<span class="tag tag-retro">ย้อน</span>':''}</td>
+    <td>${l.name}</td><td>${l.locName||'-'}</td>
+    <td>${l.scannedBy==='self'?'ตนเอง':l.scannedBy?.startsWith('supervisor:')?'หัวหน้า':'-'}</td></tr>`).join('');
+}
+function renderLocations() {
+  const el = document.getElementById('locationsList'); if (!el) return;
+  if (locations.length === 0) { el.innerHTML='<div class="empty"><div class="ico">📍</div>ยังไม่มีสาขา</div>'; return; }
+  el.innerHTML = locations.map((l,i) => `
+    <div class="list-item">
+      <div class="num">${l.code}</div>
+      <div class="info"><div class="title">${l.name}</div>
+      <div class="sub">${l.lat.toFixed(5)}, ${l.lng.toFixed(5)} · รัศมี ${l.radius||settings.radius} ม.</div></div>
+      <div class="actions">
+        <button class="mini-btn" onclick="window.open('https://www.google.com/maps?q=${l.lat},${l.lng}','_blank')">🗺</button>
+        <button class="mini-btn" onclick="deleteLocation(${i})">🗑</button>
+      </div>
+    </div>`).join('');
+}
+function showConfigEdit() {
+  const p = document.getElementById('configEditPanel');
+  const open = p.style.display === 'block';
+  p.style.display = open ? 'none' : 'block';
+  if (!open) {
+    document.getElementById('cfgClientId2').value = config.googleClientId || '';
+    document.getElementById('cfgUsersSheet2').value = config.usersSheetId || '';
+    document.getElementById('cfgFaceSheet2').value = config.faceDataSheetId || '';
+  }
+}
+function saveConfigFromEdit() {
+  config.googleClientId  = document.getElementById('cfgClientId2').value.trim();
+  config.usersSheetId    = extractSheetId(document.getElementById('cfgUsersSheet2').value);
+  config.faceDataSheetId = extractSheetId(document.getElementById('cfgFaceSheet2').value);
+  saveConfig();
+  toast('บันทึก · รีโหลด', 'success');
+  setTimeout(() => location.reload(), 800);
+}
+function renderConfigInfo() {
+  const el = document.getElementById('configInfo'); if (!el) return;
+  const ok = (v) => v ? `<span style="color:var(--success)">✓</span>` : `<span style="color:var(--danger)">✗</span>`;
+  el.innerHTML = `
+    <div class="status-row"><div class="icon">🔑</div><div style="flex:1"><div class="label">Google Client ID</div>
+    <div class="value text-sm" style="font-family:monospace;word-break:break-all">${ok(config.googleClientId)} ${config.googleClientId ? config.googleClientId.slice(0,40)+'...' : 'ยังไม่ได้ตั้งค่า'}</div></div></div>
+    <div class="status-row"><div class="icon">📊</div><div style="flex:1"><div class="label">Users Sheet</div>
+    <div class="value text-sm" style="font-family:monospace">${ok(config.usersSheetId)} ${config.usersSheetId ? config.usersSheetId.slice(0,15)+'...' : 'ยังไม่ได้ตั้งค่า'}</div></div></div>
+    <div class="status-row"><div class="icon">👥</div><div style="flex:1"><div class="label">โหลดแล้ว</div>
+    <div class="value">${allUsers.length} คน · Active ${allUsers.filter(u=>u.status==='Active').length} คน</div></div></div>`;
+}
+
+function renderSystemInfo() {
+  const el = document.getElementById('systemInfo'); if (!el) return;
+  const role = { employee:'พนักงาน', supervisor:'หัวหน้า', hr:'HR' }[currentUser?.role] || '-';
+  el.innerHTML = `
+    <div class="status-row"><div class="icon">v</div><div><div class="label">เวอร์ชัน</div><div class="value">${APP_VERSION}</div></div></div>
+    <div class="status-row"><div class="icon">👤</div><div><div class="label">บทบาท</div><div class="value">${role} (${currentUser?.role||'-'})</div></div></div>
+    <div class="status-row"><div class="icon">📷</div><div><div class="label">face-api</div><div class="value">${faceapiReady?'✓ พร้อม':'ยังไม่พร้อม'}</div></div></div>
+    <div class="status-row"><div class="icon">👥</div><div><div class="label">ทีม</div><div class="value">${team.length} คน</div></div></div>
+    <div class="status-row"><div class="icon">📍</div><div><div class="label">สาขา</div><div class="value">${locations.length} แห่ง</div></div></div>
+    <div class="status-row"><div class="icon">📊</div><div><div class="label">บันทึก</div><div class="value">${logs.length} รายการ</div></div></div>
+    <div class="status-row"><div class="icon">🛡</div><div><div class="label">Liveness</div><div class="value">${settings.liveness}</div></div></div>`;
+  renderConfigInfo();
+}
+
+/* ============================================================
+   LOCATIONS - Sheets / Manual
+   ============================================================ */
+async function loadLocationsFromSheet() {
+  const raw = document.getElementById('sheetIdInput').value.trim();
+  if (!raw) {
+    locations = [...DEFAULT_LOCATIONS]; saveLocations();  fillKioskBranches(); renderLocations();
+    toast('โหลดข้อมูลตัวอย่าง', 'info'); return;
+  }
+  const idMatch = raw.match(/[-\w]{25,}/); const sheetId = idMatch ? idMatch[0] : raw;
+  showSpinner('โหลดจาก Google Sheets...');
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('fetch failed');
+    const rows = parseCsv(await res.text());
+    const out = rows.map(r => ({
+      code: r['code']||r['รหัส']||r['รหัสสาขา']||'',
+      name: r['name']||r['ชื่อ']||r['ชื่อสาขา']||'',
+      lat: +(r['lat']||r['ละติจูด']||0),
+      lng: +(r['lng']||r['lon']||r['ลองจิจูด']||0),
+      radius: +(r['radius']||r['รัศมี']||settings.radius),
+    })).filter(x => x.code && x.lat && x.lng);
+    if (out.length === 0) throw new Error('ไม่พบข้อมูล');
+    locations = out; saveLocations();  fillKioskBranches(); renderLocations();
+    toast(`โหลด ${out.length} สาขา ✓`, 'success');
+  } catch(e) { toast('โหลดไม่สำเร็จ', 'error'); }
+  finally { hideSpinner(); }
+}
+function parseCsv(text) {
+  const lines = text.replace(/\r/g,'').trim().split('\n');
+  const parseRow = r => { const cells=[]; let cur='',q=false;
+    for (let i=0;i<r.length;i++) { const c=r[i];
+      if (c==='"') { if(q && r[i+1]==='"'){cur+='"';i++;} else q=!q; }
+      else if (c===',' && !q) { cells.push(cur.trim()); cur=''; }
+      else cur += c;
+    } cells.push(cur.trim()); return cells;
+  };
+  const headers = parseRow(lines[0]);
+  return lines.slice(1).map(l => Object.fromEntries(headers.map((h,i)=>[h, parseRow(l)[i]||''])));
+}
+function addLocationManual() {
+  const code = prompt('รหัสสาขา'); if (!code) return;
+  const name = prompt('ชื่อ'); if (!name) return;
+  const lat = +prompt('ละติจูด'); if (!lat) return;
+  const lng = +prompt('ลองจิจูด'); if (!lng) return;
+  const radius = +prompt('รัศมี (ม.)', settings.radius) || settings.radius;
+  locations.push({ code, name, lat, lng, radius });
+  saveLocations();  fillKioskBranches(); renderLocations();
+  toast('เพิ่มแล้ว', 'success');
+}
+function deleteLocation(idx) {
+  if (!confirm('ลบ?')) return;
+  locations.splice(idx,1); saveLocations();  fillKioskBranches(); renderLocations();
+}
+function fillKioskBranches() {
+  const sel = document.getElementById('kioskBranch'); if (!sel) return;
+  sel.innerHTML = locations.map(l => `<option value="${l.code}">${l.code} — ${l.name}</option>`).join('');
+}
+
+/* ============================================================
+   EXPORT
+   ============================================================ */
+function exportExcel() {
+  const filter = currentUser.role === 'supervisor'
+    ? l => team.some(m => m.empId === l.empId) || l.empId === currentUser.empId
+    : l => l.empId === currentUser.empId;
+  const my = logs.filter(filter);
+  if (my.length === 0) { toast('ไม่มีข้อมูล', 'warning'); return; }
+  const data = my.map(l => ({
+    'วันที่': l.dateKey, 'เวลา': l.timeStr,
+    'ประเภท': l.type==='in'?'เข้างาน':'ออกงาน',
+    'รหัสพนักงาน': l.empId, 'ชื่อ': l.name,
+    'สาขา': l.locName, 'รหัสสาขา': l.locCode,
+    'ละติจูด': l.lat, 'ลองจิจูด': l.lng,
+    'ระยะ (ม.)': l.distance?.toFixed(1),
+    'คะแนนใบหน้า': l.faceDist,
+    'สแกนโดย': l.scannedBy === 'self' ? 'ตนเอง' : l.scannedBy?.startsWith('supervisor:') ? l.scannedBy.split(':')[1] : '-',
+    'ย้อนหลัง': l.retroactive ? l.retroactive.reason : '',
+    'หมายเหตุ': l.retroactive?.note || '',
+  }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Check-in');
+  XLSX.writeFile(wb, `rattana-checkin-${currentUser.role}-${todayKey()}.xlsx`);
+  toast('Export Excel ✓', 'success');
+}
+
+/* ============================================================
+   RESET / UI
+   ============================================================ */
+function resetAll() {
+  if (!confirm('ลบข้อมูลทั้งหมด?')) return;
+  Object.keys(localStorage).filter(k => k.startsWith('rfc3_')).forEach(k => localStorage.removeItem(k));
+  sessionStorage.removeItem('rfc3_user');
+  toast('รีเซ็ตเรียบร้อย', 'info');
+  setTimeout(() => location.reload(), 800);
+}
+function showPage(p) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.page === p));
+  document.querySelectorAll('.page').forEach(pg => pg.classList.toggle('active', pg.id === 'page-'+p));
+  if (p === 'kiosk') { fillKioskBranches(); renderDashboard(); }
+  if (p === 'dashboard') renderDashboard();
+  if (p === 'team') renderTeamList();
+  if (p === 'today') renderTodayPage();
+  if (p === 'history') renderHistory();
+  if (p === 'locations') renderLocations();
+  if (p === 'setup') { renderFaceReg(); renderSystemInfo(); }
+}
+function toggleTheme() {
+  document.body.classList.toggle('dark');
+  LS.set('theme', document.body.classList.contains('dark')?'dark':'light');
+}
+function toast(msg, type='info') {
+  const t = document.createElement('div'); t.className='toast '+type; t.textContent=msg;
+  document.getElementById('toastArea').appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(120%)'; setTimeout(()=>t.remove(),300); }, 3500);
+}
+function showSpinner(msg, withProgress=false) {
+  document.getElementById('spinMsg').textContent = msg||'Loading...';
+  document.getElementById('progressBar').style.display = withProgress?'block':'none';
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('spinner').style.display = 'flex';
+}
+function hideSpinner(){ document.getElementById('spinner').style.display='none'; }
+function setProgress(p){ document.getElementById('progressFill').style.width = p+'%'; }
+function refreshAll() {
+  const b = document.getElementById('btnRefresh');
+  b.style.animation='spin .6s linear'; b.disabled=true;
+  loadAll();
+  if (lastGps) renderGpsCard();
+  renderTodayStatus(); renderTodayPage(); renderHistory(); renderLocations();
+  renderTeamList(); renderDashboard(); renderSystemInfo(); fillKioskBranches();
+  setTimeout(()=>{ b.style.animation=''; b.disabled=false; toast('รีเฟรชเรียบร้อย','success'); }, 600);
+}
+function openModal(id){ document.getElementById(id).classList.add('active'); }
+function closeModal(id){
+  document.getElementById(id).classList.remove('active');
+  if (id === 'modalMember') closeAddCamera();
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/* ============================================================
+   TABS BY ROLE
+   ============================================================ */
+function buildTabs() {
+  const tabs = document.getElementById('tabsBar');
+  const role = currentUser.role;
+  const isMgmt = role === 'supervisor' || role === 'hr';
+  const items = [
+    { id:'home', label:'🏠 สแกนตัวเอง' },
+    isMgmt && { id:'kiosk', label:'📷 Kiosk (สแกนทีม)' },
+    isMgmt && { id:'dashboard', label: role==='hr'?'📊 ทั้งบริษัท':'📊 ทีม' },
+    isMgmt && { id:'team', label: role==='hr'?'👥 พนักงาน':'👥 ทีม' },
+    { id:'today', label:'📅 วันนี้' },
+    { id:'history', label:'📜 ประวัติ' },
+    { id:'locations', label:'📍 สาขา' },
+    { id:'setup', label:'⚙ ตั้งค่า' },
+  ].filter(Boolean);
+  tabs.innerHTML = items.map((t,i) =>
+    `<button class="tab ${i===0?'active':''}" data-page="${t.id}" onclick="showPage('${t.id}')">${t.label}</button>`
+  ).join('');
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function initApp() {
+  if (LS.get('theme','light') === 'dark') document.body.classList.add('dark');
+  const roleLabel = { employee:'EMP', supervisor:'SUP', hr:'HR' }[currentUser.role] || 'EMP';
+  document.getElementById('roleBadge').textContent = roleLabel;
+  document.getElementById('userSub').textContent = `${currentUser.name}${currentUser.nickname?' ('+currentUser.nickname+')':''} · ${currentUser.branch||''}`;
+  document.getElementById('userInfo').innerHTML = `${currentUser.googlePicture?`<img src="${currentUser.googlePicture}" style="width:20px;height:20px;border-radius:50%;vertical-align:middle;margin-right:6px">`:''}${currentUser.name} · ${currentUser.email||''} · ${currentUser.branch||''}`;
+
+  buildTabs();
+  fillKioskBranches();
+
+  document.getElementById('cfgRadius').value = settings.radius;
+  document.getElementById('cfgFaceThr').value = settings.faceThr;
+  document.getElementById('cfgStartTime').value = settings.startTime;
+  document.getElementById('cfgLiveness').value = settings.liveness;
+
+  renderFaceReg(); renderSystemInfo(); renderTodayStatus(); renderDashboard(); renderTeamList();
+
+  // ทุก role ต้องสแกนตัวเองได้ → auto start camera + GPS
+  setInterval(() => {
+    if (document.getElementById('page-home').classList.contains('active')) evaluateAction();
+  }, 1000);
+  setTimeout(async () => {
+    await loadFaceModels();
+    setTimeout(() => startEmpCamera(), 500);
+    setTimeout(() => getGps(), 800);
+  }, 300);
+}
+
+loadAll();
+checkSession();
+</script>
+</body>
+</html>
