@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Rattana ยอดหนี้คงค้าง v1.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root{
+  --navy:#0d1b3e;--navy-mid:#1a2f5e;--navy-light:#243b73;
+  --gold:#c9a84c;--gold-light:#e8c86a;
+  --white:#fff;--off-white:#f4f6fb;
+  --success:#2ecc71;--danger:#e74c3c;--warning:#f39c12;--info:#3498db;
+  --bg:var(--off-white);--text:var(--navy);--card-bg:#fff;--border:#dde3f0;--muted:#6b7896;--row-alt:#fafbfd;
+}
+body.dark{--bg:#0a1020;--text:#e8eaf0;--card-bg:#111c35;--border:#243b73;--muted:#8a98b8;--row-alt:#0f1830}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sarabun',sans-serif;min-height:100dvh;overflow-x:hidden;-webkit-overflow-scrolling:touch;scroll-behavior:smooth;background:var(--bg);color:var(--text);transition:background .25s,color .25s;font-size:14px;line-height:1.5}
+button{font-family:inherit;cursor:pointer;border:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+input,select{font-family:inherit;font-size:16px}
+a{color:inherit}
+
+/* Loading bar + spinner */
+#loadingBar{position:fixed;top:0;left:0;height:3px;background:var(--gold);width:0;transition:width .4s;z-index:10000}
+#spinner{display:none;position:fixed;inset:0;background:rgba(13,27,62,.6);align-items:center;justify-content:center;z-index:99999;backdrop-filter:blur(3px)}
+#spinner.show{display:flex}
+#spinner .box{background:#fff;border-radius:16px;padding:32px 40px;text-align:center;border-top:4px solid var(--gold);min-width:240px}
+#spinner .ring{width:48px;height:48px;border:5px solid #dde3f0;border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
+#spinnerMsg{color:var(--navy);font-weight:500}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* Toast */
+.toast{position:fixed;bottom:max(24px,env(safe-area-inset-bottom));right:24px;padding:12px 20px;border-radius:10px;color:#fff;z-index:9999;animation:slideIn .3s ease;font-weight:500;box-shadow:0 6px 20px rgba(0,0,0,.2);max-width:90vw}
+.toast-success{background:var(--success)}
+.toast-error{background:var(--danger)}
+.toast-warning{background:var(--warning);color:var(--navy)}
+.toast-info{background:var(--navy-mid);border-left:3px solid var(--gold)}
+
+/* Login screen */
+#loginScreen{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(135deg,var(--navy) 0%,var(--navy-mid) 50%,var(--navy-light) 100%)}
+#loginScreen .card{background:#fff;border-radius:18px;padding:40px 32px;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);border-top:5px solid var(--gold);text-align:center;animation:fadeIn .4s}
+#loginScreen .logo{font-size:28px;font-weight:700;color:var(--navy);letter-spacing:2px;margin-bottom:6px}
+#loginScreen .logo span{color:var(--gold)}
+#loginScreen h1{font-size:18px;color:var(--navy);font-weight:600;margin-bottom:8px}
+#loginScreen p.sub{color:#6b7896;font-size:14px;margin-bottom:28px}
+#loginScreen .signin-wrap{display:flex;justify-content:center;margin:8px 0 16px}
+#loginError{display:none;background:#ffe5e5;color:var(--danger);padding:10px;border-radius:8px;font-size:13px;margin-top:12px}
+#loginError.show{display:block}
+#loginScreen .footer-note{font-size:11px;color:#9aa5be;margin-top:20px}
+
+/* App layout */
+#appScreen{display:none}
+#appScreen.show{display:block}
+
+/* Header */
+header{background:var(--navy);color:#fff;padding:12px 16px;position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:12px;border-bottom:3px solid var(--gold);padding-top:max(12px,env(safe-area-inset-top))}
+header .logo{display:flex;align-items:center;gap:10px;flex-shrink:0}
+header .logo-text{font-weight:700;letter-spacing:1.5px;font-size:18px;color:#fff}
+header .logo-text span{color:var(--gold)}
+header .title{flex:1;min-width:0}
+header .title h1{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header .title .ver{font-size:11px;color:var(--gold-light);opacity:.85}
+header .actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+header .icon-btn{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.2);width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;transition:background .15s;flex-shrink:0}
+header .icon-btn:hover{background:rgba(255,255,255,.1)}
+header .icon-btn:disabled{opacity:.5;cursor:not-allowed}
+header .user{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);padding:6px 10px;border-radius:8px;font-size:12px;max-width:200px}
+header .user .name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
+header .user .role{color:var(--gold-light);font-size:11px}
+@media(max-width:640px){header .user .name{max-width:80px}header .logo-text{font-size:15px}header .title h1{font-size:13px}}
+
+/* Summary cards */
+.summary{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:12px;animation:fadeIn .4s}
+@media(min-width:640px){.summary{grid-template-columns:repeat(4,1fr);gap:12px;padding:16px}}
+.s-card{background:var(--card-bg);border-radius:12px;padding:14px;border:1px solid var(--border);border-top:3px solid var(--gold);box-shadow:0 2px 6px rgba(13,27,62,.04)}
+.s-card .label{font-size:11px;color:var(--muted);font-weight:500;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
+.s-card .value{font-size:20px;font-weight:700;color:var(--text);line-height:1.2;word-break:break-all}
+.s-card .sub{font-size:11px;color:var(--muted);margin-top:4px}
+.s-card.danger{border-top-color:var(--danger)}
+.s-card.danger .value{color:var(--danger)}
+.s-card.success{border-top-color:var(--success)}
+@media(min-width:640px){.s-card .value{font-size:24px}}
+
+/* Filter bar */
+.filter-bar{background:var(--card-bg);margin:0 12px 12px;padding:14px;border-radius:12px;border:1px solid var(--border);display:grid;grid-template-columns:1fr;gap:10px;animation:fadeIn .4s}
+@media(min-width:640px){.filter-bar{margin:0 16px 16px;padding:16px;grid-template-columns:repeat(2,1fr) 1fr 1fr}}
+@media(min-width:1024px){.filter-bar{grid-template-columns:1.2fr 1.2fr 1fr 1fr 1fr}}
+.filter-bar label{display:flex;flex-direction:column;gap:4px}
+.filter-bar .lbl{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.3px}
+.filter-bar select,.filter-bar input{height:40px;padding:0 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);outline:none;width:100%;font-size:14px;transition:border-color .15s}
+.filter-bar select:focus,.filter-bar input:focus{border-color:var(--gold)}
+.filter-bar input{padding:0 12px}
+
+/* Result count + actions */
+.result-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:0 16px;margin-bottom:10px}
+.result-count{font-size:13px;color:var(--muted)}
+.result-count strong{color:var(--text);font-size:15px}
+.action-btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;min-height:40px;border:1px solid transparent;background:var(--navy);color:#fff;transition:opacity .15s}
+.btn:hover{opacity:.88}
+.btn.gold{background:var(--gold);color:var(--navy)}
+.btn.outline{background:transparent;color:var(--text);border-color:var(--border)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* Table */
+.table-wrap{margin:0 12px 80px;background:var(--card-bg);border-radius:12px;border:1px solid var(--border);overflow:hidden;animation:fadeIn .4s}
+@media(min-width:640px){.table-wrap{margin:0 16px 80px}}
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;max-height:none}
+table{width:100%;border-collapse:collapse;min-width:900px}
+thead{background:var(--navy);color:#fff;position:sticky;top:0;z-index:5}
+thead th{padding:10px 8px;text-align:left;font-size:12px;font-weight:600;letter-spacing:.3px;white-space:nowrap;cursor:pointer;user-select:none;border-bottom:2px solid var(--gold)}
+thead th:hover{background:var(--navy-mid)}
+thead th .sort-ind{font-size:9px;color:var(--gold-light);margin-left:4px}
+tbody tr{border-bottom:1px solid var(--border);transition:background .12s}
+tbody tr:nth-child(even){background:var(--row-alt)}
+tbody tr:hover{background:rgba(201,168,76,.08)}
+tbody td{padding:9px 8px;font-size:13px;vertical-align:middle}
+td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:500}
+td.code{font-family:'Courier New',monospace;font-weight:600;font-size:12px;white-space:nowrap}
+td.aging{text-align:center}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap}
+.badge-ok{background:#e8f7ee;color:#1e8449}
+.badge-w1{background:#fef3d7;color:#a87800}
+.badge-w2{background:#ffe5d0;color:#b85a00}
+.badge-w3{background:#ffd5d0;color:#c0392b}
+.badge-w4{background:var(--danger);color:#fff}
+body.dark .badge-ok{background:#1a3a25;color:#7be0a3}
+body.dark .badge-w1{background:#3a2e15;color:#e8c86a}
+body.dark .badge-w2{background:#3a2614;color:#ff9e5e}
+body.dark .badge-w3{background:#3a1a17;color:#ff8a7e}
+.empty-state{padding:60px 20px;text-align:center;color:var(--muted)}
+.empty-state .icon{font-size:48px;margin-bottom:12px;opacity:.5}
+.empty-state .msg{font-size:14px;font-weight:500}
+
+/* Pagination */
+.pagination{display:flex;align-items:center;justify-content:center;gap:6px;padding:14px;flex-wrap:wrap;background:var(--card-bg);border-top:1px solid var(--border)}
+.pagination button{background:var(--card-bg);color:var(--text);border:1px solid var(--border);padding:6px 12px;border-radius:6px;font-size:13px;min-width:36px;font-weight:500}
+.pagination button:hover:not(:disabled){background:var(--off-white);border-color:var(--gold)}
+body.dark .pagination button:hover:not(:disabled){background:var(--navy-light)}
+.pagination button.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.pagination button:disabled{opacity:.4;cursor:not-allowed}
+.pagination .info{font-size:12px;color:var(--muted);margin:0 6px}
+
+/* Back to top */
+#backToTop{position:fixed;bottom:max(20px,calc(16px + env(safe-area-inset-bottom)));right:max(16px,calc(12px + env(safe-area-inset-right)));background:var(--gold);color:var(--navy);border-radius:50%;width:46px;height:46px;display:none;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.25);z-index:90;font-size:18px;font-weight:700}
+#backToTop.show{display:flex}
+
+/* Last update */
+.last-update{text-align:center;color:var(--muted);font-size:11px;padding:0 16px 12px}
+</style>
+</head>
+<body>
+
+<div id="loadingBar"></div>
+
+<div id="spinner">
+  <div class="box">
+    <div class="ring"></div>
+    <p id="spinnerMsg">กำลังโหลด...</p>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="card">
+    <div class="logo">RATTA<span>NA</span></div>
+    <h1>ยอดหนี้คงค้าง</h1>
+    <p class="sub">Dashboard สำหรับทีมขาย</p>
+    <div id="g_id_onload"
+         data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
+         data-callback="handleGoogleLogin"
+         data-auto_prompt="false"></div>
+    <div class="signin-wrap">
+      <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="signin_with" data-shape="rectangular" data-logo_alignment="left"></div>
+    </div>
+    <div id="loginError"></div>
+    <p class="footer-note">v1.0 · เฉพาะพนักงานที่ได้รับอนุญาต</p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appScreen">
+  <header>
+    <div class="logo">
+      <div class="logo-text">RATTA<span>NA</span></div>
+    </div>
+    <div class="title">
+      <h1>ยอดหนี้คงค้าง</h1>
+      <div class="ver">v1.0</div>
+    </div>
+    <div class="actions">
+      <div class="user" id="userInfo"></div>
+      <button class="icon-btn" id="btnRefresh" onclick="refreshData()" title="รีเฟรช">&#x21bb;</button>
+      <button class="icon-btn" onclick="toggleDark()" title="โหมดมืด" id="btnDark">&#x1F319;</button>
+      <button class="icon-btn" onclick="logout()" title="ออกจากระบบ">&#x21AA;</button>
+    </div>
+  </header>
+
+  <div class="summary" id="summary"></div>
+
+  <div class="filter-bar" id="filterBar">
+    <label><span class="lbl">คลัง</span><select id="fWarehouse"><option value="">— ทุกคลัง —</option></select></label>
+    <label id="lblSales"><span class="lbl">พนักงานขาย</span><select id="fSales"><option value="">— ทุกคน —</option></select></label>
+    <label><span class="lbl">สถานะอายุหนี้</span><select id="fAging">
+      <option value="">— ทั้งหมด —</option>
+      <option value="ok">ปกติ (ยังไม่เกิน)</option>
+      <option value="over">เกินเครดิต ทั้งหมด</option>
+      <option value="b1">เกิน 1-30 วัน</option>
+      <option value="b2">เกิน 31-60 วัน</option>
+      <option value="b3">เกิน 61-90 วัน</option>
+      <option value="b4">เกิน 90+ วัน</option>
+    </select></label>
+    <label><span class="lbl">เรียงตาม</span><select id="fSort">
+      <option value="overdue_desc">เกินเครดิตมากสุด</option>
+      <option value="aging_desc">อายุหนี้มากสุด</option>
+      <option value="amount_desc">ยอดเงินสูงสุด</option>
+      <option value="amount_asc">ยอดเงินต่ำสุด</option>
+      <option value="customer_asc">ชื่อลูกหนี้ A→Z</option>
+    </select></label>
+    <label><span class="lbl">ค้นหา</span><input type="text" id="fSearch" placeholder="ลูกหนี้ / รหัส / เลขเอกสาร"></label>
+  </div>
+
+  <div class="result-row">
+    <div class="result-count" id="resultCount"></div>
+    <div class="action-btns">
+      <button class="btn outline" onclick="resetFilters()">ล้างฟิลเตอร์</button>
+      <button class="btn gold" onclick="exportExcel()">⬇ Excel</button>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <div class="table-scroll">
+      <table id="debtTable">
+        <thead>
+          <tr>
+            <th onclick="sortBy('warehouse')">คลัง<span class="sort-ind"></span></th>
+            <th onclick="sortBy('salesName')">พนักงานขาย<span class="sort-ind"></span></th>
+            <th onclick="sortBy('custCode')">รหัสลูกหนี้<span class="sort-ind"></span></th>
+            <th onclick="sortBy('custName')">ชื่อลูกหนี้<span class="sort-ind"></span></th>
+            <th onclick="sortBy('docDate')">วันที่เอกสาร<span class="sort-ind"></span></th>
+            <th onclick="sortBy('docNo')">เลขเอกสาร<span class="sort-ind"></span></th>
+            <th onclick="sortBy('amount')" style="text-align:right">ยอดเงิน<span class="sort-ind"></span></th>
+            <th onclick="sortBy('aging')" style="text-align:center">อายุหนี้<span class="sort-ind"></span></th>
+            <th onclick="sortBy('credit')" style="text-align:center">เครดิต<span class="sort-ind"></span></th>
+            <th style="text-align:center">สถานะ</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+
+  <div class="last-update" id="lastUpdate"></div>
+</div>
+
+<button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">▲</button>
+
+<script>
+/* ========================
+   CONFIG
+   ======================== */
+const CONFIG = {
+  sheetId: '1LqTqZg1z3e6FtPBbhZsKZd60DL6tZmCi78QQT1MoPq4',
+  sheetName: 'SQL',
+  usersSheetId: '1M6HdISsLN684qRWyQ73CA4AmUzmYtZaOlffDJXZZIXQ',
+  usersSheetName: 'Rattana Users for apps',
+  cacheTTL: 5 * 60 * 1000,        // 5 min
+  autoRefreshInterval: 5 * 60 * 1000, // 5 min background
+  pageSize: 50,
+};
+
+let currentUser = null;
+let allRows = [];        // raw rows from sheet (already filtered by role)
+let viewRows = [];       // filtered + sorted rows
+let summary = {};
+let sortKey = 'overdue_desc';
+let currentPage = 1;
+let lookups = { warehouses: [], sales: [] };
+let autoRefreshTimer = null;
+let searchTimer = null;
+
+/* ========================
+   UTIL
+   ======================== */
+const $ = id => document.getElementById(id);
+const fmtBaht = n => (Number(n)||0).toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2});
+const fmtInt  = n => (Number(n)||0).toLocaleString('th-TH');
+const parseNum = s => {
+  if (s === null || s === undefined || s === '') return 0;
+  const n = parseFloat(String(s).replace(/[, ]/g, ''));
+  return isNaN(n) ? 0 : n;
+};
+
+function showSpinner(msg='กำลังโหลด...'){ $('spinnerMsg').textContent = msg; $('spinner').classList.add('show'); }
+function hideSpinner(){ $('spinner').classList.remove('show'); }
+function setLoading(on){ $('loadingBar').style.width = on ? '85%' : '0'; }
+
+function showToast(msg, type='info'){
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+function showLoginError(msg){
+  const e = $('loginError');
+  e.textContent = msg;
+  e.classList.add('show');
+}
+
+/* ========================
+   CACHE (stale-while-revalidate)
+   ======================== */
+function getCached(key){
+  try {
+    const item = JSON.parse(localStorage.getItem(key));
+    if (!item) return null;
+    return { data: item.data, ts: item.ts, fresh: (Date.now() - item.ts) < CONFIG.cacheTTL };
+  } catch { return null; }
+}
+function setCache(key, data){
+  try { localStorage.setItem(key, JSON.stringify({ts:Date.now(), data})); } catch {}
+}
+
+/* ========================
+   CSV PARSER (keeps first occurrence of duplicate columns)
+   ======================== */
+function parseCsv(text){
+  const parseRow = r => {
+    const cells = []; let cur = '', inQ = false;
+    for (let i = 0; i < r.length; i++){
+      const ch = r[i];
+      if (ch === '"'){
+        if (inQ && r[i+1] === '"'){ cur += '"'; i++; }
+        else inQ = !inQ;
+      } else if (ch === ',' && !inQ){
+        cells.push(cur); cur = '';
+      } else { cur += ch; }
+    }
+    cells.push(cur);
+    return cells;
+  };
+
+  // Normalize line endings, then split rows respecting quoted newlines
+  text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const rows = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < text.length; i++){
+    const ch = text[i];
+    if (ch === '"') inQ = !inQ;
+    if (ch === '\n' && !inQ){ rows.push(cur); cur = ''; }
+    else cur += ch;
+  }
+  if (cur) rows.push(cur);
+
+  if (!rows.length) return [];
+  const headers = parseRow(rows[0]).map(h => h.trim());
+
+  return rows.slice(1).filter(r => r.trim()).map(r => {
+    const cells = parseRow(r);
+    const obj = {};
+    headers.forEach((k, i) => {
+      // first occurrence wins (handles duplicate column names)
+      if (!(k in obj)) obj[k] = (cells[i] || '').trim();
+    });
+    return obj;
+  });
+}
+
+async function loadFromSheets(sheetId, sheetName){
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error('Sheet fetch failed: ' + res.status);
+  return parseCsv(await res.text());
+}
+
+/* ========================
+   AUTH
+   ======================== */
+async function handleGoogleLogin(response){
+  showSpinner('กำลังตรวจสอบสิทธิ์...');
+  $('loginError').classList.remove('show');
+  try {
+    const payload = JSON.parse(atob(response.credential.split('.')[1]));
+    const email = (payload.email || '').toLowerCase().trim();
+    if (!email) throw new Error('no email');
+
+    const users = await loadFromSheets(CONFIG.usersSheetId, CONFIG.usersSheetName);
+    const user = users.find(u => (u['E-mail'] || '').toLowerCase().trim() === email);
+
+    if (!user){
+      showLoginError('ไม่พบอีเมลนี้ในระบบ กรุณาติดต่อแอดมิน');
+      hideSpinner();
+      return;
+    }
+    if ((user['Status'] || '').trim() !== 'Active'){
+      showLoginError('บัญชีถูกระงับ กรุณาติดต่อแอดมิน');
+      hideSpinner();
+      return;
+    }
+
+    currentUser = {
+      email,
+      name: user['ชื่อ - สกุล'] || payload.name || email,
+      nickname: user['ชื่อเล่น'] || '',
+      role: parseInt(user['User Role']) || 1,
+      dept: user['แผนก'] || '',
+      company: user['บริษัท'] || '',
+      warehouse: user['W'] || '',
+      empId: (user['รหัสพนักงาน'] || '').trim(),
+    };
+
+    sessionStorage.setItem('rattanaUser', JSON.stringify(currentUser));
+    enterApp();
+  } catch (e){
+    console.error(e);
+    showLoginError('เกิดข้อผิดพลาด กรุณาลองใหม่');
+    hideSpinner();
+  }
+}
+
+function checkSession(){
+  const s = sessionStorage.getItem('rattanaUser');
+  if (s){
+    try { currentUser = JSON.parse(s); enterApp(); return true; } catch {}
+  }
+  return false;
+}
+
+function logout(){
+  sessionStorage.removeItem('rattanaUser');
+  if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+  location.reload();
+}
+
+function enterApp(){
+  $('loginScreen').style.display = 'none';
+  $('appScreen').classList.add('show');
+
+  // Display user info
+  const roleLabel = currentUser.role >= 5 ? 'ผู้จัดการ' : 'พนักงานขาย';
+  $('userInfo').innerHTML = `
+    <div>
+      <div class="name">${currentUser.nickname || currentUser.name}</div>
+      <div class="role">${roleLabel} · Role ${currentUser.role}</div>
+    </div>
+  `;
+
+  // Hide salesperson dropdown for non-managers
+  if (currentUser.role < 5){
+    $('lblSales').style.display = 'none';
+  }
+
+  // Restore dark mode
+  if (localStorage.getItem('rattanaDark') === '1') document.body.classList.add('dark');
+
+  initApp();
+}
+
+/* ========================
+   DATA LOAD
+   ======================== */
+async function initApp(){
+  // Show cached immediately if available (fast load)
+  const cached = getCached('debtData');
+  if (cached){
+    processData(cached.data);
+    if (cached.fresh){
+      hideSpinner();
+      showToast('โหลดจาก cache (ใหม่)', 'info');
+    } else {
+      hideSpinner();
+      showToast('แสดงข้อมูลเก่า กำลังอัพเดท...', 'info');
+      // background refresh
+      loadDataBackground();
+    }
+  } else {
+    showSpinner('กำลังดึงข้อมูล...');
+    await loadData();
+    hideSpinner();
+  }
+
+  // Setup auto-refresh
+  if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+  autoRefreshTimer = setInterval(loadDataBackground, CONFIG.autoRefreshInterval);
+
+  // Setup filter listeners
+  bindFilters();
+
+  // Scroll listener for back-to-top
+  window.addEventListener('scroll', () => {
+    $('backToTop').classList.toggle('show', window.scrollY > 300);
+  });
+}
+
+async function loadData(){
+  setLoading(true);
+  try {
+    const raw = await loadFromSheets(CONFIG.sheetId, CONFIG.sheetName);
+    setCache('debtData', raw);
+    processData(raw);
+  } catch (e){
+    console.error(e);
+    showToast('โหลดข้อมูลล้มเหลว: ' + e.message, 'error');
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function loadDataBackground(){
+  try {
+    const raw = await loadFromSheets(CONFIG.sheetId, CONFIG.sheetName);
+    setCache('debtData', raw);
+    processData(raw);
+  } catch (e){
+    console.error('bg refresh failed', e);
+  }
+}
+
+async function refreshData(){
+  const btn = $('btnRefresh');
+  btn.disabled = true;
+  btn.style.transform = 'rotate(360deg)';
+  btn.style.transition = 'transform .6s';
+  showSpinner('กำลังรีเฟรช...');
+  try {
+    await loadData();
+    showToast('อัพเดทเรียบร้อย ✓', 'success');
+  } finally {
+    btn.disabled = false;
+    setTimeout(() => { btn.style.transform = ''; btn.style.transition = ''; }, 600);
+    hideSpinner();
+  }
+}
+
+/* ========================
+   DATA PROCESSING
+   ======================== */
+function processData(raw){
+  // Map raw rows to clean structured rows
+  const rows = raw.map(r => {
+    const aging = parseNum(r['อายุหนี้']);
+    const credit = parseNum(r['เงื่อนไข']);
+    const overdue = aging - credit; // days past credit term
+    return {
+      warehouse:  (r['คลัง'] || '').trim(),
+      empId:      (r['รหัสพนักงาน'] || '').trim(),
+      salesName:  (r['ชื่อพนักงานขาย'] || '').trim(),
+      custCode:   (r['รหัสลูกหนี้'] || '').trim(),
+      custName:   (r['ชื่อลูกหนี้'] || '').trim(),
+      docDate:    (r['วันที่เอกสาร'] || '').trim(),
+      docNo:      (r['เลขที่เอกสาร'] || '').trim(),
+      amount:     parseNum(r['ยอดหนี้']),
+      aging,
+      credit,
+      overdue,
+      limit:      parseNum(r['วงเงิน']),
+      note:       (r['หมายเหตุ'] || '').trim(),
+      flag:       (r['ธง'] || '').trim(),
+    };
+  }).filter(r => r.amount > 0 || r.docNo); // skip totally empty rows
+
+  // Role-based filtering
+  if (currentUser.role < 5){
+    allRows = rows.filter(r => r.empId === currentUser.empId);
+  } else {
+    allRows = rows;
+  }
+
+  // Build lookups for dropdowns
+  const wSet = new Set(), sMap = new Map();
+  allRows.forEach(r => {
+    if (r.warehouse) wSet.add(r.warehouse);
+    if (r.salesName) sMap.set(r.empId + '|' + r.salesName, { empId: r.empId, name: r.salesName });
+  });
+  lookups.warehouses = [...wSet].sort();
+  lookups.sales = [...sMap.values()].sort((a,b) => a.name.localeCompare(b.name, 'th'));
+
+  populateFilters();
+  applyFilters();
+  updateLastUpdate();
+}
+
+function populateFilters(){
+  const w = $('fWarehouse');
+  const prevW = w.value;
+  w.innerHTML = '<option value="">— ทุกคลัง —</option>' +
+    lookups.warehouses.map(x => `<option value="${escapeAttr(x)}">${escapeHtml(x)}</option>`).join('');
+  w.value = prevW;
+
+  const s = $('fSales');
+  const prevS = s.value;
+  s.innerHTML = '<option value="">— ทุกคน —</option>' +
+    lookups.sales.map(x => `<option value="${escapeAttr(x.empId)}">${escapeHtml(x.name)}</option>`).join('');
+  s.value = prevS;
+}
+
+function bindFilters(){
+  ['fWarehouse','fSales','fAging','fSort'].forEach(id => {
+    $(id).addEventListener('change', () => { currentPage = 1; applyFilters(); });
+  });
+  $('fSearch').addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => { currentPage = 1; applyFilters(); }, 200);
+  });
+}
+
+function resetFilters(){
+  $('fWarehouse').value = '';
+  $('fSales').value = '';
+  $('fAging').value = '';
+  $('fSort').value = 'overdue_desc';
+  $('fSearch').value = '';
+  currentPage = 1;
+  applyFilters();
+}
+
+function applyFilters(){
+  const w = $('fWarehouse').value;
+  const s = $('fSales').value;
+  const a = $('fAging').value;
+  const q = $('fSearch').value.trim().toLowerCase();
+  const sortVal = $('fSort').value;
+  sortKey = sortVal;
+
+  let rows = allRows;
+  if (w) rows = rows.filter(r => r.warehouse === w);
+  if (s) rows = rows.filter(r => r.empId === s);
+  if (a){
+    rows = rows.filter(r => {
+      const o = r.overdue;
+      if (a === 'ok')   return o <= 0;
+      if (a === 'over') return o > 0;
+      if (a === 'b1')   return o >= 1  && o <= 30;
+      if (a === 'b2')   return o >= 31 && o <= 60;
+      if (a === 'b3')   return o >= 61 && o <= 90;
+      if (a === 'b4')   return o > 90;
+      return true;
+    });
+  }
+  if (q){
+    rows = rows.filter(r =>
+      r.custName.toLowerCase().includes(q) ||
+      r.custCode.toLowerCase().includes(q) ||
+      r.docNo.toLowerCase().includes(q) ||
+      r.salesName.toLowerCase().includes(q)
+    );
+  }
+
+  // Sort
+  rows = [...rows];
+  switch (sortVal){
+    case 'overdue_desc':  rows.sort((a,b) => b.overdue - a.overdue || b.amount - a.amount); break;
+    case 'aging_desc':    rows.sort((a,b) => b.aging - a.aging); break;
+    case 'amount_desc':   rows.sort((a,b) => b.amount - a.amount); break;
+    case 'amount_asc':    rows.sort((a,b) => a.amount - b.amount); break;
+    case 'customer_asc':  rows.sort((a,b) => a.custName.localeCompare(b.custName, 'th')); break;
+  }
+
+  viewRows = rows;
+  computeSummary();
+  renderSummary();
+  renderTable();
+  renderPagination();
+}
+
+function sortBy(col){
+  // Simple per-column sort toggle
+  const map = {
+    warehouse:  ['warehouse', 'asc'],
+    salesName:  ['salesName', 'asc'],
+    custCode:   ['custCode', 'asc'],
+    custName:   ['custName', 'asc'],
+    docDate:    ['docDate', 'asc'],
+    docNo:      ['docNo', 'asc'],
+    amount:     ['amount', 'desc'],
+    aging:      ['aging', 'desc'],
+    credit:     ['credit', 'desc'],
+  };
+  const [k, defaultDir] = map[col];
+  // Toggle direction if same column
+  const cur = sortKey;
+  const next = (cur === col + '_asc') ? col + '_desc' : col + '_asc';
+  // Custom: just sort directly
+  viewRows.sort((a,b) => {
+    const va = a[k], vb = b[k];
+    if (typeof va === 'number') return defaultDir === 'desc' ? vb - va : va - vb;
+    return String(va).localeCompare(String(vb), 'th');
+  });
+  if (cur === col + '_desc') viewRows.reverse();
+  sortKey = next;
+  currentPage = 1;
+  renderTable();
+  renderPagination();
+}
+
+/* ========================
+   SUMMARY
+   ======================== */
+function computeSummary(){
+  let total = 0, totalOverdue = 0, custSet = new Set(), overdueCount = 0;
+  viewRows.forEach(r => {
+    total += r.amount;
+    if (r.custCode) custSet.add(r.custCode);
+    if (r.overdue > 0){
+      totalOverdue += r.amount;
+      overdueCount++;
+    }
+  });
+  summary = {
+    total,
+    totalOverdue,
+    customers: custSet.size,
+    docs: viewRows.length,
+    overdueCount,
+  };
+}
+
+function renderSummary(){
+  const overduePct = summary.total > 0 ? Math.round(summary.totalOverdue / summary.total * 100) : 0;
+  $('summary').innerHTML = `
+    <div class="s-card">
+      <div class="label">ยอดหนี้รวม</div>
+      <div class="value">${fmtBaht(summary.total)}</div>
+      <div class="sub">บาท · ${fmtInt(summary.docs)} เอกสาร</div>
+    </div>
+    <div class="s-card success">
+      <div class="label">ลูกหนี้</div>
+      <div class="value">${fmtInt(summary.customers)}</div>
+      <div class="sub">ราย</div>
+    </div>
+    <div class="s-card danger">
+      <div class="label">เกินเครดิต</div>
+      <div class="value">${fmtBaht(summary.totalOverdue)}</div>
+      <div class="sub">${fmtInt(summary.overdueCount)} เอกสาร · ${overduePct}%</div>
+    </div>
+    <div class="s-card">
+      <div class="label">เฉลี่ย/เอกสาร</div>
+      <div class="value">${fmtBaht(summary.docs ? summary.total/summary.docs : 0)}</div>
+      <div class="sub">บาท</div>
+    </div>
+  `;
+}
+
+/* ========================
+   TABLE
+   ======================== */
+function escapeHtml(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+function escapeAttr(s){ return escapeHtml(s); }
+
+function agingBadge(overdue){
+  if (overdue <= 0) return `<span class="badge badge-ok">ปกติ</span>`;
+  if (overdue <= 30) return `<span class="badge badge-w1">เกิน ${overdue}ว.</span>`;
+  if (overdue <= 60) return `<span class="badge badge-w2">เกิน ${overdue}ว.</span>`;
+  if (overdue <= 90) return `<span class="badge badge-w3">เกิน ${overdue}ว.</span>`;
+  return `<span class="badge badge-w4">เกิน ${overdue}ว.</span>`;
+}
+
+function renderTable(){
+  const tbody = $('tbody');
+  if (!viewRows.length){
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="icon">📋</div><div class="msg">ไม่พบข้อมูลตามเงื่อนไขที่กำหนด</div></div></td></tr>`;
+    $('resultCount').innerHTML = `<strong>0</strong> รายการ`;
+    return;
+  }
+
+  const totalPages = Math.max(1, Math.ceil(viewRows.length / CONFIG.pageSize));
+  if (currentPage > totalPages) currentPage = totalPages;
+  const start = (currentPage - 1) * CONFIG.pageSize;
+  const end = Math.min(start + CONFIG.pageSize, viewRows.length);
+  const slice = viewRows.slice(start, end);
+
+  // Build HTML in batch (faster than appendChild loop)
+  const html = slice.map(r => `
+    <tr>
+      <td>${escapeHtml(r.warehouse)}</td>
+      <td>${escapeHtml(r.salesName)}</td>
+      <td class="code">${escapeHtml(r.custCode)}</td>
+      <td>${escapeHtml(r.custName)}</td>
+      <td>${escapeHtml(r.docDate)}</td>
+      <td class="code">${escapeHtml(r.docNo)}</td>
+      <td class="num">${fmtBaht(r.amount)}</td>
+      <td class="num" style="text-align:center">${r.aging}</td>
+      <td class="num" style="text-align:center">${r.credit}</td>
+      <td class="aging">${agingBadge(r.overdue)}</td>
+    </tr>
+  `).join('');
+  tbody.innerHTML = html;
+
+  $('resultCount').innerHTML = `แสดง <strong>${start+1}-${end}</strong> จาก <strong>${fmtInt(viewRows.length)}</strong> รายการ`;
+}
+
+function renderPagination(){
+  const totalPages = Math.max(1, Math.ceil(viewRows.length / CONFIG.pageSize));
+  if (totalPages <= 1){ $('pagination').innerHTML = ''; return; }
+
+  const pages = [];
+  const window_ = 2;
+  const add = p => pages.push(p);
+  add(1);
+  if (currentPage - window_ > 2) add('...');
+  for (let p = Math.max(2, currentPage - window_); p <= Math.min(totalPages - 1, currentPage + window_); p++) add(p);
+  if (currentPage + window_ < totalPages - 1) add('...');
+  if (totalPages > 1) add(totalPages);
+
+  let html = `<button onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+  pages.forEach(p => {
+    if (p === '...') html += `<span class="info">...</span>`;
+    else html += `<button class="${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+  });
+  html += `<button onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>›</button>`;
+  html += `<span class="info">หน้า ${currentPage}/${totalPages}</span>`;
+  $('pagination').innerHTML = html;
+}
+
+function goPage(p){
+  const totalPages = Math.max(1, Math.ceil(viewRows.length / CONFIG.pageSize));
+  if (p < 1 || p > totalPages) return;
+  currentPage = p;
+  renderTable();
+  renderPagination();
+  // Scroll table into view nicely
+  document.querySelector('.table-wrap').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+/* ========================
+   EXPORT (lazy-load SheetJS)
+   ======================== */
+let xlsxPromise = null;
+function loadSheetJS(){
+  if (xlsxPromise) return xlsxPromise;
+  xlsxPromise = new Promise((resolve, reject) => {
+    if (window.XLSX){ resolve(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js';
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+  return xlsxPromise;
+}
+
+async function exportExcel(){
+  if (!viewRows.length){ showToast('ไม่มีข้อมูลให้ Export', 'warning'); return; }
+  showSpinner('กำลังเตรียมไฟล์ Excel...');
+  try {
+    await loadSheetJS();
+    const data = viewRows.map(r => ({
+      'คลัง': r.warehouse,
+      'รหัสพนักงาน': r.empId,
+      'ชื่อพนักงานขาย': r.salesName,
+      'รหัสลูกหนี้': r.custCode,
+      'ชื่อลูกหนี้': r.custName,
+      'วันที่เอกสาร': r.docDate,
+      'เลขที่เอกสาร': r.docNo,
+      'ยอดหนี้': r.amount,
+      'อายุหนี้ (วัน)': r.aging,
+      'เงื่อนไขเครดิต (วัน)': r.credit,
+      'เกินเครดิต (วัน)': r.overdue,
+      'วงเงิน': r.limit,
+      'หมายเหตุ': r.note,
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    // Column widths
+    ws['!cols'] = [
+      {wch:6},{wch:8},{wch:18},{wch:10},{wch:30},{wch:12},{wch:14},
+      {wch:14},{wch:10},{wch:10},{wch:12},{wch:12},{wch:24}
+    ];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'ยอดหนี้คงค้าง');
+    const today = new Date().toISOString().slice(0,10);
+    XLSX.writeFile(wb, `Rattana-ยอดหนี้คงค้าง-${today}.xlsx`);
+    showToast('Export สำเร็จ ✓', 'success');
+  } catch (e){
+    console.error(e);
+    showToast('Export ล้มเหลว', 'error');
+  } finally {
+    hideSpinner();
+  }
+}
+
+/* ========================
+   MISC
+   ======================== */
+function toggleDark(){
+  document.body.classList.toggle('dark');
+  localStorage.setItem('rattanaDark', document.body.classList.contains('dark') ? '1' : '0');
+}
+
+function updateLastUpdate(){
+  const cached = getCached('debtData');
+  if (cached){
+    const d = new Date(cached.ts);
+    const fresh = (Date.now() - cached.ts) < CONFIG.cacheTTL ? '✓' : '⌛';
+    $('lastUpdate').textContent = `อัพเดทล่าสุด: ${d.toLocaleString('th-TH')} ${fresh}`;
+  }
+}
+
+/* ========================
+   INIT
+   ======================== */
+window.addEventListener('load', () => {
+  if (!checkSession()){
+    // Show login (already visible by default)
+  }
+  // Apply dark mode preference even on login screen
+  if (localStorage.getItem('rattanaDark') === '1') document.body.classList.add('dark');
+});
+</script>
+
+</body>
+</html>
