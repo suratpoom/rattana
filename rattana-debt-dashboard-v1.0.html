@@ -4,11 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana ยอดหนี้คงค้าง v1.3</title>
+<title>Rattana ยอดหนี้คงค้าง v1.4</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <style>
 :root{
   --navy:#0d1b3e;--navy-mid:#1a2f5e;--navy-light:#243b73;
@@ -118,6 +119,99 @@ body.dark .ctab.active{background:var(--gold);color:var(--navy);border-color:var
   .chart-row .amt{font-size:11px}
   .chart-body{max-height:280px;padding:10px}
 }
+
+/* Tab navigation */
+.tab-nav{display:flex;background:var(--card-bg);border-bottom:1px solid var(--border);padding:0 12px;gap:4px;position:sticky;top:54px;z-index:50;overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media(min-width:640px){.tab-nav{padding:0 16px;top:60px}}
+.tnav{background:transparent;border:none;color:var(--muted);padding:14px 16px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;flex-shrink:0;transition:color .15s}
+.tnav:hover{color:var(--text)}
+.tnav.active{color:var(--text);border-bottom-color:var(--gold)}
+.tab-pane{display:none}
+.tab-pane.active{display:block;animation:fadeIn .25s}
+
+/* Collect tab */
+.collect-wrap{padding:16px 12px 80px;max-width:760px;margin:0 auto}
+@media(min-width:640px){.collect-wrap{padding:20px 16px 80px}}
+.collect-head{margin-bottom:18px}
+.collect-head h2{font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px}
+.collect-head p{font-size:13px;color:var(--muted)}
+.collect-controls{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:18px;background:var(--card-bg);padding:14px;border-radius:12px;border:1px solid var(--border)}
+@media(min-width:640px){.collect-controls{grid-template-columns:1.5fr 1fr;gap:12px}}
+.collect-controls label{display:flex;flex-direction:column;gap:4px}
+.collect-controls .lbl{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.3px}
+.collect-controls select,.collect-controls input{height:42px;padding:0 12px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);font-size:14px;outline:none;transition:border-color .15s}
+.collect-controls select:focus,.collect-controls input:focus{border-color:var(--gold)}
+
+.collect-info{background:var(--card-bg);border-radius:12px;padding:14px;border:1px solid var(--border);border-left:4px solid var(--gold);margin-bottom:14px;font-size:13px;line-height:1.7}
+.collect-info .ci-row{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.collect-info .ci-label{color:var(--muted)}
+.collect-info .ci-val{font-weight:600;color:var(--text)}
+
+.collect-bills{background:var(--card-bg);border-radius:12px;border:1px solid var(--border);overflow:hidden;margin-bottom:14px}
+.bills-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:linear-gradient(to right,rgba(201,168,76,.06),transparent);border-bottom:1px solid var(--border)}
+.select-all{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer}
+.select-all input{width:18px;height:18px;accent-color:var(--gold);cursor:pointer}
+.bills-count{font-size:12px;color:var(--muted)}
+.bill-row{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s}
+.bill-row:last-child{border-bottom:none}
+.bill-row:hover{background:rgba(201,168,76,.04)}
+.bill-row input[type="checkbox"]{width:18px;height:18px;accent-color:var(--gold);cursor:pointer;flex-shrink:0}
+.bill-row .b-info{flex:1;min-width:0}
+.bill-row .b-doc{font-size:13px;font-weight:600;color:var(--text);font-family:'Courier New',monospace}
+.bill-row .b-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.bill-row .b-amt{font-size:14px;font-weight:700;color:var(--text);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bill-row .b-amt.cn{color:var(--success)}
+.bill-row .b-status{font-size:10px;padding:2px 6px;border-radius:8px;margin-top:2px;display:inline-block}
+
+.collect-summary{background:var(--card-bg);border-radius:12px;padding:16px;border:1px solid var(--border);border-top:4px solid var(--gold);box-shadow:0 4px 12px rgba(13,27,62,.08)}
+.cs-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:14px}
+.cs-row.total{font-size:18px;border-top:1px dashed var(--border);padding-top:10px;margin-top:6px;color:var(--text)}
+.cs-row.total strong{font-size:24px;color:var(--gold);font-variant-numeric:tabular-nums}
+.btn-big{width:100%;padding:14px;font-size:16px;margin-top:14px;justify-content:center;min-height:52px}
+.btn-big:disabled{background:var(--border);color:var(--muted);cursor:not-allowed}
+
+.collect-empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.collect-empty .icon{font-size:60px;margin-bottom:12px;opacity:.4}
+.collect-empty p{font-size:14px}
+
+/* QR button in table */
+.qr-btn{background:var(--gold);color:var(--navy);border:none;width:34px;height:34px;border-radius:8px;font-size:16px;cursor:pointer;transition:transform .15s;font-family:inherit}
+.qr-btn:hover{transform:scale(1.1);background:var(--gold-light)}
+
+/* QR Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(13,27,62,.7);z-index:9999;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);overflow-y:auto}
+.modal-overlay.show{display:flex}
+.modal-card{background:#fff;border-radius:18px;padding:24px;max-width:420px;width:100%;max-height:90vh;overflow-y:auto;position:relative;border-top:5px solid var(--gold);animation:fadeIn .25s;text-align:center}
+body.dark .modal-card{background:var(--card-bg);color:var(--text)}
+.modal-close{position:absolute;top:10px;right:14px;background:transparent;border:none;font-size:28px;color:var(--muted);cursor:pointer;line-height:1;padding:4px 10px;border-radius:6px}
+.modal-close:hover{background:rgba(0,0,0,.05);color:var(--text)}
+.qr-bank-badge{display:inline-block;background:#1e3a8a;color:#fff;padding:4px 14px;border-radius:14px;font-size:11px;font-weight:700;letter-spacing:1px;margin-bottom:8px}
+.modal-card h3{font-size:16px;color:var(--navy);font-weight:600;margin-bottom:6px}
+body.dark .modal-card h3{color:var(--text)}
+.qr-amount{font-size:32px;font-weight:700;color:var(--gold);margin-bottom:6px;font-variant-numeric:tabular-nums}
+.qr-subtitle{font-size:12px;color:var(--muted);margin-bottom:14px}
+.qr-canvas{display:flex;justify-content:center;padding:14px;background:#fff;border-radius:12px;border:2px solid var(--border);margin-bottom:16px}
+.qr-canvas img,.qr-canvas canvas{max-width:100%;height:auto;display:block}
+.qr-account-info{background:var(--off-white);border-radius:10px;padding:12px;margin-bottom:14px;text-align:left}
+body.dark .qr-account-info{background:rgba(255,255,255,.04)}
+.ai-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13px;gap:8px}
+.ai-row span{color:var(--muted)}
+.ai-row strong{color:var(--navy);font-weight:600;flex:1;text-align:right}
+body.dark .ai-row strong{color:var(--text)}
+.btn-mini{background:var(--gold);color:var(--navy);border:none;width:28px;height:28px;border-radius:6px;font-size:12px;cursor:pointer;flex-shrink:0;transition:opacity .15s;font-family:inherit}
+.btn-mini:hover{opacity:.85}
+.qr-details{background:var(--off-white);border-radius:10px;margin-bottom:14px;text-align:left;font-size:12px}
+body.dark .qr-details{background:rgba(255,255,255,.04)}
+.qd-toggle{padding:10px 12px;font-weight:600;color:var(--text);cursor:pointer;user-select:none}
+.qd-toggle:hover{background:rgba(0,0,0,.04)}
+.qd-list{padding:0 12px 12px;max-height:200px;overflow-y:auto}
+.qd-item{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--border);font-size:12px}
+.qd-item:last-child{border-bottom:none}
+.qd-item .doc{font-family:'Courier New',monospace;color:var(--muted)}
+.qd-item .amt{font-weight:600}
+.qr-actions{display:flex;gap:8px;margin-bottom:8px}
+.qr-actions .btn{flex:1;justify-content:center;padding:11px}
+.qr-note{font-size:11px;color:var(--muted);margin-top:4px}
 
 /* Filter bar */
 .filter-bar{background:var(--card-bg);margin:0 12px 12px;padding:14px;border-radius:12px;border:1px solid var(--border);display:grid;grid-template-columns:1fr;gap:10px;animation:fadeIn .4s}
@@ -232,7 +326,7 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
       <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="signin_with" data-shape="rectangular" data-logo_alignment="left"></div>
     </div>
     <div id="loginError"></div>
-    <p class="footer-note">v1.3 · เฉพาะพนักงานที่ได้รับอนุญาต</p>
+    <p class="footer-note">v1.4 · เฉพาะพนักงานที่ได้รับอนุญาต</p>
   </div>
 </div>
 
@@ -244,7 +338,7 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
     </div>
     <div class="title">
       <h1>ยอดหนี้คงค้าง</h1>
-      <div class="ver">v1.3</div>
+      <div class="ver">v1.4</div>
     </div>
     <div class="actions">
       <div class="user" id="userInfo"></div>
@@ -254,6 +348,15 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
       <button class="icon-btn" onclick="logout()" title="ออกจากระบบ">&#x21AA;</button>
     </div>
   </header>
+
+  <!-- TAB NAV -->
+  <nav class="tab-nav">
+    <button class="tnav active" data-tab="debt">📋 ยอดหนี้คงค้าง</button>
+    <button class="tnav" data-tab="collect">💰 เก็บเงิน / สร้าง QR</button>
+  </nav>
+
+  <!-- TAB: DEBT -->
+  <div class="tab-pane active" id="tabDebt">
 
   <div class="summary" id="summary"></div>
 
@@ -318,6 +421,7 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
             <th onclick="sortBy('aging')" style="text-align:center">อายุหนี้<span class="sort-ind"></span></th>
             <th onclick="sortBy('credit')" style="text-align:center">เครดิต<span class="sort-ind"></span></th>
             <th style="text-align:center">สถานะ</th>
+            <th style="text-align:center">QR</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -327,6 +431,90 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
   </div>
 
   <div class="last-update" id="lastUpdate"></div>
+
+  </div><!-- /tabDebt -->
+
+  <!-- TAB: COLLECT -->
+  <div class="tab-pane" id="tabCollect">
+    <div class="collect-wrap">
+      <div class="collect-head">
+        <h2>💰 รวมยอดสร้าง QR เก็บเงิน</h2>
+        <p>เลือกลูกหนี้ → เลือกยอดที่ต้องการเก็บ → สร้าง QR ส่งให้ลูกค้าจ่ายผ่าน LINE / Messenger</p>
+      </div>
+
+      <div class="collect-controls">
+        <label><span class="lbl">เลือกลูกหนี้</span>
+          <select id="cCustomer">
+            <option value="">— เลือกร้านค้า —</option>
+          </select>
+        </label>
+        <label><span class="lbl">ค้นหาในลิสต์</span>
+          <input type="text" id="cSearch" placeholder="พิมพ์ชื่อร้านหรือรหัส...">
+        </label>
+      </div>
+
+      <div id="cCustomerInfo" class="collect-info" style="display:none"></div>
+
+      <div id="cBillsWrap" class="collect-bills" style="display:none">
+        <div class="bills-head">
+          <label class="select-all"><input type="checkbox" id="cSelectAll" checked> เลือกทั้งหมด</label>
+          <span class="bills-count" id="cBillsCount"></span>
+        </div>
+        <div id="cBillsList"></div>
+      </div>
+
+      <div id="cSummary" class="collect-summary" style="display:none">
+        <div class="cs-row">
+          <span>เลือกแล้ว:</span>
+          <strong id="cSelectedCount">0</strong> เอกสาร
+        </div>
+        <div class="cs-row total">
+          <span>ยอดรวม:</span>
+          <strong id="cTotalAmount">0.00</strong> บาท
+        </div>
+        <button class="btn gold btn-big" id="cBtnQR" onclick="generateCollectQR()">
+          📱 สร้าง QR เก็บเงิน
+        </button>
+      </div>
+
+      <div id="cEmpty" class="collect-empty">
+        <div class="icon">🛒</div>
+        <p>เลือกลูกหนี้จากดรอปดาวน์ด้านบนเพื่อดูยอดค้าง</p>
+      </div>
+    </div>
+  </div><!-- /tabCollect -->
+
+</div>
+
+<!-- QR Modal -->
+<div id="qrModal" class="modal-overlay" onclick="closeQR(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeQR()">&times;</button>
+    <div class="qr-bank-badge" id="qrBankBadge">TTB</div>
+    <h3 id="qrTitle">QR ชำระเงิน</h3>
+    <div class="qr-amount" id="qrAmount">0.00 บาท</div>
+    <div id="qrSubtitle" class="qr-subtitle"></div>
+    <div class="qr-canvas" id="qrCanvas"></div>
+    <div class="qr-account-info">
+      <div class="ai-row"><span>ธนาคาร</span><strong id="qrAcctBank">TTB</strong></div>
+      <div class="ai-row"><span>เลขบัญชี</span><strong id="qrAcctNo">447-2-63710-9</strong>
+        <button class="btn-mini" onclick="copyText('4472637109','คัดลอกเลขบัญชี')">📋</button>
+      </div>
+      <div class="ai-row"><span>ชื่อบัญชี</span><strong>รัตน</strong></div>
+      <div class="ai-row"><span>ยอดเงิน</span><strong id="qrAcctAmt">0.00</strong>
+        <button class="btn-mini" onclick="copyText(qrCurrentAmount,'คัดลอกยอด')">📋</button>
+      </div>
+    </div>
+    <div id="qrDetailWrap" class="qr-details" style="display:none">
+      <div class="qd-toggle" onclick="toggleQrDetails()">▼ ดูรายละเอียดบิล (<span id="qrDetailCount">0</span>)</div>
+      <div id="qrDetails" class="qd-list" style="display:none"></div>
+    </div>
+    <div class="qr-actions">
+      <button class="btn gold" onclick="shareQR()">📤 แชร์ QR</button>
+      <button class="btn outline" onclick="downloadQR()">💾 บันทึกรูป</button>
+    </div>
+    <p class="qr-note">สแกน QR ด้วยแอปธนาคารของคุณ</p>
+  </div>
 </div>
 
 <button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">▲</button>
@@ -758,6 +946,14 @@ function bindFilters(){
   document.querySelectorAll('.ctab').forEach(b => {
     b.addEventListener('click', () => setChartMode(b.dataset.cmode));
   });
+  // Main tab nav
+  document.querySelectorAll('.tnav').forEach(b => {
+    b.addEventListener('click', () => switchTab(b.dataset.tab));
+  });
+  // Collect tab controls
+  $('cCustomer').addEventListener('change', onCustomerChange);
+  $('cSearch').addEventListener('input', applyCollectFilter);
+  $('cSelectAll').addEventListener('change', e => toggleAllBills(e.target.checked));
 }
 
 function resetFilters(){
@@ -1021,7 +1217,7 @@ function agingBadge(overdue){
 function renderTable(){
   const tbody = $('tbody');
   if (!viewRows.length){
-    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="icon">📋</div><div class="msg">ไม่พบข้อมูลตามเงื่อนไขที่กำหนด</div></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="11"><div class="empty-state"><div class="icon">📋</div><div class="msg">ไม่พบข้อมูลตามเงื่อนไขที่กำหนด</div></div></td></tr>`;
     $('resultCount').innerHTML = `<strong>0</strong> รายการ`;
     return;
   }
@@ -1033,7 +1229,9 @@ function renderTable(){
   const slice = viewRows.slice(start, end);
 
   // Build HTML in batch (faster than appendChild loop)
-  const html = slice.map(r => `
+  const html = slice.map((r, i) => {
+    const idx = start + i;
+    return `
     <tr>
       <td>${escapeHtml(r.warehouse)}</td>
       <td>${escapeHtml(r.salesName)}</td>
@@ -1045,8 +1243,10 @@ function renderTable(){
       <td class="num" style="text-align:center">${r.aging}</td>
       <td class="num" style="text-align:center">${r.credit}</td>
       <td class="aging">${agingBadge(r.overdue)}</td>
+      <td style="text-align:center">${r.amount > 0 ? `<button class="qr-btn" onclick="showQRForBill(${idx})" title="สร้าง QR เก็บเงิน">📱</button>` : ''}</td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
   tbody.innerHTML = html;
 
   $('resultCount').innerHTML = `แสดง <strong>${start+1}-${end}</strong> จาก <strong>${fmtInt(viewRows.length)}</strong> รายการ`;
@@ -1250,6 +1450,391 @@ function updateLastUpdate(){
     const fresh = (Date.now() - cached.ts) < CONFIG.cacheTTL ? '✓' : '⌛';
     $('lastUpdate').textContent = `อัพเดทล่าสุด: ${d.toLocaleString('th-TH')} ${fresh}`;
   }
+}
+
+/* ========================
+   TABS
+   ======================== */
+function switchTab(tab){
+  document.querySelectorAll('.tnav').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  $('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+  if (tab === 'collect') initCollectTab();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ========================
+   PROMPTPAY QR (EMVCo TLV)
+   ======================== */
+const RATTANA_RECEIVER = {
+  bank: 'TTB',
+  accountNo: '4472637109',
+  accountDisplay: '447-2-63710-9',
+  name: 'รัตน',
+  promptPayType: 'tax',          // tax = นิติบุคคล
+  promptPayId: '0755555000158',
+};
+
+function genPromptPayPayload(type, pid, amount){
+  let id = (pid||'').replace(/\D/g,'');
+  if (type === 'phone'){
+    if (id.startsWith('0')) id = '66' + id.substring(1);
+    id = ('0000000000000' + id).slice(-13);
+  }
+  const tlv = (t,v) => t + String(v.length).padStart(2,'0') + v;
+  let p = '';
+  p += tlv('00','01');
+  p += tlv('01', amount ? '12' : '11');
+  let m = tlv('00','A000000677010111') + tlv(type === 'phone' ? '01' : '02', id);
+  p += tlv('29', m);
+  p += tlv('53','764');
+  if (amount) p += tlv('54', parseFloat(amount).toFixed(2));
+  p += tlv('58','TH');
+  p += '6304';
+  return p + crc16(p);
+}
+
+function crc16(s){
+  let crc = 0xFFFF;
+  for (let i = 0; i < s.length; i++){
+    crc ^= s.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++){
+      crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) : (crc << 1);
+      crc &= 0xFFFF;
+    }
+  }
+  return crc.toString(16).toUpperCase().padStart(4,'0');
+}
+
+let qrCurrentAmount = '0.00';
+let qrCurrentBills = [];
+
+function showQRForBill(idx){
+  const r = viewRows[idx];
+  if (!r) return;
+  openQR({
+    title: `QR ชำระเงิน - ${r.custName}`,
+    subtitle: `${r.docNo} · ${r.docDate}`,
+    amount: r.amount,
+    bills: [r],
+  });
+}
+
+function openQR({title, subtitle, amount, bills}){
+  if (typeof qrcode === 'undefined'){
+    showToast('QR library ยังโหลดไม่เสร็จ ลองอีกครั้งใน 1 วินาที','warning');
+    return;
+  }
+  if (!amount || amount <= 0){
+    showToast('ยอดเงินไม่ถูกต้อง','error');
+    return;
+  }
+
+  qrCurrentAmount = amount.toFixed(2);
+  qrCurrentBills = bills || [];
+
+  $('qrTitle').textContent = title;
+  $('qrSubtitle').textContent = subtitle || '';
+  $('qrAmount').textContent = fmtBaht(amount) + ' บาท';
+  $('qrAcctBank').textContent = RATTANA_RECEIVER.bank;
+  $('qrAcctNo').textContent = RATTANA_RECEIVER.accountDisplay;
+  $('qrAcctAmt').textContent = fmtBaht(amount);
+  $('qrBankBadge').textContent = RATTANA_RECEIVER.bank;
+
+  // Generate QR
+  const payload = genPromptPayPayload(RATTANA_RECEIVER.promptPayType, RATTANA_RECEIVER.promptPayId, amount);
+  const qr = qrcode(0, 'M');
+  qr.addData(payload);
+  qr.make();
+  $('qrCanvas').innerHTML = qr.createImgTag(6, 8);
+
+  // Bill details (if multiple)
+  if (bills && bills.length > 1){
+    $('qrDetailWrap').style.display = 'block';
+    $('qrDetailCount').textContent = bills.length;
+    $('qrDetails').innerHTML = bills.map(b => `
+      <div class="qd-item">
+        <span class="doc">${escapeHtml(b.docNo)} · ${escapeHtml(b.docDate)}</span>
+        <span class="amt ${b.amount < 0 ? 'cn' : ''}">${fmtBaht(b.amount)}</span>
+      </div>
+    `).join('');
+  } else {
+    $('qrDetailWrap').style.display = 'none';
+  }
+
+  $('qrModal').classList.add('show');
+}
+
+function closeQR(e){
+  if (e && e.type === 'click' && e.target.id !== 'qrModal') return;
+  $('qrModal').classList.remove('show');
+}
+
+function toggleQrDetails(){
+  const list = $('qrDetails');
+  const toggle = document.querySelector('.qd-toggle');
+  if (list.style.display === 'none'){
+    list.style.display = 'block';
+    toggle.innerHTML = toggle.innerHTML.replace('▼', '▲');
+  } else {
+    list.style.display = 'none';
+    toggle.innerHTML = toggle.innerHTML.replace('▲', '▼');
+  }
+}
+
+function copyText(text, msg){
+  navigator.clipboard.writeText(text).then(() => {
+    showToast(msg || 'คัดลอกแล้ว', 'success');
+  }).catch(() => {
+    showToast('คัดลอกล้มเหลว', 'error');
+  });
+}
+
+async function getQRBlob(){
+  const img = $('qrCanvas').querySelector('img');
+  if (!img) return null;
+  // Render to canvas with caption
+  const canvas = document.createElement('canvas');
+  const W = 600, H = 780;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0,0,W,H);
+
+  // Header
+  ctx.fillStyle = '#0d1b3e';
+  ctx.fillRect(0,0,W,80);
+  ctx.fillStyle = '#c9a84c';
+  ctx.fillRect(0,77,W,3);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 24px Sarabun, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('RATTANA - QR ชำระเงิน', W/2, 50);
+
+  // Wait for QR img to be ready
+  await new Promise(res => {
+    if (img.complete) res();
+    else img.onload = res;
+  });
+  const qrSize = 380;
+  ctx.drawImage(img, (W - qrSize)/2, 110, qrSize, qrSize);
+
+  // Amount
+  ctx.fillStyle = '#c9a84c';
+  ctx.font = 'bold 36px Sarabun, sans-serif';
+  ctx.fillText(fmtBaht(parseFloat(qrCurrentAmount)) + ' บาท', W/2, 540);
+
+  // Account info
+  ctx.fillStyle = '#0d1b3e';
+  ctx.font = '16px Sarabun, sans-serif';
+  ctx.fillText(`ธนาคาร ${RATTANA_RECEIVER.bank}  เลขบัญชี ${RATTANA_RECEIVER.accountDisplay}`, W/2, 590);
+  ctx.fillText(`ชื่อบัญชี ${RATTANA_RECEIVER.name}`, W/2, 615);
+
+  ctx.fillStyle = '#6b7896';
+  ctx.font = '13px Sarabun, sans-serif';
+  ctx.fillText('สแกน QR ด้วยแอปธนาคารของคุณ', W/2, 660);
+  ctx.font = '12px Sarabun, sans-serif';
+  ctx.fillText(new Date().toLocaleString('th-TH'), W/2, 685);
+
+  return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+}
+
+async function shareQR(){
+  try {
+    const blob = await getQRBlob();
+    if (!blob){ showToast('สร้างรูปไม่ได้','error'); return; }
+    const file = new File([blob], `rattana-qr-${Date.now()}.png`, {type:'image/png'});
+    if (navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({
+        files:[file],
+        title:'QR ชำระเงิน Rattana',
+        text:`ยอดชำระ ${fmtBaht(parseFloat(qrCurrentAmount))} บาท\nธนาคาร ${RATTANA_RECEIVER.bank} ${RATTANA_RECEIVER.accountDisplay}\nชื่อบัญชี ${RATTANA_RECEIVER.name}`,
+      });
+      showToast('แชร์เรียบร้อย','success');
+    } else {
+      // Fallback: download
+      downloadBlob(blob, `rattana-qr-${Date.now()}.png`);
+      showToast('บันทึกรูปแล้ว — แนบส่งใน LINE/Messenger ได้','info');
+    }
+  } catch (e){
+    if (e.name !== 'AbortError'){
+      console.error(e);
+      showToast('แชร์ล้มเหลว: ' + e.message, 'error');
+    }
+  }
+}
+
+async function downloadQR(){
+  const blob = await getQRBlob();
+  if (!blob){ showToast('บันทึกไม่ได้','error'); return; }
+  downloadBlob(blob, `rattana-qr-${Date.now()}.png`);
+  showToast('บันทึกแล้ว','success');
+}
+
+function downloadBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+}
+
+/* ========================
+   COLLECT TAB (รวมยอด + QR)
+   ======================== */
+let collectSelectedCust = null;
+let collectBills = [];
+let collectSelected = new Set();
+
+function initCollectTab(){
+  // Populate dropdown with unique customers from allRows (already role-filtered)
+  const sel = $('cCustomer');
+  const map = new Map();
+  allRows.forEach(r => {
+    if (!r.custCode || r.amount === 0) return;
+    const key = r.custCode;
+    if (!map.has(key)){
+      map.set(key, { code: r.custCode, name: r.custName, total: 0, count: 0 });
+    }
+    const c = map.get(key);
+    c.total += r.amount;
+    c.count++;
+  });
+  const list = [...map.values()].sort((a,b) => b.total - a.total);
+  const prevVal = sel.value;
+  sel.innerHTML = '<option value="">— เลือกร้านค้า —</option>' +
+    list.map(c => `<option value="${escapeAttr(c.code)}">${escapeHtml(c.name)} (${escapeHtml(c.code)}) · ${fmtBaht(c.total)} บาท · ${c.count} บิล</option>`).join('');
+  sel.value = prevVal;
+
+  // Apply filter from search
+  applyCollectFilter();
+}
+
+function applyCollectFilter(){
+  const q = $('cSearch').value.trim().toLowerCase();
+  const sel = $('cCustomer');
+  if (!q){
+    [...sel.options].forEach(opt => opt.hidden = false);
+    return;
+  }
+  [...sel.options].forEach(opt => {
+    opt.hidden = opt.value && !opt.text.toLowerCase().includes(q);
+  });
+}
+
+function onCustomerChange(){
+  const code = $('cCustomer').value;
+  if (!code){
+    collectSelectedCust = null;
+    collectBills = [];
+    $('cCustomerInfo').style.display = 'none';
+    $('cBillsWrap').style.display = 'none';
+    $('cSummary').style.display = 'none';
+    $('cEmpty').style.display = 'block';
+    return;
+  }
+  $('cEmpty').style.display = 'none';
+
+  // Collect ALL bills for this customer (positive = หนี้, negative = CN)
+  const bills = allRows.filter(r => r.custCode === code).sort((a,b) => {
+    // Sort: หนี้ก่อน (descending), แล้ว CN
+    if (a.amount > 0 && b.amount < 0) return -1;
+    if (a.amount < 0 && b.amount > 0) return 1;
+    return b.aging - a.aging;
+  });
+
+  if (!bills.length){
+    showToast('ไม่พบบิลของลูกหนี้รายนี้','warning');
+    return;
+  }
+
+  collectSelectedCust = bills[0];
+  collectBills = bills;
+  collectSelected = new Set(bills.map((_, i) => i)); // select all by default
+
+  // Customer info card
+  const totalDebt = bills.filter(b => b.amount > 0).reduce((s, b) => s + b.amount, 0);
+  const totalCN = bills.filter(b => b.amount < 0).reduce((s, b) => s + b.amount, 0);
+  const overdueCount = bills.filter(b => b.overdue > 0).length;
+  $('cCustomerInfo').style.display = 'block';
+  $('cCustomerInfo').innerHTML = `
+    <div class="ci-row"><span class="ci-label">ลูกหนี้:</span><span class="ci-val">${escapeHtml(collectSelectedCust.custName)} (${escapeHtml(collectSelectedCust.custCode)})</span></div>
+    <div class="ci-row"><span class="ci-label">พนักงานขาย:</span><span class="ci-val">${escapeHtml(collectSelectedCust.salesName || '-')}</span></div>
+    <div class="ci-row"><span class="ci-label">คลัง:</span><span class="ci-val">${escapeHtml(collectSelectedCust.warehouse || '-')}</span></div>
+    <div class="ci-row"><span class="ci-label">ยอดหนี้รวม:</span><span class="ci-val">${fmtBaht(totalDebt)} บาท (${bills.filter(b=>b.amount>0).length} บิล)</span></div>
+    ${totalCN < 0 ? `<div class="ci-row"><span class="ci-label">CN:</span><span class="ci-val" style="color:var(--success)">${fmtBaht(totalCN)} บาท (${bills.filter(b=>b.amount<0).length} ใบ)</span></div>` : ''}
+    ${overdueCount > 0 ? `<div class="ci-row"><span class="ci-label">เกินเครดิต:</span><span class="ci-val" style="color:var(--danger)">${overdueCount} เอกสาร</span></div>` : ''}
+  `;
+
+  renderCollectBills();
+  $('cBillsWrap').style.display = 'block';
+  $('cSummary').style.display = 'block';
+  updateCollectSummary();
+}
+
+function renderCollectBills(){
+  $('cBillsCount').textContent = `${collectBills.length} เอกสาร`;
+  $('cBillsList').innerHTML = collectBills.map((b, i) => {
+    const isCN = b.amount < 0;
+    const checked = collectSelected.has(i);
+    const overdueLabel = b.overdue > 0
+      ? `<span class="b-status badge-w3" style="background:#ffd5d0;color:#c0392b">เกิน ${b.overdue} วัน</span>`
+      : (b.amount < 0 ? `<span class="b-status" style="background:#e8f7ee;color:#1e8449">CN</span>` : '');
+    return `
+      <label class="bill-row" onclick="event.stopPropagation()">
+        <input type="checkbox" data-idx="${i}" ${checked ? 'checked' : ''} onchange="toggleBill(${i}, this.checked)">
+        <div class="b-info">
+          <div class="b-doc">${escapeHtml(b.docNo)}</div>
+          <div class="b-meta">${escapeHtml(b.docDate)} · อายุ ${b.aging} วัน · เครดิต ${b.credit} วัน ${overdueLabel}</div>
+        </div>
+        <div class="b-amt ${isCN ? 'cn' : ''}">${fmtBaht(b.amount)}</div>
+      </label>
+    `;
+  }).join('');
+}
+
+function toggleBill(idx, checked){
+  if (checked) collectSelected.add(idx);
+  else collectSelected.delete(idx);
+  updateCollectSummary();
+}
+
+function toggleAllBills(checked){
+  collectSelected.clear();
+  if (checked) collectBills.forEach((_, i) => collectSelected.add(i));
+  document.querySelectorAll('#cBillsList input[type="checkbox"]').forEach(cb => cb.checked = checked);
+  updateCollectSummary();
+}
+
+function updateCollectSummary(){
+  const sel = [...collectSelected].map(i => collectBills[i]).filter(Boolean);
+  const total = sel.reduce((s, b) => s + b.amount, 0);
+  $('cSelectedCount').textContent = sel.length;
+  $('cTotalAmount').textContent = fmtBaht(total);
+  $('cBtnQR').disabled = total <= 0;
+  if (total <= 0 && sel.length > 0){
+    $('cBtnQR').textContent = '⚠️ ยอดต่ำกว่าศูนย์ - เลือก CN มากกว่าหนี้';
+  } else {
+    $('cBtnQR').innerHTML = '📱 สร้าง QR เก็บเงิน';
+  }
+  // Sync select-all checkbox
+  $('cSelectAll').checked = sel.length === collectBills.length;
+  $('cSelectAll').indeterminate = sel.length > 0 && sel.length < collectBills.length;
+}
+
+function generateCollectQR(){
+  const sel = [...collectSelected].map(i => collectBills[i]).filter(Boolean);
+  const total = sel.reduce((s, b) => s + b.amount, 0);
+  if (total <= 0){
+    showToast('ยอดต้องมากกว่า 0','warning');
+    return;
+  }
+  openQR({
+    title: `QR เก็บเงิน - ${collectSelectedCust.custName}`,
+    subtitle: `รวม ${sel.length} เอกสาร · ${collectSelectedCust.custCode}`,
+    amount: total,
+    bills: sel,
+  });
 }
 
 /* ========================
