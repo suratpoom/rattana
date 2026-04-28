@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <!--
-  Rattana Dispatch v1.0 — 2026-04-28
+  Rattana Dispatch v1.1 — 2026-04-28
   แอปจัดคิวส่งสินค้า รัตนไพบูลย์
   - เลือกบิล → จับกับรถ → ตรวจน้ำหนักไม่ให้เกิน
   - Dashboard สรุป
+  - v1.1: รถที่จัดแล้วขึ้นบน, dropdown ในตาราง, จัดอัตโนมัติแบบเก็บกลุ่มสายส่ง,
+          แก้ชื่อชีทน้ำหนัก default = "สินค้า", เพิ่มยอดหนี้ค้างจาก SQL Data sheet
   Single-file HTML. ไม่ต้อง build, เปิดในเบราว์เซอร์ได้เลย
 -->
 <html lang="th">
@@ -11,7 +13,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Dispatch v1.0</title>
+<title>Rattana Dispatch v1.1</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -169,7 +171,8 @@ body.dark .col-title{color:var(--gold-light)}
   padding:10px 12px;display:flex;flex-direction:column;gap:6px;
   transition:border-color .15s,box-shadow .15s;
 }
-.bill.assigned{border-left:3px solid var(--success);opacity:.85}
+.bill.assigned{border-left:3px solid var(--success);background:linear-gradient(to right, rgba(46,204,113,.06), var(--card-bg) 30%)}
+body.dark .bill.assigned{background:linear-gradient(to right, rgba(46,204,113,.12), var(--card-bg) 30%)}
 .bill.warning{border-left:3px solid var(--warning)}
 .bill:hover{border-color:var(--gold)}
 .bill-row1{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -191,6 +194,16 @@ body.dark .tag.weight{background:#0e2e1a;color:#7dd99f;border-color:#2a6638}
 .tag.amount{background:#fef0f0;color:#a52323;border-color:#f5b8b8}
 body.dark .tag.amount{background:#3a1010;color:#ff9090;border-color:#6a2a2a}
 .tag.missing{background:#fef0d4;color:#a86a00;border-color:#f5d090}
+.tag.assigned-plate{background:var(--gold);color:var(--navy);border-color:var(--gold-dim);font-weight:700}
+.tag.debt{font-weight:700}
+.tag.debt.debt-ok{background:#e9f7ef;color:#1f8a4a;border-color:#b4e2c5}
+body.dark .tag.debt.debt-ok{background:#0e2e1a;color:#7dd99f;border-color:#2a6638}
+.tag.debt.debt-warn{background:#fff4d6;color:#a06800;border-color:#ffd886}
+body.dark .tag.debt.debt-warn{background:#3a2a08;color:#ffc874;border-color:#6a4c1a}
+.tag.debt.debt-bad{background:#ffe1e1;color:#a51515;border-color:#ffb3b3}
+body.dark .tag.debt.debt-bad{background:#3a1010;color:#ff9090;border-color:#6a2a2a}
+.bill.debt-bad{border-left:3px solid var(--danger) !important}
+.bill.debt-warn{border-left:3px solid var(--warning) !important}
 
 .bill-row2{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-mute);flex-wrap:wrap}
 .bill-assign{
@@ -263,6 +276,12 @@ th{background:var(--navy);color:#fff;font-weight:600;font-size:12px;position:sti
 tr:hover td{background:var(--off-white)}
 body.dark tr:hover td{background:var(--navy)}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.tbl-assign{
+  background:var(--bg);border:1px solid var(--border);border-radius:6px;
+  padding:4px 8px;font-size:12px;color:var(--text);min-height:30px;
+  max-width:240px;font-family:inherit;
+}
+.tbl-assign:focus{outline:2px solid var(--gold);border-color:var(--gold)}
 
 /* ===== Spinner ===== */
 #spinner{
@@ -358,7 +377,7 @@ hr{border:0;border-top:1px solid var(--border);margin:14px 0}
     </div>
     <div class="app-title">
       <h1>Rattana Dispatch</h1>
-      <div class="ver">v1.0 · จัดคิวส่งสินค้า</div>
+      <div class="ver">v1.1 · จัดคิวส่งสินค้า</div>
     </div>
     <div class="header-btns">
       <button class="icon-btn" id="btnRefresh" onclick="refreshData()" title="โหลดข้อมูลใหม่">&#x1F504;</button>
@@ -396,6 +415,11 @@ hr{border:0;border-top:1px solid var(--border);margin:14px 0}
     <div class="card">
       <div class="card-title">📦 บิลตามสถานะ <span class="card-meta" id="statusMeta"></span></div>
       <div id="statusBars"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">💰 ยอดหนี้ค้าง <span class="card-meta" id="debtMeta"></span></div>
+      <div id="debtPanel"></div>
     </div>
 
     <div class="card">
@@ -447,8 +471,10 @@ hr{border:0;border-top:1px solid var(--border);margin:14px 0}
       <table id="billsTable">
         <thead><tr>
           <th>วันที่</th><th>เลขที่บิล</th><th>ร้านค้า</th><th>สายส่ง</th>
-          <th class="num">จำนวนรายการ</th><th class="num">น้ำหนัก (กก.)</th>
-          <th class="num">ยอด (฿)</th><th>รถที่จัด</th>
+          <th class="num">รายการ</th><th class="num">น้ำหนัก</th>
+          <th class="num">ยอด (฿)</th>
+          <th class="num">ยอดหนี้</th><th>ธง</th>
+          <th>รถที่จัด</th>
         </tr></thead>
         <tbody></tbody>
       </table>
@@ -486,7 +512,13 @@ hr{border:0;border-top:1px solid var(--border);margin:14px 0}
       <div class="cfg-row"><label>ชื่อชีท รูท</label><input type="text" id="cfgRoutes"></div>
       <div class="cfg-row"><label>ชื่อชีท ข้อมูลรถ</label><input type="text" id="cfgVehicles"></div>
       <div class="cfg-row"><label>ชื่อชีท ตัวเลือกสายส่ง</label><input type="text" id="cfgRouteOpts"></div>
-      <div class="cfg-row"><label>ชื่อชีท น้ำหนักสินค้า</label><input type="text" id="cfgWeights"></div>
+      <div class="cfg-row"><label>ชื่อชีท สินค้า/น้ำหนัก</label><input type="text" id="cfgWeights"></div>
+      <hr style="grid-column:1/-1;margin:8px 0">
+      <div class="cfg-row"><label>เปิดใช้ ยอดหนี้ค้าง</label>
+        <label style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="cfgDebtEnabled" style="width:auto"> ดึงข้อมูลหนี้ค้างมาแสดงด้วย</label>
+      </div>
+      <div class="cfg-row"><label>Sheet ID (ยอดหนี้)</label><input type="text" id="cfgDebtSheetId"></div>
+      <div class="cfg-row"><label>ชื่อชีท (ยอดหนี้)</label><input type="text" id="cfgDebtSheetName"></div>
       <div style="display:flex;gap:8px;margin-top:14px">
         <button class="btn btn-primary" onclick="saveConfig()">💾 บันทึก + โหลดใหม่</button>
         <button class="btn btn-ghost" onclick="resetConfig()">↺ คืนค่าเริ่มต้น</button>
@@ -528,7 +560,13 @@ const DEFAULT_CONFIG = {
     routes:    'รูท',
     vehicles:  'ข้อมูลรถ',
     routeOpts: 'ตัวเลือกสายส่ง',
-    weights:   'น้ำหนักสินค้า',
+    weights:   'สินค้า',
+  },
+  // ยอดหนี้ค้าง — ดึงจาก spreadsheet อื่น
+  debt: {
+    sheetId:   '1LqTqZg1z3e6FtPBbhZsKZd60DL6tZmCi78QQT1MoPq4',
+    sheetName: 'SQL Data',
+    enabled:   true,
   },
 };
 
@@ -548,6 +586,8 @@ let state = {
   weights: {},      // SKU_NAME → kg per EA
   drivers: [],      // unique driver names
   bills: [],        // aggregated bills
+  debts: [],        // raw debt rows from SQL Data
+  shopDebts: {},    // aggregated by shop name (lowercase) → {totalDebt, maxDays, worstFlag, count, items}
   // user state (persisted)
   assignments: {},  // { billRef: licensePlate }
   driverOverrides: {}, // { licensePlate: driverName }
@@ -657,13 +697,18 @@ async function loadAll(){
       fetchSheet(cfg.sheetId, cfg.sheets.vehicles),
       fetchSheet(cfg.sheetId, cfg.sheets.routeOpts),
       fetchSheet(cfg.sheetId, cfg.sheets.weights),
+      cfg.debt && cfg.debt.enabled
+        ? fetchSheet(cfg.debt.sheetId, cfg.debt.sheetName)
+        : Promise.resolve([]),
     ]);
-    const [oR, rR, vR, oprR, wR] = tasks;
+    const [oR, rR, vR, oprR, wR, dR] = tasks;
     if(oR.status==='fulfilled') state.orders = oR.value; else errors.push('Order: '+oR.reason.message);
     if(rR.status==='fulfilled') state.routes = rR.value; else errors.push('รูท: '+rR.reason.message);
     if(vR.status==='fulfilled') state.vehicles = parseVehicles(vR.value); else errors.push('ข้อมูลรถ: '+vR.reason.message);
     if(oprR.status==='fulfilled') state.routeOpts = oprR.value.map(r=>r['สายส่ง']||r[Object.keys(r)[0]]).filter(Boolean); else errors.push('ตัวเลือกสายส่ง: '+oprR.reason.message);
-    if(wR.status==='fulfilled') state.weights = parseWeights(wR.value); else errors.push('น้ำหนักสินค้า: '+wR.reason.message);
+    if(wR.status==='fulfilled') state.weights = parseWeights(wR.value); else errors.push('สินค้า/น้ำหนัก: '+wR.reason.message);
+    if(dR.status==='fulfilled'){ state.debts = dR.value; aggregateDebts(); }
+    else errors.push('ยอดหนี้ (SQL Data): '+dR.reason.message);
 
     aggregateBills();
     extractDrivers();
@@ -806,12 +851,78 @@ function aggregateBills(){
     if(!hasW) bill.missingWeightItems++;
   }
   state.bills = Array.from(map.values()).sort((a,b)=>a.ref.localeCompare(b.ref));
+  // Attach debt info to each bill (for fast access in render)
+  for(const b of state.bills){
+    b.debt = getDebtForShop(b.shopName);
+  }
 }
 
 function extractDrivers(){
   const set = new Set();
   for(const v of state.vehicles){ if(v.driver) set.add(v.driver); }
   state.drivers = Array.from(set).sort();
+}
+
+/* =====================================================================
+   AGGREGATE DEBTS — match shops by name
+   ===================================================================== */
+// ระดับธง: ดำ > แดง > เหลือง > เคย > ปกติ
+const FLAG_LEVELS = { 'black':4, 'red':3, 'yellow':2, 'past':1, 'none':0 };
+function classifyFlag(flagStr){
+  const s = (flagStr||'').toLowerCase();
+  if(s.includes('ดำ') || s.includes('black') || s.includes('ครั้งที่ 3')) return 'black';
+  if(s.includes('แดง') || s.includes('red')   || s.includes('ครั้งที่ 2')) return 'red';
+  if(s.includes('เหลือง') || s.includes('yellow') || s.includes('ครั้งที่ 1')) return 'yellow';
+  if(s.includes('เคย') || s.includes('past')) return 'past';
+  return 'none';
+}
+function flagDisplay(level){
+  return ({black:'🏴 ธงดำ', red:'🚩 ธงแดง', yellow:'🟡 ธงเหลือง', past:'⚠ เคยติดธง', none:''})[level] || '';
+}
+function flagColor(level){
+  return ({black:'#1a1a1a', red:'var(--danger)', yellow:'#d4a017', past:'var(--warning)', none:''})[level];
+}
+
+function normalizeShopName(s){
+  return String(s||'').trim().toLowerCase()
+    .replace(/\s+/g,' ')
+    .replace(/[()（）]/g,'')
+    .replace(/[\.\-_]/g,'');
+}
+
+function aggregateDebts(){
+  const map = {};
+  for(const r of state.debts){
+    const name = (r['ชื่อลูกหนี้']||'').trim();
+    if(!name) continue;
+    const debt = parseFloat(String(r['ยอดหนี้']||'0').replace(/[, ]/g,''))||0;
+    const days = parseInt(String(r['อายุหนี้']||'0').replace(/[, ]/g,''))||0;
+    const flag = classifyFlag(r['ธง']||'');
+    const limit = parseFloat(String(r['วงเงิน']||'0').replace(/[, ]/g,''))||0;
+    const note  = (r['หมายเหตุ']||'').trim();
+    const key = normalizeShopName(name);
+    if(!map[key]){
+      map[key] = {
+        name, totalDebt:0, maxDays:0, worstFlag:'none',
+        creditLimit:0, count:0, notes: new Set(), items:[],
+      };
+    }
+    const d = map[key];
+    d.totalDebt += debt;
+    if(days > d.maxDays) d.maxDays = days;
+    if(FLAG_LEVELS[flag] > FLAG_LEVELS[d.worstFlag]) d.worstFlag = flag;
+    if(limit > d.creditLimit) d.creditLimit = limit;
+    if(note && d.notes.size < 3) d.notes.add(note);
+    d.count++;
+    d.items.push({date:r['วันที่เอกสาร'], doc:r['เลขที่เอกสาร'], debt, days, flag, note});
+  }
+  // notes: Set → Array
+  for(const k in map){ map[k].notes = Array.from(map[k].notes); }
+  state.shopDebts = map;
+}
+
+function getDebtForShop(shopName){
+  return state.shopDebts[normalizeShopName(shopName)] || null;
 }
 
 /* =====================================================================
@@ -913,46 +1024,90 @@ function clearLocalState(){
 }
 
 /* =====================================================================
-   AUTO-ASSIGN — group bills by route, fill smallest fitting vehicle first
+   AUTO-ASSIGN — เก็บกลุ่มสายส่งให้อยู่รถเดียวกัน ถ้าเป็นไปได้
    ===================================================================== */
 function autoAssign(){
-  if(!confirm('จัดอัตโนมัติ: จะจับบิลที่ "ยังไม่จัด" เข้ารถตามสายส่งและน้ำหนัก รถที่จัดไว้แล้วจะไม่ถูกแตะ\nดำเนินการ?')) return;
-  const bills = filteredBills().filter(b=>!state.assignments[b.ref]);
-  // Calculate current usage per vehicle
+  if(!confirm('จัดอัตโนมัติ:\n• พยายามให้บิลในสายส่งเดียวกันอยู่รถคันเดียว\n• เลือกรถที่เล็กที่สุดที่บรรทุกได้\n• บิลที่จัดไว้แล้วจะไม่ถูกเปลี่ยน\nดำเนินการ?')) return;
+
+  const allBills = filteredBills();
+  // Calculate current usage from already-assigned bills
   const usage = {};
-  for(const v of state.vehicles) usage[v.plate]={cap:v.capacity, used:0};
+  for(const v of state.vehicles) usage[v.plate] = { v, used:0 };
   for(const ref in state.assignments){
     const bill = state.bills.find(b=>b.ref===ref);
     const u = usage[state.assignments[ref]];
     if(bill && u) u.used += bill.totalKg;
   }
-  // Group bills by route
-  const byRoute = {};
-  for(const b of bills){
+
+  // Take only unassigned bills
+  const unassigned = allBills.filter(b=>!state.assignments[b.ref]);
+  // Group by deliveryRoute (สายส่ง)
+  const groups = {};
+  for(const b of unassigned){
     const k = b.deliveryRoute || '__NO_ROUTE__';
-    (byRoute[k] = byRoute[k] || []).push(b);
+    (groups[k] = groups[k] || []).push(b);
   }
-  // For each route, fill vehicles
-  let assigned = 0;
-  const vehicles = filteredVehicles().slice().sort((a,b)=>a.capacity-b.capacity); // smallest first
-  for(const route in byRoute){
-    const routeBills = byRoute[route].slice().sort((a,b)=>b.totalKg-a.totalKg); // heaviest first
-    for(const bill of routeBills){
-      // Find vehicle with enough remaining capacity
-      const v = vehicles.find(x=>{
-        const remain = (usage[x.plate].cap - usage[x.plate].used);
-        return remain >= bill.totalKg;
-      });
-      if(v){
-        state.assignments[bill.ref] = v.plate;
-        usage[v.plate].used += bill.totalKg;
+  // Sort groups by total weight descending (biggest groups first)
+  const groupKeys = Object.keys(groups).sort((a,b)=>{
+    const wa = groups[a].reduce((s,x)=>s+x.totalKg, 0);
+    const wb = groups[b].reduce((s,x)=>s+x.totalKg, 0);
+    return wb - wa;
+  });
+  // Sort bills within each group by deliverySeq ascending (so they ride together in order)
+  for(const k of groupKeys){
+    groups[k].sort((a,b)=>{
+      const aa = parseFloat(a.deliverySeq)||9999;
+      const bb = parseFloat(b.deliverySeq)||9999;
+      return aa-bb;
+    });
+  }
+
+  const vehicles = filteredVehicles();
+  let assigned = 0, splitGroups = 0, skipped = 0;
+
+  for(const k of groupKeys){
+    const bills = groups[k];
+    const groupTotalKg = bills.reduce((s,b)=>s+b.totalKg, 0);
+    // Find vehicles that can fit the entire group, smallest remaining first
+    const candidates = vehicles
+      .map(v=>({ v, remain: v.capacity - usage[v.plate].used }))
+      .filter(x => x.remain >= groupTotalKg)
+      .sort((a,b)=> a.remain - b.remain); // tightest fit wins
+
+    if(candidates.length > 0){
+      // Whole group → one truck
+      const v = candidates[0].v;
+      for(const b of bills){
+        state.assignments[b.ref] = v.plate;
+        usage[v.plate].used += b.totalKg;
         assigned++;
+      }
+    } else {
+      // Group too big — split heaviest bills first into vehicles with most remaining
+      splitGroups++;
+      const heavyFirst = bills.slice().sort((a,b)=>b.totalKg-a.totalKg);
+      for(const bill of heavyFirst){
+        const v = vehicles
+          .map(x=>({ x, remain: x.capacity - usage[x.plate].used }))
+          .filter(c => c.remain >= bill.totalKg)
+          .sort((a,b)=> a.remain - b.remain)[0];
+        if(v){
+          state.assignments[bill.ref] = v.x.plate;
+          usage[v.x.plate].used += bill.totalKg;
+          assigned++;
+        } else {
+          skipped++;
+        }
       }
     }
   }
+
   saveAssignmentsToLS();
   renderAll();
-  toast(`จัดอัตโนมัติ ${assigned} บิล ✓`, 'success');
+  let msg = `จัดอัตโนมัติ ${assigned} บิล ✓`;
+  if(splitGroups) msg += ` · แยก ${splitGroups} สายส่ง`;
+  if(skipped)     msg += ` · ข้าม ${skipped} (ไม่มีรถพอ)`;
+  toast(msg, skipped>0 ? 'warning' : 'success');
 }
 
 /* =====================================================================
@@ -1076,6 +1231,59 @@ function renderDashboard(){
           </tr>`).join('')}</tbody>
       </table></div>`;
 
+  // Debt panel — bills with debt info
+  const billsWithDebt = bills.filter(b=>b.debt && b.debt.totalDebt > 0);
+  const totalOutstanding = billsWithDebt.reduce((s,b)=>s+b.debt.totalDebt, 0);
+  const blackFlag = billsWithDebt.filter(b=>b.debt.worstFlag==='black').length;
+  const redFlag   = billsWithDebt.filter(b=>b.debt.worstFlag==='red').length;
+  const yellowFlag= billsWithDebt.filter(b=>b.debt.worstFlag==='yellow').length;
+  document.getElementById('debtMeta').textContent =
+    state.debts.length === 0 ? '(ยังไม่ได้โหลด)'
+    : `${billsWithDebt.length}/${bills.length} บิลมีหนี้ค้าง · รวม ${fmt.baht(totalOutstanding)}`;
+
+  if(state.debts.length === 0){
+    document.getElementById('debtPanel').innerHTML =
+      '<div class="muted" style="text-align:center;padding:16px">— ไม่มีข้อมูลหนี้ — เปิดใช้งานที่แท็บตั้งค่า</div>';
+  } else if(billsWithDebt.length === 0){
+    document.getElementById('debtPanel').innerHTML =
+      '<div style="text-align:center;padding:16px;color:var(--success)">✅ ไม่มีบิลที่ลูกค้ามีหนี้ค้าง</div>';
+  } else {
+    // Sort: black > red > yellow > past, then by debt amount desc
+    const flagOrder = ['black','red','yellow','past','none'];
+    billsWithDebt.sort((a,b)=>{
+      const fa = flagOrder.indexOf(a.debt.worstFlag);
+      const fb = flagOrder.indexOf(b.debt.worstFlag);
+      if(fa !== fb) return fa - fb;
+      return b.debt.totalDebt - a.debt.totalDebt;
+    });
+    const top = billsWithDebt.slice(0, 50); // limit display
+    document.getElementById('debtPanel').innerHTML = `
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;font-size:12px">
+        ${blackFlag>0  ? `<span class="tag debt debt-bad">🏴 ธงดำ ${blackFlag}</span>` : ''}
+        ${redFlag>0    ? `<span class="tag debt debt-bad">🚩 ธงแดง ${redFlag}</span>` : ''}
+        ${yellowFlag>0 ? `<span class="tag debt debt-warn">🟡 ธงเหลือง ${yellowFlag}</span>` : ''}
+      </div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>เลขที่บิล</th><th>ร้านค้า</th><th>ธง</th><th class="num">ยอดหนี้</th><th class="num">อายุ (วัน)</th><th class="num">วงเงิน</th><th>รถที่จัด</th></tr></thead>
+        <tbody>${top.map(b=>{
+          const fl = b.debt.worstFlag;
+          const color = flagColor(fl);
+          const overLimit = b.debt.creditLimit>0 && b.debt.totalDebt > b.debt.creditLimit;
+          return `<tr>
+            <td><b>${escapeHtml(b.ref)}</b></td>
+            <td title="${escapeHtml(b.shopName)}">${escapeHtml(b.shopName)}</td>
+            <td><span style="color:${color}">${flagDisplay(fl)}</span></td>
+            <td class="num"><b style="color:${overLimit?'var(--danger)':color||'inherit'}">${fmt.baht(b.debt.totalDebt)}</b>${overLimit?' ⚠':''}</td>
+            <td class="num">${b.debt.maxDays}</td>
+            <td class="num">${b.debt.creditLimit?fmt.baht(b.debt.creditLimit):'-'}</td>
+            <td>${state.assignments[b.ref]?`<b style="color:var(--success)">${escapeHtml(state.assignments[b.ref])}</b>`:'<span class="muted">— ยังไม่จัด —</span>'}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table></div>
+      ${billsWithDebt.length>50 ? `<div class="muted" style="font-size:12px;margin-top:8px">แสดง 50 รายการแรก จากทั้งหมด ${billsWithDebt.length}</div>` : ''}
+    `;
+  }
+
   document.getElementById('dashSummary').textContent =
     state.filterDate ? `วันที่ ${state.filterDate}` : `(แสดงทุกวันที่)`;
 }
@@ -1110,13 +1318,21 @@ function renderDispatch(){
 
   document.getElementById('billsCount').textContent = bills.length;
 
+  // Compute usage per vehicle (used in dropdown options + sort)
+  const vehUsage = {};
+  for(const v of state.vehicles){
+    vehUsage[v.plate] = state.bills
+      .filter(b=>state.assignments[b.ref]===v.plate)
+      .reduce((s,b)=>s+b.totalKg, 0);
+  }
+
   // Vehicle dropdown options (cached)
-  const vehicles = filteredVehicles();
+  const vehiclesAll = filteredVehicles();
   const vehOpts = '<option value="">— ยังไม่จัด —</option>' +
-    vehicles.map(v=>{
-      const used = state.bills.filter(b=>state.assignments[b.ref]===v.plate).reduce((s,b)=>s+b.totalKg, 0);
-      const remain = v.capacity - used;
-      return `<option value="${v.plate}">${v.plate} · ${v.type} · เหลือ ${fmt.kg(remain)}</option>`;
+    vehiclesAll.map(v=>{
+      const remain = v.capacity - vehUsage[v.plate];
+      const billCount = state.bills.filter(b=>state.assignments[b.ref]===v.plate).length;
+      return `<option value="${v.plate}">${v.plate} · ${v.type} · ${billCount} บิล · เหลือ ${fmt.kg(remain)}</option>`;
     }).join('');
 
   // Render bills
@@ -1124,7 +1340,15 @@ function renderDispatch(){
     ? '<div class="empty-state"><span class="ico">📭</span><h3>ไม่มีบิล</h3><p>ลองเปลี่ยน filter หรือกดโหลดใหม่</p></div>'
     : bills.map(b => billCardHTML(b, vehOpts)).join('');
 
-  // Render vehicles
+  // Sort vehicles: those with assigned bills first (most loaded first), then empty ones
+  const vehicles = vehiclesAll.slice().sort((a,b)=>{
+    const usedA = vehUsage[a.plate], usedB = vehUsage[b.plate];
+    const hasA = usedA > 0 ? 1 : 0, hasB = usedB > 0 ? 1 : 0;
+    if(hasA !== hasB) return hasB - hasA;
+    if(usedA !== usedB) return usedB - usedA; // more loaded first
+    return a.capacity - b.capacity; // among empties, smallest first
+  });
+
   document.getElementById('vehiclesCount').textContent = vehicles.length;
   document.getElementById('vehicleList').innerHTML = vehicles.length===0
     ? '<div class="empty-state"><span class="ico">🚐</span><h3>ไม่มีรถ</h3><p>กดโหลดข้อมูลใหม่</p></div>'
@@ -1135,17 +1359,40 @@ function billCardHTML(b, vehOpts){
   const assigned = state.assignments[b.ref];
   const cls = assigned ? 'assigned' : (b.missingWeightItems>0 ? 'warning' : '');
   const opts = vehOpts.replace(`value="${assigned||''}"`, `value="${assigned||''}" selected`);
+
+  // Debt info tag (if any)
+  let debtTag = '';
+  let debtClass = '';
+  if(b.debt && b.debt.totalDebt > 0){
+    const flagLevel = b.debt.worstFlag;
+    const flagTxt = flagDisplay(flagLevel);
+    const overLimit = b.debt.creditLimit > 0 && b.debt.totalDebt > b.debt.creditLimit;
+    debtClass = (flagLevel==='black' || flagLevel==='red' || overLimit) ? 'debt-bad'
+              : (flagLevel==='yellow' || flagLevel==='past') ? 'debt-warn'
+              : 'debt-ok';
+    debtTag = `<span class="tag debt ${debtClass}" title="หนี้ค้าง ${b.debt.count} บิล · เก่าสุด ${b.debt.maxDays} วัน · วงเงิน ${fmt.baht(b.debt.creditLimit)}">
+      💰 ${fmt.baht(b.debt.totalDebt)}${flagTxt?' · '+flagTxt:''}${b.debt.maxDays>0?' · '+b.debt.maxDays+'วัน':''}
+    </span>`;
+  }
+
+  // Show assigned vehicle prominently
+  const assignedTag = assigned
+    ? `<span class="tag assigned-plate">🚛 ${escapeHtml(assigned)}</span>`
+    : '';
+
   return `
-    <div class="bill ${cls}">
+    <div class="bill ${cls} ${debtClass}">
       <div class="bill-row1">
         <span class="bill-ref">${escapeHtml(b.ref)}</span>
         <span class="bill-shop" title="${escapeHtml(b.shopName)}">${escapeHtml(b.shopName)}</span>
       </div>
       <div class="bill-tags">
+        ${assignedTag}
         ${b.warehouse?`<span class="tag warehouse">${escapeHtml(b.warehouse)}</span>`:''}
         ${b.deliveryRoute?`<span class="tag route" title="สายส่ง">${escapeHtml(b.deliveryRoute)}</span>`:''}
         <span class="tag weight">${b.missingWeightItems>0?'≈':''}${fmt.kg(b.totalKg)}</span>
         <span class="tag amount">${fmt.baht(b.totalAmount)}</span>
+        ${debtTag}
         ${b.missingWeightItems>0?`<span class="tag missing" title="${b.missingWeightItems} รายการไม่มีข้อมูลน้ำหนัก">⚠ ${b.missingWeightItems}</span>`:''}
       </div>
       <div class="bill-row2">
@@ -1219,21 +1466,48 @@ function renderBillsTable(){
     );
   }
   document.getElementById('billsTblMeta').textContent = `${bills.length} บิล`;
+
+  // Vehicle dropdown options (re-used per row)
+  const vehicles = filteredVehicles();
+  const usage = {};
+  for(const v of vehicles) usage[v.plate] = state.bills
+    .filter(b=>state.assignments[b.ref]===v.plate).reduce((s,b)=>s+b.totalKg, 0);
+  const vehOpts = '<option value="">— ยังไม่จัด —</option>' +
+    vehicles.map(v=>{
+      const remain = v.capacity - usage[v.plate];
+      return `<option value="${v.plate}">${v.plate} · ${v.type} · เหลือ ${fmt.kg(remain)}</option>`;
+    }).join('');
+
   const tbody = document.querySelector('#billsTable tbody');
   tbody.innerHTML = bills.length===0
-    ? '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-mute)">ไม่มีข้อมูล</td></tr>'
+    ? '<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--text-mute)">ไม่มีข้อมูล</td></tr>'
     : bills.map(b=>{
       const veh = state.assignments[b.ref];
+      const opts = vehOpts.replace(`value="${veh||''}"`, `value="${veh||''}" selected`);
+      // Debt
+      let debtCell = '<span class="muted">-</span>';
+      let flagCell = '<span class="muted">-</span>';
+      if(b.debt && b.debt.totalDebt > 0){
+        const fl = b.debt.worstFlag;
+        const color = flagColor(fl);
+        debtCell = `<b style="color:${color||'inherit'}" title="${b.debt.count} บิล · เก่าสุด ${b.debt.maxDays} วัน · วงเงิน ${fmt.baht(b.debt.creditLimit)}">${fmt.baht(b.debt.totalDebt)}</b>`;
+        flagCell = fl==='none' ? '<span class="muted">-</span>'
+                                : `<span style="color:${color}">${flagDisplay(fl)}</span>`;
+      }
       return `
         <tr>
           <td>${escapeHtml(b.date)}</td>
           <td><b>${escapeHtml(b.ref)}</b></td>
-          <td>${escapeHtml(b.shopName)}</td>
+          <td title="${escapeHtml(b.shopName)}">${escapeHtml(b.shopName)}</td>
           <td>${escapeHtml(b.deliveryRoute||'-')}</td>
           <td class="num">${b.items.length}</td>
           <td class="num">${b.missingWeightItems>0?'≈':''}${fmt.kg(b.totalKg)}</td>
           <td class="num">${fmt.baht(b.totalAmount)}</td>
-          <td>${veh?`<b style="color:var(--success)">${escapeHtml(veh)}</b>`:'<span class="muted">— ยังไม่จัด —</span>'}</td>
+          <td class="num">${debtCell}</td>
+          <td>${flagCell}</td>
+          <td>
+            <select class="tbl-assign" onchange="assignBill('${escapeAttr(b.ref)}', this.value)">${opts}</select>
+          </td>
         </tr>`;
     }).join('');
 }
@@ -1278,6 +1552,8 @@ function renderDataSummary(){
       <div>🧾 Bills (รวม): <b>${state.bills.length}</b></div>
       <div>👤 Drivers: <b>${state.drivers.length}</b></div>
       <div>🔗 Assignments: <b>${Object.keys(state.assignments).length}</b></div>
+      <div>💰 Debt rows: <b>${state.debts.length}</b></div>
+      <div>🏪 Shops with debt: <b>${Object.keys(state.shopDebts).length}</b></div>
     </div>`;
 }
 
@@ -1323,6 +1599,10 @@ function exportExcel(){
     EA_รวม: b.totalEA,
     น้ำหนัก_กก: Math.round(b.totalKg*10)/10,
     ยอด_บาท: Math.round(b.totalAmount),
+    ยอดหนี้ค้าง: b.debt ? Math.round(b.debt.totalDebt) : 0,
+    อายุหนี้สูงสุด: b.debt ? b.debt.maxDays : 0,
+    ธง: b.debt ? flagDisplay(b.debt.worstFlag) : '',
+    วงเงิน: b.debt ? Math.round(b.debt.creditLimit) : 0,
     รถที่จัด: state.assignments[b.ref] || '',
     คนขับ: state.assignments[b.ref] ? getVehicleDriver(state.assignments[b.ref]) : '',
     ขาดข้อมูลน้ำหนัก: b.missingWeightItems,
@@ -1384,7 +1664,12 @@ function handleFileLoad(e){
 function loadConfig(){
   try{
     const saved = JSON.parse(localStorage.getItem(LS.config)||'{}');
-    if(saved.sheetId) state.config = { ...DEFAULT_CONFIG, ...saved, sheets:{ ...DEFAULT_CONFIG.sheets, ...(saved.sheets||{}) }};
+    if(saved.sheetId) state.config = {
+      ...DEFAULT_CONFIG,
+      ...saved,
+      sheets:{ ...DEFAULT_CONFIG.sheets, ...(saved.sheets||{}) },
+      debt:  { ...DEFAULT_CONFIG.debt,   ...(saved.debt||{}) },
+    };
   }catch{}
   document.getElementById('cfgSheetId').value = state.config.sheetId;
   document.getElementById('cfgOrders').value = state.config.sheets.orders;
@@ -1392,6 +1677,9 @@ function loadConfig(){
   document.getElementById('cfgVehicles').value = state.config.sheets.vehicles;
   document.getElementById('cfgRouteOpts').value = state.config.sheets.routeOpts;
   document.getElementById('cfgWeights').value = state.config.sheets.weights;
+  document.getElementById('cfgDebtEnabled').checked = !!state.config.debt?.enabled;
+  document.getElementById('cfgDebtSheetId').value = state.config.debt?.sheetId || '';
+  document.getElementById('cfgDebtSheetName').value = state.config.debt?.sheetName || '';
 }
 function saveConfig(){
   state.config = {
@@ -1402,6 +1690,11 @@ function saveConfig(){
       vehicles:  document.getElementById('cfgVehicles').value.trim(),
       routeOpts: document.getElementById('cfgRouteOpts').value.trim(),
       weights:   document.getElementById('cfgWeights').value.trim(),
+    },
+    debt: {
+      enabled:   document.getElementById('cfgDebtEnabled').checked,
+      sheetId:   document.getElementById('cfgDebtSheetId').value.trim(),
+      sheetName: document.getElementById('cfgDebtSheetName').value.trim(),
     },
   };
   localStorage.setItem(LS.config, JSON.stringify(state.config));
