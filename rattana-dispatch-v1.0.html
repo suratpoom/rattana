@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<!--
+  Rattana Dispatch v1.0 — 2026-04-28
+  แอปจัดคิวส่งสินค้า รัตนไพบูลย์
+  - เลือกบิล → จับกับรถ → ตรวจน้ำหนักไม่ให้เกิน
+  - Dashboard สรุป
+  Single-file HTML. ไม่ต้อง build, เปิดในเบราว์เซอร์ได้เลย
+-->
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Rattana Dispatch v1.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --navy:#0d1b3e; --navy-mid:#1a2f5e; --navy-light:#243b73;
+  --gold:#c9a84c; --gold-light:#e8c86a; --gold-dim:#a78a3a;
+  --white:#ffffff; --off-white:#f4f6fb;
+  --success:#2ecc71; --danger:#e74c3c; --warning:#f39c12; --info:#3498db;
+  --bg:var(--off-white); --text:var(--navy); --text-mute:#6b7591;
+  --card-bg:var(--white); --border:#dde3f0; --shadow:0 2px 8px rgba(13,27,62,.06);
+}
+body.dark{
+  --bg:#0a1020; --text:#e8eaf0; --text-mute:#8b95b3;
+  --card-bg:#111c35; --border:#243b73; --shadow:0 2px 8px rgba(0,0,0,.4);
+  --off-white:#0a1020;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);
+  min-height:100dvh;overflow-x:hidden;-webkit-overflow-scrolling:touch;scroll-behavior:smooth;
+  font-size:14px;line-height:1.5;transition:background .2s,color .2s;
+}
+button,select,input{font-family:inherit;font-size:14px}
+button{cursor:pointer;border:none;background:none;color:inherit;-webkit-tap-highlight-color:transparent}
+a{color:var(--gold-dim);text-decoration:none}
+
+/* ===== Header ===== */
+.header{
+  position:sticky;top:0;z-index:100;background:var(--navy);color:#fff;
+  padding:max(10px,env(safe-area-inset-top)) 14px 10px;
+  box-shadow:0 2px 12px rgba(0,0,0,.15);
+}
+.header-inner{display:flex;align-items:center;gap:10px;max-width:1400px;margin:0 auto}
+.logo-box{
+  background:#fff;border-radius:8px;padding:4px 8px;display:flex;align-items:center;
+  height:42px;flex-shrink:0;
+}
+.logo-box img{height:32px;display:block}
+.app-title{flex:1;min-width:0}
+.app-title h1{font-size:18px;font-weight:700;color:#fff;line-height:1.1}
+.app-title .ver{font-size:11px;color:var(--gold-light);font-weight:400}
+.header-btns{display:flex;gap:6px;align-items:center}
+.icon-btn{
+  width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.1);
+  color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;
+  transition:background .2s;touch-action:manipulation;
+}
+.icon-btn:hover{background:rgba(255,255,255,.2)}
+.icon-btn:active{transform:scale(.95)}
+.icon-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ===== Tabs ===== */
+.tabs{
+  background:var(--card-bg);border-bottom:1px solid var(--border);
+  display:flex;gap:2px;overflow-x:auto;padding:0 10px;
+  position:sticky;top:62px;z-index:90;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  padding:12px 16px;color:var(--text-mute);font-weight:500;font-size:13px;
+  border-bottom:3px solid transparent;white-space:nowrap;flex-shrink:0;
+  min-height:44px;display:flex;align-items:center;gap:6px;
+}
+.tab.active{color:var(--navy);border-bottom-color:var(--gold);font-weight:700}
+body.dark .tab.active{color:var(--gold-light)}
+.tab .badge{
+  background:var(--gold);color:var(--navy);font-size:10px;font-weight:700;
+  padding:1px 6px;border-radius:8px;min-width:18px;text-align:center;
+}
+
+/* ===== Layout ===== */
+.main{max-width:1400px;margin:0 auto;padding:14px;padding-bottom:80px}
+.tab-pane{display:none}
+.tab-pane.active{display:block;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== Cards ===== */
+.card{
+  background:var(--card-bg);border:1px solid var(--border);border-radius:12px;
+  padding:14px;box-shadow:var(--shadow);border-top:3px solid var(--gold);
+  margin-bottom:12px;
+}
+.card-title{
+  font-size:14px;font-weight:700;color:var(--navy);margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;
+}
+body.dark .card-title{color:var(--gold-light)}
+.card-title .ico{font-size:18px}
+.card-meta{font-size:12px;color:var(--text-mute);font-weight:400;margin-left:auto}
+
+/* ===== Stats grid (Dashboard) ===== */
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+@media(min-width:640px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
+.stat{
+  background:var(--card-bg);border:1px solid var(--border);border-radius:12px;
+  padding:12px 14px;border-left:4px solid var(--gold);
+}
+.stat-lbl{font-size:11px;color:var(--text-mute);font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+.stat-val{font-size:22px;font-weight:800;color:var(--navy);line-height:1.1;margin-top:2px}
+body.dark .stat-val{color:var(--gold-light)}
+.stat-sub{font-size:11px;color:var(--text-mute);margin-top:4px}
+.stat.success{border-left-color:var(--success)}
+.stat.warning{border-left-color:var(--warning)}
+.stat.danger{border-left-color:var(--danger)}
+.stat.info{border-left-color:var(--info)}
+
+/* ===== Filters bar ===== */
+.filter-bar{
+  display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center;
+}
+.filter-bar select,.filter-bar input{
+  background:var(--card-bg);border:1px solid var(--border);border-radius:8px;
+  padding:9px 12px;color:var(--text);font-size:14px;min-height:40px;
+}
+.filter-bar input[type="search"]{flex:1;min-width:160px}
+.filter-bar select{min-width:120px}
+.btn{
+  padding:9px 14px;border-radius:8px;font-weight:600;font-size:13px;
+  display:inline-flex;align-items:center;gap:6px;transition:all .15s;min-height:40px;
+  touch-action:manipulation;
+}
+.btn-primary{background:var(--gold);color:var(--navy)}
+.btn-primary:hover{background:var(--gold-light)}
+.btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--off-white);border-color:var(--gold)}
+body.dark .btn-ghost:hover{background:var(--navy-mid)}
+.btn-danger{background:var(--danger);color:#fff}
+
+/* ===== Dispatch grid ===== */
+.dispatch-grid{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:1024px){.dispatch-grid{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}}
+
+.col-title{
+  font-size:13px;font-weight:700;color:var(--navy);margin-bottom:10px;
+  padding:8px 12px;background:var(--card-bg);border:1px solid var(--border);
+  border-left:3px solid var(--gold);border-radius:8px;
+  display:flex;align-items:center;gap:8px;
+}
+body.dark .col-title{color:var(--gold-light)}
+.col-title .count{
+  margin-left:auto;background:var(--navy);color:#fff;font-size:11px;
+  padding:2px 8px;border-radius:10px;font-weight:600;
+}
+
+/* ===== Bill cards ===== */
+.bill-list{display:flex;flex-direction:column;gap:8px;max-height:70vh;overflow-y:auto;padding-right:4px}
+.bill-list::-webkit-scrollbar{width:6px}
+.bill-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+.bill{
+  background:var(--card-bg);border:1px solid var(--border);border-radius:10px;
+  padding:10px 12px;display:flex;flex-direction:column;gap:6px;
+  transition:border-color .15s,box-shadow .15s;
+}
+.bill.assigned{border-left:3px solid var(--success);opacity:.85}
+.bill.warning{border-left:3px solid var(--warning)}
+.bill:hover{border-color:var(--gold)}
+.bill-row1{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.bill-ref{font-weight:700;color:var(--navy);font-size:13px}
+body.dark .bill-ref{color:var(--gold-light)}
+.bill-shop{font-size:13px;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bill-tags{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.tag{
+  font-size:10px;padding:2px 7px;border-radius:6px;font-weight:600;
+  background:var(--off-white);color:var(--text-mute);border:1px solid var(--border);
+}
+body.dark .tag{background:var(--navy-mid)}
+.tag.route{background:#e3edff;color:#1e58c8;border-color:#b8d1ff}
+body.dark .tag.route{background:#1a2f5e;color:#8db4ff;border-color:#3a5599}
+.tag.warehouse{background:#fff4e0;color:#a06a00;border-color:#ffd9a0}
+body.dark .tag.warehouse{background:#3a2a10;color:#ffc874;border-color:#6a4c1a}
+.tag.weight{background:#e9f7ef;color:#1f8a4a;border-color:#b4e2c5}
+body.dark .tag.weight{background:#0e2e1a;color:#7dd99f;border-color:#2a6638}
+.tag.amount{background:#fef0f0;color:#a52323;border-color:#f5b8b8}
+body.dark .tag.amount{background:#3a1010;color:#ff9090;border-color:#6a2a2a}
+.tag.missing{background:#fef0d4;color:#a86a00;border-color:#f5d090}
+
+.bill-row2{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-mute);flex-wrap:wrap}
+.bill-assign{
+  margin-left:auto;display:flex;align-items:center;gap:6px;
+}
+.bill-assign select{
+  background:var(--bg);border:1px solid var(--border);border-radius:6px;
+  padding:5px 8px;font-size:12px;color:var(--text);min-height:32px;
+  max-width:200px;
+}
+
+/* ===== Vehicle cards ===== */
+.vehicle-list{display:flex;flex-direction:column;gap:10px}
+.vehicle{
+  background:var(--card-bg);border:1px solid var(--border);border-radius:12px;
+  padding:14px;border-top:3px solid var(--gold);box-shadow:var(--shadow);
+}
+.vehicle.over{border-top-color:var(--danger);box-shadow:0 2px 12px rgba(231,76,60,.15)}
+.vehicle.empty{opacity:.7;border-top-color:var(--border)}
+.veh-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.veh-plate{
+  font-size:16px;font-weight:800;color:var(--navy);
+  background:var(--gold);padding:4px 10px;border-radius:6px;letter-spacing:.5px;
+}
+.veh-type{font-size:12px;color:var(--text-mute);font-weight:600}
+.veh-driver{font-size:13px;color:var(--text);margin-left:auto;display:flex;align-items:center;gap:6px}
+.veh-driver select{
+  background:var(--bg);border:1px solid var(--border);border-radius:6px;
+  padding:4px 8px;font-size:12px;color:var(--text);min-height:30px;max-width:160px;
+}
+.veh-bar-wrap{margin:6px 0 8px}
+.veh-bar{
+  height:8px;background:var(--off-white);border-radius:4px;overflow:hidden;
+  border:1px solid var(--border);
+}
+.veh-bar-fill{
+  height:100%;background:linear-gradient(90deg,var(--success),var(--gold));
+  border-radius:3px;transition:width .3s;
+}
+.veh-bar-fill.over{background:var(--danger)}
+.veh-bar-fill.warn{background:var(--warning)}
+.veh-bar-info{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:11px;color:var(--text-mute);margin-top:4px;
+}
+.veh-bar-info b{color:var(--text);font-weight:700}
+.veh-bills{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+.veh-bill-row{
+  display:flex;align-items:center;gap:8px;padding:6px 8px;
+  background:var(--off-white);border-radius:6px;font-size:12px;
+}
+body.dark .veh-bill-row{background:var(--navy)}
+.veh-bill-row .ref{font-weight:600;color:var(--navy);min-width:130px}
+body.dark .veh-bill-row .ref{color:var(--gold-light)}
+.veh-bill-row .shop{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.veh-bill-row .wt{color:var(--text-mute);font-weight:600;white-space:nowrap}
+.veh-bill-row .x{
+  color:var(--danger);font-weight:700;width:24px;height:24px;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:transparent;
+}
+.veh-bill-row .x:hover{background:#fef0f0}
+.veh-empty{color:var(--text-mute);font-size:12px;font-style:italic;text-align:center;padding:8px}
+
+/* ===== Tables ===== */
+.tbl-wrap{overflow-x:auto;background:var(--card-bg);border:1px solid var(--border);border-radius:8px}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:500px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+th{background:var(--navy);color:#fff;font-weight:600;font-size:12px;position:sticky;top:0}
+tr:hover td{background:var(--off-white)}
+body.dark tr:hover td{background:var(--navy)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+
+/* ===== Spinner ===== */
+#spinner{
+  display:none;position:fixed;inset:0;background:rgba(13,27,62,.6);
+  align-items:center;justify-content:center;z-index:99999;backdrop-filter:blur(3px);
+}
+#spinner.show{display:flex}
+.spin-inner{
+  background:#fff;border-radius:16px;padding:32px 40px;text-align:center;
+  border-top:4px solid var(--gold);
+}
+.spin-circle{
+  width:48px;height:48px;border:4px solid #dde3f0;border-top-color:var(--gold);
+  border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+#spinnerMsg{font-weight:600;color:var(--navy)}
+
+#loadingBar{
+  position:fixed;top:0;left:0;height:3px;background:var(--gold);width:0;
+  transition:width .4s;z-index:10000;
+}
+
+/* ===== Toast ===== */
+.toast{
+  position:fixed;bottom:max(20px,env(safe-area-inset-bottom));right:20px;
+  padding:12px 18px;border-radius:10px;color:#fff;z-index:9999;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);font-weight:500;
+  animation:slideIn .3s ease;max-width:90vw;
+}
+.toast-success{background:var(--success)}
+.toast-error{background:var(--danger)}
+.toast-warning{background:var(--warning);color:var(--navy)}
+.toast-info{background:var(--navy-mid);border-left:3px solid var(--gold)}
+@keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* ===== Footer ===== */
+.footer-bar{
+  position:fixed;bottom:0;left:0;right:0;background:var(--card-bg);
+  border-top:1px solid var(--border);padding:8px 14px;display:flex;gap:8px;
+  z-index:80;padding-bottom:max(8px,env(safe-area-inset-bottom));
+  box-shadow:0 -2px 8px rgba(0,0,0,.05);overflow-x:auto;
+}
+.footer-bar::-webkit-scrollbar{display:none}
+.footer-bar .btn{flex-shrink:0}
+
+#backToTop{
+  position:fixed;bottom:max(72px,calc(60px + env(safe-area-inset-bottom)));
+  right:max(16px,env(safe-area-inset-right));
+  background:var(--gold);color:var(--navy);border-radius:50%;
+  width:44px;height:44px;display:none;align-items:center;justify-content:center;
+  box-shadow:0 4px 12px rgba(0,0,0,.25);z-index:88;font-size:18px;font-weight:800;
+}
+#backToTop.show{display:flex}
+
+/* ===== Small bits ===== */
+.empty-state{
+  text-align:center;padding:40px 20px;color:var(--text-mute);
+  background:var(--card-bg);border:2px dashed var(--border);border-radius:12px;
+}
+.empty-state .ico{font-size:36px;display:block;margin-bottom:8px;opacity:.5}
+.empty-state h3{font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px}
+.empty-state p{font-size:13px;line-height:1.5}
+
+.muted{color:var(--text-mute)}
+.bold{font-weight:700}
+.right{text-align:right}
+hr{border:0;border-top:1px solid var(--border);margin:14px 0}
+
+/* settings */
+.cfg-row{
+  display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:12px;
+}
+@media(min-width:640px){.cfg-row{grid-template-columns:200px 1fr}}
+.cfg-row label{font-size:13px;font-weight:600;color:var(--text)}
+.cfg-row input{
+  background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:9px 12px;color:var(--text);font-size:14px;width:100%;
+}
+.cfg-row .help{grid-column:1/-1;font-size:11px;color:var(--text-mute);margin-top:-4px}
+
+</style>
+</head>
+<body>
+<div id="loadingBar"></div>
+<div id="spinner"><div class="spin-inner"><div class="spin-circle"></div><div id="spinnerMsg">กำลังโหลด...</div></div></div>
+
+<!-- ============= HEADER ============= -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo-box">
+      <img id="logoImg" alt="Rattana">
+    </div>
+    <div class="app-title">
+      <h1>Rattana Dispatch</h1>
+      <div class="ver">v1.0 · จัดคิวส่งสินค้า</div>
+    </div>
+    <div class="header-btns">
+      <button class="icon-btn" id="btnRefresh" onclick="refreshData()" title="โหลดข้อมูลใหม่">&#x1F504;</button>
+      <button class="icon-btn" id="btnTheme" onclick="toggleTheme()" title="โหมดมืด">&#x1F319;</button>
+    </div>
+  </div>
+</header>
+
+<!-- ============= TABS ============= -->
+<nav class="tabs" id="tabs">
+  <button class="tab active" data-tab="dashboard">📊 Dashboard</button>
+  <button class="tab" data-tab="dispatch">🚚 จัดรถ</button>
+  <button class="tab" data-tab="bills">📋 บิลทั้งหมด <span class="badge" id="badgeBills">0</span></button>
+  <button class="tab" data-tab="vehicles">🚛 รถ <span class="badge" id="badgeVehicles">0</span></button>
+  <button class="tab" data-tab="settings">⚙️ ตั้งค่า</button>
+</nav>
+
+<!-- ============= MAIN ============= -->
+<main class="main">
+
+  <!-- DASHBOARD -->
+  <section class="tab-pane active" id="pane-dashboard">
+    <div class="filter-bar">
+      <span class="bold">วันที่:</span>
+      <select id="dateFilter" onchange="onDateChange()">
+        <option value="">ทั้งหมด</option>
+      </select>
+      <select id="warehouseFilter" onchange="renderAll()">
+        <option value="">ทุกคลัง</option>
+      </select>
+      <span class="muted" id="dashSummary"></span>
+    </div>
+    <div class="stats-grid" id="statsGrid"></div>
+
+    <div class="card">
+      <div class="card-title">📦 บิลตามสถานะ <span class="card-meta" id="statusMeta"></span></div>
+      <div id="statusBars"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🚛 การใช้งานรถ <span class="card-meta">น้ำหนักที่จัดแล้ว / น้ำหนักบรรทุก</span></div>
+      <div id="vehUsage"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🛣️ บิลตามสายส่ง</div>
+      <div id="routeBreakdown"></div>
+    </div>
+  </section>
+
+  <!-- DISPATCH -->
+  <section class="tab-pane" id="pane-dispatch">
+    <div class="filter-bar">
+      <input type="search" id="billSearch" placeholder="🔍 ค้นหาบิล/ร้านค้า..." oninput="renderDispatch()">
+      <select id="billFilterStatus" onchange="renderDispatch()">
+        <option value="all">ทุกสถานะ</option>
+        <option value="unassigned">ยังไม่จัด</option>
+        <option value="assigned">จัดแล้ว</option>
+      </select>
+      <select id="billFilterRoute" onchange="renderDispatch()">
+        <option value="">ทุกสายส่ง</option>
+      </select>
+      <button class="btn btn-ghost" onclick="autoAssign()" title="จัดอัตโนมัติตามสายส่ง+ขนาดรถ">⚡ จัดอัตโนมัติ</button>
+      <button class="btn btn-ghost btn-danger" onclick="clearAllAssignments()" title="ล้างการจัดทั้งหมด">🗑 ล้าง</button>
+    </div>
+
+    <div class="dispatch-grid">
+      <div>
+        <div class="col-title">📋 บิล <span class="count" id="billsCount">0</span></div>
+        <div class="bill-list" id="billList"></div>
+      </div>
+      <div>
+        <div class="col-title">🚛 รถ <span class="count" id="vehiclesCount">0</span></div>
+        <div class="vehicle-list" id="vehicleList"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BILLS -->
+  <section class="tab-pane" id="pane-bills">
+    <div class="filter-bar">
+      <input type="search" id="billsSearch2" placeholder="🔍 ค้นหา..." oninput="renderBillsTable()">
+      <span class="muted" id="billsTblMeta"></span>
+    </div>
+    <div class="tbl-wrap">
+      <table id="billsTable">
+        <thead><tr>
+          <th>วันที่</th><th>เลขที่บิล</th><th>ร้านค้า</th><th>สายส่ง</th>
+          <th class="num">จำนวนรายการ</th><th class="num">น้ำหนัก (กก.)</th>
+          <th class="num">ยอด (฿)</th><th>รถที่จัด</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- VEHICLES -->
+  <section class="tab-pane" id="pane-vehicles">
+    <div class="filter-bar">
+      <span class="muted" id="vehMeta"></span>
+    </div>
+    <div class="tbl-wrap">
+      <table id="vehTable">
+        <thead><tr>
+          <th>ทะเบียน</th><th>ประเภท</th><th>รุ่น</th><th>คลัง</th><th>คนขับ (เริ่มต้น)</th>
+          <th class="num">บรรทุกได้ (กก.)</th><th class="num">น้ำหนักรถ</th>
+          <th class="num">ใช้งาน</th><th class="num">เหลือ</th><th>แผนก</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="tab-pane" id="pane-settings">
+    <div class="card">
+      <div class="card-title">⚙️ ค่าตั้งต้น Google Sheets</div>
+      <p class="muted" style="font-size:12px;margin-bottom:14px">ถ้าชื่อชีทไม่ตรงกับในไฟล์ Google Sheets แก้ที่นี่ได้เลย กดบันทึกแล้วโหลดใหม่</p>
+      <div class="cfg-row">
+        <label>Sheet ID</label>
+        <input type="text" id="cfgSheetId">
+        <span class="help">ID จาก URL: docs.google.com/spreadsheets/d/<b>SHEET_ID</b>/edit</span>
+      </div>
+      <div class="cfg-row"><label>ชื่อชีท Order</label><input type="text" id="cfgOrders"></div>
+      <div class="cfg-row"><label>ชื่อชีท รูท</label><input type="text" id="cfgRoutes"></div>
+      <div class="cfg-row"><label>ชื่อชีท ข้อมูลรถ</label><input type="text" id="cfgVehicles"></div>
+      <div class="cfg-row"><label>ชื่อชีท ตัวเลือกสายส่ง</label><input type="text" id="cfgRouteOpts"></div>
+      <div class="cfg-row"><label>ชื่อชีท น้ำหนักสินค้า</label><input type="text" id="cfgWeights"></div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn btn-primary" onclick="saveConfig()">💾 บันทึก + โหลดใหม่</button>
+        <button class="btn btn-ghost" onclick="resetConfig()">↺ คืนค่าเริ่มต้น</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📊 ข้อมูลที่โหลดแล้ว</div>
+      <div id="dataSummary"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">💾 ข้อมูลในเครื่อง</div>
+      <p class="muted" style="font-size:12px;margin-bottom:8px">การจัดรถจะเก็บไว้ในเครื่องนี้เท่านั้น (localStorage). ล้างเพื่อเริ่มใหม่ได้</p>
+      <button class="btn btn-ghost btn-danger" onclick="clearLocalState()">🗑 ล้างข้อมูลในเครื่อง</button>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============= FOOTER ============= -->
+<div class="footer-bar">
+  <button class="btn btn-primary" onclick="exportExcel()">📊 Excel สรุป</button>
+  <button class="btn btn-ghost" onclick="exportAssignmentsJSON()">💾 บันทึกแผน (JSON)</button>
+  <button class="btn btn-ghost" onclick="loadAssignmentsJSON()">📂 โหลดแผน</button>
+  <input type="file" id="fileLoad" accept=".json" style="display:none" onchange="handleFileLoad(event)">
+</div>
+
+<button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">▲</button>
+
+<script>
+/* =====================================================================
+   CONFIG — แก้ที่นี่ ถ้าชื่อชีทไม่ตรง
+   ===================================================================== */
+const DEFAULT_CONFIG = {
+  sheetId: '1ZqDx-KH7b3em91ViRD45Av-Xti9QxqfcVAzaAKLMSP0',
+  sheets: {
+    orders:    'Order',
+    routes:    'รูท',
+    vehicles:  'ข้อมูลรถ',
+    routeOpts: 'ตัวเลือกสายส่ง',
+    weights:   'น้ำหนักสินค้า',
+  },
+};
+
+// Inline SVG logo — Rattana monogram (clean fallback, no huge base64 needed)
+const LOGO_SVG = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 60'><rect width='80' height='60' rx='6' fill='#0d1b3e'/><text x='40' y='38' text-anchor='middle' font-family='Sarabun,sans-serif' font-weight='800' font-size='22' fill='#c9a84c'>RPB</text><line x1='14' y1='48' x2='66' y2='48' stroke='#c9a84c' stroke-width='2'/></svg>`;
+const LOGO_FALLBACK = 'data:image/svg+xml;utf8,' + encodeURIComponent(LOGO_SVG);
+
+/* =====================================================================
+   STATE
+   ===================================================================== */
+let state = {
+  config: { ...DEFAULT_CONFIG },
+  orders: [],
+  routes: [],
+  vehicles: [],
+  routeOpts: [],
+  weights: {},      // SKU_NAME → kg per EA
+  drivers: [],      // unique driver names
+  bills: [],        // aggregated bills
+  // user state (persisted)
+  assignments: {},  // { billRef: licensePlate }
+  driverOverrides: {}, // { licensePlate: driverName }
+  // ui state
+  filterDate: '',
+  filterWarehouse: '',
+};
+
+const LS = {
+  config:      'rattanaDispatch_config',
+  assignments: 'rattanaDispatch_assignments',
+  drivers:     'rattanaDispatch_drivers',
+  theme:       'rattanaDispatch_theme',
+};
+
+/* =====================================================================
+   UTIL — toast, spinner, format
+   ===================================================================== */
+function showSpinner(msg='กำลังโหลด...'){ document.getElementById('spinnerMsg').textContent=msg; document.getElementById('spinner').classList.add('show'); }
+function hideSpinner(){ document.getElementById('spinner').classList.remove('show'); }
+function setLoading(on){ document.getElementById('loadingBar').style.width = on?'85%':'0'; }
+
+function toast(msg, type='info'){
+  const t=document.createElement('div');
+  t.className=`toast toast-${type}`;
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.style.animation='slideIn .3s ease reverse',3200);
+  setTimeout(()=>t.remove(),3500);
+}
+
+const fmt = {
+  kg(n){ return (n||0).toLocaleString('th-TH',{maximumFractionDigits:1}) + ' กก.'; },
+  baht(n){ return (n||0).toLocaleString('th-TH',{maximumFractionDigits:0}) + ' ฿'; },
+  num(n){ return (n||0).toLocaleString('th-TH',{maximumFractionDigits:0}); },
+  pct(n){ return (n*100).toFixed(0) + '%'; },
+};
+
+/* =====================================================================
+   THEME
+   ===================================================================== */
+function toggleTheme(){
+  document.body.classList.toggle('dark');
+  const dark = document.body.classList.contains('dark');
+  localStorage.setItem(LS.theme, dark?'dark':'light');
+  document.getElementById('btnTheme').textContent = dark ? '☀️' : '🌙';
+}
+function initTheme(){
+  if(localStorage.getItem(LS.theme)==='dark'){ document.body.classList.add('dark'); document.getElementById('btnTheme').textContent='☀️'; }
+}
+
+/* =====================================================================
+   CSV PARSE
+   ===================================================================== */
+function parseCsv(text){
+  const parseRow = r => {
+    const cols=[]; let cur='', q=false;
+    for(const ch of r+','){
+      if(ch==='"'){ q=!q; }
+      else if(ch===',' && !q){ cols.push(cur); cur=''; }
+      else cur+=ch;
+    }
+    return cols.map(c=>c.trim());
+  };
+  // Google CSV uses \n as separator inside cells too — but mostly \r\n; we handle CR+LF + escaped quotes
+  const rows = [];
+  let cur='', q=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(ch==='"'){ q=!q; cur+=ch; }
+    else if(ch==='\n' && !q){ rows.push(cur); cur=''; }
+    else if(ch==='\r' && !q){ /* skip */ }
+    else cur+=ch;
+  }
+  if(cur) rows.push(cur);
+  if(rows.length===0) return [];
+  const headers = parseRow(rows[0]).map(h=>h.replace(/^"|"$/g,''));
+  return rows.slice(1).filter(r=>r.trim()).map(r=>{
+    const cells = parseRow(r).map(c=>c.replace(/^"|"$/g,''));
+    const obj = {};
+    headers.forEach((h,i)=>obj[h] = cells[i] !== undefined ? cells[i] : '');
+    return obj;
+  });
+}
+
+async function fetchSheet(sheetId, sheetName){
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('ดึง '+sheetName+' ไม่สำเร็จ ('+res.status+')');
+  const text = await res.text();
+  if(text.includes('<!DOCTYPE html')) throw new Error('ชื่อชีท "'+sheetName+'" ไม่ถูก หรือชีทไม่ public');
+  return parseCsv(text);
+}
+
+/* =====================================================================
+   LOAD ALL DATA
+   ===================================================================== */
+async function loadAll(){
+  showSpinner('โหลดข้อมูลจาก Google Sheets...');
+  setLoading(true);
+  const cfg = state.config;
+  const errors = [];
+  try{
+    const tasks = await Promise.allSettled([
+      fetchSheet(cfg.sheetId, cfg.sheets.orders),
+      fetchSheet(cfg.sheetId, cfg.sheets.routes),
+      fetchSheet(cfg.sheetId, cfg.sheets.vehicles),
+      fetchSheet(cfg.sheetId, cfg.sheets.routeOpts),
+      fetchSheet(cfg.sheetId, cfg.sheets.weights),
+    ]);
+    const [oR, rR, vR, oprR, wR] = tasks;
+    if(oR.status==='fulfilled') state.orders = oR.value; else errors.push('Order: '+oR.reason.message);
+    if(rR.status==='fulfilled') state.routes = rR.value; else errors.push('รูท: '+rR.reason.message);
+    if(vR.status==='fulfilled') state.vehicles = parseVehicles(vR.value); else errors.push('ข้อมูลรถ: '+vR.reason.message);
+    if(oprR.status==='fulfilled') state.routeOpts = oprR.value.map(r=>r['สายส่ง']||r[Object.keys(r)[0]]).filter(Boolean); else errors.push('ตัวเลือกสายส่ง: '+oprR.reason.message);
+    if(wR.status==='fulfilled') state.weights = parseWeights(wR.value); else errors.push('น้ำหนักสินค้า: '+wR.reason.message);
+
+    aggregateBills();
+    extractDrivers();
+    populateFilters();
+    loadAssignmentsFromLS();
+    renderAll();
+
+    if(errors.length){
+      toast('โหลดบางชีทไม่สำเร็จ — ดูรายละเอียดที่ ตั้งค่า', 'warning');
+      console.warn('Load errors:', errors);
+      document.getElementById('dataSummary').innerHTML =
+        `<div style="color:var(--danger);font-size:13px"><b>คำเตือน:</b><br>` +
+        errors.map(e=>'• '+e).join('<br>') + '</div><hr>' +
+        document.getElementById('dataSummary').innerHTML;
+    } else {
+      toast('โหลดข้อมูลสำเร็จ ✓', 'success');
+    }
+  } catch(e){
+    toast('ข้อผิดพลาด: '+e.message, 'error');
+    console.error(e);
+  } finally {
+    setLoading(false);
+    hideSpinner();
+  }
+}
+
+async function refreshData(){
+  const b = document.getElementById('btnRefresh');
+  b.disabled = true; b.style.transform='rotate(360deg)'; b.style.transition='transform .6s';
+  await loadAll();
+  setTimeout(()=>{ b.style.transition='none'; b.style.transform=''; b.disabled=false; }, 700);
+}
+
+/* =====================================================================
+   PARSE — vehicles, weights
+   ===================================================================== */
+function parseVehicles(rows){
+  const out = [];
+  for(const r of rows){
+    const plate = (r['ทะเบียน Final']||r['ทะเบียน']||'').trim();
+    if(!plate) continue;
+    const dept = (r['แผนก']||'').trim();
+    const type = (r['ประเภทรถ Fianl']||r['ประเภทรถ Final']||r['ประเภทรถ']||'').trim();
+    const capRaw = r['นน.บรรทุก']||'0';
+    const cap = parseFloat(String(capRaw).replace(/[, ]/g,''))||0;
+    const wRaw = r['นน.รถ']||'0';
+    const weight = parseFloat(String(wRaw).replace(/[, ]/g,''))||0;
+    // Filter out vehicles that aren't usable for delivery
+    const skipTypes = ['หางพ่วง','รถจักรยานยนต์'];
+    const skipDepts = ['พ่วง','รถจักรยานยนต์'];
+    if(skipTypes.includes(type)) continue;
+    if(skipDepts.includes(dept)) continue;
+    if(cap <= 0) continue;
+    out.push({
+      plate,
+      type,
+      model: (r['รุ่นรถ Final']||r['รุ่นรถ']||'').trim(),
+      warehouse: (r['คลัง Final']||r['คลัง']||'').trim() || (r['คลัง']||'').trim(),
+      driver: (r['ผู้ดูแล-ขับขี่']||'').trim(),
+      capacity: cap,
+      weight,
+      total: parseFloat(String(r['นน.รวม']||'0').replace(/[, ]/g,''))||0,
+      dept,
+      width:  parseFloat(r['กว้าง']||0)||0,
+      length: parseFloat(r['ยาว']||0)||0,
+      height: parseFloat(r['สูง']||0)||0,
+      pallets:parseFloat(r['วางได้(เลท)']||0)||0,
+    });
+  }
+  return out;
+}
+
+function parseWeights(rows){
+  const map = {};
+  for(const r of rows){
+    const name = (r['ชื่อสินค้า']||'').trim();
+    if(!name) continue;
+    const w = parseFloat(String(r['นน. EA']||'0').replace(/[, ]/g,''))||0;
+    map[name] = w;
+  }
+  return map;
+}
+
+/* =====================================================================
+   AGGREGATE BILLS
+   ===================================================================== */
+function aggregateBills(){
+  const map = new Map();
+  // Index routes by shop code for fast lookup
+  const routesByShop = {};
+  for(const r of state.routes){
+    const code = (r['รหัสร้านค้า']||'').trim();
+    if(code && !routesByShop[code]){
+      routesByShop[code] = {
+        deliveryRoute: (r['สายส่ง']||'').trim(),
+        deliveryDay:   (r['วันส่ง']||'').trim(),
+        seq: (r['ลำดับส่ง']||'').trim(),
+      };
+    }
+  }
+
+  for(const o of state.orders){
+    const ref = (o['DI_REF']||'').trim();
+    if(!ref) continue;
+    const sku = (o['SKU_NAME']||'').trim();
+    const ea  = parseFloat(String(o['EA']||'0').replace(/[, ]/g,''))||0;
+    const amt = parseFloat(String(o['TRD_G_AMT']||'0').replace(/[, ]/g,''))||0;
+    const wPerEA = state.weights[sku];
+    const hasW = wPerEA !== undefined;
+    const lineKg = hasW ? ea * wPerEA : 0;
+
+    let bill = map.get(ref);
+    if(!bill){
+      const shopCode = (o['AR_CODE']||'').trim();
+      const route = routesByShop[shopCode] || {};
+      bill = {
+        ref,
+        date:      (o['DI_DATE']||'').trim(),
+        shopCode,
+        shopName:  (o['AR_NAME']||'').trim(),
+        slmnCode:  (o['SLMN_CODE']||'').trim(),
+        warehouse: (o['WL_CODE']||'').trim(),
+        province:  (o['ADDB_PROVINCE']||'').trim(),
+        district:  (o['ADDB_DISTRICT']||'').trim(),
+        deliveryRoute: route.deliveryRoute || '',
+        deliveryDay:   route.deliveryDay || '',
+        deliverySeq:   route.seq || '',
+        items: [],
+        totalAmount: 0,
+        totalKg: 0,
+        totalEA: 0,
+        missingWeightItems: 0,
+      };
+      map.set(ref, bill);
+    }
+    bill.items.push({ sku, ea, amt, kg: lineKg, hasWeight: hasW });
+    bill.totalAmount += amt;
+    bill.totalKg += lineKg;
+    bill.totalEA += ea;
+    if(!hasW) bill.missingWeightItems++;
+  }
+  state.bills = Array.from(map.values()).sort((a,b)=>a.ref.localeCompare(b.ref));
+}
+
+function extractDrivers(){
+  const set = new Set();
+  for(const v of state.vehicles){ if(v.driver) set.add(v.driver); }
+  state.drivers = Array.from(set).sort();
+}
+
+/* =====================================================================
+   FILTER HELPERS
+   ===================================================================== */
+function filteredBills(){
+  let bills = state.bills;
+  if(state.filterDate){ bills = bills.filter(b=>b.date===state.filterDate); }
+  if(state.filterWarehouse){ bills = bills.filter(b=>b.warehouse===state.filterWarehouse); }
+  return bills;
+}
+function filteredVehicles(){
+  let vs = state.vehicles;
+  if(state.filterWarehouse){ vs = vs.filter(v=>v.warehouse===state.filterWarehouse); }
+  return vs;
+}
+
+function populateFilters(){
+  // dates
+  const dates = [...new Set(state.bills.map(b=>b.date).filter(Boolean))].sort((a,b)=>{
+    // dd/mm/yyyy → sortable
+    const [da,ma,ya] = a.split('/').map(Number);
+    const [db,mb,yb] = b.split('/').map(Number);
+    return (yb-ya) || (mb-ma) || (db-da);
+  });
+  const dateSel = document.getElementById('dateFilter');
+  dateSel.innerHTML = '<option value="">ทุกวันที่</option>' +
+    dates.map(d=>`<option value="${d}">${d}</option>`).join('');
+
+  // warehouses
+  const whs = [...new Set([
+    ...state.bills.map(b=>b.warehouse),
+    ...state.vehicles.map(v=>v.warehouse),
+  ].filter(Boolean))].sort();
+  document.getElementById('warehouseFilter').innerHTML =
+    '<option value="">ทุกคลัง</option>' +
+    whs.map(w=>`<option value="${w}">${w}</option>`).join('');
+
+  // routes (for dispatch filter)
+  const routes = [...new Set(state.bills.map(b=>b.deliveryRoute).filter(Boolean))].sort();
+  document.getElementById('billFilterRoute').innerHTML =
+    '<option value="">ทุกสายส่ง</option>' +
+    routes.map(r=>`<option value="${r}">${r}</option>`).join('');
+}
+
+function onDateChange(){
+  state.filterDate = document.getElementById('dateFilter').value;
+  renderAll();
+}
+
+/* =====================================================================
+   ASSIGNMENTS — persistence
+   ===================================================================== */
+function saveAssignmentsToLS(){
+  localStorage.setItem(LS.assignments, JSON.stringify({
+    assignments: state.assignments,
+    driverOverrides: state.driverOverrides,
+  }));
+}
+function loadAssignmentsFromLS(){
+  try{
+    const s = JSON.parse(localStorage.getItem(LS.assignments)||'{}');
+    state.assignments = s.assignments || {};
+    state.driverOverrides = s.driverOverrides || {};
+  }catch{ state.assignments={}; state.driverOverrides={}; }
+}
+
+function assignBill(billRef, plate){
+  if(plate) state.assignments[billRef] = plate;
+  else delete state.assignments[billRef];
+  saveAssignmentsToLS();
+  renderAll();
+}
+function setVehicleDriver(plate, driver){
+  if(driver) state.driverOverrides[plate] = driver;
+  else delete state.driverOverrides[plate];
+  saveAssignmentsToLS();
+  renderDispatch();
+}
+function getVehicleDriver(plate){
+  return state.driverOverrides[plate] || (state.vehicles.find(v=>v.plate===plate)?.driver) || '';
+}
+
+function clearAllAssignments(){
+  if(!confirm('ล้างการจัดบิลทั้งหมด? (ไม่ลบข้อมูลในชีท)')) return;
+  state.assignments = {};
+  state.driverOverrides = {};
+  saveAssignmentsToLS();
+  renderAll();
+  toast('ล้างเรียบร้อย', 'info');
+}
+function clearLocalState(){
+  if(!confirm('ล้างข้อมูลในเครื่องทั้งหมด (การจัดรถ + คนขับ + ค่าตั้งต้น)?')) return;
+  localStorage.removeItem(LS.assignments);
+  localStorage.removeItem(LS.config);
+  state.assignments = {}; state.driverOverrides = {};
+  toast('ล้างแล้ว — รีโหลดหน้า', 'success');
+  setTimeout(()=>location.reload(), 800);
+}
+
+/* =====================================================================
+   AUTO-ASSIGN — group bills by route, fill smallest fitting vehicle first
+   ===================================================================== */
+function autoAssign(){
+  if(!confirm('จัดอัตโนมัติ: จะจับบิลที่ "ยังไม่จัด" เข้ารถตามสายส่งและน้ำหนัก รถที่จัดไว้แล้วจะไม่ถูกแตะ\nดำเนินการ?')) return;
+  const bills = filteredBills().filter(b=>!state.assignments[b.ref]);
+  // Calculate current usage per vehicle
+  const usage = {};
+  for(const v of state.vehicles) usage[v.plate]={cap:v.capacity, used:0};
+  for(const ref in state.assignments){
+    const bill = state.bills.find(b=>b.ref===ref);
+    const u = usage[state.assignments[ref]];
+    if(bill && u) u.used += bill.totalKg;
+  }
+  // Group bills by route
+  const byRoute = {};
+  for(const b of bills){
+    const k = b.deliveryRoute || '__NO_ROUTE__';
+    (byRoute[k] = byRoute[k] || []).push(b);
+  }
+  // For each route, fill vehicles
+  let assigned = 0;
+  const vehicles = filteredVehicles().slice().sort((a,b)=>a.capacity-b.capacity); // smallest first
+  for(const route in byRoute){
+    const routeBills = byRoute[route].slice().sort((a,b)=>b.totalKg-a.totalKg); // heaviest first
+    for(const bill of routeBills){
+      // Find vehicle with enough remaining capacity
+      const v = vehicles.find(x=>{
+        const remain = (usage[x.plate].cap - usage[x.plate].used);
+        return remain >= bill.totalKg;
+      });
+      if(v){
+        state.assignments[bill.ref] = v.plate;
+        usage[v.plate].used += bill.totalKg;
+        assigned++;
+      }
+    }
+  }
+  saveAssignmentsToLS();
+  renderAll();
+  toast(`จัดอัตโนมัติ ${assigned} บิล ✓`, 'success');
+}
+
+/* =====================================================================
+   RENDER — Master
+   ===================================================================== */
+function renderAll(){
+  state.filterWarehouse = document.getElementById('warehouseFilter')?.value || '';
+  document.getElementById('badgeBills').textContent = state.bills.length;
+  document.getElementById('badgeVehicles').textContent = state.vehicles.length;
+  renderDashboard();
+  renderDispatch();
+  renderBillsTable();
+  renderVehiclesTable();
+  renderDataSummary();
+}
+
+/* =====================================================================
+   RENDER — Dashboard
+   ===================================================================== */
+function renderDashboard(){
+  const bills = filteredBills();
+  const vehicles = filteredVehicles();
+  const totalBills = bills.length;
+  const totalKg = bills.reduce((s,b)=>s+b.totalKg, 0);
+  const totalAmt = bills.reduce((s,b)=>s+b.totalAmount, 0);
+  const assigned = bills.filter(b=>state.assignments[b.ref]).length;
+  const unassigned = totalBills - assigned;
+  const totalCap = vehicles.reduce((s,v)=>s+v.capacity, 0);
+  const usedKg = bills.filter(b=>state.assignments[b.ref]).reduce((s,b)=>s+b.totalKg, 0);
+  const utilization = totalCap>0 ? usedKg/totalCap : 0;
+  const usedVehicles = new Set(Object.values(state.assignments).filter(p=>vehicles.some(v=>v.plate===p))).size;
+
+  // Stats
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat info">
+      <div class="stat-lbl">บิลทั้งหมด</div>
+      <div class="stat-val">${fmt.num(totalBills)}</div>
+      <div class="stat-sub">${fmt.num(unassigned)} รอจัด · ${fmt.num(assigned)} จัดแล้ว</div>
+    </div>
+    <div class="stat success">
+      <div class="stat-lbl">น้ำหนักรวม</div>
+      <div class="stat-val">${fmt.kg(totalKg)}</div>
+      <div class="stat-sub">เฉลี่ย ${totalBills?fmt.kg(totalKg/totalBills):'-'} / บิล</div>
+    </div>
+    <div class="stat warning">
+      <div class="stat-lbl">ยอดขายรวม</div>
+      <div class="stat-val">${fmt.baht(totalAmt)}</div>
+      <div class="stat-sub">เฉลี่ย ${totalBills?fmt.baht(totalAmt/totalBills):'-'} / บิล</div>
+    </div>
+    <div class="stat ${utilization>1?'danger':utilization>0.85?'warning':'success'}">
+      <div class="stat-lbl">ใช้กำลังบรรทุก</div>
+      <div class="stat-val">${fmt.pct(utilization)}</div>
+      <div class="stat-sub">${usedVehicles}/${vehicles.length} คัน · ${fmt.kg(usedKg)}/${fmt.kg(totalCap)}</div>
+    </div>
+  `;
+
+  // Status bars
+  document.getElementById('statusMeta').textContent = `${totalBills} บิล`;
+  const aPct = totalBills?assigned/totalBills:0;
+  document.getElementById('statusBars').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+          <span>✅ จัดแล้ว</span><span class="bold">${assigned} (${fmt.pct(aPct)})</span>
+        </div>
+        <div class="veh-bar"><div class="veh-bar-fill" style="width:${aPct*100}%;background:var(--success)"></div></div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+          <span>⏳ ยังไม่จัด</span><span class="bold">${unassigned} (${fmt.pct(1-aPct)})</span>
+        </div>
+        <div class="veh-bar"><div class="veh-bar-fill" style="width:${(1-aPct)*100}%;background:var(--warning)"></div></div>
+      </div>
+    </div>
+  `;
+
+  // Vehicle usage bars
+  const vehUsage = vehicles.map(v=>{
+    const used = bills.filter(b=>state.assignments[b.ref]===v.plate).reduce((s,b)=>s+b.totalKg, 0);
+    const billCount = bills.filter(b=>state.assignments[b.ref]===v.plate).length;
+    return { v, used, billCount, pct: v.capacity?used/v.capacity:0 };
+  }).sort((a,b)=>b.pct-a.pct);
+
+  document.getElementById('vehUsage').innerHTML = vehUsage.length===0
+    ? '<div class="muted" style="text-align:center;padding:20px">ไม่มีข้อมูลรถ</div>'
+    : vehUsage.map(({v,used,billCount,pct})=>{
+      const overFlag = pct > 1;
+      const warnFlag = pct > 0.9;
+      return `
+        <div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;flex-wrap:wrap;gap:6px">
+            <span><b>${v.plate}</b> · ${v.type||'-'} · ${billCount} บิล</span>
+            <span class="bold" style="color:${overFlag?'var(--danger)':warnFlag?'var(--warning)':'var(--text)'}">${fmt.kg(used)} / ${fmt.kg(v.capacity)} (${fmt.pct(pct)})</span>
+          </div>
+          <div class="veh-bar"><div class="veh-bar-fill ${overFlag?'over':warnFlag?'warn':''}" style="width:${Math.min(pct*100,100)}%"></div></div>
+        </div>`;
+    }).join('');
+
+  // Routes breakdown
+  const byRoute = {};
+  for(const b of bills){
+    const k = b.deliveryRoute || '— ไม่มีสายส่ง —';
+    if(!byRoute[k]) byRoute[k] = { count:0, kg:0, amt:0, assigned:0 };
+    byRoute[k].count++;
+    byRoute[k].kg += b.totalKg;
+    byRoute[k].amt += b.totalAmount;
+    if(state.assignments[b.ref]) byRoute[k].assigned++;
+  }
+  const routes = Object.entries(byRoute).sort((a,b)=>b[1].count-a[1].count);
+  document.getElementById('routeBreakdown').innerHTML = routes.length===0
+    ? '<div class="muted" style="text-align:center;padding:20px">ไม่มีข้อมูล</div>'
+    : `<div class="tbl-wrap"><table>
+        <thead><tr><th>สายส่ง</th><th class="num">บิล</th><th class="num">จัดแล้ว</th><th class="num">น้ำหนัก</th><th class="num">ยอด</th></tr></thead>
+        <tbody>${routes.map(([k,v])=>`
+          <tr>
+            <td>${escapeHtml(k)}</td>
+            <td class="num">${v.count}</td>
+            <td class="num"><span style="color:${v.assigned===v.count?'var(--success)':'var(--warning)'}">${v.assigned}/${v.count}</span></td>
+            <td class="num">${fmt.kg(v.kg)}</td>
+            <td class="num">${fmt.baht(v.amt)}</td>
+          </tr>`).join('')}</tbody>
+      </table></div>`;
+
+  document.getElementById('dashSummary').textContent =
+    state.filterDate ? `วันที่ ${state.filterDate}` : `(แสดงทุกวันที่)`;
+}
+
+/* =====================================================================
+   RENDER — Dispatch
+   ===================================================================== */
+function renderDispatch(){
+  const search = (document.getElementById('billSearch')?.value || '').toLowerCase().trim();
+  const stat = document.getElementById('billFilterStatus')?.value || 'all';
+  const route = document.getElementById('billFilterRoute')?.value || '';
+
+  let bills = filteredBills();
+  if(search){
+    bills = bills.filter(b =>
+      b.ref.toLowerCase().includes(search) ||
+      b.shopName.toLowerCase().includes(search) ||
+      b.shopCode.toLowerCase().includes(search)
+    );
+  }
+  if(stat==='unassigned') bills = bills.filter(b=>!state.assignments[b.ref]);
+  if(stat==='assigned') bills = bills.filter(b=>state.assignments[b.ref]);
+  if(route) bills = bills.filter(b=>b.deliveryRoute===route);
+
+  // Sort: unassigned first, then by route, then by ref
+  bills.sort((a,b)=>{
+    const aa = !!state.assignments[a.ref], bb = !!state.assignments[b.ref];
+    if(aa !== bb) return aa?1:-1;
+    if(a.deliveryRoute !== b.deliveryRoute) return (a.deliveryRoute||'').localeCompare(b.deliveryRoute||'');
+    return a.ref.localeCompare(b.ref);
+  });
+
+  document.getElementById('billsCount').textContent = bills.length;
+
+  // Vehicle dropdown options (cached)
+  const vehicles = filteredVehicles();
+  const vehOpts = '<option value="">— ยังไม่จัด —</option>' +
+    vehicles.map(v=>{
+      const used = state.bills.filter(b=>state.assignments[b.ref]===v.plate).reduce((s,b)=>s+b.totalKg, 0);
+      const remain = v.capacity - used;
+      return `<option value="${v.plate}">${v.plate} · ${v.type} · เหลือ ${fmt.kg(remain)}</option>`;
+    }).join('');
+
+  // Render bills
+  document.getElementById('billList').innerHTML = bills.length===0
+    ? '<div class="empty-state"><span class="ico">📭</span><h3>ไม่มีบิล</h3><p>ลองเปลี่ยน filter หรือกดโหลดใหม่</p></div>'
+    : bills.map(b => billCardHTML(b, vehOpts)).join('');
+
+  // Render vehicles
+  document.getElementById('vehiclesCount').textContent = vehicles.length;
+  document.getElementById('vehicleList').innerHTML = vehicles.length===0
+    ? '<div class="empty-state"><span class="ico">🚐</span><h3>ไม่มีรถ</h3><p>กดโหลดข้อมูลใหม่</p></div>'
+    : vehicles.map(v => vehicleCardHTML(v)).join('');
+}
+
+function billCardHTML(b, vehOpts){
+  const assigned = state.assignments[b.ref];
+  const cls = assigned ? 'assigned' : (b.missingWeightItems>0 ? 'warning' : '');
+  const opts = vehOpts.replace(`value="${assigned||''}"`, `value="${assigned||''}" selected`);
+  return `
+    <div class="bill ${cls}">
+      <div class="bill-row1">
+        <span class="bill-ref">${escapeHtml(b.ref)}</span>
+        <span class="bill-shop" title="${escapeHtml(b.shopName)}">${escapeHtml(b.shopName)}</span>
+      </div>
+      <div class="bill-tags">
+        ${b.warehouse?`<span class="tag warehouse">${escapeHtml(b.warehouse)}</span>`:''}
+        ${b.deliveryRoute?`<span class="tag route" title="สายส่ง">${escapeHtml(b.deliveryRoute)}</span>`:''}
+        <span class="tag weight">${b.missingWeightItems>0?'≈':''}${fmt.kg(b.totalKg)}</span>
+        <span class="tag amount">${fmt.baht(b.totalAmount)}</span>
+        ${b.missingWeightItems>0?`<span class="tag missing" title="${b.missingWeightItems} รายการไม่มีข้อมูลน้ำหนัก">⚠ ${b.missingWeightItems}</span>`:''}
+      </div>
+      <div class="bill-row2">
+        <span class="muted">${escapeHtml(b.date)} · ${b.items.length} รายการ · ${fmt.num(b.totalEA)} EA</span>
+        <span class="bill-assign">
+          <span class="muted" style="font-size:11px">→ รถ:</span>
+          <select onchange="assignBill('${escapeAttr(b.ref)}', this.value)">${opts}</select>
+        </span>
+      </div>
+    </div>`;
+}
+
+function vehicleCardHTML(v){
+  const myBills = state.bills.filter(b=>state.assignments[b.ref]===v.plate);
+  const used = myBills.reduce((s,b)=>s+b.totalKg, 0);
+  const pct = v.capacity ? used/v.capacity : 0;
+  const over = pct > 1;
+  const warn = pct > 0.9;
+  const remain = v.capacity - used;
+  const cls = over ? 'over' : (myBills.length===0 ? 'empty' : '');
+
+  // driver dropdown
+  const currentDriver = getVehicleDriver(v.plate);
+  const driverOpts = '<option value="">— เลือกคนขับ —</option>' +
+    state.drivers.map(d=>`<option value="${escapeAttr(d)}" ${d===currentDriver?'selected':''}>${escapeHtml(d)}</option>`).join('');
+
+  return `
+    <div class="vehicle ${cls}">
+      <div class="veh-head">
+        <span class="veh-plate">${escapeHtml(v.plate)}</span>
+        <span class="veh-type">${escapeHtml(v.type)} · ${escapeHtml(v.warehouse||'')}</span>
+        <span class="veh-driver">
+          <span class="muted" style="font-size:11px">👤</span>
+          <select onchange="setVehicleDriver('${escapeAttr(v.plate)}', this.value)" title="คนขับ">${driverOpts}</select>
+        </span>
+      </div>
+      <div class="veh-bar-wrap">
+        <div class="veh-bar"><div class="veh-bar-fill ${over?'over':warn?'warn':''}" style="width:${Math.min(pct*100,100)}%"></div></div>
+        <div class="veh-bar-info">
+          <span><b>${myBills.length}</b> บิล · <b>${fmt.kg(used)}</b> / ${fmt.kg(v.capacity)}</span>
+          <span style="color:${over?'var(--danger)':warn?'var(--warning)':'var(--text-mute)'}">
+            ${over?'⚠ เกิน '+fmt.kg(used-v.capacity):'เหลือ '+fmt.kg(remain)} (${fmt.pct(pct)})
+          </span>
+        </div>
+      </div>
+      <div class="veh-bills">
+        ${myBills.length===0 ? '<div class="veh-empty">— ยังไม่มีบิล —</div>' :
+          myBills.map(b=>`
+            <div class="veh-bill-row">
+              <span class="ref">${escapeHtml(b.ref)}</span>
+              <span class="shop" title="${escapeHtml(b.shopName)}">${escapeHtml(b.shopName)}</span>
+              <span class="wt">${fmt.kg(b.totalKg)}</span>
+              <button class="x" onclick="assignBill('${escapeAttr(b.ref)}', '')" title="เอาออก">×</button>
+            </div>`).join('')
+        }
+      </div>
+    </div>`;
+}
+
+/* =====================================================================
+   RENDER — Tables
+   ===================================================================== */
+function renderBillsTable(){
+  const search = (document.getElementById('billsSearch2')?.value || '').toLowerCase().trim();
+  let bills = filteredBills();
+  if(search){
+    bills = bills.filter(b =>
+      b.ref.toLowerCase().includes(search) ||
+      b.shopName.toLowerCase().includes(search) ||
+      (b.deliveryRoute||'').toLowerCase().includes(search)
+    );
+  }
+  document.getElementById('billsTblMeta').textContent = `${bills.length} บิล`;
+  const tbody = document.querySelector('#billsTable tbody');
+  tbody.innerHTML = bills.length===0
+    ? '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-mute)">ไม่มีข้อมูล</td></tr>'
+    : bills.map(b=>{
+      const veh = state.assignments[b.ref];
+      return `
+        <tr>
+          <td>${escapeHtml(b.date)}</td>
+          <td><b>${escapeHtml(b.ref)}</b></td>
+          <td>${escapeHtml(b.shopName)}</td>
+          <td>${escapeHtml(b.deliveryRoute||'-')}</td>
+          <td class="num">${b.items.length}</td>
+          <td class="num">${b.missingWeightItems>0?'≈':''}${fmt.kg(b.totalKg)}</td>
+          <td class="num">${fmt.baht(b.totalAmount)}</td>
+          <td>${veh?`<b style="color:var(--success)">${escapeHtml(veh)}</b>`:'<span class="muted">— ยังไม่จัด —</span>'}</td>
+        </tr>`;
+    }).join('');
+}
+
+function renderVehiclesTable(){
+  const vehicles = filteredVehicles();
+  document.getElementById('vehMeta').textContent = `${vehicles.length} คัน`;
+  const tbody = document.querySelector('#vehTable tbody');
+  tbody.innerHTML = vehicles.length===0
+    ? '<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--text-mute)">ไม่มีข้อมูล</td></tr>'
+    : vehicles.map(v=>{
+      const myBills = state.bills.filter(b=>state.assignments[b.ref]===v.plate);
+      const used = myBills.reduce((s,b)=>s+b.totalKg, 0);
+      const remain = v.capacity - used;
+      const overCls = remain<0 ? 'style="color:var(--danger);font-weight:700"' : '';
+      return `
+        <tr>
+          <td><b>${escapeHtml(v.plate)}</b></td>
+          <td>${escapeHtml(v.type)}</td>
+          <td>${escapeHtml(v.model)}</td>
+          <td>${escapeHtml(v.warehouse)}</td>
+          <td>${escapeHtml(v.driver||'-')}</td>
+          <td class="num"><b>${fmt.kg(v.capacity)}</b></td>
+          <td class="num">${fmt.kg(v.weight)}</td>
+          <td class="num" ${overCls}>${fmt.kg(used)} (${myBills.length} บิล)</td>
+          <td class="num" ${overCls}>${fmt.kg(remain)}</td>
+          <td>${escapeHtml(v.dept)}</td>
+        </tr>`;
+    }).join('');
+}
+
+function renderDataSummary(){
+  const el = document.getElementById('dataSummary');
+  if(!el) return;
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;font-size:13px">
+      <div>📋 Order rows: <b>${state.orders.length}</b></div>
+      <div>🛣️ Routes: <b>${state.routes.length}</b></div>
+      <div>🚛 Vehicles (delivery): <b>${state.vehicles.length}</b></div>
+      <div>📍 Route options: <b>${state.routeOpts.length}</b></div>
+      <div>⚖️ Product weights: <b>${Object.keys(state.weights).length}</b></div>
+      <div>🧾 Bills (รวม): <b>${state.bills.length}</b></div>
+      <div>👤 Drivers: <b>${state.drivers.length}</b></div>
+      <div>🔗 Assignments: <b>${Object.keys(state.assignments).length}</b></div>
+    </div>`;
+}
+
+/* =====================================================================
+   EXPORT
+   ===================================================================== */
+function exportExcel(){
+  if(state.bills.length===0){ toast('ไม่มีข้อมูลให้ export', 'warning'); return; }
+  const bills = filteredBills();
+  const wb = XLSX.utils.book_new();
+
+  // Sheet 1: Plan (per vehicle)
+  const planRows = [];
+  for(const v of filteredVehicles()){
+    const myBills = bills.filter(b=>state.assignments[b.ref]===v.plate);
+    if(myBills.length===0) continue;
+    const used = myBills.reduce((s,b)=>s+b.totalKg, 0);
+    planRows.push({
+      ทะเบียน: v.plate,
+      ประเภท: v.type,
+      คนขับ: getVehicleDriver(v.plate),
+      คลัง: v.warehouse,
+      บรรทุกได้_กก: v.capacity,
+      ใช้งาน_กก: Math.round(used*10)/10,
+      เหลือ_กก: Math.round((v.capacity-used)*10)/10,
+      จำนวนบิล: myBills.length,
+      บิล: myBills.map(b=>b.ref).join(', '),
+    });
+  }
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(planRows), 'แผนต่อรถ');
+
+  // Sheet 2: All bills
+  const billRows = bills.map(b=>({
+    วันที่: b.date,
+    เลขที่บิล: b.ref,
+    รหัสร้าน: b.shopCode,
+    ร้านค้า: b.shopName,
+    คลัง: b.warehouse,
+    จังหวัด: b.province,
+    สายส่ง: b.deliveryRoute,
+    วันส่ง: b.deliveryDay,
+    จำนวนรายการ: b.items.length,
+    EA_รวม: b.totalEA,
+    น้ำหนัก_กก: Math.round(b.totalKg*10)/10,
+    ยอด_บาท: Math.round(b.totalAmount),
+    รถที่จัด: state.assignments[b.ref] || '',
+    คนขับ: state.assignments[b.ref] ? getVehicleDriver(state.assignments[b.ref]) : '',
+    ขาดข้อมูลน้ำหนัก: b.missingWeightItems,
+  }));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(billRows), 'บิลทั้งหมด');
+
+  // Sheet 3: Unassigned
+  const unassigned = bills.filter(b=>!state.assignments[b.ref]);
+  if(unassigned.length>0){
+    const unRows = unassigned.map(b=>({
+      เลขที่บิล: b.ref, ร้านค้า: b.shopName, สายส่ง: b.deliveryRoute,
+      น้ำหนัก_กก: Math.round(b.totalKg*10)/10, ยอด_บาท: Math.round(b.totalAmount),
+    }));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(unRows), 'บิลยังไม่จัด');
+  }
+
+  const dateStr = state.filterDate ? state.filterDate.replace(/\//g,'-') : 'ทุกวัน';
+  XLSX.writeFile(wb, `Rattana_Dispatch_${dateStr}.xlsx`);
+  toast('Export Excel แล้ว ✓', 'success');
+}
+
+function exportAssignmentsJSON(){
+  const data = {
+    version: '1.0',
+    exportedAt: new Date().toISOString(),
+    filterDate: state.filterDate,
+    assignments: state.assignments,
+    driverOverrides: state.driverOverrides,
+  };
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `Rattana_Dispatch_Plan_${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); URL.revokeObjectURL(url);
+  toast('บันทึกแผน ✓', 'success');
+}
+function loadAssignmentsJSON(){ document.getElementById('fileLoad').click(); }
+function handleFileLoad(e){
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try{
+      const data = JSON.parse(ev.target.result);
+      if(!confirm('โหลดแผนนี้แทนที่ของเดิม?')) return;
+      state.assignments = data.assignments || {};
+      state.driverOverrides = data.driverOverrides || {};
+      saveAssignmentsToLS();
+      renderAll();
+      toast('โหลดแผน ✓', 'success');
+    } catch(err){ toast('ไฟล์ไม่ถูกต้อง', 'error'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+/* =====================================================================
+   CONFIG (settings tab)
+   ===================================================================== */
+function loadConfig(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(LS.config)||'{}');
+    if(saved.sheetId) state.config = { ...DEFAULT_CONFIG, ...saved, sheets:{ ...DEFAULT_CONFIG.sheets, ...(saved.sheets||{}) }};
+  }catch{}
+  document.getElementById('cfgSheetId').value = state.config.sheetId;
+  document.getElementById('cfgOrders').value = state.config.sheets.orders;
+  document.getElementById('cfgRoutes').value = state.config.sheets.routes;
+  document.getElementById('cfgVehicles').value = state.config.sheets.vehicles;
+  document.getElementById('cfgRouteOpts').value = state.config.sheets.routeOpts;
+  document.getElementById('cfgWeights').value = state.config.sheets.weights;
+}
+function saveConfig(){
+  state.config = {
+    sheetId: document.getElementById('cfgSheetId').value.trim(),
+    sheets: {
+      orders:    document.getElementById('cfgOrders').value.trim(),
+      routes:    document.getElementById('cfgRoutes').value.trim(),
+      vehicles:  document.getElementById('cfgVehicles').value.trim(),
+      routeOpts: document.getElementById('cfgRouteOpts').value.trim(),
+      weights:   document.getElementById('cfgWeights').value.trim(),
+    },
+  };
+  localStorage.setItem(LS.config, JSON.stringify(state.config));
+  toast('บันทึกค่าตั้งต้น ✓', 'success');
+  loadAll();
+}
+function resetConfig(){
+  if(!confirm('คืนค่าเริ่มต้น?')) return;
+  localStorage.removeItem(LS.config);
+  state.config = { ...DEFAULT_CONFIG };
+  loadConfig();
+  toast('คืนค่าเริ่มต้นแล้ว', 'info');
+}
+
+/* =====================================================================
+   TAB SWITCHING
+   ===================================================================== */
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===name));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.toggle('active', p.id==='pane-'+name));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* =====================================================================
+   ESCAPE HELPERS
+   ===================================================================== */
+function escapeHtml(s){
+  return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+function escapeAttr(s){ return String(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+
+/* =====================================================================
+   INIT
+   ===================================================================== */
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('logoImg').src = LOGO_FALLBACK;
+  initTheme();
+  loadConfig();
+
+  // Tab clicks
+  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click', ()=>switchTab(t.dataset.tab)));
+
+  // Back to top
+  window.addEventListener('scroll', () => {
+    document.getElementById('backToTop').classList.toggle('show', window.scrollY > 300);
+  });
+
+  // First load
+  loadAll();
+});
+</script>
+</body>
+</html>
