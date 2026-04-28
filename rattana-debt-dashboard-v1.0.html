@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana ยอดหนี้คงค้าง v1.2</title>
+<title>Rattana ยอดหนี้คงค้าง v1.3</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -86,6 +86,38 @@ header .user .role{color:var(--gold-light);font-size:11px}
 .s-card.danger .value{color:var(--danger)}
 .s-card.success{border-top-color:var(--success)}
 @media(min-width:640px){.s-card .value{font-size:24px}}
+
+/* Charts */
+.charts-wrap{margin:0 12px 12px;background:var(--card-bg);border-radius:12px;border:1px solid var(--border);overflow:hidden;animation:fadeIn .4s}
+@media(min-width:640px){.charts-wrap{margin:0 16px 16px}}
+.charts-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:12px 14px;background:linear-gradient(to right,rgba(201,168,76,.08),transparent);border-bottom:1px solid var(--border)}
+.charts-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.ctab{background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s}
+.ctab:hover{border-color:var(--gold);color:var(--text)}
+.ctab.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+body.dark .ctab.active{background:var(--gold);color:var(--navy);border-color:var(--gold)}
+.charts-legend{display:flex;align-items:center;gap:14px;font-size:12px;color:var(--muted)}
+.charts-legend .lg{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:middle}
+.lg-ok{background:#3498db}
+.lg-over{background:var(--danger)}
+.chart-body{padding:14px;max-height:340px;overflow-y:auto}
+.chart-row{display:grid;grid-template-columns:140px 1fr 130px;gap:10px;align-items:center;padding:6px 0;cursor:pointer;border-radius:6px;transition:background .12s}
+.chart-row:hover{background:rgba(201,168,76,.06)}
+.chart-row .nm{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chart-row .nm .sub{display:block;font-size:10px;color:var(--muted);font-weight:400}
+.chart-row .bar{display:flex;height:22px;background:var(--bg);border-radius:6px;overflow:hidden;border:1px solid var(--border)}
+.chart-row .bar .seg{height:100%;display:flex;align-items:center;justify-content:flex-end;padding:0 6px;font-size:10px;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden;transition:width .35s ease}
+.chart-row .bar .seg-ok{background:#3498db}
+.chart-row .bar .seg-over{background:var(--danger)}
+.chart-row .amt{font-size:13px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums;color:var(--text)}
+.chart-row .amt .sub{display:block;font-size:10px;color:var(--muted);font-weight:400}
+.chart-empty{padding:30px;text-align:center;color:var(--muted);font-size:13px}
+@media(max-width:640px){
+  .chart-row{grid-template-columns:90px 1fr 90px;gap:6px}
+  .chart-row .nm{font-size:11px}
+  .chart-row .amt{font-size:11px}
+  .chart-body{max-height:280px;padding:10px}
+}
 
 /* Filter bar */
 .filter-bar{background:var(--card-bg);margin:0 12px 12px;padding:14px;border-radius:12px;border:1px solid var(--border);display:grid;grid-template-columns:1fr;gap:10px;animation:fadeIn .4s}
@@ -200,7 +232,7 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
       <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="signin_with" data-shape="rectangular" data-logo_alignment="left"></div>
     </div>
     <div id="loginError"></div>
-    <p class="footer-note">v1.2 · เฉพาะพนักงานที่ได้รับอนุญาต</p>
+    <p class="footer-note">v1.3 · เฉพาะพนักงานที่ได้รับอนุญาต</p>
   </div>
 </div>
 
@@ -212,7 +244,7 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
     </div>
     <div class="title">
       <h1>ยอดหนี้คงค้าง</h1>
-      <div class="ver">v1.2</div>
+      <div class="ver">v1.3</div>
     </div>
     <div class="actions">
       <div class="user" id="userInfo"></div>
@@ -224,6 +256,22 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
   </header>
 
   <div class="summary" id="summary"></div>
+
+  <!-- Charts section -->
+  <div class="charts-wrap" id="chartsWrap">
+    <div class="charts-head">
+      <div class="charts-tabs">
+        <button class="ctab active" data-cmode="sales">📊 ตามพนักงานขาย</button>
+        <button class="ctab" data-cmode="warehouse">🏢 ตามคลัง</button>
+        <button class="ctab" data-cmode="aging">⏱️ ตามอายุหนี้</button>
+      </div>
+      <div class="charts-legend">
+        <span class="lg lg-ok"></span> ปกติ
+        <span class="lg lg-over"></span> เกินเครดิต
+      </div>
+    </div>
+    <div class="chart-body" id="chartBody"></div>
+  </div>
 
   <div class="filter-bar" id="filterBar">
     <label><span class="lbl">คลัง</span><select id="fWarehouse"><option value="">— ทุกคลัง —</option></select></label>
@@ -244,7 +292,7 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
       <option value="amount_asc">ยอดเงินต่ำสุด</option>
       <option value="customer_asc">ชื่อลูกหนี้ A→Z</option>
     </select></label>
-    <label><span class="lbl">ค้นหา</span><input type="text" id="fSearch" placeholder="ลูกหนี้ / รหัส / เลขเอกสาร"></label>
+    <label><span class="lbl">ค้นหา (ทุกฟิลด์)</span><input type="text" id="fSearch" placeholder="พิมพ์อะไรก็ได้... เช่น ชื่อ, รหัส, ยอด, วันที่"></label>
   </div>
 
   <div class="result-row">
@@ -530,6 +578,14 @@ function enterApp(){
   // Hide salesperson dropdown for non-managers
   if (currentUser.role < 5){
     $('lblSales').style.display = 'none';
+    // Hide "ตามพนักงานขาย" chart tab — they only see themselves anyway
+    const salesTab = document.querySelector('.ctab[data-cmode="sales"]');
+    if (salesTab) salesTab.style.display = 'none';
+    // Default to aging breakdown for sales reps
+    chartMode = 'aging';
+    document.querySelectorAll('.ctab').forEach(b => {
+      b.classList.toggle('active', b.dataset.cmode === 'aging');
+    });
   }
 
   // Restore dark mode
@@ -698,6 +754,10 @@ function bindFilters(){
     clearTimeout(searchTimer);
     searchTimer = setTimeout(() => { currentPage = 1; applyFilters(); }, 200);
   });
+  // Chart mode tabs
+  document.querySelectorAll('.ctab').forEach(b => {
+    b.addEventListener('click', () => setChartMode(b.dataset.cmode));
+  });
 }
 
 function resetFilters(){
@@ -734,12 +794,12 @@ function applyFilters(){
     });
   }
   if (q){
-    rows = rows.filter(r =>
-      r.custName.toLowerCase().includes(q) ||
-      r.custCode.toLowerCase().includes(q) ||
-      r.docNo.toLowerCase().includes(q) ||
-      r.salesName.toLowerCase().includes(q)
-    );
+    // Split by space — every term must appear somewhere in row (AND search)
+    const terms = q.split(/\s+/).filter(Boolean);
+    rows = rows.filter(r => {
+      const blob = Object.values(r).map(v => String(v).toLowerCase()).join(' | ');
+      return terms.every(t => blob.includes(t));
+    });
   }
 
   // Sort
@@ -755,6 +815,7 @@ function applyFilters(){
   viewRows = rows;
   computeSummary();
   renderSummary();
+  renderChart();
   renderTable();
   renderPagination();
 }
@@ -835,6 +896,108 @@ function renderSummary(){
       <div class="sub">บาท</div>
     </div>
   `;
+}
+
+/* ========================
+   CHARTS
+   ======================== */
+let chartMode = 'sales'; // 'sales' | 'warehouse' | 'aging'
+
+function renderChart(){
+  const body = $('chartBody');
+  if (!viewRows.length){
+    body.innerHTML = `<div class="chart-empty">ไม่มีข้อมูลให้แสดงกราฟ</div>`;
+    return;
+  }
+
+  // Aggregate by mode
+  const groups = new Map();
+  viewRows.forEach(r => {
+    let key, label, sub = '';
+    if (chartMode === 'sales'){
+      key = r.empId || r.salesName || '(ไม่ระบุ)';
+      label = r.salesName || '(ไม่ระบุ)';
+      sub = r.empId ? `รหัส ${r.empId}` : '';
+    } else if (chartMode === 'warehouse'){
+      key = r.warehouse || '(ไม่ระบุ)';
+      label = r.warehouse || '(ไม่ระบุ)';
+    } else { // aging
+      const o = r.overdue;
+      if (o <= 0)       { key = '0'; label = 'ปกติ (ยังไม่เกิน)'; }
+      else if (o <= 30) { key = '1'; label = 'เกิน 1-30 วัน'; }
+      else if (o <= 60) { key = '2'; label = 'เกิน 31-60 วัน'; }
+      else if (o <= 90) { key = '3'; label = 'เกิน 61-90 วัน'; }
+      else              { key = '4'; label = 'เกิน 90+ วัน'; }
+    }
+    if (!groups.has(key)) groups.set(key, {key, label, sub, total:0, ok:0, over:0, docs:0, custs:new Set()});
+    const g = groups.get(key);
+    g.total += r.amount;
+    if (r.overdue > 0) g.over += r.amount; else g.ok += r.amount;
+    g.docs++;
+    if (r.custCode) g.custs.add(r.custCode);
+  });
+
+  let arr = [...groups.values()];
+  // Sort
+  if (chartMode === 'aging'){
+    arr.sort((a,b) => Number(a.key) - Number(b.key));
+  } else {
+    arr.sort((a,b) => b.total - a.total);
+  }
+
+  const max = Math.max(...arr.map(g => g.total), 1);
+
+  body.innerHTML = arr.map(g => {
+    const okPct = g.total > 0 ? (g.ok / max * 100) : 0;
+    const overPct = g.total > 0 ? (g.over / max * 100) : 0;
+    const overShare = g.total > 0 ? Math.round(g.over / g.total * 100) : 0;
+    return `
+      <div class="chart-row" data-key="${escapeAttr(g.key)}" onclick="filterFromChart('${escapeAttr(g.key)}')">
+        <div class="nm" title="${escapeAttr(g.label)}">
+          ${escapeHtml(g.label)}
+          ${g.sub ? `<span class="sub">${escapeHtml(g.sub)}</span>` : `<span class="sub">${g.docs} เอกสาร · ${g.custs.size} ราย</span>`}
+        </div>
+        <div class="bar" title="ปกติ ${fmtBaht(g.ok)} · เกิน ${fmtBaht(g.over)}">
+          ${g.ok > 0 ? `<div class="seg seg-ok" style="width:${okPct}%"></div>` : ''}
+          ${g.over > 0 ? `<div class="seg seg-over" style="width:${overPct}%"></div>` : ''}
+        </div>
+        <div class="amt">
+          ${fmtBaht(g.total)}
+          <span class="sub">เกิน ${overShare}%</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function setChartMode(mode){
+  chartMode = mode;
+  document.querySelectorAll('.ctab').forEach(b => {
+    b.classList.toggle('active', b.dataset.cmode === mode);
+  });
+  renderChart();
+}
+
+function filterFromChart(key){
+  if (chartMode === 'sales'){
+    if (currentUser.role >= 5){
+      $('fSales').value = key;
+      currentPage = 1;
+      applyFilters();
+      document.querySelector('.table-wrap').scrollIntoView({behavior:'smooth', block:'start'});
+    }
+  } else if (chartMode === 'warehouse'){
+    $('fWarehouse').value = key;
+    currentPage = 1;
+    applyFilters();
+    document.querySelector('.table-wrap').scrollIntoView({behavior:'smooth', block:'start'});
+  } else if (chartMode === 'aging'){
+    const map = {'0':'ok','1':'b1','2':'b2','3':'b3','4':'b4'};
+    $('fAging').value = map[key] || '';
+    currentPage = 1;
+    applyFilters();
+    document.querySelector('.table-wrap').scrollIntoView({behavior:'smooth', block:'start'});
+  }
 }
 
 /* ========================
