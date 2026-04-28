@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana ยอดหนี้คงค้าง v1.0</title>
+<title>Rattana ยอดหนี้คงค้าง v1.2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -153,6 +153,26 @@ body.dark .pagination button:hover:not(:disabled){background:var(--navy-light)}
 
 /* Last update */
 .last-update{text-align:center;color:var(--muted);font-size:11px;padding:0 16px 12px}
+
+/* Debug panel */
+#debugPanel{display:none;position:fixed;top:80px;right:20px;width:min(520px,calc(100vw - 40px));max-height:calc(100vh - 120px);background:var(--card-bg);border:2px solid var(--gold);border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.3);z-index:200;overflow:hidden;flex-direction:column}
+#debugPanel.show{display:flex}
+#debugPanel .head{background:var(--navy);color:#fff;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--gold)}
+#debugPanel .head h3{font-size:14px;font-weight:600}
+#debugPanel .head button{background:transparent;color:#fff;border:none;font-size:18px;cursor:pointer}
+#debugPanel .body{padding:14px;overflow-y:auto;font-size:12px;font-family:'Courier New',monospace;line-height:1.5}
+#debugPanel .row{padding:6px 0;border-bottom:1px solid var(--border)}
+#debugPanel .row:last-child{border-bottom:none}
+#debugPanel .key{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+#debugPanel .val{color:var(--text);word-break:break-all;font-weight:500}
+#debugPanel .val.ok{color:var(--success)}
+#debugPanel .val.err{color:var(--danger)}
+#debugPanel .val.warn{color:var(--warning)}
+#debugPanel pre{background:var(--bg);padding:8px;border-radius:6px;border:1px solid var(--border);overflow-x:auto;font-size:11px;max-height:200px;overflow-y:auto;white-space:pre-wrap;word-break:break-all}
+#debugPanel .actions{padding:10px 14px;background:var(--bg);border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap}
+#debugPanel .actions button{flex:1;min-width:120px;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);font-size:12px;cursor:pointer;font-weight:600}
+#debugPanel .actions button:hover{background:var(--off-white);border-color:var(--gold)}
+body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
 </style>
 </head>
 <body>
@@ -180,7 +200,7 @@ body.dark .pagination button:hover:not(:disabled){background:var(--navy-light)}
       <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="signin_with" data-shape="rectangular" data-logo_alignment="left"></div>
     </div>
     <div id="loginError"></div>
-    <p class="footer-note">v1.0 · เฉพาะพนักงานที่ได้รับอนุญาต</p>
+    <p class="footer-note">v1.2 · เฉพาะพนักงานที่ได้รับอนุญาต</p>
   </div>
 </div>
 
@@ -192,11 +212,12 @@ body.dark .pagination button:hover:not(:disabled){background:var(--navy-light)}
     </div>
     <div class="title">
       <h1>ยอดหนี้คงค้าง</h1>
-      <div class="ver">v1.0</div>
+      <div class="ver">v1.2</div>
     </div>
     <div class="actions">
       <div class="user" id="userInfo"></div>
       <button class="icon-btn" id="btnRefresh" onclick="refreshData()" title="รีเฟรช">&#x21bb;</button>
+      <button class="icon-btn" onclick="toggleDebug()" title="Debug">&#x1F41E;</button>
       <button class="icon-btn" onclick="toggleDark()" title="โหมดมืด" id="btnDark">&#x1F319;</button>
       <button class="icon-btn" onclick="logout()" title="ออกจากระบบ">&#x21AA;</button>
     </div>
@@ -262,13 +283,27 @@ body.dark .pagination button:hover:not(:disabled){background:var(--navy-light)}
 
 <button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">▲</button>
 
+<!-- Debug Panel -->
+<div id="debugPanel">
+  <div class="head">
+    <h3>🐞 Debug Info</h3>
+    <button onclick="toggleDebug()">&times;</button>
+  </div>
+  <div class="body" id="debugBody"></div>
+  <div class="actions">
+    <button onclick="testFetch()">🔄 Test Fetch ใหม่</button>
+    <button onclick="copyDebug()">📋 Copy Info</button>
+    <button onclick="openSheet()">🔗 เปิด Sheet</button>
+  </div>
+</div>
+
 <script>
 /* ========================
    CONFIG
    ======================== */
 const CONFIG = {
   sheetId: '1LqTqZg1z3e6FtPBbhZsKZd60DL6tZmCi78QQT1MoPq4',
-  sheetName: 'SQL',
+  sheetName: 'SQL Data',
   usersSheetId: '1M6HdISsLN684qRWyQ73CA4AmUzmYtZaOlffDJXZZIXQ',
   usersSheetName: 'Rattana Users for apps',
   cacheTTL: 5 * 60 * 1000,        // 5 min
@@ -285,6 +320,22 @@ let currentPage = 1;
 let lookups = { warehouses: [], sales: [] };
 let autoRefreshTimer = null;
 let searchTimer = null;
+
+// Diagnostic state
+let _diag = {
+  fetchUrl: '',
+  fetchStatus: '',
+  fetchOk: null,
+  fetchError: '',
+  rawTextLength: 0,
+  rawSample: '',
+  parsedRows: 0,
+  headers: [],
+  sampleRow: null,
+  rowsAfterRoleFilter: 0,
+  rowsAfterAmountFilter: 0,
+  lastUpdate: '',
+};
 
 /* ========================
    UTIL
@@ -375,11 +426,33 @@ function parseCsv(text){
   });
 }
 
-async function loadFromSheets(sheetId, sheetName){
+async function loadFromSheets(sheetId, sheetName, captureD = false){
   const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
-  const res = await fetch(url, { cache: 'no-store' });
-  if (!res.ok) throw new Error('Sheet fetch failed: ' + res.status);
-  return parseCsv(await res.text());
+  if (captureD){ _diag.fetchUrl = url; _diag.fetchError = ''; }
+  let res;
+  try {
+    res = await fetch(url, { cache: 'no-store' });
+  } catch (err){
+    if (captureD){ _diag.fetchOk = false; _diag.fetchError = 'Network error: ' + err.message; }
+    throw new Error('เครือข่ายมีปัญหา หรือ Sheet ไม่ public: ' + err.message);
+  }
+  if (captureD){ _diag.fetchStatus = res.status + ' ' + res.statusText; _diag.fetchOk = res.ok; }
+  if (!res.ok){
+    if (res.status === 404 && captureD) _diag.fetchError = 'ไม่พบชีท หรือไม่มีสิทธิ์เข้าถึง (ต้องตั้งเป็น Anyone with link)';
+    throw new Error('Sheet fetch failed: ' + res.status + ' ' + res.statusText);
+  }
+  const text = await res.text();
+  if (captureD){
+    _diag.rawTextLength = text.length;
+    _diag.rawSample = text.slice(0, 300);
+  }
+  const parsed = parseCsv(text);
+  if (captureD){
+    _diag.parsedRows = parsed.length;
+    _diag.headers = parsed.length ? Object.keys(parsed[0]) : [];
+    _diag.sampleRow = parsed[0] || null;
+  }
+  return parsed;
 }
 
 /* ========================
@@ -504,12 +577,19 @@ async function initApp(){
 async function loadData(){
   setLoading(true);
   try {
-    const raw = await loadFromSheets(CONFIG.sheetId, CONFIG.sheetName);
+    const raw = await loadFromSheets(CONFIG.sheetId, CONFIG.sheetName, true);
     setCache('debtData', raw);
     processData(raw);
+    _diag.lastUpdate = new Date().toLocaleString('th-TH');
+    if (raw.length === 0){
+      showToast('ดึงสำเร็จ แต่ไม่มีข้อมูลในชีท', 'warning');
+    } else if (allRows.length === 0){
+      showToast('ดึงข้อมูลได้ ' + raw.length + ' แถว แต่ไม่มีของคุณ — กดดู Debug 🐞', 'warning');
+    }
   } catch (e){
     console.error(e);
-    showToast('โหลดข้อมูลล้มเหลว: ' + e.message, 'error');
+    _diag.fetchError = e.message;
+    showToast('โหลดล้มเหลว: ' + e.message + ' — กดปุ่ม 🐞 ดูรายละเอียด', 'error');
   } finally {
     setLoading(false);
   }
@@ -517,11 +597,13 @@ async function loadData(){
 
 async function loadDataBackground(){
   try {
-    const raw = await loadFromSheets(CONFIG.sheetId, CONFIG.sheetName);
+    const raw = await loadFromSheets(CONFIG.sheetId, CONFIG.sheetName, true);
     setCache('debtData', raw);
     processData(raw);
+    _diag.lastUpdate = new Date().toLocaleString('th-TH');
   } catch (e){
     console.error('bg refresh failed', e);
+    _diag.fetchError = e.message;
   }
 }
 
@@ -546,7 +628,7 @@ async function refreshData(){
    ======================== */
 function processData(raw){
   // Map raw rows to clean structured rows
-  const rows = raw.map(r => {
+  const mapped = raw.map(r => {
     const aging = parseNum(r['อายุหนี้']);
     const credit = parseNum(r['เงื่อนไข']);
     const overdue = aging - credit; // days past credit term
@@ -566,7 +648,11 @@ function processData(raw){
       note:       (r['หมายเหตุ'] || '').trim(),
       flag:       (r['ธง'] || '').trim(),
     };
-  }).filter(r => r.amount > 0 || r.docNo); // skip totally empty rows
+  });
+
+  // Filter empty rows
+  const rows = mapped.filter(r => r.amount > 0 || r.docNo);
+  _diag.rowsAfterAmountFilter = rows.length;
 
   // Role-based filtering
   if (currentUser.role < 5){
@@ -574,6 +660,7 @@ function processData(raw){
   } else {
     allRows = rows;
   }
+  _diag.rowsAfterRoleFilter = allRows.length;
 
   // Build lookups for dropdowns
   const wSet = new Set(), sMap = new Map();
@@ -889,6 +976,100 @@ async function exportExcel(){
   } finally {
     hideSpinner();
   }
+}
+
+/* ========================
+   DEBUG PANEL
+   ======================== */
+function toggleDebug(){
+  const p = $('debugPanel');
+  if (p.classList.contains('show')){
+    p.classList.remove('show');
+  } else {
+    renderDebug();
+    p.classList.add('show');
+  }
+}
+
+function renderDebug(){
+  const expectedHeaders = ['คลัง','รหัสพนักงาน','ชื่อพนักงานขาย','รหัสลูกหนี้','ชื่อลูกหนี้','วันที่เอกสาร','เลขที่เอกสาร','ยอดหนี้','อายุหนี้','เงื่อนไข','วงเงิน','หมายเหตุ','ธง'];
+  const missing = expectedHeaders.filter(h => !_diag.headers.includes(h));
+  const fetchClass = _diag.fetchOk === true ? 'ok' : (_diag.fetchOk === false ? 'err' : 'warn');
+  const headerClass = missing.length === 0 ? 'ok' : 'err';
+  const rowsClass = _diag.parsedRows > 0 ? 'ok' : 'err';
+  const finalClass = _diag.rowsAfterRoleFilter > 0 ? 'ok' : (_diag.rowsAfterAmountFilter > 0 ? 'warn' : 'err');
+
+  const html = `
+    <div class="row">
+      <div class="key">USER</div>
+      <div class="val">${escapeHtml(currentUser?.email || '-')} · Role ${currentUser?.role || '-'} · empId: ${escapeHtml(currentUser?.empId || '(ว่าง)')}</div>
+    </div>
+    <div class="row">
+      <div class="key">FETCH URL</div>
+      <div class="val" style="font-size:10px">${escapeHtml(_diag.fetchUrl || '(ยังไม่ได้ fetch)')}</div>
+    </div>
+    <div class="row">
+      <div class="key">FETCH STATUS</div>
+      <div class="val ${fetchClass}">${escapeHtml(_diag.fetchStatus || '-')} ${_diag.fetchOk ? '✓' : (_diag.fetchOk === false ? '✗' : '?')}</div>
+      ${_diag.fetchError ? `<div class="val err" style="margin-top:4px">⚠ ${escapeHtml(_diag.fetchError)}</div>` : ''}
+    </div>
+    <div class="row">
+      <div class="key">RAW TEXT</div>
+      <div class="val">${_diag.rawTextLength.toLocaleString()} bytes</div>
+      ${_diag.rawSample ? `<pre>${escapeHtml(_diag.rawSample)}${_diag.rawTextLength > 300 ? '...' : ''}</pre>` : ''}
+    </div>
+    <div class="row">
+      <div class="key">PARSED ROWS</div>
+      <div class="val ${rowsClass}">${_diag.parsedRows.toLocaleString()} แถว</div>
+    </div>
+    <div class="row">
+      <div class="key">HEADERS ที่อ่านได้ (${_diag.headers.length})</div>
+      <div class="val" style="font-size:11px">${_diag.headers.map(h => escapeHtml(h)).join(' | ') || '-'}</div>
+    </div>
+    <div class="row">
+      <div class="key">HEADERS ที่ขาด</div>
+      <div class="val ${headerClass}">${missing.length === 0 ? '✓ ครบทุกคอลัมน์' : '✗ ขาด: ' + missing.map(escapeHtml).join(', ')}</div>
+    </div>
+    ${_diag.sampleRow ? `
+    <div class="row">
+      <div class="key">SAMPLE ROW (แถวแรก)</div>
+      <pre>${escapeHtml(JSON.stringify(_diag.sampleRow, null, 2))}</pre>
+    </div>` : ''}
+    <div class="row">
+      <div class="key">หลัง filter เอกสารว่าง</div>
+      <div class="val">${_diag.rowsAfterAmountFilter.toLocaleString()} แถว</div>
+    </div>
+    <div class="row">
+      <div class="key">หลัง role filter (role ${currentUser?.role || '-'})</div>
+      <div class="val ${finalClass}">${_diag.rowsAfterRoleFilter.toLocaleString()} แถว ${currentUser?.role < 5 ? '(filter: empId=' + escapeHtml(currentUser?.empId || '') + ')' : '(เห็นทั้งหมด)'}</div>
+    </div>
+    <div class="row">
+      <div class="key">LAST UPDATE</div>
+      <div class="val">${escapeHtml(_diag.lastUpdate || '-')}</div>
+    </div>
+  `;
+  $('debugBody').innerHTML = html;
+}
+
+async function testFetch(){
+  showToast('กำลังทดสอบ fetch...', 'info');
+  await loadData();
+  renderDebug();
+}
+
+function copyDebug(){
+  const txt = JSON.stringify({
+    user: { email: currentUser?.email, role: currentUser?.role, empId: currentUser?.empId },
+    diag: _diag
+  }, null, 2);
+  navigator.clipboard.writeText(txt).then(
+    () => showToast('คัดลอกแล้ว ✓', 'success'),
+    () => showToast('คัดลอกไม่สำเร็จ', 'error')
+  );
+}
+
+function openSheet(){
+  window.open(`https://docs.google.com/spreadsheets/d/${CONFIG.sheetId}/edit`, '_blank');
 }
 
 /* ========================
