@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0d1b3e">
-<title>Rattana Face Check-in v4.1</title>
+<title>Rattana Face Check-in v4.2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -497,7 +497,7 @@ body.dark .alert-warn { background:rgba(243,156,18,.15); color:#f7c873; }
   <div class="login-card">
     <div class="login-logo">R</div>
     <div class="login-title">Rattana Face Check-in</div>
-    <div class="login-sub">v4.1 · ระบบลงเวลาด้วยใบหน้าและ GPS</div>
+    <div class="login-sub">v4.2 · ระบบลงเวลาด้วยใบหน้าและ GPS</div>
 
     <!-- Google Sign-In View -->
     <div id="loginGoogleView">
@@ -523,7 +523,7 @@ body.dark .alert-warn { background:rgba(243,156,18,.15); color:#f7c873; }
     <!-- Setup Wizard View -->
     <div id="loginSetupView" style="display:none">
       <div class="alert alert-success mb-16" style="text-align:left">
-        ✅ <strong>v4.1 มีค่าตั้งต้นในโค้ดแล้ว</strong><br>
+        ✅ <strong>v4.2 มีค่าตั้งต้นในโค้ดแล้ว</strong><br>
         <span class="text-sm">พนักงานเปิดแอปแล้วใช้ได้เลย ไม่ต้องตั้งค่าอะไร — หน้านี้สำหรับ admin override เท่านั้น</span>
       </div>
       <div class="input-group">
@@ -549,7 +549,7 @@ body.dark .alert-warn { background:rgba(243,156,18,.15); color:#f7c873; }
       </div>
     </div>
 
-    <div class="text-sm text-muted mt-12">v4.1 · 28 เม.ย. 2569</div>
+    <div class="text-sm text-muted mt-12">v4.2 · 28 เม.ย. 2569</div>
   </div>
 </div>
 
@@ -580,7 +580,7 @@ body.dark .alert-warn { background:rgba(243,156,18,.15); color:#f7c873; }
     <!-- ===== Page: Home (สแกนตัวเอง — Single Screen Mobile UX) ===== -->
     <div id="page-home" class="page active">
 
-      <!-- Quick Start banner (collapsed by default) -->
+      <!-- Quick Start banner -->
       <div class="card" id="quickStartBanner" style="display:none;border-top-color:var(--info)">
         <div class="card-header">
           <div class="card-icon">💡</div>
@@ -590,63 +590,79 @@ body.dark .alert-warn { background:rgba(243,156,18,.15); color:#f7c873; }
         <div id="quickStartSteps"></div>
       </div>
 
-      <!-- Today status compact -->
+      <!-- Today status -->
       <div id="todayStatusCompact" style="margin-bottom:10px"></div>
 
-      <!-- Camera (top half on mobile) -->
-      <div class="camera-wrap home-cam" id="empCamWrap">
-        <video id="empVideo" class="cam-video" autoplay muted playsinline></video>
-        <canvas id="empCanvas" class="cam-canvas"></canvas>
-        <div class="face-guide"></div>
-        <!-- Face status badge inside camera -->
-        <div class="cam-face-badge" id="camFaceBadge"></div>
-        <div class="cam-overlay" id="empCamOverlay">
-          <div class="cam-spinner"></div>
-          <div class="cam-overlay-text" id="empCamText">กำลังเปิดกล้อง...</div>
+      <!-- START SCREEN (default) -->
+      <div id="homeStartScreen">
+        <div class="card" style="text-align:center;padding:24px 18px">
+          <div style="font-size:60px;margin-bottom:10px">📷</div>
+          <div style="font-size:18px;font-weight:700;margin-bottom:6px">พร้อมเช็คอิน?</div>
+          <div class="text-sm text-muted mb-12">กดปุ่มด้านล่าง — แอปจะขอใช้กล้องและตำแหน่ง</div>
+          <button class="big-action" onclick="startCheckinFlow()">
+            <span>📷 เริ่มเช็คอิน</span>
+            <span class="sub">เปิดกล้องและตรวจตำแหน่ง</span>
+          </button>
+          <div class="user-row mt-12" id="userInfo">ยินดีต้อนรับ</div>
         </div>
       </div>
 
-      <!-- Compact 3-line status -->
-      <div class="status-compact" id="statusCompact">
-        <div class="status-line pending" id="lineFace">
-          <span class="ico">📷</span>
-          <span class="lbl">ใบหน้า</span>
-          <span class="val" id="chkFace">รอสแกน</span>
+      <!-- ACTIVE SCREEN (hidden until "เริ่มเช็คอิน" pressed) -->
+      <div id="homeActiveScreen" style="display:none">
+        <!-- Camera -->
+        <div class="camera-wrap home-cam" id="empCamWrap">
+          <video id="empVideo" class="cam-video" autoplay muted playsinline></video>
+          <canvas id="empCanvas" class="cam-canvas"></canvas>
+          <div class="face-guide"></div>
+          <div class="cam-face-badge" id="camFaceBadge"></div>
+          <div class="cam-overlay" id="empCamOverlay">
+            <div class="cam-spinner"></div>
+            <div class="cam-overlay-text" id="empCamText">กำลังเปิดกล้อง...</div>
+          </div>
         </div>
-        <div class="status-line pending" id="lineLoc">
-          <span class="ico">📍</span>
-          <span class="lbl">GPS</span>
-          <span class="val" id="chkLoc">รอพิกัด</span>
+
+        <!-- Compact 3-line status -->
+        <div class="status-compact" id="statusCompact">
+          <div class="status-line pending" id="lineFace">
+            <span class="ico">📷</span>
+            <span class="lbl">ใบหน้า</span>
+            <span class="val" id="chkFace">รอสแกน</span>
+          </div>
+          <div class="status-line pending" id="lineLoc">
+            <span class="ico">📍</span>
+            <span class="lbl">GPS</span>
+            <span class="val" id="chkLoc">รอพิกัด</span>
+          </div>
+          <div class="status-line pending" id="lineTime">
+            <span class="ico">⏱</span>
+            <span class="lbl">เวลา</span>
+            <span class="val" id="chkTime">--:--</span>
+          </div>
         </div>
-        <div class="status-line pending" id="lineTime">
-          <span class="ico">⏱</span>
-          <span class="lbl">เวลา</span>
-          <span class="val" id="chkTime">--:--</span>
+
+        <div class="user-row" id="userInfoActive"></div>
+
+        <!-- Sticky bottom action button -->
+        <div class="sticky-action">
+          <button class="big-action" id="btnAction" onclick="doSelfCheckIn()" disabled>
+            <span id="btnActionText">บันทึกเข้างาน</span>
+            <span class="sub" id="btnActionSub">กรุณาสแกนใบหน้าและรอ GPS</span>
+          </button>
         </div>
+
+        <!-- Advanced -->
+        <details class="advanced-toggle" style="margin-top:10px">
+          <summary>⚙ ตัวเลือกขั้นสูง</summary>
+          <div class="btn-row mt-12">
+            <button class="btn btn-outline" onclick="startEmpCamera()">เปิดกล้อง</button>
+            <button class="btn btn-outline" onclick="stopEmpCamera()">ปิดกล้อง</button>
+            <button class="btn btn-outline" onclick="getGps()">รีเฟรช GPS</button>
+          </div>
+          <div class="btn-row mt-12">
+            <button class="btn btn-outline" onclick="cancelCheckinFlow()">↩ กลับหน้าเริ่ม</button>
+          </div>
+        </details>
       </div>
-
-      <!-- User info row (compact) -->
-      <div class="user-row" id="userInfo">ยินดีต้อนรับ</div>
-
-      <!-- Sticky bottom action button -->
-      <div class="sticky-action">
-        <button class="big-action" id="btnAction" onclick="doSelfCheckIn()" disabled>
-          <span id="btnActionText">บันทึกเข้างาน</span>
-          <span class="sub" id="btnActionSub">กรุณาสแกนใบหน้าและรอ GPS</span>
-        </button>
-      </div>
-
-      <!-- Hidden controls (advanced — accessible via menu) -->
-      <details class="advanced-toggle" style="margin-top:10px">
-        <summary>⚙ ตัวเลือกขั้นสูง</summary>
-        <div class="btn-row mt-12">
-          <button class="btn btn-outline" onclick="startEmpCamera()">เปิดกล้อง</button>
-          <button class="btn btn-outline" onclick="stopEmpCamera()">ปิดกล้อง</button>
-          <button class="btn btn-outline" onclick="getGps()">รีเฟรช GPS</button>
-        </div>
-        <div class="text-sm text-muted mt-12" id="todayStatusFull"></div>
-        <div class="text-sm text-muted mt-12" id="gpsDetail"></div>
-      </details>
     </div>
 
     <!-- ===== Page: Kiosk (Supervisor/HR เท่านั้น — สแกนให้ลูกน้อง) ===== -->
@@ -1040,7 +1056,7 @@ body.dark .alert-warn { background:rgba(243,156,18,.15); color:#f7c873; }
    Rattana Face Check-in v2.0
    ============================================================ */
 
-const APP_VERSION = '4.1';
+const APP_VERSION = '4.2';
 const FACE_MODELS_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
 
 const DEFAULT_LOCATIONS = [
@@ -1054,7 +1070,7 @@ const DEFAULT_LOCATIONS = [
 /* Default config — Hardcoded for Rattana
    Client ID ปลอดภัยที่จะใส่ใน code (Google ป้องกันด้วย Authorized Origins)
    
-   Architecture v4.1:
+   Architecture v4.2:
    - Users Sheet (มีอยู่)         — รายชื่อ + email + role
    - FaceData Sheet (ใหม่)         — empId, descriptor (JSON 128 floats), photoBase64, registeredAt
    - CheckinLog Sheet (ใหม่)       — log การเช็คอินทั้งหมด
@@ -1473,7 +1489,7 @@ async function loadFaceDataSheet() {
       if (myFace.photo) LS.set('facePhoto', myFace.photo);
       if (myFace.registeredAt) LS.set('faceRegisteredAt', new Date(myFace.registeredAt).getTime());
       LS.set('faceDescriptor', Array.from(myFace.descriptor));
-      console.log('[v4.1] Loaded own face from FaceData Sheet');
+      console.log('[v4.2] Loaded own face from FaceData Sheet');
     }
   }
   return true;
@@ -1818,14 +1834,19 @@ async function startEmpCamera() {
 function stopEmpCamera() {
   if (empMatchInterval) { clearInterval(empMatchInterval); empMatchInterval = null; }
   if (empStream) { empStream.getTracks().forEach(t => t.stop()); empStream = null; }
-  document.getElementById('empVideo').srcObject = null;
-  document.getElementById('empCamWrap').className = 'camera-wrap';
+  if (gpsWatchId !== null) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
+  const v = document.getElementById('empVideo');
+  if (v) v.srcObject = null;
+  const wrap = document.getElementById('empCamWrap');
+  if (wrap) wrap.className = 'camera-wrap home-cam';
   setEmpOverlay(true, 'กล้องปิด · กดเปิดเพื่อเริ่ม');
   updateFaceCheck(null);
 }
 function setEmpOverlay(show, text) {
-  const o = document.getElementById('empCamOverlay'); o.classList.toggle('hidden', !show);
-  document.getElementById('empCamText').textContent = text || '';
+  const o = document.getElementById('empCamOverlay');
+  if (o) o.classList.toggle('hidden', !show);
+  const t = document.getElementById('empCamText');
+  if (t) t.textContent = text || '';
 }
 function startEmpMatching() {
   if (!faceapiReady) return;
@@ -1988,14 +2009,42 @@ function capturePhoto(video) {
 /* ============================================================
    GPS (employee mode only)
    ============================================================ */
+let gpsWatchId = null;
+
 function getGps() {
-  if (!navigator.geolocation) { toast('ไม่รองรับ GPS', 'error'); return; }
-  setGpsRow('pending', '⌖', 'กำลังดึงพิกัด...', '');
+  if (!navigator.geolocation) {
+    toast('เบราว์เซอร์นี้ไม่รองรับ GPS', 'error');
+    setGpsRow('err','✗','GPS ไม่รองรับ','เปิดใน Safari/Chrome ปกติ');
+    updateLocCheck();
+    return;
+  }
+  setGpsRow('pending', '⌖', 'กำลังดึงพิกัด...', 'ครั้งแรกจะถามอนุญาต');
+  updateLocCheck();
+
+  // Try high accuracy first (ใช้ GPS chip — แม่นกว่าแต่ช้ากว่า)
   navigator.geolocation.getCurrentPosition(
     pos => onGpsOk(pos),
-    err => onGpsErr(err),
-    { enableHighAccuracy:true, timeout:15000, maximumAge:0 }
+    err => {
+      console.warn('GPS high-accuracy failed', err);
+      // Fallback: ลอง low accuracy (ใช้ network/wifi positioning)
+      if (err.code === 3) {  // timeout
+        setGpsRow('pending', '⌖', 'ลองใหม่...', 'ใช้ network positioning');
+        navigator.geolocation.getCurrentPosition(
+          pos => onGpsOk(pos),
+          err2 => onGpsErr(err2),
+          { enableHighAccuracy:false, timeout:30000, maximumAge:60000 }
+        );
+      } else {
+        onGpsErr(err);
+      }
+    },
+    { enableHighAccuracy:true, timeout:20000, maximumAge:0 }
   );
+
+  // Optional: continuous tracking (อัพเดตพิกัดถ้าเดิน) — comment out ถ้าไม่ต้อง
+  // if (!gpsWatchId) {
+  //   gpsWatchId = navigator.geolocation.watchPosition(onGpsOk, () => {}, { enableHighAccuracy:true });
+  // }
 }
 function onGpsOk(pos) {
   const { latitude:lat, longitude:lng, accuracy } = pos.coords;
@@ -2027,13 +2076,28 @@ function onGpsOk(pos) {
   renderGpsCard(); updateLocCheck(); evaluateAction();
 }
 function onGpsErr(err) {
-  const msgs = { 1:'ปฏิเสธการเข้าถึงตำแหน่ง', 2:'หาตำแหน่งไม่ได้', 3:'หมดเวลา' };
-  setGpsRow('err','✗','GPS ไม่พร้อม', msgs[err.code]||err.message);
+  let msg = '';
+  if (err.code === 1) {
+    msg = 'ปฏิเสธสิทธิ์ — Safari → Settings → Location → Allow';
+  } else if (err.code === 2) {
+    msg = 'หาตำแหน่งไม่ได้ — ลองออกที่โล่ง';
+  } else if (err.code === 3) {
+    msg = 'หมดเวลา — เครือข่ายช้า';
+  } else {
+    msg = err.message || 'ไม่ทราบสาเหตุ';
+  }
+  setGpsRow('err','✗','GPS ล้มเหลว', msg);
   lastGps = null; updateLocCheck(); evaluateAction();
+  toast(`GPS: ${msg}`, 'error');
 }
 function setGpsRow(kind, icon, label, value) {
-  document.getElementById('gpsStatus').innerHTML =
-    `<div class="status-row ${kind}"><div class="icon">${icon}</div><div><div class="label">${label}</div><div class="value">${value}</div></div></div>`;
+  const el = document.getElementById('gpsStatus');
+  if (el) {
+    el.innerHTML = `<div class="status-row ${kind}"><div class="icon">${icon}</div><div><div class="label">${label}</div><div class="value">${value}</div></div></div>`;
+  }
+  // Also update inline status if exists
+  const detailEl = document.getElementById('gpsDetail');
+  if (detailEl) detailEl.textContent = `${label}: ${value}`;
 }
 function renderGpsCard() {
   if (!lastGps) return;
@@ -2049,7 +2113,14 @@ function renderGpsCard() {
       <div class="value">${g.distance.toFixed(1)} ม. · เกณฑ์ ≤ ${g.radius} ม.</div></div></div>`;
   }
   if (g.accuracy > 30) html += `<div class="alert alert-warn mt-8">⚠ GPS ไม่แม่น (±${acc} ม.) ลองออกที่โล่ง</div>`;
-  document.getElementById('gpsStatus').innerHTML = html;
+  const gpsStatusEl = document.getElementById('gpsStatus');
+  if (gpsStatusEl) gpsStatusEl.innerHTML = html;
+  // also update inline detail (advanced section)
+  const detailEl = document.getElementById('gpsDetail');
+  if (detailEl) {
+    detailEl.innerHTML = `📍 ±${acc} ม. · ${g.lat.toFixed(5)}, ${g.lng.toFixed(5)}` +
+      (g.nearestIdx >= 0 ? ` · ${g.locName} (${g.distance.toFixed(1)} ม.)` : '');
+  }
 }
 function updateLocCheck() {
   const el = document.getElementById('chkLoc'); if (!el) return;
@@ -2119,20 +2190,26 @@ function evaluateAction() {
   sub.textContent = ready ? '✓ พร้อมบันทึก · กดเพื่อยืนยัน' : reasons[0];
 }
 function doSelfCheckIn() {
-  if (!lastGps?.withinRadius) { toast('นอกรัศมี', 'error'); return; }
-  if (faceapiReady && registeredDescriptor && (!lastFaceMatch?.ok)) { toast('ใบหน้าไม่ตรง', 'error'); return; }
+  if (!lastGps?.withinRadius) { toast('📍 นอกรัศมี — เข้าใกล้สาขามากกว่านี้', 'error'); return; }
+  if (faceapiReady && registeredDescriptor && (!lastFaceMatch?.ok)) { toast('❌ ใบหน้าไม่ตรง', 'error'); return; }
+  const type = nextActionType(currentUser.empId);
   const v = document.getElementById('empVideo');
-  const photo = (empStream && v.videoWidth) ? capturePhoto(v) : null;
+  const photo = (empStream && v?.videoWidth) ? capturePhoto(v) : null;
   saveLog({
     empId: currentUser.empId, name: currentUser.name, branch: currentUser.branch,
-    type: nextActionType(currentUser.empId),
+    type,
     lat: lastGps.lat, lng: lastGps.lng, accuracy: lastGps.accuracy,
     distance: lastGps.distance, locCode: lastGps.locCode, locName: lastGps.locName,
     faceDist: lastFaceMatch ? +lastFaceMatch.distance.toFixed(3) : null,
     photo, scannedBy: 'self',
   });
-  toast(nextActionType(currentUser.empId)==='out'?'✓ บันทึกออก':'✓ บันทึกเข้า', 'success');
-  evaluateAction(); renderTodayStatus(); renderTodayPage(); renderHistory(); renderDashboard();
+  toast(type==='out'?'✓ บันทึกออกงานสำเร็จ':'✓ บันทึกเข้างานสำเร็จ', 'success');
+
+  // ปิดกล้อง + กลับ start screen
+  setTimeout(() => {
+    cancelCheckinFlow();
+    renderTodayStatus(); renderTodayPage(); renderHistory(); renderDashboard();
+  }, 1500);
 }
 function saveLog(data) {
   const now = new Date();
@@ -2960,6 +3037,10 @@ function resetAll() {
   setTimeout(() => location.reload(), 800);
 }
 function showPage(p) {
+  // ปิดกล้องเมื่อออกจาก home tab (ประหยัด battery + privacy)
+  if (p !== 'home' && empStream) {
+    stopEmpCamera();
+  }
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.page === p));
   document.querySelectorAll('.page').forEach(pg => pg.classList.toggle('active', pg.id === 'page-'+p));
   if (p === 'kiosk') { fillKioskBranches(); renderDashboard(); }
@@ -2969,6 +3050,8 @@ function showPage(p) {
   if (p === 'history') renderHistory();
   if (p === 'locations') renderLocations();
   if (p === 'setup') { renderFaceReg(); renderSystemInfo(); }
+  // home tab: rebuild button state
+  if (p === 'home') evaluateAction();
 }
 function toggleTheme() {
   document.body.classList.toggle('dark');
@@ -3062,15 +3145,20 @@ function initApp() {
     fillKioskBranches();
   }, 200);
 
-  // ทุก role ต้องสแกนตัวเองได้ → auto start camera + GPS
+  // Update time + button state every second (only when home tab active)
   setInterval(() => {
     if (document.getElementById('page-home').classList.contains('active')) evaluateAction();
   }, 1000);
+
+  // Preload face models in background (so first scan ไวกว่า) — แต่ไม่เปิดกล้อง
   setTimeout(async () => {
     await loadFaceModels();
-    setTimeout(() => startEmpCamera(), 500);
-    setTimeout(() => getGps(), 800);
   }, 600);
+
+  // Auto-stop camera + GPS เมื่อสลับไป tab อื่น
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopEmpCamera();
+  });
 }
 
 /* Quick Start: แสดงขั้นตอนสำหรับครั้งแรก */
@@ -3147,6 +3235,35 @@ function renderQuickStart() {
 function dismissQuickStart() {
   LS.set('quickStartDismissed', true);
   document.getElementById('quickStartBanner').style.display = 'none';
+}
+
+/* ============================================================
+   CHECK-IN FLOW (start/cancel)
+   ============================================================ */
+async function startCheckinFlow() {
+  // Show active screen, hide start screen
+  document.getElementById('homeStartScreen').style.display = 'none';
+  document.getElementById('homeActiveScreen').style.display = 'block';
+  // Mirror userInfo to active screen
+  const ui = document.getElementById('userInfo');
+  const uiActive = document.getElementById('userInfoActive');
+  if (ui && uiActive) uiActive.innerHTML = ui.innerHTML;
+
+  // Make sure face models loaded
+  if (!faceapiReady) {
+    toast('กำลังโหลดโมเดลใบหน้า...', 'info');
+    await loadFaceModels();
+  }
+  // Start camera
+  await startEmpCamera();
+  // Get GPS — กดปุ่มจะแสดง permission prompt
+  setTimeout(() => getGps(), 500);
+}
+
+function cancelCheckinFlow() {
+  stopEmpCamera();
+  document.getElementById('homeActiveScreen').style.display = 'none';
+  document.getElementById('homeStartScreen').style.display = 'block';
 }
 
 loadAll();
