@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana ยอดหนี้คงค้าง v1.9</title>
+<title>Rattana ยอดหนี้คงค้าง v2.0</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -121,12 +121,13 @@ body.dark .ctab.active{background:var(--gold);color:var(--navy);border-color:var
 }
 
 /* Tab navigation */
-.tab-nav{display:flex;background:var(--card-bg);border-bottom:1px solid var(--border);padding:0 12px;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:8px}
+.tab-nav{display:flex;background:var(--navy);border-bottom:3px solid var(--gold);padding:0 8px;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 12px}
 @media(min-width:640px){.tab-nav{padding:0 16px}}
-.tnav{background:transparent;border:none;color:var(--muted);padding:10px 14px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;flex-shrink:0;transition:color .15s}
-@media(min-width:640px){.tnav{padding:12px 16px;font-size:14px}}
-.tnav:hover{color:var(--text)}
-.tnav.active{color:var(--text);border-bottom-color:var(--gold)}
+.tnav{background:transparent;border:none;color:rgba(255,255,255,.6);padding:12px 18px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;flex-shrink:0;transition:all .18s;margin-bottom:-3px;border-radius:6px 6px 0 0}
+@media(min-width:640px){.tnav{padding:14px 22px;font-size:14px}}
+.tnav:hover{color:#fff;background:rgba(255,255,255,.06)}
+.tnav.active{color:var(--navy);background:var(--gold);border-bottom-color:var(--gold);font-weight:700;box-shadow:0 -2px 8px rgba(201,168,76,.3)}
+body.dark .tnav.active{color:var(--navy)}
 .tab-pane{display:none}
 .tab-pane.active{display:block;animation:fadeIn .25s}
 
@@ -140,7 +141,26 @@ body.dark .ctab.active{background:var(--gold);color:var(--navy);border-color:var
 .collect-controls label{display:flex;flex-direction:column;gap:4px}
 .collect-controls .lbl{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.3px}
 
-/* Searchable combobox */
+/* Compact searchable combobox for filter bar dropdowns */
+.fcombo{position:relative;min-width:0}
+.fcombo-input{height:30px;padding:0 24px 0 8px;border-radius:6px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);font-size:12px;outline:none;width:100%;font-family:inherit;box-sizing:border-box;cursor:pointer;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;text-align:left;display:flex;align-items:center}
+@media(min-width:640px){.fcombo-input{height:34px;font-size:13px}}
+.fcombo-input:focus,.fcombo.open .fcombo-input{border-color:var(--gold);outline:none}
+.fcombo-arrow{position:absolute;right:6px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:11px;transition:transform .15s}
+.fcombo.open .fcombo-arrow{transform:translateY(-50%) rotate(180deg)}
+.fcombo-list{display:none;position:absolute;top:calc(100% + 2px);left:0;background:var(--card-bg);border:1px solid var(--border);border-radius:6px;box-shadow:0 6px 20px rgba(13,27,62,.18);z-index:200;max-height:280px;overflow-y:auto;min-width:100%;width:max-content;max-width:320px}
+.fcombo.open .fcombo-list{display:block}
+.fcombo-search{position:sticky;top:0;background:var(--card-bg);padding:6px;border-bottom:1px solid var(--border);z-index:1}
+.fcombo-search input{width:100%;height:30px;padding:0 8px;border:1px solid var(--border);border-radius:5px;outline:none;font-size:12px;background:var(--bg);color:var(--text);font-family:inherit;box-sizing:border-box}
+.fcombo-search input:focus{border-color:var(--gold)}
+.fcombo-item{padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--border);font-size:12px;color:var(--text);transition:background .12s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4}
+@media(min-width:640px){.fcombo-item{font-size:13px;padding:9px 12px}}
+.fcombo-item:last-child{border-bottom:none}
+.fcombo-item:hover,.fcombo-item.active{background:rgba(201,168,76,.12)}
+.fcombo-item.selected{background:rgba(201,168,76,.22);font-weight:600;color:var(--text)}
+.fcombo-empty{padding:14px;text-align:center;color:var(--muted);font-size:12px}
+
+/* Searchable combobox (large, used in collect tab) */
 .combo{position:relative}
 .combo-input{height:44px;padding:0 70px 0 14px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);font-size:14px;outline:none;width:100%;font-family:inherit;transition:border-color .15s;box-sizing:border-box}
 .combo-input:focus{border-color:var(--gold)}
@@ -195,6 +215,40 @@ mark{background:var(--gold);color:var(--navy);padding:0 2px;border-radius:2px;fo
 .collect-empty .icon{font-size:60px;margin-bottom:12px;opacity:.4}
 .collect-empty p{font-size:14px}
 
+/* Ranked customer list */
+.collect-ranked{margin-top:8px}
+.cr-head{margin-bottom:12px;padding:0 4px}
+.cr-head h3{font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cr-count{background:var(--gold);color:var(--navy);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
+.cr-sub{font-size:11px;color:var(--muted);line-height:1.4}
+.cr-list{display:flex;flex-direction:column;gap:8px}
+.cr-card{background:var(--card-bg);border-radius:10px;border:1px solid var(--border);border-left:4px solid var(--danger);padding:12px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;transition:transform .12s,box-shadow .12s}
+.cr-card:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(13,27,62,.08)}
+.cr-card.has-cn{border-left-color:var(--warning)}
+.cr-card.no-overdue{border-left-color:var(--success);opacity:.85}
+.cr-info{min-width:0}
+.cr-name{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cr-meta{font-size:11px;color:var(--muted);margin-top:2px;display:flex;gap:10px;flex-wrap:wrap}
+.cr-meta .m-overdue{color:var(--danger);font-weight:600}
+.cr-meta .m-cn{color:var(--success);font-weight:600}
+.cr-meta .m-ok{color:var(--muted)}
+.cr-amount{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.cr-amount .v{font-size:16px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;line-height:1}
+.cr-amount .b{font-size:10px;color:var(--muted)}
+.cr-actions{grid-column:1/-1;display:flex;gap:6px;margin-top:6px}
+.cr-actions button{flex:1;padding:8px;font-size:12px;font-weight:600;border-radius:6px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-family:inherit;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:4px}
+.cr-actions button:hover{border-color:var(--gold)}
+.cr-actions .cr-share{background:var(--gold);color:var(--navy);border-color:var(--gold);font-weight:700}
+.cr-actions .cr-share:hover{background:var(--gold-light)}
+.cr-empty{text-align:center;padding:30px 20px;color:var(--muted);font-size:13px}
+.cr-load-more{padding:10px;text-align:center;background:var(--card-bg);border:1px dashed var(--border);border-radius:8px;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit;width:100%;margin-top:4px}
+.cr-load-more:hover{border-color:var(--gold);color:var(--text)}
+@media(min-width:640px){
+  .cr-card{grid-template-columns:1fr auto auto;gap:14px}
+  .cr-actions{grid-column:auto;margin-top:0}
+  .cr-actions button{padding:8px 14px}
+}
+
 /* QR button in table */
 .qr-btn{background:var(--gold);color:var(--navy);border:none;width:42px;height:38px;border-radius:8px;font-size:18px;cursor:pointer;transition:transform .15s,box-shadow .15s;font-family:inherit;font-weight:700;box-shadow:0 2px 4px rgba(201,168,76,.3)}
 .qr-btn:hover{transform:scale(1.08);background:var(--gold-light);box-shadow:0 4px 8px rgba(201,168,76,.5)}
@@ -210,7 +264,15 @@ body.dark .modal-card{background:var(--card-bg);color:var(--text)}
 .modal-close:hover{background:rgba(0,0,0,.05);color:var(--text)}
 .modal-card h3{font-size:14px;color:var(--navy);font-weight:600;margin-bottom:4px}
 body.dark .modal-card h3{color:var(--text)}
-.qr-amount{font-size:26px;font-weight:700;color:var(--gold);margin-bottom:4px;font-variant-numeric:tabular-nums;line-height:1.1}
+.qr-amount-wrap{display:flex;align-items:baseline;justify-content:center;gap:6px;margin-bottom:4px}
+.qr-amount-input{font-size:30px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1.1;border:none;border-bottom:2px dashed var(--gold);background:transparent;text-align:right;outline:none;padding:2px 4px;width:auto;max-width:200px;font-family:inherit;-moz-appearance:textfield}
+.qr-amount-input::-webkit-outer-spin-button,.qr-amount-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.qr-amount-input:focus{border-bottom-color:var(--navy);background:rgba(201,168,76,.08)}
+.qr-amount-baht{font-size:18px;font-weight:600;color:var(--gold)}
+.qr-amount-helper{display:flex;justify-content:center;align-items:center;gap:8px;font-size:11px;color:var(--muted);margin-bottom:8px;min-height:18px}
+.qr-orig{color:var(--muted)}
+.qr-reset{background:transparent;border:1px solid var(--border);color:var(--muted);padding:2px 8px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit}
+.qr-reset:hover{border-color:var(--gold);color:var(--text)}
 .qr-subtitle{font-size:11px;color:var(--muted);margin-bottom:10px}
 .qr-canvas{display:flex;justify-content:center;padding:8px;background:#fff;border-radius:10px;border:2px solid var(--border);margin:10px auto;max-width:240px}
 .qr-canvas img,.qr-canvas canvas{max-width:100%;height:auto;display:block;width:220px;height:220px}
@@ -361,7 +423,7 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
       <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="signin_with" data-shape="rectangular" data-logo_alignment="left"></div>
     </div>
     <div id="loginError"></div>
-    <p class="footer-note">v1.9 · เฉพาะพนักงานที่ได้รับอนุญาต</p>
+    <p class="footer-note">v2.0 · เฉพาะพนักงานที่ได้รับอนุญาต</p>
   </div>
 </div>
 
@@ -373,7 +435,7 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
     </div>
     <div class="title">
       <h1>ยอดหนี้คงค้าง</h1>
-      <div class="ver">v1.9</div>
+      <div class="ver">v2.0</div>
     </div>
     <div class="actions">
       <div class="user" id="userInfo"></div>
@@ -513,9 +575,12 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
         </button>
       </div>
 
-      <div id="cEmpty" class="collect-empty">
-        <div class="icon">🛒</div>
-        <p>เลือกลูกหนี้จากดรอปดาวน์ด้านบนเพื่อดูยอดค้าง</p>
+      <div id="cEmpty" class="collect-ranked">
+        <div class="cr-head">
+          <h3>📊 ลูกหนี้ที่ถึงเวลาเก็บแล้ว <span id="crCount" class="cr-count"></span></h3>
+          <p class="cr-sub">เรียงตามยอดเกินเครดิต+CN จากมาก→น้อย · เลือกร้านด้านบนเพื่อดูแบบกำหนดเอง</p>
+        </div>
+        <div id="cRankedList" class="cr-list"></div>
       </div>
     </div>
   </div><!-- /tabCollect -->
@@ -527,7 +592,14 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
   <div class="modal-card" onclick="event.stopPropagation()">
     <button class="modal-close" onclick="closeQR()">&times;</button>
     <h3 id="qrTitle">QR ชำระเงิน</h3>
-    <div class="qr-amount" id="qrAmount">0.00 บาท</div>
+    <div class="qr-amount-wrap">
+      <input type="number" id="qrAmountInput" class="qr-amount-input" step="0.01" min="0.01" inputmode="decimal">
+      <span class="qr-amount-baht">บาท</span>
+    </div>
+    <div class="qr-amount-helper">
+      <span id="qrAmountOriginal" class="qr-orig"></span>
+      <button type="button" class="qr-reset" id="qrResetAmount" onclick="resetQrAmount()" style="display:none">↺ ใช้ยอดเดิม</button>
+    </div>
     <div id="qrSubtitle" class="qr-subtitle"></div>
 
     <div class="qr-canvas" id="qrCanvas"></div>
@@ -1018,15 +1090,21 @@ function processData(raw){
   // role > 5  : ผู้จัดการ → เห็นทั้งหมด
   if (currentUser.role < 5){
     allRows = rows.filter(r => r.empId === currentUser.empId);
+    if (rows.length > 0 && allRows.length === 0){
+      showToast(`ไม่พบข้อมูลของพนักงาน "${currentUser.empId || '(ไม่มีรหัส)'}" — ตรวจสอบรหัสพนักงานใน Users Sheet`, 'warning');
+    }
   } else if (currentUser.role === 5){
     const myWh = (currentUser.warehouse || '').trim();
     if (myWh){
       // Match by warehouse code (case-insensitive, trimmed)
       const myWhKey = myWh.toLowerCase();
       allRows = rows.filter(r => (r.warehouse || '').trim().toLowerCase() === myWhKey);
+      if (rows.length > 0 && allRows.length === 0){
+        showToast(`ไม่พบข้อมูลของคลัง "${myWh}" — ตรวจสอบรหัสคลัง W ใน Users Sheet`, 'warning');
+      }
     } else {
-      // Fallback: no warehouse assigned → show only own rows (safer)
       allRows = rows.filter(r => r.empId === currentUser.empId);
+      showToast('ไม่ได้กำหนดคลัง — โหมดสำรอง: เห็นเฉพาะของตัวเอง', 'info');
     }
   } else {
     allRows = rows;
@@ -1059,11 +1137,133 @@ function populateFilters(){
   s.innerHTML = '<option value="">— ทุกคน —</option>' +
     lookups.sales.map(x => `<option value="${escapeAttr(x.empId)}">${escapeHtml(x.name)}</option>`).join('');
   s.value = prevS;
+
+  // Sync display buttons of enhanced selects
+  ['fWarehouse','fSales'].forEach(id => {
+    const sel = $(id);
+    const wrap = sel.closest('.fcombo');
+    if (wrap){
+      const btn = wrap.querySelector('.fcombo-input');
+      if (btn) btn.textContent = sel.options[sel.selectedIndex]?.text || '';
+    }
+  });
+}
+
+/* ========================
+   SEARCHABLE FILTER COMBOBOX
+   Wraps native <select> with searchable UI
+   Native select stays as source of truth for value
+   ======================== */
+function enhanceSelect(selectEl){
+  if (!selectEl || selectEl.dataset.enhanced) return;
+  selectEl.dataset.enhanced = '1';
+  const lbl = selectEl.closest('label');
+  if (!lbl) return;
+
+  // Create wrapper
+  const wrap = document.createElement('div');
+  wrap.className = 'fcombo';
+  // Move select INTO wrap (hidden)
+  selectEl.parentNode.insertBefore(wrap, selectEl);
+  wrap.appendChild(selectEl);
+  selectEl.style.cssText = 'position:absolute;width:1px;height:1px;opacity:0;pointer-events:none';
+
+  // Create display button
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'fcombo-input';
+  btn.textContent = selectEl.options[selectEl.selectedIndex]?.text || '';
+  wrap.appendChild(btn);
+
+  const arrow = document.createElement('span');
+  arrow.className = 'fcombo-arrow';
+  arrow.textContent = '▾';
+  wrap.appendChild(arrow);
+
+  // Create dropdown list
+  const list = document.createElement('div');
+  list.className = 'fcombo-list';
+  wrap.appendChild(list);
+
+  const searchWrap = document.createElement('div');
+  searchWrap.className = 'fcombo-search';
+  const searchInput = document.createElement('input');
+  searchInput.type = 'text';
+  searchInput.placeholder = 'พิมพ์เพื่อค้นหา...';
+  searchWrap.appendChild(searchInput);
+  list.appendChild(searchWrap);
+
+  const itemsWrap = document.createElement('div');
+  itemsWrap.className = 'fcombo-items';
+  list.appendChild(itemsWrap);
+
+  function renderItems(query){
+    const q = (query || '').trim().toLowerCase();
+    const opts = [...selectEl.options];
+    const matches = q
+      ? opts.filter(o => o.text.toLowerCase().includes(q) || o.value.toLowerCase().includes(q))
+      : opts;
+    if (!matches.length){
+      itemsWrap.innerHTML = `<div class="fcombo-empty">ไม่พบ "${escapeHtml(query)}"</div>`;
+      return;
+    }
+    itemsWrap.innerHTML = matches.map(o => {
+      const isSel = o.value === selectEl.value;
+      return `<div class="fcombo-item ${isSel?'selected':''}" data-value="${escapeAttr(o.value)}">${escapeHtml(o.text)}</div>`;
+    }).join('');
+    // Bind clicks
+    itemsWrap.querySelectorAll('.fcombo-item').forEach(it => {
+      it.addEventListener('click', () => {
+        const val = it.dataset.value;
+        selectEl.value = val;
+        btn.textContent = it.textContent;
+        wrap.classList.remove('open');
+        searchInput.value = '';
+        // Trigger native change event
+        selectEl.dispatchEvent(new Event('change', {bubbles:true}));
+      });
+    });
+  }
+
+  function open(){
+    document.querySelectorAll('.fcombo.open').forEach(o => { if (o !== wrap) o.classList.remove('open'); });
+    wrap.classList.add('open');
+    searchInput.value = '';
+    renderItems('');
+    // Focus search after a tick (avoid mobile keyboard flash)
+    setTimeout(() => { searchInput.focus(); }, 50);
+  }
+
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    if (wrap.classList.contains('open')) wrap.classList.remove('open');
+    else open();
+  });
+  searchInput.addEventListener('input', () => renderItems(searchInput.value));
+  searchInput.addEventListener('keydown', e => {
+    if (e.key === 'Escape'){ wrap.classList.remove('open'); btn.focus(); }
+    else if (e.key === 'Enter'){
+      const first = itemsWrap.querySelector('.fcombo-item');
+      if (first) first.click();
+    }
+  });
+
+  // Update display when select value changes externally
+  const updateDisplay = () => {
+    btn.textContent = selectEl.options[selectEl.selectedIndex]?.text || '';
+  };
+  selectEl.addEventListener('change', updateDisplay);
+
+  // Close on outside click
+  document.addEventListener('click', e => {
+    if (!wrap.contains(e.target)) wrap.classList.remove('open');
+  });
 }
 
 function bindFilters(){
   ['fWarehouse','fSales','fAging','fSort'].forEach(id => {
     $(id).addEventListener('change', () => { currentPage = 1; applyFilters(); });
+    enhanceSelect($(id));
   });
   $('fSearch').addEventListener('input', () => {
     clearTimeout(searchTimer);
@@ -1103,6 +1303,8 @@ function bindFilters(){
     if (!$('custCombo').contains(e.target)) closeCombo();
   });
   $('cSelectAll').addEventListener('change', e => toggleAllBills(e.target.checked));
+  // QR amount edit (debounced regen)
+  $('qrAmountInput').addEventListener('input', onQrAmountInput);
 }
 
 function resetFilters(){
@@ -1163,6 +1365,10 @@ function applyFilters(){
   renderChart();
   renderTable();
   renderPagination();
+  // If collect tab is visible, refresh it too (filter bar is global)
+  if ($('tabCollect') && $('tabCollect').classList.contains('active')){
+    initCollectTab();
+  }
 }
 
 function sortBy(col){
@@ -1656,8 +1862,10 @@ function crc16(s){
 }
 
 let qrCurrentAmount = '0.00';
+let qrOriginalAmount = 0; // original total before edit
 let qrCurrentBills = [];
 let qrCurrentCustomer = '';
+let qrUpdateTimer = null;
 
 function showQRForBill(idx){
   const r = viewRows[idx];
@@ -1681,23 +1889,21 @@ function openQR({title, subtitle, amount, bills, customer}){
     return;
   }
 
-  qrCurrentAmount = amount.toFixed(2);
+  qrOriginalAmount = parseFloat(amount.toFixed(2));
+  qrCurrentAmount = qrOriginalAmount.toFixed(2);
   qrCurrentBills = bills || [];
   qrCurrentCustomer = customer || '';
 
   $('qrTitle').textContent = title;
   $('qrSubtitle').textContent = (customer ? customer + (subtitle ? ' · ' + subtitle : '') : (subtitle || ''));
-  $('qrAmount').textContent = fmtBaht(amount) + ' บาท';
-  $('qrAcctAmt').textContent = fmtBaht(amount);
+  $('qrAmountInput').value = qrOriginalAmount.toFixed(2);
+  $('qrAmountOriginal').textContent = `ยอดเต็ม ${fmtBaht(qrOriginalAmount)}`;
+  $('qrResetAmount').style.display = 'none';
+  $('qrAcctAmt').textContent = fmtBaht(qrOriginalAmount);
 
-  // Generate QR — smaller size to fit in compact modal
-  const payload = genPromptPayPayload(RATTANA_RECEIVER.promptPayType, RATTANA_RECEIVER.promptPayId, amount);
-  const qr = qrcode(0, 'M');
-  qr.addData(payload);
-  qr.make();
-  $('qrCanvas').innerHTML = qr.createImgTag(5, 6);
+  regenerateQRCode(qrOriginalAmount);
 
-  // Bill details (if multiple) — auto-expand for transparency
+  // Bill details — auto-expand for transparency
   if (bills && bills.length > 0){
     $('qrDetailWrap').style.display = 'block';
     $('qrDetailCount').textContent = bills.length;
@@ -1712,6 +1918,36 @@ function openQR({title, subtitle, amount, bills, customer}){
   }
 
   $('qrModal').classList.add('show');
+}
+
+function regenerateQRCode(amount){
+  qrCurrentAmount = amount.toFixed(2);
+  $('qrAcctAmt').textContent = fmtBaht(amount);
+  const payload = genPromptPayPayload(RATTANA_RECEIVER.promptPayType, RATTANA_RECEIVER.promptPayId, amount);
+  const qr = qrcode(0, 'M');
+  qr.addData(payload);
+  qr.make();
+  $('qrCanvas').innerHTML = qr.createImgTag(5, 6);
+}
+
+function onQrAmountInput(){
+  clearTimeout(qrUpdateTimer);
+  qrUpdateTimer = setTimeout(() => {
+    const v = parseFloat($('qrAmountInput').value);
+    if (!v || v <= 0){
+      showToast('ยอดต้องมากกว่า 0', 'warning');
+      return;
+    }
+    regenerateQRCode(v);
+    // Show reset button if differs from original
+    $('qrResetAmount').style.display = (Math.abs(v - qrOriginalAmount) > 0.001) ? 'inline-block' : 'none';
+  }, 350);
+}
+
+function resetQrAmount(){
+  $('qrAmountInput').value = qrOriginalAmount.toFixed(2);
+  regenerateQRCode(qrOriginalAmount);
+  $('qrResetAmount').style.display = 'none';
 }
 
 function closeQR(e){
@@ -1925,20 +2161,156 @@ let collectCustList = []; // full list of customers
 let comboHighlightIdx = -1;
 
 function initCollectTab(){
-  // Build customer list from allRows (already role-filtered)
+  // Apply same filters as debt table (so filter bar affects both tabs)
+  const w = $('fWarehouse').value;
+  const s = $('fSales').value;
+  let baseRows = allRows;
+  if (w) baseRows = baseRows.filter(r => r.warehouse === w);
+  if (s) baseRows = baseRows.filter(r => r.empId === s);
+
+  // Build customer list with detailed breakdown for both combo and ranked list
   const map = new Map();
-  allRows.forEach(r => {
+  baseRows.forEach(r => {
     if (!r.custCode) return;
     const key = r.custCode;
     if (!map.has(key)){
-      map.set(key, { code: r.custCode, name: r.custName, total: 0, count: 0 });
+      map.set(key, {
+        code: r.custCode,
+        name: r.custName,
+        salesName: r.salesName,
+        warehouse: r.warehouse,
+        total: 0,
+        count: 0,
+        overdueAmount: 0,
+        overdueCount: 0,
+        cnAmount: 0,
+        cnCount: 0,
+        notDueAmount: 0,
+        notDueCount: 0,
+      });
     }
     const c = map.get(key);
     c.total += r.amount;
     c.count++;
+    if (r.amount < 0){
+      c.cnAmount += r.amount;
+      c.cnCount++;
+    } else if (r.overdue > 0){
+      c.overdueAmount += r.amount;
+      c.overdueCount++;
+    } else if (r.amount > 0){
+      c.notDueAmount += r.amount;
+      c.notDueCount++;
+    }
   });
-  collectCustList = [...map.values()].sort((a,b) => b.total - a.total);
+  const list = [...map.values()].map(c => {
+    c.collectible = c.overdueAmount + c.cnAmount;
+    return c;
+  });
+  collectCustList = list.sort((a,b) => b.total - a.total);
+  // Reset show-all toggle when re-initializing
+  const wrap = $('cRankedList');
+  if (wrap) delete wrap.dataset.showAll;
   renderComboList('');
+  renderRankedList();
+}
+
+function renderRankedList(){
+  const wrap = $('cRankedList');
+  if (!wrap) return;
+  // Only customers who have something collectible (overdue > 0 OR CN exists)
+  // Sort by collectible desc
+  const ranked = collectCustList
+    .filter(c => c.overdueCount > 0 || c.cnCount > 0)
+    .sort((a,b) => b.collectible - a.collectible);
+
+  $('crCount').textContent = `${ranked.length} ร้าน`;
+
+  if (!ranked.length){
+    wrap.innerHTML = `<div class="cr-empty">🎉 ไม่มีลูกหนี้ที่เกินเครดิต</div>`;
+    return;
+  }
+
+  // Render top 50 by default, with load-more button
+  const INITIAL = 50;
+  const showAll = wrap.dataset.showAll === '1';
+  const display = showAll ? ranked : ranked.slice(0, INITIAL);
+
+  wrap.innerHTML = display.map(c => {
+    const cls = c.cnCount > 0 && c.overdueCount === 0 ? 'no-overdue'
+              : (c.cnCount > 0 ? 'has-cn' : '');
+    const collectibleColor = c.collectible >= 0 ? 'var(--text)' : 'var(--success)';
+    const metaParts = [];
+    if (c.overdueCount > 0) metaParts.push(`<span class="m-overdue">เกิน ${c.overdueCount} บิล</span>`);
+    if (c.cnCount > 0) metaParts.push(`<span class="m-cn">CN ${c.cnCount} ใบ</span>`);
+    if (c.notDueCount > 0) metaParts.push(`<span class="m-ok">ยังไม่ถึงดีล ${c.notDueCount} บิล</span>`);
+
+    return `
+      <div class="cr-card ${cls}">
+        <div class="cr-info">
+          <div class="cr-name">${escapeHtml(c.name)}</div>
+          <div class="cr-meta">
+            <span>รหัส ${escapeHtml(c.code)}</span>
+            ${metaParts.join('')}
+          </div>
+        </div>
+        <div class="cr-amount">
+          <span class="v" style="color:${collectibleColor}">${fmtBaht(c.collectible)}</span>
+          <span class="b">บาท</span>
+        </div>
+        <div class="cr-actions">
+          <button onclick="openCustomerFromRank('${escapeAttr(c.code)}')">📂 เลือก</button>
+          <button class="cr-share" onclick="quickShareQR('${escapeAttr(c.code)}')" ${c.collectible <= 0 ? 'disabled style="opacity:.5;cursor:not-allowed"' : ''}>📤 แชร์ QR</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Load more button
+  if (!showAll && ranked.length > INITIAL){
+    const more = document.createElement('button');
+    more.className = 'cr-load-more';
+    more.textContent = `▼ แสดงทั้งหมด ${ranked.length} ร้าน (อีก ${ranked.length - INITIAL} ร้าน)`;
+    more.onclick = () => { wrap.dataset.showAll = '1'; renderRankedList(); };
+    wrap.appendChild(more);
+  }
+}
+
+// Open customer from ranked list (programmatic select)
+function openCustomerFromRank(code){
+  const c = collectCustList.find(x => x.code === code);
+  if (!c) return;
+  selectCustomer(code);
+}
+
+// Quick share: build QR with all overdue + CN bills, open modal
+function quickShareQR(code){
+  const c = collectCustList.find(x => x.code === code);
+  if (!c) return;
+  // Get bills: overdue + CN (exclude not-yet-due)
+  const bills = allRows.filter(r =>
+    r.custCode === code && (r.amount < 0 || r.overdue > 0)
+  ).sort((a,b) => {
+    if (a.amount > 0 && b.amount < 0) return -1;
+    if (a.amount < 0 && b.amount > 0) return 1;
+    return b.aging - a.aging;
+  });
+  if (!bills.length){
+    showToast('ไม่มีบิลที่ถึงเวลาเก็บ','warning');
+    return;
+  }
+  const total = bills.reduce((s,b) => s + b.amount, 0);
+  if (total <= 0){
+    showToast('ยอดสุทธิเป็นลบหรือศูนย์ — ลูกค้ามีเครดิต','info');
+    return;
+  }
+  openQR({
+    title: 'QR เก็บเงิน',
+    subtitle: `${bills.length} เอกสาร · เกินเครดิต+CN`,
+    amount: total,
+    bills,
+    customer: `${c.name} (${c.code})`,
+  });
 }
 
 function renderComboList(query){
