@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>New Shop Colgate v1.3 — รัตนขายส่ง</title>
+<!--
+  New Shop Colgate v1.3 · 2026-04-29 · for "รัตนขายส่ง"
+
+  ============================================================
+  BACKEND SETUP (developer only — do once before deploy)
+  ============================================================
+  1. สร้าง Google Sheet เปล่า + Drive folder สำหรับเก็บรูป
+  2. เปิดไฟล์ new-shop-colgate-backend-v1.3.gs ที่แนบมา
+  3. แก้ค่า SHEET_ID และ FOLDER_ID
+  4. คัดลอกโค้ดทั้งหมดไปที่ Apps Script editor ของ Sheet
+     (Sheet → Extensions → Apps Script)
+  5. Deploy → New deployment → Web app
+       Execute as: Me  /  Who has access: Anyone
+  6. คัดลอก Web app URL → วางที่ตัวแปร SCRIPT_URL ในไฟล์ HTML นี้
+     (หาคำว่า "PASTE_DEPLOYED_URL_HERE" ด้านล่าง)
+  7. ส่งมอบไฟล์ HTML ที่แก้แล้วให้ end-user — เปิดใช้ได้ทันที
+
+  ⚠️ Login: ใช้ Google OAuth + Users sheet ของ Rattana
+     (ผู้ที่จะเข้าใช้ต้องมี email อยู่ใน Users sheet และ Status = Active)
+  ============================================================
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root{
+  --navy:#0d1b3e;--navy-mid:#1a2f5e;--navy-light:#243b73;
+  --gold:#c9a84c;--gold-light:#e8c86a;
+  --white:#fff;--off-white:#f4f6fb;
+  --success:#2ecc71;--danger:#e74c3c;--warning:#f39c12;--info:#3498db;
+  --bg:var(--off-white);--text:var(--navy);--card-bg:var(--white);--border:#dde3f0;--muted:#6b7794;
+}
+body.dark{
+  --bg:#0a1020;--text:#e8eaf0;--card-bg:#111c35;--border:#243b73;--muted:#8a96b5;
+  --off-white:#0a1020;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100dvh;overflow-x:hidden;-webkit-overflow-scrolling:touch;scroll-behavior:smooth}
+body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.5;transition:background .25s,color .25s}
+
+/* Header */
+.header{
+  position:sticky;top:0;z-index:100;background:var(--navy);color:#fff;
+  padding:10px 16px;display:flex;align-items:center;gap:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,.15);
+  padding-top:max(10px,env(safe-area-inset-top));
+}
+.header .logo{height:40px;width:auto;object-fit:contain;flex-shrink:0;background:#fff;padding:4px;border-radius:6px}
+.header .title{flex:1;min-width:0}
+.header h1{font-size:17px;font-weight:600;color:#fff;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.header .ver{font-size:11px;color:var(--gold-light);font-weight:400}
+.header .actions{display:flex;gap:6px;flex-shrink:0}
+.icon-btn{
+  background:rgba(255,255,255,.1);color:#fff;border:none;border-radius:8px;
+  width:40px;height:40px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:18px;transition:background .15s;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+}
+.icon-btn:hover{background:rgba(255,255,255,.2)}
+.icon-btn:active{transform:scale(.95)}
+.icon-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* Tabs */
+.tabs{
+  background:var(--navy-mid);display:flex;overflow-x:auto;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  position:sticky;top:60px;z-index:99;
+}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  flex:1;min-width:max-content;padding:12px 18px;background:transparent;border:none;
+  color:rgba(255,255,255,.7);font-family:inherit;font-size:14px;font-weight:500;
+  cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  transition:color .15s,border-color .15s,background .15s;
+}
+.tab:hover{color:#fff;background:rgba(255,255,255,.05)}
+.tab.active{color:var(--gold-light);border-bottom-color:var(--gold)}
+
+/* Container */
+.container{max-width:900px;margin:0 auto;padding:14px;padding-bottom:max(80px,env(safe-area-inset-bottom))}
+.tab-pane{display:none}
+.tab-pane.active{display:block;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* Cards */
+.card{
+  background:var(--card-bg);border-radius:12px;padding:16px;margin-bottom:14px;
+  border:1px solid var(--border);border-top:3px solid var(--gold);
+  box-shadow:0 1px 3px rgba(13,27,62,.04);
+}
+.card-title{
+  font-size:15px;font-weight:600;color:var(--navy);margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;
+}
+body.dark .card-title{color:var(--gold-light)}
+.card-title .num{
+  background:var(--gold);color:var(--navy);width:24px;height:24px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;
+}
+
+/* Form */
+.field{margin-bottom:14px}
+.field:last-child{margin-bottom:0}
+.field label{
+  display:block;font-size:13px;font-weight:500;margin-bottom:6px;color:var(--text);
+}
+.field label .req{color:var(--danger);margin-left:3px}
+.field .hint{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.3}
+input[type=text],input[type=tel],input[type=number],input[type=email],select,textarea{
+  width:100%;padding:11px 12px;font-family:inherit;font-size:16px;
+  background:var(--bg);color:var(--text);
+  border:1.5px solid var(--border);border-radius:8px;
+  transition:border-color .15s,box-shadow .15s;
+}
+body.dark input,body.dark select,body.dark textarea{background:var(--card-bg)}
+input:focus,select:focus,textarea:focus{
+  outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.15);
+}
+textarea{resize:vertical;min-height:70px;font-family:inherit}
+select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7794' d='M6 8L0 0h12z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+select:disabled{opacity:.55;cursor:not-allowed}
+.row{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:540px){.row.cols-2{grid-template-columns:1fr 1fr}.row.cols-3{grid-template-columns:1fr 1fr 1fr}}
+
+/* Shop type radio */
+.shop-types{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.shop-types input{position:absolute;opacity:0;pointer-events:none}
+.shop-types label{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:14px 4px;border:2px solid var(--border);border-radius:10px;
+  cursor:pointer;transition:all .15s;background:var(--bg);font-size:13px;
+  text-align:center;line-height:1.2;min-height:64px;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+}
+body.dark .shop-types label{background:var(--card-bg)}
+.shop-types label .sz{font-size:20px;font-weight:700;color:var(--navy);line-height:1}
+body.dark .shop-types label .sz{color:var(--gold-light)}
+.shop-types label .desc{font-size:10px;color:var(--muted);margin-top:4px}
+.shop-types input:checked+label{
+  border-color:var(--gold);background:rgba(201,168,76,.12);
+  box-shadow:0 0 0 3px rgba(201,168,76,.2);
+}
+.shop-types input:checked+label .sz{color:var(--gold)}
+
+/* Buttons */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:11px 18px;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:500;
+  cursor:pointer;transition:all .15s;min-height:44px;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+.btn-primary{background:var(--navy);color:#fff}
+.btn-primary:hover{background:var(--navy-light)}
+.btn-gold{background:var(--gold);color:var(--navy);font-weight:600}
+.btn-gold:hover{background:var(--gold-light)}
+.btn-secondary{background:transparent;color:var(--text);border:1.5px solid var(--border)}
+.btn-secondary:hover{border-color:var(--gold);color:var(--gold)}
+.btn-success{background:var(--success);color:#fff}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-block{width:100%}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.btn-row .btn{flex:1;min-width:140px}
+
+/* Map */
+#map{height:280px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);z-index:1}
+.gps-row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.gps-row input{flex:1;min-width:130px}
+.coord-display{
+  background:var(--bg);padding:10px 12px;border-radius:8px;
+  font-family:'Courier New',monospace;font-size:13px;color:var(--muted);
+  border:1px dashed var(--border);margin-top:8px;
+}
+.coord-display strong{color:var(--text)}
+
+/* Photo upload */
+.photo-area{
+  border:2px dashed var(--border);border-radius:10px;padding:20px;
+  text-align:center;cursor:pointer;background:var(--bg);transition:all .15s;
+  position:relative;overflow:hidden;
+}
+.photo-area:hover{border-color:var(--gold);background:rgba(201,168,76,.05)}
+.photo-area .icon{font-size:38px;margin-bottom:6px;opacity:.5}
+.photo-area .lbl{font-size:14px;color:var(--text);font-weight:500}
+.photo-area .sub{font-size:12px;color:var(--muted);margin-top:4px}
+.photo-preview{display:none;text-align:center}
+.photo-preview img{max-width:100%;max-height:240px;border-radius:8px;border:1px solid var(--border)}
+.photo-preview .meta{font-size:12px;color:var(--muted);margin-top:8px}
+.photo-actions{display:flex;gap:8px;margin-top:10px;justify-content:center}
+
+/* Auto-address display */
+.auto-addr{
+  background:linear-gradient(to right,rgba(201,168,76,.08),rgba(201,168,76,.02));
+  border-left:3px solid var(--gold);padding:10px 12px;border-radius:6px;
+  font-size:13px;color:var(--text);margin-top:10px;line-height:1.5;
+}
+.auto-addr .lbl{font-size:11px;color:var(--muted);font-weight:500;margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px}
+
+/* Shop list */
+.shop-list{display:grid;gap:12px;grid-template-columns:1fr}
+@media(min-width:640px){.shop-list{grid-template-columns:1fr 1fr}}
+@media(min-width:980px){.shop-list{grid-template-columns:1fr 1fr 1fr}}
+.shop-card{
+  background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:12px;
+  border-left:3px solid var(--gold);transition:transform .15s,box-shadow .15s;
+}
+.shop-card:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(13,27,62,.08)}
+.shop-card .name{font-weight:600;color:var(--navy);font-size:15px;margin-bottom:4px}
+body.dark .shop-card .name{color:var(--gold-light)}
+.shop-card .meta{font-size:12px;color:var(--muted);line-height:1.5}
+.shop-card .meta div{margin-bottom:2px}
+.shop-card .badge{
+  display:inline-block;padding:2px 8px;border-radius:10px;
+  background:var(--gold);color:var(--navy);font-size:11px;font-weight:600;margin-right:4px;
+}
+.shop-card .actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.shop-card .actions a{
+  font-size:12px;padding:5px 10px;border-radius:6px;background:var(--bg);
+  color:var(--text);text-decoration:none;border:1px solid var(--border);
+}
+.shop-card .actions a:hover{border-color:var(--gold);color:var(--gold)}
+.shop-card img{width:100%;height:120px;object-fit:cover;border-radius:6px;margin-bottom:8px;background:var(--bg)}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty-state .icon{font-size:48px;margin-bottom:10px;opacity:.4}
+.empty-state .text{font-size:15px;margin-bottom:4px}
+.empty-state .sub{font-size:13px;opacity:.7}
+
+/* Setup guide */
+.code-block{
+  background:#0d1b3e;color:#e8eaf0;border-radius:10px;padding:14px;
+  font-family:'Courier New',monospace;font-size:12.5px;line-height:1.5;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+  white-space:pre;tab-size:2;position:relative;
+}
+.code-block .copy-btn{
+  position:absolute;top:8px;right:8px;background:var(--gold);color:var(--navy);
+  border:none;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;
+}
+.code-block .copy-btn:hover{background:var(--gold-light)}
+.steps{counter-reset:step;margin:14px 0}
+.steps li{
+  list-style:none;position:relative;padding-left:38px;margin-bottom:14px;line-height:1.5;
+  counter-increment:step;
+}
+.steps li::before{
+  content:counter(step);position:absolute;left:0;top:0;
+  width:26px;height:26px;border-radius:50%;background:var(--gold);color:var(--navy);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;
+}
+.steps li b{color:var(--gold);font-weight:600}
+.steps code{background:var(--bg);padding:2px 6px;border-radius:4px;font-size:12px;color:var(--gold)}
+.alert{
+  padding:11px 14px;border-radius:8px;font-size:13px;line-height:1.5;
+  margin:12px 0;border-left:3px solid;
+}
+.alert-info{background:rgba(52,152,219,.08);border-color:var(--info);color:var(--text)}
+.alert-warning{background:rgba(243,156,18,.1);border-color:var(--warning);color:var(--text)}
+.alert-success{background:rgba(46,204,113,.1);border-color:var(--success);color:var(--text)}
+
+/* Spinner & Loading bar */
+#spinner{display:none;position:fixed;inset:0;background:rgba(13,27,62,.6);align-items:center;justify-content:center;z-index:99999;backdrop-filter:blur(3px)}
+#spinner.show{display:flex}
+.spinner-box{background:#fff;border-radius:14px;padding:30px 38px;text-align:center;border-top:4px solid var(--gold);min-width:200px}
+.spinner-circle{width:48px;height:48px;border:5px solid #dde3f0;border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
+#spinner p{color:var(--navy);font-weight:500;font-size:14px}
+#loadingBar{position:fixed;top:0;left:0;height:3px;background:var(--gold);width:0;transition:width .4s;z-index:10000}
+
+/* Toasts */
+.toast-wrap{position:fixed;bottom:max(20px,env(safe-area-inset-bottom));right:16px;left:16px;z-index:9999;pointer-events:none;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+@media(min-width:640px){.toast-wrap{left:auto;max-width:380px}}
+.toast{
+  padding:12px 16px;border-radius:10px;color:#fff;font-size:14px;font-weight:500;
+  box-shadow:0 4px 14px rgba(0,0,0,.18);pointer-events:auto;animation:slideIn .25s ease;
+  max-width:100%;word-break:break-word;
+}
+.toast-success{background:var(--success)}
+.toast-error{background:var(--danger)}
+.toast-warning{background:var(--warning);color:var(--navy)}
+.toast-info{background:var(--navy-mid);border-left:3px solid var(--gold)}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes slideIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* Back to top */
+#backToTop{
+  position:fixed;bottom:max(24px,calc(16px + env(safe-area-inset-bottom)));
+  right:max(20px,calc(16px + env(safe-area-inset-right)));
+  background:var(--gold);color:var(--navy);border:none;border-radius:50%;
+  width:46px;height:46px;display:none;align-items:center;justify-content:center;
+  box-shadow:0 4px 14px rgba(0,0,0,.22);z-index:998;cursor:pointer;font-size:18px;font-weight:700;
+}
+#backToTop.show{display:flex}
+
+/* Footer */
+.footer{
+  text-align:center;padding:18px;font-size:12px;color:var(--muted);
+  border-top:1px solid var(--border);margin-top:20px;
+}
+.footer a{color:var(--gold);text-decoration:none}
+
+/* Hidden file input */
+.file-hidden{position:absolute;left:-9999px;opacity:0;pointer-events:none}
+
+/* Loading dropdown placeholder */
+.loading-text{color:var(--muted);font-style:italic}
+
+/* ===== LOGIN SCREEN ===== */
+#loginScreen{
+  position:fixed;inset:0;z-index:1000;
+  background:linear-gradient(135deg,#0d1b3e 0%,#1a2f5e 50%,#0d1b3e 100%);
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;padding-top:max(20px,env(safe-area-inset-top));
+  padding-bottom:max(20px,env(safe-area-inset-bottom));
+}
+#loginScreen.hidden{display:none}
+#loginScreen::before{
+  content:'';position:absolute;inset:0;
+  background-image:radial-gradient(circle at 20% 30%,rgba(201,168,76,.15) 0%,transparent 40%),
+                   radial-gradient(circle at 80% 70%,rgba(201,168,76,.08) 0%,transparent 40%);
+  pointer-events:none;
+}
+.login-box{
+  background:#fff;border-radius:18px;padding:36px 28px;
+  text-align:center;max-width:380px;width:100%;
+  border-top:4px solid var(--gold);
+  box-shadow:0 14px 40px rgba(0,0,0,.4);
+  position:relative;z-index:1;
+}
+.login-logo{
+  width:108px;height:108px;margin:0 auto 18px;display:block;
+  filter:drop-shadow(0 4px 12px rgba(0,0,0,.15));
+}
+.login-box h1{
+  font-size:22px;font-weight:700;color:#0d1b3e;margin-bottom:4px;letter-spacing:-.3px;
+}
+.login-box .sub{font-size:14px;color:#6b7794;margin-bottom:24px;line-height:1.4}
+.login-box .gbtn-wrap{display:flex;justify-content:center;margin:14px 0;min-height:44px}
+.login-error{
+  color:var(--danger);font-size:13px;margin-top:14px;min-height:18px;
+  background:rgba(231,76,60,.08);padding:8px 12px;border-radius:8px;
+  display:none;line-height:1.4;
+}
+.login-error.show{display:block}
+.login-hint{
+  font-size:12px;color:#9aa5be;margin-top:20px;line-height:1.5;
+  padding-top:16px;border-top:1px solid #eef0f5;
+}
+.login-hint b{color:#0d1b3e}
+
+/* ===== USER BADGE in header ===== */
+.user-badge{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.1);color:#fff;
+  padding:6px 10px 6px 6px;border-radius:20px;
+  font-size:13px;cursor:pointer;border:none;
+  font-family:inherit;max-width:140px;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+}
+.user-badge:hover{background:rgba(255,255,255,.18)}
+.user-badge .avatar{
+  width:28px;height:28px;border-radius:50%;background:var(--gold);
+  color:var(--navy);display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:12px;flex-shrink:0;
+}
+.user-badge .name{
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-weight:500;
+}
+@media(max-width:480px){
+  .user-badge .name{display:none}
+  .user-badge{padding:4px;border-radius:50%}
+}
+</style>
+</head>
+<body>
+<!-- ============ LOGIN SCREEN ============ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <img class="login-logo" id="loginLogo" alt="รัตนขายส่ง">
+    <h1>New Shop Colgate</h1>
+    <div class="sub">เปิดร้านค้าใหม่ · Colgate · รัตนขายส่ง</div>
+    <div class="gbtn-wrap">
+      <div id="g_id_onload"
+           data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
+           data-callback="handleGoogleLogin"
+           data-auto_prompt="false"></div>
+      <div class="g_id_signin"
+           data-type="standard"
+           data-shape="pill"
+           data-theme="filled_blue"
+           data-text="signin_with"
+           data-size="large"
+           data-locale="th"
+           data-logo_alignment="left"></div>
+    </div>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-hint">
+      🔒 เฉพาะ<b>พนักงานบริษัท</b>ที่ได้รับอนุญาตเท่านั้น<br>
+      หากเข้าใช้ไม่ได้ กรุณาติดต่อผู้ดูแลระบบ
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP SCREEN ============ -->
+<div id="appScreen" style="display:none">
+<div id="loadingBar"></div>
+
+<!-- Header -->
+<header class="header">
+  <img class="logo" id="logoImg" alt="รัตนขายส่ง">
+  <div class="title">
+    <h1>New Shop Colgate</h1>
+    <span class="ver">v1.3 · 2026-04-29 · รัตนขายส่ง</span>
+  </div>
+  <div class="actions">
+    <button class="icon-btn" id="btnRefresh" onclick="refreshData()" title="Refresh">&#x1F504;</button>
+    <button class="icon-btn" id="btnTheme" onclick="toggleTheme()" title="Theme">&#x1F319;</button>
+    <button class="user-badge" id="userBadge" onclick="confirmLogout()" title="ออกจากระบบ">
+      <span class="avatar" id="userAvatar">?</span>
+      <span class="name" id="userName">…</span>
+    </button>
+  </div>
+</header>
+
+<!-- Tabs -->
+<nav class="tabs" role="tablist">
+  <button class="tab active" data-tab="add" onclick="switchTab('add')">&#x2795; เพิ่มร้านใหม่</button>
+  <button class="tab" data-tab="list" onclick="switchTab('list')">&#x1F4CB; รายการร้าน</button>
+</nav>
+
+<div class="container">
+
+  <!-- TAB: ADD -->
+  <div class="tab-pane active" id="tab-add">
+
+    <!-- Card 1: Shop info -->
+    <div class="card">
+      <div class="card-title"><span class="num">1</span>ข้อมูลร้านค้า</div>
+      <div class="field">
+        <label>ชื่อร้าน <span class="req">*</span></label>
+        <input type="text" id="shopName" placeholder="เช่น ร้านสมบูรณ์มินิมาร์ท" autocomplete="off">
+      </div>
+      <div class="row cols-2">
+        <div class="field">
+          <label>ชื่อเจ้าของ <span class="req">*</span></label>
+          <input type="text" id="ownerName" placeholder="ชื่อ-นามสกุล" autocomplete="off">
+        </div>
+        <div class="field">
+          <label>เบอร์โทร <span class="req">*</span></label>
+          <input type="tel" id="phone" placeholder="08x-xxx-xxxx" maxlength="15" autocomplete="off">
+        </div>
+      </div>
+      <div class="field">
+        <label>ประเภทร้าน (ขนาด) <span class="req">*</span></label>
+        <div class="shop-types">
+          <input type="radio" name="shopType" id="size-S" value="S">
+          <label for="size-S"><span class="sz">S</span><span class="desc">เล็ก</span></label>
+          <input type="radio" name="shopType" id="size-M" value="M">
+          <label for="size-M"><span class="sz">M</span><span class="desc">กลาง</span></label>
+          <input type="radio" name="shopType" id="size-L" value="L">
+          <label for="size-L"><span class="sz">L</span><span class="desc">ใหญ่</span></label>
+          <input type="radio" name="shopType" id="size-XL" value="XL">
+          <label for="size-XL"><span class="sz">XL</span><span class="desc">ใหญ่มาก</span></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Address -->
+    <div class="card">
+      <div class="card-title"><span class="num">2</span>ที่อยู่ร้าน</div>
+      <div class="field">
+        <label>บ้านเลขที่ / รายละเอียด <span class="req">*</span></label>
+        <input type="text" id="houseNo" placeholder="เช่น 123/4 หมู่ 5 ซ.สุขใจ" autocomplete="off">
+      </div>
+      <div class="row cols-3">
+        <div class="field">
+          <label>จังหวัด <span class="req">*</span></label>
+          <select id="province" onchange="onProvinceChange()">
+            <option value="">— เลือกจังหวัด —</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>อำเภอ / เขต <span class="req">*</span></label>
+          <select id="amphoe" onchange="onAmphoeChange()" disabled>
+            <option value="">— เลือกอำเภอ —</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>ตำบล / แขวง <span class="req">*</span></label>
+          <select id="tambon" onchange="onTambonChange()" disabled>
+            <option value="">— เลือกตำบล —</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>รหัสไปรษณีย์</label>
+        <input type="text" id="zipcode" readonly placeholder="ระบบเติมให้อัตโนมัติเมื่อเลือกตำบล">
+      </div>
+      <div class="auto-addr" id="autoAddr" style="display:none">
+        <div class="lbl">ที่อยู่เต็ม</div>
+        <div id="autoAddrText"></div>
+      </div>
+    </div>
+
+    <!-- Card 3: GPS -->
+    <div class="card">
+      <div class="card-title"><span class="num">3</span>พิกัดที่ตั้ง (GPS)</div>
+      <div class="btn-row" style="margin-bottom:12px">
+        <button type="button" class="btn btn-gold btn-block" onclick="getCurrentLocation()">
+          &#x1F4CD; ดึงตำแหน่งปัจจุบัน
+        </button>
+      </div>
+      <div class="field hint" style="margin-bottom:10px;color:var(--muted)">
+        ⚠️ ต้องยืนอยู่ที่หน้าร้านจริงตอนกดปุ่ม — พิกัดล็อกตามตำแหน่งจริงเท่านั้น (ปรับเองไม่ได้)
+      </div>
+      <div id="map"></div>
+      <div class="coord-display" id="coordDisplay">
+        <strong>Lat:</strong> <span id="latText">—</span>
+        &nbsp;&nbsp;<strong>Lng:</strong> <span id="lngText">—</span>
+      </div>
+    </div>
+
+    <!-- Card 4: Photo -->
+    <div class="card">
+      <div class="card-title"><span class="num">4</span>รูปถ่ายหน้าร้าน <span class="req" style="color:var(--danger);font-weight:400;font-size:13px">*</span></div>
+      <div class="photo-area" id="photoArea" onclick="document.getElementById('photoInput').click()">
+        <div class="icon">&#x1F4F8;</div>
+        <div class="lbl">แตะเพื่อถ่ายรูปหรือเลือกรูป</div>
+        <div class="sub">รองรับ JPG, PNG (จะถูกย่อขนาดอัตโนมัติ)</div>
+      </div>
+      <input type="file" id="photoInput" class="file-hidden" accept="image/*" capture="environment" onchange="handlePhotoSelect(event)">
+      <div class="photo-preview" id="photoPreview">
+        <img id="photoImg" alt="ภาพหน้าร้าน">
+        <div class="meta" id="photoMeta"></div>
+        <div class="photo-actions">
+          <button type="button" class="btn btn-secondary" onclick="document.getElementById('photoInput').click()">
+            &#x1F504; เปลี่ยนรูป
+          </button>
+          <button type="button" class="btn btn-danger" onclick="removePhoto()">
+            &#x1F5D1;&#xFE0F; ลบ
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 5: Note -->
+    <div class="card">
+      <div class="card-title"><span class="num">5</span>หมายเหตุ <span class="req" style="color:var(--danger);font-weight:400;font-size:13px">*</span></div>
+      <div class="field">
+        <textarea id="note" rows="3" placeholder="กรอกหมายเหตุ เช่น เวลาเปิด-ปิด, จุดสังเกต, รายละเอียดเพิ่มเติม..."></textarea>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="btn-row" style="margin-top:18px">
+      <button type="button" class="btn btn-secondary" onclick="clearForm()">
+        &#x1F504; ล้างฟอร์ม
+      </button>
+      <button type="button" class="btn btn-gold btn-block" onclick="submitForm()" id="btnSubmit">
+        &#x1F4BE; บันทึกร้านใหม่
+      </button>
+    </div>
+
+  </div>
+
+  <!-- TAB: LIST -->
+  <div class="tab-pane" id="tab-list">
+    <div class="card">
+      <div class="card-title"><span class="num">📋</span>ร้านที่บันทึกแล้ว</div>
+      <div class="btn-row" style="margin-bottom:14px">
+        <input type="text" id="searchShop" placeholder="🔍 ค้นหาชื่อร้าน, เจ้าของ, จังหวัด..." oninput="renderShopList()">
+        <button type="button" class="btn btn-secondary" onclick="loadShops()">
+          &#x1F504; รีเฟรช
+        </button>
+      </div>
+      <div id="shopListContainer">
+        <div class="empty-state">
+          <div class="icon">&#x1F4E6;</div>
+          <div class="text">ยังไม่มีข้อมูลร้าน</div>
+          <div class="sub">เพิ่มร้านใหม่จากแท็บแรก แล้วกดรีเฟรช</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    New Shop Colgate · v1.3 · 2026-04-29 · รัตนขายส่ง 📦
+  </div>
+</div>
+
+</div><!-- /appScreen -->
+
+<!-- Spinner -->
+<div id="spinner">
+  <div class="spinner-box">
+    <div class="spinner-circle"></div>
+    <p id="spinnerMsg">กำลังโหลด...</p>
+  </div>
+</div>
+
+<!-- Toasts -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- Back to top -->
+<button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="กลับขึ้นบน">▲</button>
+
+<script>
+// ============ APP STATE ============
+const APP_VERSION = 'v1.3';
+
+// ===========================================================
+// 🔐 AUTHENTICATION (Rattana standard)
+// ===========================================================
+const AUTH_CONFIG = {
+  clientId: '615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com',
+  usersSheetId: '1M6HdISsLN684qRWyQ73CA4AmUzmYtZaOlffDJXZZIXQ',
+  usersSheetName: 'Rattana Users for apps',
+};
+let currentUser = null;
+
+// ===========================================================
+// 🔧 BACKEND CONFIG — แก้ตรงนี้ก่อน deploy ให้ end-user
+// ===========================================================
+// วาง Web app URL ที่ deploy จาก Apps Script ตรงนี้
+// (ดูคำอธิบายใน HTML comment ด้านบนของไฟล์)
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNwlRnJOpSsBjdjKj9hLVE-Y_eNOqXxqKJSRrERE9Q2Kui9lQHRK6h3dvQ2i1c7yn8/exec';
+// ===========================================================
+
+const STORE_KEY_THEME = 'rattana_newshop_theme';
+const STORE_KEY_DRAFT = 'rattana_newshop_draft';
+const PROVINCE_DATA_URL = 'https://cdn.jsdelivr.net/gh/kongvut/thai-province-data@master/api_province_with_amphure_tambon.json';
+
+let provinceData = [];        // full thai address tree
+let map = null, marker = null;
+let currentPhotoData = null;  // { dataUrl, sizeKB, name }
+let cachedShops = [];         // shops loaded from Sheet
+
+// Logo "รัตนขายส่ง" — SVG text logo (placeholder)
+// ถ้ามีไฟล์ logo จริง สามารถส่งให้ replace ค่านี้ภายหลังได้
+const LOGO_RATTANA_WHOLESALE = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d1b3e"/>
+      <stop offset="100%" stop-color="#1a2f5e"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="14" fill="url(#bg)"/>
+  <rect x="5" y="5" width="110" height="110" rx="11" fill="none" stroke="#c9a84c" stroke-width="2"/>
+  <circle cx="60" cy="40" r="13" fill="none" stroke="#c9a84c" stroke-width="2.2"/>
+  <text x="60" y="46" text-anchor="middle" font-family="'Sarabun','Noto Sans Thai',sans-serif" font-size="15" font-weight="700" fill="#c9a84c">R</text>
+  <text x="60" y="76" text-anchor="middle" font-family="'Sarabun','Noto Sans Thai',sans-serif" font-size="17" font-weight="700" fill="#e8c86a">รัตน</text>
+  <text x="60" y="98" text-anchor="middle" font-family="'Sarabun','Noto Sans Thai',sans-serif" font-size="14" font-weight="500" fill="#ffffff">ขายส่ง</text>
+</svg>
+`);
+
+// ============ INIT ============
+window.addEventListener('DOMContentLoaded', () => {
+  // Logos (login screen + app header use the same logo)
+  document.getElementById('logoImg').src = LOGO_RATTANA_WHOLESALE;
+  document.getElementById('loginLogo').src = LOGO_RATTANA_WHOLESALE;
+  // Theme
+  if(localStorage.getItem(STORE_KEY_THEME)==='dark') document.body.classList.add('dark');
+  // Resume session (skip login if already authenticated)
+  checkSession();
+});
+
+function isScriptConfigured(){
+  return SCRIPT_URL && SCRIPT_URL.startsWith('https://script.google.com/');
+}
+
+// ============ AUTHENTICATION ============
+function showLoginError(msg){
+  const el = document.getElementById('loginError');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function hideLoginError(){
+  document.getElementById('loginError').classList.remove('show');
+}
+
+async function handleGoogleLogin(response){
+  hideLoginError();
+  showSpinner('กำลังตรวจสอบสิทธิ์...');
+  try {
+    if(!response || !response.credential) throw new Error('ไม่ได้รับ credential');
+    const payload = JSON.parse(atob(response.credential.split('.')[1]));
+    const email = (payload.email || '').toLowerCase().trim();
+    if(!email) throw new Error('ไม่พบ email');
+
+    // Fetch Users sheet
+    const users = await fetchUsersSheet();
+    const user = users.find(u => (u['E-mail'] || '').toLowerCase().trim() === email);
+
+    if(!user){
+      showLoginError('ไม่พบอีเมล ' + email + ' ในระบบ\nกรุณาติดต่อผู้ดูแลระบบ');
+      return;
+    }
+    const status = (user['Status'] || '').trim();
+    if(status !== 'Active'){
+      showLoginError('บัญชีของคุณถูกระงับการใช้งาน\nกรุณาติดต่อผู้ดูแลระบบ');
+      return;
+    }
+
+    currentUser = {
+      email,
+      name: (user['ชื่อ - สกุล'] || '').trim(),
+      nickname: (user['ชื่อเล่น'] || '').trim(),
+      role: parseInt(user['User Role']) || 1,
+      dept: (user['แผนก'] || '').trim(),
+      company: (user['บริษัท'] || '').trim(),
+      warehouse: (user['W'] || '').trim(),
+      empId: (user['รหัสพนักงาน'] || '').trim(),
+      picture: payload.picture || ''
+    };
+    sessionStorage.setItem('rattanaUser', JSON.stringify(currentUser));
+    enterApp();
+  } catch(err){
+    console.error(err);
+    showLoginError('เข้าสู่ระบบไม่สำเร็จ: ' + err.message);
+  } finally {
+    hideSpinner();
+  }
+}
+
+async function fetchUsersSheet(){
+  const url = `https://docs.google.com/spreadsheets/d/${AUTH_CONFIG.usersSheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(AUTH_CONFIG.usersSheetName)}`;
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('โหลด Users sheet ไม่สำเร็จ');
+  return parseCsv(await res.text());
+}
+
+function parseCsv(text){
+  const parseRow = r => {
+    const cells = []; let cur = '', q = false;
+    for(const ch of r + ','){
+      if(ch === '"'){ q = !q; }
+      else if(ch === ',' && !q){ cells.push(cur.trim()); cur = ''; }
+      else { cur += ch; }
+    }
+    return cells;
+  };
+  const rows = text.replace(/\r/g,'').trim().split('\n');
+  const headers = parseRow(rows[0]);
+  return rows.slice(1).map(r => {
+    const cells = parseRow(r);
+    return Object.fromEntries(headers.map((h, i) => [h, cells[i] || '']));
+  });
+}
+
+function checkSession(){
+  const s = sessionStorage.getItem('rattanaUser');
+  if(s){
+    try {
+      currentUser = JSON.parse(s);
+      enterApp();
+      return;
+    } catch{}
+  }
+  // Show login screen (already visible by default)
+  document.getElementById('loginScreen').classList.remove('hidden');
+}
+
+function enterApp(){
+  // Update user badge
+  const initial = (currentUser.nickname || currentUser.name || currentUser.email || '?').charAt(0).toUpperCase();
+  document.getElementById('userAvatar').textContent = initial;
+  document.getElementById('userName').textContent = currentUser.nickname || (currentUser.name || '').split(' ')[0] || currentUser.email;
+  // Hide login, show app
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('appScreen').style.display = 'block';
+  // Init the app
+  initApp();
+}
+
+function confirmLogout(){
+  if(confirm('ออกจากระบบ?\n(ข้อมูลที่ยังไม่ได้บันทึกจะหาย)')){
+    logout();
+  }
+}
+
+function logout(){
+  sessionStorage.removeItem('rattanaUser');
+  localStorage.removeItem(STORE_KEY_DRAFT);
+  // sign out of google
+  try { google.accounts.id.disableAutoSelect(); } catch{}
+  location.reload();
+}
+
+// Make handler globally accessible for Google Sign-In callback
+window.handleGoogleLogin = handleGoogleLogin;
+
+// ============ APP INIT (after login) ============
+function initApp(){
+  // Province data (lazy)
+  loadProvinces();
+  // Map (init when first GPS card visible)
+  setTimeout(initMap, 300);
+  // Restore draft
+  restoreDraft();
+  // Auto-save
+  if(!window.__draftIntervalSet){
+    setInterval(saveDraft, 5000);
+    window.__draftIntervalSet = true;
+  }
+  // Back-to-top
+  if(!window.__scrollListenerSet){
+    window.addEventListener('scroll', () => {
+      document.getElementById('backToTop').classList.toggle('show', window.scrollY > 300);
+    }, { passive: true });
+    window.__scrollListenerSet = true;
+  }
+  // Load shops if backend configured
+  if(isScriptConfigured()) loadShops();
+}
+
+// ============ THEME ============
+function toggleTheme(){
+  document.body.classList.toggle('dark');
+  const isDark = document.body.classList.contains('dark');
+  localStorage.setItem(STORE_KEY_THEME, isDark ? 'dark' : 'light');
+  if(map){ updateMapTiles(); }
+}
+
+// ============ TABS ============
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === 'tab-'+name));
+  if(name === 'add' && map) setTimeout(() => map.invalidateSize(), 100);
+  if(name === 'list') renderShopList();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ============ TOAST / SPINNER ============
+function showToast(msg, type='info', dur=3500){
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  document.getElementById('toastWrap').appendChild(t);
+  setTimeout(() => { t.style.animation='slideIn .25s reverse'; setTimeout(()=>t.remove(),250); }, dur);
+}
+function showSpinner(msg='กำลังโหลด...'){ document.getElementById('spinnerMsg').textContent = msg; document.getElementById('spinner').classList.add('show'); }
+function hideSpinner(){ document.getElementById('spinner').classList.remove('show'); }
+function setLoadingBar(on){ document.getElementById('loadingBar').style.width = on ? '85%' : '0'; }
+
+// ============ REFRESH ============
+async function refreshData(){
+  const b = document.getElementById('btnRefresh');
+  b.style.animation = 'spin .6s linear';
+  b.disabled = true;
+  try {
+    if(!provinceData.length) await loadProvinces();
+    if(isScriptConfigured()) await loadShops();
+    showToast('อัปเดตแล้ว ✓', 'success');
+  } catch(e) {
+    showToast('รีเฟรชไม่สำเร็จ: '+e.message, 'error');
+  } finally {
+    b.style.animation = '';
+    b.disabled = false;
+  }
+}
+
+// ============ THAI ADDRESS DATA ============
+async function loadProvinces(){
+  const provSel = document.getElementById('province');
+  provSel.innerHTML = '<option value="">— กำลังโหลด... —</option>';
+  try {
+    setLoadingBar(true);
+    // Try cache first
+    const cached = localStorage.getItem('rattana_thai_addr');
+    if(cached){
+      try {
+        const parsed = JSON.parse(cached);
+        if(Array.isArray(parsed) && parsed.length > 70){
+          provinceData = parsed;
+          fillProvinces();
+          setLoadingBar(false);
+          return;
+        }
+      } catch{}
+    }
+    const res = await fetch(PROVINCE_DATA_URL);
+    if(!res.ok) throw new Error('โหลดข้อมูลไม่สำเร็จ');
+    provinceData = await res.json();
+    try { localStorage.setItem('rattana_thai_addr', JSON.stringify(provinceData)); } catch{}
+    fillProvinces();
+  } catch(e){
+    console.error(e);
+    provSel.innerHTML = '<option value="">— โหลดไม่สำเร็จ —</option>';
+    showToast('โหลดข้อมูลที่อยู่ไม่สำเร็จ ลองรีเฟรช', 'error');
+  } finally {
+    setLoadingBar(false);
+  }
+}
+
+function fillProvinces(){
+  const sel = document.getElementById('province');
+  // Sort by Thai name
+  const sorted = [...provinceData].sort((a,b) => a.name_th.localeCompare(b.name_th, 'th'));
+  sel.innerHTML = '<option value="">— เลือกจังหวัด —</option>' +
+    sorted.map(p => `<option value="${p.id}">${p.name_th}</option>`).join('');
+}
+
+function onProvinceChange(){
+  const provId = +document.getElementById('province').value;
+  const ampSel = document.getElementById('amphoe');
+  const tamSel = document.getElementById('tambon');
+  const zip = document.getElementById('zipcode');
+  ampSel.innerHTML = '<option value="">— เลือกอำเภอ —</option>';
+  tamSel.innerHTML = '<option value="">— เลือกตำบล —</option>';
+  zip.value = '';
+  ampSel.disabled = true;
+  tamSel.disabled = true;
+  if(!provId) { updateAutoAddr(); return; }
+  const prov = provinceData.find(p => p.id === provId);
+  if(prov && prov.amphure){
+    const sorted = [...prov.amphure].sort((a,b) => a.name_th.localeCompare(b.name_th, 'th'));
+    ampSel.innerHTML = '<option value="">— เลือกอำเภอ —</option>' +
+      sorted.map(a => `<option value="${a.id}">${a.name_th}</option>`).join('');
+    ampSel.disabled = false;
+  }
+  updateAutoAddr();
+}
+
+function onAmphoeChange(){
+  const provId = +document.getElementById('province').value;
+  const ampId = +document.getElementById('amphoe').value;
+  const tamSel = document.getElementById('tambon');
+  const zip = document.getElementById('zipcode');
+  tamSel.innerHTML = '<option value="">— เลือกตำบล —</option>';
+  zip.value = '';
+  tamSel.disabled = true;
+  if(!ampId) { updateAutoAddr(); return; }
+  const prov = provinceData.find(p => p.id === provId);
+  const amp = prov?.amphure?.find(a => a.id === ampId);
+  if(amp && amp.tambon){
+    const sorted = [...amp.tambon].sort((a,b) => a.name_th.localeCompare(b.name_th, 'th'));
+    tamSel.innerHTML = '<option value="">— เลือกตำบล —</option>' +
+      sorted.map(t => `<option value="${t.id}">${t.name_th}</option>`).join('');
+    tamSel.disabled = false;
+  }
+  updateAutoAddr();
+}
+
+function onTambonChange(){
+  const provId = +document.getElementById('province').value;
+  const ampId = +document.getElementById('amphoe').value;
+  const tamId = +document.getElementById('tambon').value;
+  const prov = provinceData.find(p => p.id === provId);
+  const amp = prov?.amphure?.find(a => a.id === ampId);
+  const tam = amp?.tambon?.find(t => t.id === tamId);
+  if(tam) document.getElementById('zipcode').value = tam.zip_code || '';
+  updateAutoAddr();
+}
+
+function getSelectedAddr(){
+  const provId = +document.getElementById('province').value;
+  const ampId = +document.getElementById('amphoe').value;
+  const tamId = +document.getElementById('tambon').value;
+  const prov = provinceData.find(p => p.id === provId);
+  const amp = prov?.amphure?.find(a => a.id === ampId);
+  const tam = amp?.tambon?.find(t => t.id === tamId);
+  return {
+    province: prov?.name_th || '',
+    amphoe: amp?.name_th || '',
+    tambon: tam?.name_th || '',
+    zipcode: tam?.zip_code ? String(tam.zip_code) : ''
+  };
+}
+
+function updateAutoAddr(){
+  const houseNo = document.getElementById('houseNo').value.trim();
+  const a = getSelectedAddr();
+  const div = document.getElementById('autoAddr');
+  const txt = document.getElementById('autoAddrText');
+  const parts = [];
+  if(houseNo) parts.push(houseNo);
+  if(a.tambon) parts.push((a.province === 'กรุงเทพมหานคร' ? 'แขวง' : 'ตำบล') + a.tambon);
+  if(a.amphoe) parts.push((a.province === 'กรุงเทพมหานคร' ? 'เขต' : 'อำเภอ') + a.amphoe);
+  if(a.province) parts.push((a.province === 'กรุงเทพมหานคร' ? '' : 'จังหวัด') + a.province);
+  if(a.zipcode) parts.push(a.zipcode);
+  if(parts.length >= 2){
+    txt.textContent = parts.join(' ');
+    div.style.display = 'block';
+  } else {
+    div.style.display = 'none';
+  }
+}
+
+// listen to houseNo changes too
+document.addEventListener('input', e => {
+  if(e.target && e.target.id === 'houseNo') updateAutoAddr();
+});
+
+// ============ MAP & GPS ============
+function initMap(){
+  if(map) return;
+  const el = document.getElementById('map');
+  if(!el) return;
+  // Default: Hua Hin area (will be replaced when GPS captured)
+  map = L.map(el, { zoomControl: true }).setView([12.5684, 99.9577], 13);
+  updateMapTiles();
+  // NOTE: location is read-only. Only "Get current location" button can set the marker.
+  // No click/drag handlers — user cannot adjust the pin.
+}
+
+function updateMapTiles(){
+  if(!map) return;
+  // Remove existing tile layers
+  map.eachLayer(l => { if(l instanceof L.TileLayer) map.removeLayer(l); });
+  const isDark = document.body.classList.contains('dark');
+  const url = isDark
+    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+  L.tileLayer(url, {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap &copy; CARTO'
+  }).addTo(map);
+}
+
+function setMarker(lat, lng){
+  if(!map) return;
+  if(marker){
+    marker.setLatLng([lat, lng]);
+  } else {
+    // draggable: false — pin is locked to actual GPS position
+    marker = L.marker([lat, lng], { draggable: false }).addTo(map);
+  }
+  updateCoordDisplay(lat, lng);
+}
+
+function updateCoordDisplay(lat, lng){
+  document.getElementById('latText').textContent = lat.toFixed(6);
+  document.getElementById('lngText').textContent = lng.toFixed(6);
+}
+
+function getCurrentLocation(){
+  if(!navigator.geolocation){
+    showToast('เบราว์เซอร์นี้ไม่รองรับ GPS', 'error');
+    return;
+  }
+  showSpinner('กำลังดึงตำแหน่งปัจจุบัน...');
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const { latitude, longitude } = pos.coords;
+      if(!map) initMap();
+      map.setView([latitude, longitude], 18);
+      setMarker(latitude, longitude);
+      hideSpinner();
+      showToast('ดึงตำแหน่งสำเร็จ ✓', 'success');
+    },
+    err => {
+      hideSpinner();
+      let msg = 'ดึงตำแหน่งไม่สำเร็จ';
+      if(err.code === 1) msg = 'ไม่ได้รับอนุญาตให้ใช้ GPS — กรุณาเปิด Location';
+      else if(err.code === 2) msg = 'หาตำแหน่งไม่เจอ — ลองใหม่นอกอาคาร';
+      else if(err.code === 3) msg = 'หมดเวลา — ลองใหม่';
+      showToast(msg, 'error', 5000);
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+  );
+}
+
+function clearLocation(){
+  if(marker){ map.removeLayer(marker); marker = null; }
+  document.getElementById('latText').textContent = '—';
+  document.getElementById('lngText').textContent = '—';
+}
+
+function getCoords(){
+  if(!marker) return null;
+  const p = marker.getLatLng();
+  return { lat: p.lat, lng: p.lng };
+}
+
+// ============ PHOTO ============
+async function handlePhotoSelect(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  if(!file.type.startsWith('image/')){
+    showToast('ไฟล์ที่เลือกไม่ใช่รูปภาพ', 'error');
+    return;
+  }
+  showSpinner('กำลังประมวลผลรูปภาพ...');
+  try {
+    const compressed = await compressImage(file, 1280, 0.82);
+    currentPhotoData = compressed;
+    document.getElementById('photoImg').src = compressed.dataUrl;
+    document.getElementById('photoMeta').textContent =
+      `${compressed.name} · ${compressed.sizeKB} KB`;
+    document.getElementById('photoArea').style.display = 'none';
+    document.getElementById('photoPreview').style.display = 'block';
+    showToast('อัปโหลดรูปสำเร็จ ✓', 'success');
+  } catch(err){
+    showToast('ประมวลผลรูปไม่สำเร็จ: '+err.message, 'error');
+  } finally {
+    hideSpinner();
+  }
+}
+
+function compressImage(file, maxDim, quality){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = e => { img.src = e.target.result; };
+    reader.onerror = () => reject(new Error('อ่านไฟล์ไม่ได้'));
+    img.onload = () => {
+      let { width, height } = img;
+      if(width > maxDim || height > maxDim){
+        if(width > height){
+          height = Math.round(height * maxDim / width);
+          width = maxDim;
+        } else {
+          width = Math.round(width * maxDim / height);
+          height = maxDim;
+        }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, width, height);
+      ctx.drawImage(img, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL('image/jpeg', quality);
+      const sizeKB = Math.round((dataUrl.length * 3 / 4) / 1024);
+      resolve({ dataUrl, sizeKB, name: file.name });
+    };
+    img.onerror = () => reject(new Error('โหลดรูปไม่ได้'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function removePhoto(){
+  currentPhotoData = null;
+  document.getElementById('photoInput').value = '';
+  document.getElementById('photoArea').style.display = 'block';
+  document.getElementById('photoPreview').style.display = 'none';
+}
+
+// ============ DRAFT (autosave) ============
+function getFormData(){
+  const coords = getCoords();
+  const a = getSelectedAddr();
+  const houseNo = document.getElementById('houseNo').value.trim();
+  const fullAddr = [
+    houseNo,
+    a.tambon ? (a.province === 'กรุงเทพมหานคร' ? 'แขวง' : 'ตำบล') + a.tambon : '',
+    a.amphoe ? (a.province === 'กรุงเทพมหานคร' ? 'เขต' : 'อำเภอ') + a.amphoe : '',
+    a.province ? (a.province === 'กรุงเทพมหานคร' ? '' : 'จังหวัด') + a.province : '',
+    a.zipcode
+  ].filter(Boolean).join(' ');
+  return {
+    shopName: document.getElementById('shopName').value.trim(),
+    ownerName: document.getElementById('ownerName').value.trim(),
+    phone: document.getElementById('phone').value.trim(),
+    shopType: document.querySelector('input[name=shopType]:checked')?.value || '',
+    houseNo,
+    province: a.province,
+    amphoe: a.amphoe,
+    tambon: a.tambon,
+    zipcode: a.zipcode,
+    fullAddress: fullAddr,
+    lat: coords ? coords.lat : '',
+    lng: coords ? coords.lng : '',
+    mapsUrl: coords ? `https://www.google.com/maps?q=${coords.lat},${coords.lng}` : '',
+    note: document.getElementById('note').value.trim()
+  };
+}
+
+function saveDraft(){
+  try {
+    const d = getFormData();
+    // dont save photo to avoid blowing localStorage
+    localStorage.setItem(STORE_KEY_DRAFT, JSON.stringify(d));
+  } catch{}
+}
+
+function restoreDraft(){
+  const s = localStorage.getItem(STORE_KEY_DRAFT);
+  if(!s) return;
+  try {
+    const d = JSON.parse(s);
+    if(d.shopName) document.getElementById('shopName').value = d.shopName;
+    if(d.ownerName) document.getElementById('ownerName').value = d.ownerName;
+    if(d.phone) document.getElementById('phone').value = d.phone;
+    if(d.houseNo) document.getElementById('houseNo').value = d.houseNo;
+    if(d.note) document.getElementById('note').value = d.note;
+    if(d.shopType) document.getElementById('size-'+d.shopType).checked = true;
+    // address restore happens after province data loads — async
+  } catch{}
+}
+
+function clearForm(){
+  if(!confirm('ล้างข้อมูลทั้งฟอร์ม?')) return;
+  document.getElementById('shopName').value = '';
+  document.getElementById('ownerName').value = '';
+  document.getElementById('phone').value = '';
+  document.getElementById('houseNo').value = '';
+  document.getElementById('note').value = '';
+  document.querySelectorAll('input[name=shopType]').forEach(r => r.checked = false);
+  document.getElementById('province').value = '';
+  onProvinceChange();
+  removePhoto();
+  clearLocation();
+  localStorage.removeItem(STORE_KEY_DRAFT);
+  showToast('ล้างฟอร์มแล้ว', 'info');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ============ VALIDATION ============
+function validateForm(d){
+  const errors = [];
+  if(!d.shopName) errors.push('กรอกชื่อร้าน');
+  if(!d.ownerName) errors.push('กรอกชื่อเจ้าของ');
+  if(!d.phone) errors.push('กรอกเบอร์โทร');
+  else if(!/^[0-9+\-\s()]{8,15}$/.test(d.phone)) errors.push('เบอร์โทรไม่ถูกต้อง');
+  if(!d.shopType) errors.push('เลือกประเภทร้าน (S/M/L/XL)');
+  if(!d.houseNo) errors.push('กรอกบ้านเลขที่');
+  if(!d.province) errors.push('เลือกจังหวัด');
+  if(!d.amphoe) errors.push('เลือกอำเภอ');
+  if(!d.tambon) errors.push('เลือกตำบล');
+  if(!d.zipcode) errors.push('รหัสไปรษณีย์');
+  if(!d.lat || !d.lng) errors.push('ระบุพิกัด GPS (กดปุ่มดึงตำแหน่ง)');
+  if(!currentPhotoData) errors.push('แนบรูปหน้าร้าน');
+  if(!d.note) errors.push('กรอกหมายเหตุ');
+  return errors;
+}
+
+// ============ SUBMIT ============
+async function submitForm(){
+  const data = getFormData();
+  const errors = validateForm(data);
+  if(errors.length){
+    showToast('กรุณากรอก: ' + errors.slice(0,3).join(', ') + (errors.length>3?'...':''), 'warning', 5000);
+    return;
+  }
+  if(!isScriptConfigured()){
+    showToast('ระบบยังไม่พร้อมใช้งาน — กรุณาติดต่อผู้ดูแลระบบ', 'error', 6000);
+    return;
+  }
+  if(currentPhotoData){
+    data.photoBase64 = currentPhotoData.dataUrl;
+    data.photoFilename = currentPhotoData.name;
+  }
+  // Attach user info (who recorded this shop)
+  data.recordedBy = currentUser?.name || currentUser?.nickname || '';
+  data.recordedByEmail = currentUser?.email || '';
+  data.recordedByEmpId = currentUser?.empId || '';
+
+  showSpinner('กำลังบันทึกร้านใหม่...');
+  document.getElementById('btnSubmit').disabled = true;
+
+  try {
+    // Use no-cors-friendly POST: text/plain to avoid CORS preflight on Apps Script
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'addShop', data })
+    });
+    const text = await res.text();
+    let result;
+    try { result = JSON.parse(text); } catch { throw new Error('ตอบกลับผิดพลาด: ' + text.slice(0,120)); }
+    if(!result.ok) throw new Error(result.error || 'ไม่สำเร็จ');
+
+    showToast('บันทึกร้านสำเร็จ ✓', 'success', 4000);
+    localStorage.removeItem(STORE_KEY_DRAFT);
+    // Reset form
+    document.getElementById('shopName').value = '';
+    document.getElementById('ownerName').value = '';
+    document.getElementById('phone').value = '';
+    document.getElementById('houseNo').value = '';
+    document.getElementById('note').value = '';
+    document.querySelectorAll('input[name=shopType]').forEach(r => r.checked = false);
+    document.getElementById('province').value = '';
+    onProvinceChange();
+    removePhoto();
+    clearLocation();
+    // Refresh shop list in background
+    loadShops();
+  } catch(err){
+    console.error(err);
+    showToast('บันทึกไม่สำเร็จ: ' + err.message, 'error', 6000);
+  } finally {
+    hideSpinner();
+    document.getElementById('btnSubmit').disabled = false;
+  }
+}
+
+// ============ SHOP LIST ============
+async function loadShops(){
+  if(!isScriptConfigured()){
+    document.getElementById('shopListContainer').innerHTML = `
+      <div class="empty-state">
+        <div class="icon">⚙️</div>
+        <div class="text">ระบบยังไม่พร้อมใช้งาน</div>
+        <div class="sub">กรุณาติดต่อผู้ดูแลระบบ</div>
+      </div>`;
+    return;
+  }
+  setLoadingBar(true);
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=listShops', { method: 'GET' });
+    const text = await res.text();
+    let result;
+    try { result = JSON.parse(text); } catch { throw new Error('ตอบกลับผิดพลาด'); }
+    if(!result.ok) throw new Error(result.error || 'โหลดไม่สำเร็จ');
+    cachedShops = result.shops || [];
+    renderShopList();
+  } catch(err){
+    document.getElementById('shopListContainer').innerHTML = `
+      <div class="empty-state">
+        <div class="icon">⚠️</div>
+        <div class="text">โหลดไม่สำเร็จ</div>
+        <div class="sub">${err.message}</div>
+      </div>`;
+  } finally {
+    setLoadingBar(false);
+  }
+}
+
+function renderShopList(){
+  const container = document.getElementById('shopListContainer');
+  const q = (document.getElementById('searchShop').value || '').toLowerCase().trim();
+  const filtered = q
+    ? cachedShops.filter(s => JSON.stringify(s).toLowerCase().includes(q))
+    : cachedShops;
+  if(!filtered.length){
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">📦</div>
+        <div class="text">${cachedShops.length ? 'ไม่พบร้านที่ค้นหา' : 'ยังไม่มีข้อมูลร้าน'}</div>
+        <div class="sub">${cachedShops.length ? 'ลองค้นด้วยคำอื่น' : 'เพิ่มร้านใหม่จากแท็บแรก'}</div>
+      </div>`;
+    return;
+  }
+  // Most recent first
+  const sorted = [...filtered].reverse();
+  container.innerHTML = `<div class="shop-list">` + sorted.map(s => {
+    const photo = s['Photo URL'] ? `<img src="${escapeHtml(s['Photo URL'])}" loading="lazy" onerror="this.style.display='none'">` : '';
+    const ts = s.Timestamp ? new Date(s.Timestamp).toLocaleString('th-TH', { dateStyle:'short', timeStyle:'short' }) : '';
+    const mapUrl = s['Maps URL'] || (s.Latitude && s.Longitude ? `https://www.google.com/maps?q=${s.Latitude},${s.Longitude}` : '');
+    return `
+      <div class="shop-card">
+        ${photo}
+        <div class="name">${escapeHtml(s['Shop Name'] || 'ไม่ระบุชื่อ')}</div>
+        <div class="meta">
+          <div><span class="badge">${escapeHtml(s['Shop Type'] || '?')}</span>👤 ${escapeHtml(s.Owner || '-')}</div>
+          <div>📞 ${escapeHtml(s.Phone || '-')}</div>
+          <div>📍 ${escapeHtml((s.Tambon||'-') + ', ' + (s.Amphoe||'-') + ', ' + (s.Province||'-'))}</div>
+          ${ts ? `<div style="opacity:.7;margin-top:4px">🕐 ${ts}</div>` : ''}
+        </div>
+        <div class="actions">
+          ${mapUrl ? `<a href="${mapUrl}" target="_blank">🗺️ Maps</a>` : ''}
+          ${s['Photo URL'] ? `<a href="${escapeHtml(s['Photo URL'])}" target="_blank">🖼️ รูปเต็ม</a>` : ''}
+          ${s.Phone ? `<a href="tel:${encodeURIComponent(s.Phone)}">📞 โทร</a>` : ''}
+        </div>
+      </div>`;
+  }).join('') + `</div>`;
+}
+
+function escapeHtml(s){
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+</script>
+</body>
+</html>
