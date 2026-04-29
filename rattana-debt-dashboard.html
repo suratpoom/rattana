@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana ยอดหนี้คงค้าง v1.7</title>
+<title>Rattana ยอดหนี้คงค้าง v1.8</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -358,7 +358,7 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
       <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="signin_with" data-shape="rectangular" data-logo_alignment="left"></div>
     </div>
     <div id="loginError"></div>
-    <p class="footer-note">v1.7 · เฉพาะพนักงานที่ได้รับอนุญาต</p>
+    <p class="footer-note">v1.8 · เฉพาะพนักงานที่ได้รับอนุญาต</p>
   </div>
 </div>
 
@@ -370,7 +370,7 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
     </div>
     <div class="title">
       <h1>ยอดหนี้คงค้าง</h1>
-      <div class="ver">v1.7</div>
+      <div class="ver">v1.8</div>
     </div>
     <div class="actions">
       <div class="user" id="userInfo"></div>
@@ -1070,11 +1070,20 @@ function bindFilters(){
   });
   // Collect tab combobox
   const cInput = $('custInput');
-  cInput.addEventListener('focus', openCombo);
-  cInput.addEventListener('click', openCombo);
-  cInput.addEventListener('input', () => {
-    $('custClear').style.display = cInput.value ? 'block' : 'none';
+  cInput.addEventListener('focus', () => {
+    // If a customer is already selected, select all text so typing replaces it cleanly
+    if (selectedCustCode) cInput.select();
     openCombo();
+  });
+  cInput.addEventListener('click', () => {
+    if (selectedCustCode) cInput.select();
+    openCombo();
+  });
+  cInput.addEventListener('input', () => {
+    // User started typing → abandon previous selection state
+    selectedCustCode = null;
+    $('custClear').style.display = cInput.value ? 'block' : 'none';
+    $('custCombo').classList.add('open');
     renderComboList(cInput.value);
   });
   cInput.addEventListener('keydown', comboKeyDown);
@@ -1959,9 +1968,17 @@ function renderComboList(query){
   `).join('') + (matches.length > 200 ? `<div class="combo-empty">แสดง 200 รายการแรก จากทั้งหมด ${matches.length} ร้าน — พิมพ์เพื่อกรองให้แคบลง</div>` : '');
 }
 
+let selectedCustCode = null; // remember what's currently selected
+
 function openCombo(){
   $('custCombo').classList.add('open');
-  renderComboList($('custInput').value);
+  // If a customer is already selected, ignore current input text and show full list
+  // (user wants to pick a different customer or browse)
+  if (selectedCustCode){
+    renderComboList(''); // show all
+  } else {
+    renderComboList($('custInput').value);
+  }
 }
 function closeCombo(){
   $('custCombo').classList.remove('open');
@@ -1969,12 +1986,14 @@ function closeCombo(){
 function selectCustomer(code){
   const c = collectCustList.find(x => x.code === code);
   if (!c) return;
+  selectedCustCode = code;
   $('custInput').value = `${c.name} (${c.code})`;
   $('custClear').style.display = 'block';
   closeCombo();
   loadCustomerBills(code);
 }
 function clearCustomer(){
+  selectedCustCode = null;
   $('custInput').value = '';
   $('custClear').style.display = 'none';
   collectSelectedCust = null;
