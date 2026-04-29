@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana ยอดหนี้คงค้าง v1.8</title>
+<title>Rattana ยอดหนี้คงค้าง v1.9</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -231,9 +231,12 @@ body.dark .qr-details{background:rgba(255,255,255,.04)}
 .qd-item:last-child{border-bottom:none}
 .qd-item .doc{font-family:'Courier New',monospace;color:var(--muted)}
 .qd-item .amt{font-weight:600}
-.qr-actions{display:flex;gap:8px;margin:10px 0 4px}
-.qr-actions .btn{flex:1;justify-content:center;padding:12px;font-size:14px;font-weight:700}
-.qr-note{font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4}
+.qr-actions{display:flex;gap:8px;margin:12px 0 8px;justify-content:flex-end}
+.qr-actions .btn{justify-content:center;padding:11px 18px;font-size:14px;font-weight:700;flex:0 1 auto;min-width:120px}
+.qr-actions .btn.gold{flex:1 1 auto;max-width:200px}
+.qr-note{font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4;text-align:center}
+.acct-name{font-size:11px;color:var(--text);font-weight:500;line-height:1.3;display:block;text-align:left;width:100%}
+.ai-name{padding:2px 0 4px}
 
 /* Filter bar */
 .filter-bar{background:var(--card-bg);margin:0;padding:8px 10px;border-radius:0;border:none;border-bottom:1px solid var(--border);display:grid;grid-template-columns:repeat(2,1fr);gap:6px;animation:fadeIn .4s;position:sticky;top:54px;z-index:55}
@@ -358,7 +361,7 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
       <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="signin_with" data-shape="rectangular" data-logo_alignment="left"></div>
     </div>
     <div id="loginError"></div>
-    <p class="footer-note">v1.8 · เฉพาะพนักงานที่ได้รับอนุญาต</p>
+    <p class="footer-note">v1.9 · เฉพาะพนักงานที่ได้รับอนุญาต</p>
   </div>
 </div>
 
@@ -370,7 +373,7 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
     </div>
     <div class="title">
       <h1>ยอดหนี้คงค้าง</h1>
-      <div class="ver">v1.8</div>
+      <div class="ver">v1.9</div>
     </div>
     <div class="actions">
       <div class="user" id="userInfo"></div>
@@ -527,19 +530,25 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
     <div class="qr-amount" id="qrAmount">0.00 บาท</div>
     <div id="qrSubtitle" class="qr-subtitle"></div>
 
-    <!-- Share buttons UP HERE so they're always reachable -->
-    <div class="qr-actions">
-      <button class="btn gold" onclick="shareQR()">📤 แชร์ให้ลูกค้า</button>
-      <button class="btn outline" onclick="downloadQR()">💾 บันทึก</button>
-    </div>
-
     <div class="qr-canvas" id="qrCanvas"></div>
 
+    <!-- Share buttons BELOW QR, right-aligned -->
+    <div class="qr-actions">
+      <button class="btn outline" onclick="downloadQR()">💾 บันทึก</button>
+      <button class="btn gold" onclick="shareQR()">📤 แชร์ให้ลูกค้า</button>
+    </div>
+
     <div class="qr-account-info">
-      <div class="ai-row"><span>ธนาคาร</span><strong>TTB · 447-2-63710-9 · รัตน</strong>
+      <div class="ai-row">
+        <strong>TTB · 447-2-63710-9</strong>
         <button class="btn-mini" onclick="copyText('4472637109','คัดลอกเลขบัญชี')">📋</button>
       </div>
-      <div class="ai-row"><span>ยอดเงิน</span><strong id="qrAcctAmt">0.00</strong>
+      <div class="ai-row ai-name">
+        <span class="acct-name">บริษัท รัตนไพบูลย์ สมุทรสงคราม 2555 จำกัด</span>
+      </div>
+      <div class="ai-row">
+        <span>ยอดเงิน</span>
+        <strong id="qrAcctAmt">0.00</strong>
         <button class="btn-mini" onclick="copyText(qrCurrentAmount,'คัดลอกยอด')">📋</button>
       </div>
     </div>
@@ -1071,11 +1080,13 @@ function bindFilters(){
   // Collect tab combobox
   const cInput = $('custInput');
   cInput.addEventListener('focus', () => {
-    // If a customer is already selected, select all text so typing replaces it cleanly
+    // Suppress focus-triggered open right after a programmatic selection
+    if (window._suppressComboOpen){ return; }
     if (selectedCustCode) cInput.select();
     openCombo();
   });
   cInput.addEventListener('click', () => {
+    if (window._suppressComboOpen){ return; }
     if (selectedCustCode) cInput.select();
     openCombo();
   });
@@ -1608,7 +1619,7 @@ const RATTANA_RECEIVER = {
   bank: 'TTB',
   accountNo: '4472637109',
   accountDisplay: '447-2-63710-9',
-  name: 'รัตน',
+  name: 'บริษัท รัตนไพบูลย์ สมุทรสงคราม 2555 จำกัด',
   promptPayType: 'tax',          // tax = นิติบุคคล
   promptPayId: '0755555000158',
 };
@@ -1744,7 +1755,7 @@ async function getQRBlob(){
   const QR_TOP = HEADER + 30;
   const AMOUNT_TOP = QR_TOP + QR_SIZE + 30;
   const ACCT_TOP = AMOUNT_TOP + 50;
-  const NAME_TOP = ACCT_TOP + 60;
+  const NAME_TOP = ACCT_TOP + 70;  // extra room because account info is now 2 lines
   const BILLS_HEAD_TOP = NAME_TOP + 40;
   const BILL_ROW_H = 28;
   const billsCount = (qrCurrentBills && qrCurrentBills.length) ? qrCurrentBills.length : 0;
@@ -1782,16 +1793,19 @@ async function getQRBlob(){
   ctx.font = 'bold 36px Sarabun, sans-serif';
   ctx.fillText(fmtBaht(parseFloat(qrCurrentAmount)) + ' บาท', W/2, AMOUNT_TOP);
 
-  // Account info
+  // Account info — split because name is long
   ctx.fillStyle = '#0d1b3e';
   ctx.font = 'bold 17px Sarabun, sans-serif';
-  ctx.fillText(`${RATTANA_RECEIVER.bank}  ${RATTANA_RECEIVER.accountDisplay}  ·  ${RATTANA_RECEIVER.name}`, W/2, ACCT_TOP);
+  ctx.fillText(`${RATTANA_RECEIVER.bank}  ·  ${RATTANA_RECEIVER.accountDisplay}`, W/2, ACCT_TOP);
+  ctx.font = '14px Sarabun, sans-serif';
+  ctx.fillStyle = '#0d1b3e';
+  ctx.fillText(RATTANA_RECEIVER.name, W/2, ACCT_TOP + 24);
 
-  // Customer name (if provided)
+  // Customer name (if provided) — prominent
   if (qrCurrentCustomer){
-    ctx.fillStyle = '#6b7896';
-    ctx.font = '15px Sarabun, sans-serif';
-    ctx.fillText('เรียกเก็บจาก: ' + qrCurrentCustomer, W/2, NAME_TOP);
+    ctx.fillStyle = '#0d1b3e';
+    ctx.font = 'bold 17px Sarabun, sans-serif';
+    ctx.fillText(qrCurrentCustomer, W/2, NAME_TOP);
   }
 
   // Bill details box
@@ -1850,7 +1864,7 @@ async function shareQR(){
 
     // Build share text with bill details
     const lines = [];
-    if (qrCurrentCustomer) lines.push(`เรียกเก็บจาก: ${qrCurrentCustomer}`);
+    if (qrCurrentCustomer) lines.push(qrCurrentCustomer);
     lines.push(`ยอดชำระ: ${fmtBaht(parseFloat(qrCurrentAmount))} บาท`);
     if (qrCurrentBills && qrCurrentBills.length > 0){
       lines.push(``);
@@ -1990,7 +2004,17 @@ function selectCustomer(code){
   $('custInput').value = `${c.name} (${c.code})`;
   $('custClear').style.display = 'block';
   closeCombo();
+  // Suppress focus/click reopening combo for 400ms
+  // (handles iOS/Android edge case where tap on item triggers focus on input)
+  window._suppressComboOpen = true;
+  $('custInput').blur();
+  setTimeout(() => { window._suppressComboOpen = false; }, 400);
   loadCustomerBills(code);
+  // Scroll bills section into view smoothly
+  setTimeout(() => {
+    const target = $('cCustomerInfo');
+    if (target) target.scrollIntoView({behavior:'smooth', block:'start'});
+  }, 100);
 }
 function clearCustomer(){
   selectedCustCode = null;
