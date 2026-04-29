@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0d1b3e">
-<title>Rattana Face Check-in v4.5</title>
+<title>Rattana Face Check-in v4.6</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -191,6 +191,38 @@ body.dark .status-row { background:var(--navy-mid); }
 .status-row.warn .icon { background:rgba(243,156,18,.15); color:var(--warning); }
 .status-row.err .icon { background:rgba(231,76,60,.15); color:var(--danger); }
 .status-row.pending .icon { background:rgba(108,117,125,.15); color:var(--muted); }
+
+/* ---- ⋮ MORE MENU ---- */
+.tab-more {
+  position: relative;
+}
+.more-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  padding: 8px 0;
+  min-width: 220px;
+  z-index: 1000;
+  margin-top: 6px;
+}
+.more-menu.open { display: block; }
+.more-item {
+  display: block;
+  padding: 10px 18px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text);
+  white-space: nowrap;
+  text-decoration: none;
+}
+.more-item:hover {
+  background: rgba(13,27,62,.06);
+}
 
 /* ---- HOME SINGLE-SCREEN LAYOUT (mobile-first) ---- */
 .home-cam {
@@ -523,7 +555,7 @@ body.dark .alert-warn { background:rgba(243,156,18,.15); color:#f7c873; }
     <!-- Setup Wizard View -->
     <div id="loginSetupView" style="display:none">
       <div class="alert alert-warn mb-16" style="text-align:left">
-        ⚙ <strong>การตั้งค่า v4.5</strong><br>
+        ⚙ <strong>การตั้งค่า v4.6</strong><br>
         <span class="text-sm">ทำครั้งเดียวต่อบริษัท · ค่าจะ sync ทุกเครื่อง</span>
       </div>
 
@@ -531,7 +563,7 @@ body.dark .alert-warn { background:rgba(243,156,18,.15); color:#f7c873; }
         <label>1. Apps Script Web App URL <span style="color:var(--danger)">*</span></label>
         <input id="cfgAppsScript" type="text" placeholder="https://script.google.com/macros/s/.../exec" style="font-family:monospace;font-size:12px">
         <div class="text-sm text-muted mt-8">
-          ดูคู่มือ deploy ที่ <a href="#" style="color:var(--gold)">v4.5-setup-guide.md</a><br>
+          ดูคู่มือ deploy ที่ <a href="#" style="color:var(--gold)">v4.6-setup-guide.md</a><br>
           ครั้งแรก: เปิด Spreadsheet ใหม่ → Extensions → Apps Script → Deploy → Web app
         </div>
       </div>
@@ -567,7 +599,7 @@ body.dark .alert-warn { background:rgba(243,156,18,.15); color:#f7c873; }
       </div>
     </div>
 
-    <div class="text-sm text-muted mt-12">v4.5 · 29 เม.ย. 2569</div>
+    <div class="text-sm text-muted mt-12">v4.6 · 29 เม.ย. 2569</div>
   </div>
 </div>
 
@@ -690,16 +722,12 @@ body.dark .alert-warn { background:rgba(243,156,18,.15); color:#f7c873; }
           <div class="card-icon">📷</div>
           <div class="card-title">Kiosk Mode · สแกนให้ลูกน้อง</div>
         </div>
-        <div class="alert alert-info mb-12">
-          <strong>วิธีใช้:</strong> เลือกสาขาที่อยู่ → กดเริ่ม Kiosk → ลูกน้องเดินมาหน้ากล้องทีละคน<br>
-          <span class="text-sm">ใช้พิกัดของสาขาเป็น lock — ลูกน้องไม่ต้องเปิด GPS</span>
-        </div>
         <div class="input-group">
-          <label>เลือกสาขา (ใช้พิกัดจาก Sheets)</label>
+          <label>สาขา</label>
           <select id="kioskBranch"></select>
         </div>
         <div class="input-group">
-          <label>โหมดเริ่มต้น</label>
+          <label>โหมด</label>
           <select id="kioskStartMode">
             <option value="in">เข้างาน (Check-in)</option>
             <option value="out">ออกงาน (Check-out)</option>
@@ -722,9 +750,6 @@ body.dark .alert-warn { background:rgba(243,156,18,.15); color:#f7c873; }
       <div class="card">
         <div class="card-header"><div class="card-icon">📊</div><div class="card-title">Dashboard ทีม · วันนี้</div></div>
         <div class="kpi-grid mb-12" id="dashKpi"></div>
-        <div class="alert alert-info mb-12 text-sm">
-          คลิกที่รูปลูกน้อง → ดูรายละเอียด · บันทึกย้อนหลัง · แก้ไข
-        </div>
         <div class="team-grid" id="teamGrid"></div>
       </div>
     </div>
@@ -740,10 +765,6 @@ body.dark .alert-warn { background:rgba(243,156,18,.15); color:#f7c873; }
           <span id="myFaceStatusBadge" class="text-sm"></span>
         </div>
         <div id="myFacePreview"></div>
-        <div class="alert alert-info mb-12 text-sm">
-          <strong>หัวหน้า/HR ลงใบหน้าตัวเองที่นี่</strong> เพื่อใช้เช็คอินด้วยตัวเอง<br>
-          ระบบจะใช้ในแท็บ "🏠 สแกนตัวเอง"
-        </div>
         <div class="btn-row">
           <button class="btn btn-gold" onclick="registerOwnFaceFromTeamPage()">📷 ลงทะเบียนใบหน้าฉัน</button>
           <button class="btn btn-outline" onclick="clearOwnFace()">🗑 ลบ</button>
@@ -759,10 +780,6 @@ body.dark .alert-warn { background:rgba(243,156,18,.15); color:#f7c873; }
 
         <!-- HR-only: dropdown to pick supervisor -->
         <div id="hrSupervisorPicker" style="display:none" class="mb-12">
-          <div class="alert alert-info mb-12 text-sm">
-            <strong>HR Mode:</strong> เลือกหัวหน้าทีม เพื่อดู/จัดการลูกน้องของหัวหน้านั้น<br>
-            <span class="text-muted">ระบบจะโหลดเฉพาะทีมที่เลือก ไม่โหลดทั้งบริษัท</span>
-          </div>
           <div class="input-group">
             <label>เลือกหัวหน้าทีม</label>
             <select id="hrSupervisorSelect" onchange="onHrSupervisorChange()">
@@ -771,12 +788,7 @@ body.dark .alert-warn { background:rgba(243,156,18,.15); color:#f7c873; }
           </div>
         </div>
 
-        <div class="alert alert-info mb-12 text-sm">
-          ลงทะเบียนใบหน้าลูกน้อง → ระบบเก็บในเครื่องนี้ก่อน → กด <strong>"Export FaceData"</strong> เพื่อดาวน์โหลด CSV → เปิด FaceData Sheet → paste ข้อมูล
-        </div>
-
         <div class="btn-row mb-12">
-          <button class="btn btn-gold" onclick="exportFaceDataCsv()">⬇ Export FaceData CSV</button>
           <button class="btn btn-outline" onclick="refreshFaceDataSheet()">🔄 โหลดจาก Sheet</button>
         </div>
 
@@ -835,6 +847,198 @@ body.dark .alert-warn { background:rgba(243,156,18,.15); color:#f7c873; }
         </div>
         <hr class="divider">
         <div id="locationsList"></div>
+      </div>
+    </div>
+
+    <!-- ===== Page: Leave Request ===== -->
+    <div id="page-leave" class="page">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">🤒</div>
+          <div class="card-title">ยื่นคำขอลา</div>
+        </div>
+        <div class="input-group">
+          <label>ประเภทการลา</label>
+          <select id="leaveType">
+            <option value="sick">🤒 ลาป่วย</option>
+            <option value="personal">👤 ลากิจ</option>
+            <option value="vacation">🏖 ลาพักร้อน</option>
+            <option value="other">อื่นๆ</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>หน่วยเวลา</label>
+          <select id="leaveUnit" onchange="onLeaveUnitChange()">
+            <option value="full_day">🗓 เต็มวัน (1+ วัน)</option>
+            <option value="half_day">⏰ ครึ่งวัน</option>
+            <option value="hours">⏱ จำนวนชั่วโมง</option>
+          </select>
+        </div>
+        <div class="input-group" id="leaveDateRow">
+          <label>วันที่</label>
+          <input type="date" id="leaveDateFrom">
+        </div>
+        <div class="input-group" id="leaveDateToRow">
+          <label>ถึงวันที่ (ถ้าหลายวัน)</label>
+          <input type="date" id="leaveDateTo">
+        </div>
+        <div class="input-group" id="leaveHalfDayRow" style="display:none">
+          <label>ช่วง</label>
+          <select id="leaveHalfDay">
+            <option value="morning">เช้า (08:30-12:00)</option>
+            <option value="afternoon">บ่าย (13:00-17:30)</option>
+          </select>
+        </div>
+        <div class="input-group" id="leaveHoursRow" style="display:none">
+          <label>เวลา (HH:MM - HH:MM)</label>
+          <div style="display:flex;gap:8px">
+            <input type="time" id="leaveStartTime" style="flex:1">
+            <input type="time" id="leaveEndTime" style="flex:1">
+          </div>
+        </div>
+        <div class="input-group">
+          <label>เหตุผล</label>
+          <textarea id="leaveReason" rows="3" placeholder="เช่น ป่วยเป็นไข้หวัด พบแพทย์"></textarea>
+        </div>
+        <div class="input-group">
+          <label>แนบรูปใบรับรองแพทย์ / เอกสาร (optional)</label>
+          <input type="file" id="leaveAttachment" accept="image/*">
+          <div id="leaveAttachmentPreview"></div>
+        </div>
+        <button class="btn btn-primary btn-lg" onclick="submitLeaveRequest()">📤 ยื่นคำขอ</button>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">📋</div>
+          <div class="card-title">คำขอของฉัน</div>
+        </div>
+        <div id="myLeaveList"></div>
+      </div>
+    </div>
+
+    <!-- ===== Page: Time Adjustment ===== -->
+    <div id="page-timeadjust" class="page">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">⏰</div>
+          <div class="card-title">ขอแก้เวลาย้อนหลัง</div>
+        </div>
+        <div class="input-group">
+          <label>วันที่</label>
+          <input type="date" id="taDate">
+        </div>
+        <div class="input-group">
+          <label>ประเภท</label>
+          <select id="taType">
+            <option value="in">📥 เข้างาน</option>
+            <option value="out">📤 ออกงาน</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>เวลาที่ถูกต้อง</label>
+          <input type="time" id="taTime">
+        </div>
+        <div class="input-group">
+          <label>สาขา</label>
+          <select id="taBranch"></select>
+        </div>
+        <div class="input-group">
+          <label>เหตุผล</label>
+          <textarea id="taReason" rows="3" placeholder="เช่น ลืมเช็คอินตอนเช้า · มือถือแบตหมด"></textarea>
+        </div>
+        <button class="btn btn-primary btn-lg" onclick="submitTimeAdjust()">📤 ยื่นคำขอแก้เวลา</button>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-icon">📋</div><div class="card-title">คำขอของฉัน</div></div>
+        <div id="myTimeAdjustList"></div>
+      </div>
+    </div>
+
+    <!-- ===== Page: Approvals (Supervisor/HR) ===== -->
+    <div id="page-approvals" class="page">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">✍️</div>
+          <div class="card-title">คำขอที่รออนุมัติ</div>
+          <button class="mini-btn" onclick="loadApprovals()">🔄 รีเฟรช</button>
+        </div>
+        <div class="kpi-grid mb-12" id="approvalsKpi"></div>
+        <div id="approvalsList"></div>
+      </div>
+    </div>
+
+    <!-- ===== Page: Warning Letter ===== -->
+    <div id="page-warning" class="page">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">⚠️</div>
+          <div class="card-title">ออกใบเตือน</div>
+        </div>
+        <div class="input-group">
+          <label>เลือกพนักงาน</label>
+          <select id="warningEmpSelect"><option value="">-- เลือกพนักงาน --</option></select>
+        </div>
+        <div class="input-group">
+          <label>ระดับใบเตือน</label>
+          <select id="warningLevel">
+            <option value="verbal">1. ตักเตือนด้วยวาจา (Verbal Warning)</option>
+            <option value="written">2. ใบเตือนเขียน (Written Warning)</option>
+            <option value="final">3. ใบเตือนสุดท้าย (Final Warning)</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>ประเภทความผิด</label>
+          <select id="warningCategory">
+            <option value="late">มาสาย</option>
+            <option value="absent">ขาดงาน</option>
+            <option value="leave_abuse">ลาผิดระเบียบ</option>
+            <option value="duty">บกพร่องต่อหน้าที่</option>
+            <option value="discipline">ไม่ปฏิบัติตามระเบียบ</option>
+            <option value="other">อื่นๆ</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>รายละเอียดความผิด</label>
+          <textarea id="warningDetail" rows="4" placeholder="เช่น มาสายเกิน 30 นาที 5 ครั้งในเดือนเมษายน 2569"></textarea>
+        </div>
+        <div class="input-group">
+          <label>วันที่เกิดเหตุ</label>
+          <input type="date" id="warningIncidentDate">
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="generateWarningLetter()">📄 สร้างใบเตือน</button>
+          <button class="btn btn-outline" onclick="printWarningLetter()">🖨 พิมพ์</button>
+        </div>
+        <div id="warningPreview" class="mt-12"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-icon">📋</div><div class="card-title">ประวัติใบเตือน</div></div>
+        <div id="warningHistory"></div>
+      </div>
+    </div>
+
+    <!-- ===== Page: Reports (HR/Manager) ===== -->
+    <div id="page-reports" class="page">
+      <div class="card">
+        <div class="card-header"><div class="card-icon">📈</div><div class="card-title">รายงานเดือน</div></div>
+        <div class="input-group">
+          <label>เดือน</label>
+          <input type="month" id="reportMonth">
+        </div>
+        <div class="kpi-grid mb-12" id="reportKpi"></div>
+        <div class="btn-row mb-12">
+          <button class="btn btn-gold" onclick="exportMonthlyReport()">📥 Export Excel (Payroll)</button>
+          <button class="btn btn-outline" onclick="exportLateReport()">⏱ Export คนสาย</button>
+        </div>
+        <div id="reportTable"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-icon">📊</div><div class="card-title">กราฟการเข้างาน 30 วัน</div></div>
+        <canvas id="performanceChart" style="max-height:300px"></canvas>
       </div>
     </div>
 
@@ -1074,7 +1278,7 @@ body.dark .alert-warn { background:rgba(243,156,18,.15); color:#f7c873; }
    Rattana Face Check-in v2.0
    ============================================================ */
 
-const APP_VERSION = '4.5';
+const APP_VERSION = '4.6';
 const FACE_MODELS_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
 
 const DEFAULT_LOCATIONS = [
@@ -1099,7 +1303,7 @@ const DEFAULT_LOCATIONS = [
 const DEFAULT_CONFIG = {
   googleClientId: '986391969022-bmtf7lohpkingvaa5l68ntleli06hqhm.apps.googleusercontent.com',
   usersSheetId: '1M6HdISsLN684qRWyQ73CA4AmUzmYtZaOlffDJXZZIXQ',
-  // v4.5: Hardcode Apps Script + Attendance Sheet — พนักงานทุกคนเปิดใช้ได้ทันที ไม่ต้อง setup
+  // v4.6: Hardcode Apps Script + Attendance Sheet — พนักงานทุกคนเปิดใช้ได้ทันที ไม่ต้อง setup
   appsScriptUrl: 'https://script.google.com/macros/s/AKfycbxuOYeCWGffV-kt2tEFbiauWek1hVbbBancze2bmyzzFcOEMsqO5x8hvOZzm2D7LaH4/exec',
   attendanceSheetId: '1b2ORrEd97n_faL_r39TiNHD1RDaxSQl3ykQHMhZ42XI',
   // legacy (backward compat)
@@ -1625,7 +1829,7 @@ async function loadCheckinLogSheet() {
 
 /* Load everything in parallel — for fast app start */
 /* ============================================================
-   APPS SCRIPT API CLIENT (v4.5)
+   APPS SCRIPT API CLIENT (v4.6)
    เขียน/อ่านข้อมูลผ่าน Web App URL
    ============================================================ */
 
@@ -1792,7 +1996,7 @@ async function loadAllSheets() {
   } finally { hideSpinner(); }
 }
 
-/* v4.5: Load via Apps Script API */
+/* v4.6: Load via Apps Script API */
 async function loadFaceDataViaApi() {
   const rows = await apiGetFaceData();
   if (!rows) return false;
@@ -1908,11 +2112,15 @@ async function refreshUsersSheet() {
 }
 
 async function refreshFaceDataSheet() {
-  showSpinner('โหลด FaceData จาก Sheet...');
+  showSpinner('โหลด FaceData จาก Sheet ใหม่...');
   try {
-    const ok = await loadFaceDataSheet();
-    if (!ok) { toast('โหลดไม่สำเร็จ — ยังไม่ได้สร้าง FaceData Sheet?', 'warning'); return; }
-    // rebuild team to merge in new face data
+    // Priority: Apps Script (Sheet ใหม่) > CSV (Sheet เก่า)
+    let ok = false;
+    if (config.appsScriptUrl) {
+      ok = await loadFaceDataViaApi();
+    }
+    if (!ok) ok = await loadFaceDataSheet();
+    if (!ok) { toast('โหลดไม่สำเร็จ', 'warning'); return; }
     if (currentUser?.role === 'supervisor') {
       buildTeamFromSheet();
     } else if (currentUser?.role === 'hr') {
@@ -3437,6 +3645,19 @@ function showPage(p) {
   }
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.page === p));
   document.querySelectorAll('.page').forEach(pg => pg.classList.toggle('active', pg.id === 'page-'+p));
+
+  // กลับเข้า home tab → reset เป็น start screen (ปุ่มเริ่มเช็คอิน)
+  if (p === 'home') {
+    const startEl = document.getElementById('homeStartScreen');
+    const activeEl = document.getElementById('homeActiveScreen');
+    if (startEl) startEl.style.display = 'block';
+    if (activeEl) activeEl.style.display = 'none';
+    // Reset face match state
+    lastFaceMatch = null;
+    lastGps = null;
+    evaluateAction();
+  }
+
   if (p === 'kiosk') { fillKioskBranches(); renderDashboard(); }
   if (p === 'dashboard') renderDashboard();
   if (p === 'team') renderTeamList();
@@ -3444,8 +3665,15 @@ function showPage(p) {
   if (p === 'history') renderHistory();
   if (p === 'locations') renderLocations();
   if (p === 'setup') { renderFaceReg(); renderSystemInfo(); }
-  // home tab: rebuild button state
-  if (p === 'home') evaluateAction();
+  // HR/Manager features
+  if (p === 'leave') renderLeavePage();
+  if (p === 'timeadjust') renderTimeAdjustPage();
+  if (p === 'approvals') renderApprovalsPage();
+  if (p === 'warning') renderWarningPage();
+  if (p === 'reports') renderReportsPage();
+  // Close more menu if open
+  const moreMenu = document.getElementById('moreMenu');
+  if (moreMenu) moreMenu.classList.remove('open');
 }
 function toggleTheme() {
   document.body.classList.toggle('dark');
@@ -3483,25 +3711,77 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 /* ============================================================
    TABS BY ROLE
    ============================================================ */
+/* Role hierarchy ตาม User Role number (1-7) จาก Sheet column P
+   Role 7 → HR (เห็นทุกอย่าง + Settings + Locations + Warning Letters)
+   Role 6 → Senior Manager (Dashboard ทั้งบริษัท + Team)
+   Role 5 → Manager / หัวหน้า (Kiosk + Team ตัวเอง + Dashboard ทีม)
+   Role 4 → ที่ปรึกษา/Lead (เริ่มเห็น approve queue)
+   Role 1-3 → พนักงานทั่วไป (สแกนตัวเอง + ดูประวัติตัวเอง)
+*/
+function getRoleLevel() {
+  const r = parseInt(currentUser?.userRole || '1', 10);
+  return isNaN(r) ? 1 : r;
+}
+
+function canSeeKiosk() { return getRoleLevel() >= 5 || currentUser?.role === 'supervisor' || currentUser?.role === 'hr'; }
+function canSeeTeam()  { return getRoleLevel() >= 5 || currentUser?.role === 'supervisor' || currentUser?.role === 'hr'; }
+function canSeeDashboard() { return getRoleLevel() >= 5 || currentUser?.role === 'supervisor' || currentUser?.role === 'hr'; }
+function canSeeLocations() { return getRoleLevel() >= 6 || currentUser?.role === 'hr'; }
+function canSeeSettings()  { return getRoleLevel() >= 7 || currentUser?.role === 'hr'; }
+function canSeeReports()   { return getRoleLevel() >= 6 || currentUser?.role === 'hr'; }
+function canApprove()      { return getRoleLevel() >= 5 || currentUser?.role === 'supervisor' || currentUser?.role === 'hr'; }
+function canWriteWarning() { return canApprove(); /* ใครก็ตามที่ approve ได้ = ออกใบเตือนได้ */ }
+
 function buildTabs() {
   const tabs = document.getElementById('tabsBar');
-  const role = currentUser.role;
-  const isMgmt = role === 'supervisor' || role === 'hr';
-  const isAdmin = role === 'hr'; // HR = admin level (สามารถปรับให้เพิ่ม admin role ได้)
-  const items = [
-    { id:'home', label:'🏠 สแกนตัวเอง' },
-    isMgmt && { id:'kiosk', label:'📷 Kiosk (สแกนทีม)' },
-    isMgmt && { id:'dashboard', label: role==='hr'?'📊 ทั้งบริษัท':'📊 ทีม' },
-    isMgmt && { id:'team', label: role==='hr'?'👥 พนักงาน':'👥 ทีม' },
+  // Main visible tabs (พนักงานเห็นเสมอ + role-based)
+  const mainItems = [
+    { id:'home', label:'🏠 สแกน' },
+    canSeeKiosk() && { id:'kiosk', label:'📷 Kiosk' },
+    canSeeDashboard() && { id:'dashboard', label: getRoleLevel()>=6 || currentUser?.role==='hr' ? '📊 บริษัท' : '📊 ทีม' },
+    canSeeTeam() && { id:'team', label: getRoleLevel()>=6 || currentUser?.role==='hr' ? '👥 พนักงาน' : '👥 ทีม' },
     { id:'today', label:'📅 วันนี้' },
     { id:'history', label:'📜 ประวัติ' },
-    isAdmin && { id:'locations', label:'📍 สาขา' },
-    isAdmin && { id:'setup', label:'⚙ ตั้งค่า' },
   ].filter(Boolean);
-  tabs.innerHTML = items.map((t,i) =>
+
+  // Items ใน "⋮ เพิ่มเติม" menu — features ที่ใช้น้อย / role-specific
+  const moreItems = [
+    { id:'leave', label:'🤒 ลาป่วย/กิจ/พักร้อน', show: true },
+    { id:'timeadjust', label:'⏰ แก้เวลาย้อนหลัง', show: true },
+    { id:'approvals', label:'✍️ อนุมัติคำขอ', show: canApprove() },
+    { id:'warning', label:'⚠️ ใบเตือน', show: canWriteWarning() },
+    { id:'reports', label:'📈 รายงาน', show: canSeeReports() },
+    { id:'locations', label:'📍 สาขา', show: canSeeLocations() },
+    { id:'setup', label:'⚙ ตั้งค่า', show: canSeeSettings() },
+  ].filter(i => i.show);
+
+  // Render main tabs
+  let html = mainItems.map((t,i) =>
     `<button class="tab ${i===0?'active':''}" data-page="${t.id}" onclick="showPage('${t.id}')">${t.label}</button>`
   ).join('');
+
+  // Render "⋮ More" button + dropdown
+  if (moreItems.length > 0) {
+    html += `<button class="tab tab-more" onclick="toggleMoreMenu(event)">⋮ เพิ่มเติม</button>`;
+    html += `<div id="moreMenu" class="more-menu">` +
+      moreItems.map(t => `<a class="more-item" onclick="showPage('${t.id}')">${t.label}</a>`).join('') +
+      `</div>`;
+  }
+  tabs.innerHTML = html;
 }
+
+function toggleMoreMenu(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('moreMenu');
+  if (menu) menu.classList.toggle('open');
+}
+// Close more menu on click elsewhere
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('moreMenu');
+  if (menu && !e.target.closest('.tab-more') && !e.target.closest('.more-menu')) {
+    menu.classList.remove('open');
+  }
+});
 
 /* ============================================================
    INIT
@@ -3658,6 +3938,466 @@ function cancelCheckinFlow() {
   stopEmpCamera();
   document.getElementById('homeActiveScreen').style.display = 'none';
   document.getElementById('homeStartScreen').style.display = 'block';
+}
+
+/* ============================================================
+   v4.6: HR FEATURES
+   ============================================================ */
+
+/* ---- Leave Request ---- */
+function onLeaveUnitChange() {
+  const unit = document.getElementById('leaveUnit').value;
+  document.getElementById('leaveDateToRow').style.display = unit === 'full_day' ? 'block' : 'none';
+  document.getElementById('leaveHalfDayRow').style.display = unit === 'half_day' ? 'block' : 'none';
+  document.getElementById('leaveHoursRow').style.display = unit === 'hours' ? 'block' : 'none';
+}
+
+function renderLeavePage() {
+  const dateInput = document.getElementById('leaveDateFrom');
+  if (dateInput && !dateInput.value) dateInput.value = todayKey();
+  // Load attachment preview on file change
+  const fileInput = document.getElementById('leaveAttachment');
+  if (fileInput) {
+    fileInput.onchange = (e) => {
+      const file = e.target.files[0];
+      const preview = document.getElementById('leaveAttachmentPreview');
+      if (!file || !preview) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        preview.innerHTML = `<img src="${reader.result}" style="max-height:120px;margin-top:8px;border-radius:8px">`;
+      };
+      reader.readAsDataURL(file);
+    };
+  }
+  loadMyLeaves();
+}
+
+async function submitLeaveRequest() {
+  const type = document.getElementById('leaveType').value;
+  const unit = document.getElementById('leaveUnit').value;
+  const dateFrom = document.getElementById('leaveDateFrom').value;
+  const dateTo = document.getElementById('leaveDateTo').value || dateFrom;
+  const halfDay = document.getElementById('leaveHalfDay').value;
+  const startTime = document.getElementById('leaveStartTime').value;
+  const endTime = document.getElementById('leaveEndTime').value;
+  const reason = document.getElementById('leaveReason').value.trim();
+  const fileInput = document.getElementById('leaveAttachment');
+  let attachment = '';
+  if (fileInput?.files?.[0]) {
+    attachment = await new Promise(r => {
+      const reader = new FileReader();
+      reader.onload = () => r(reader.result);
+      reader.readAsDataURL(fileInput.files[0]);
+    });
+  }
+
+  if (!dateFrom) { toast('กรอกวันที่', 'warning'); return; }
+  if (!reason) { toast('กรอกเหตุผล', 'warning'); return; }
+  if (unit === 'hours' && (!startTime || !endTime)) { toast('กรอกเวลา', 'warning'); return; }
+
+  const payload = {
+    empId: currentUser.empId,
+    name: currentUser.name,
+    type, unit, dateFrom, dateTo,
+    halfDay: unit === 'half_day' ? halfDay : '',
+    startTime: unit === 'hours' ? startTime : '',
+    endTime: unit === 'hours' ? endTime : '',
+    reason,
+    attachment,
+  };
+
+  try {
+    showSpinner('กำลังยื่นคำขอ...');
+    await callAppsScript('submitLeave', payload);
+    toast('✓ ยื่นคำขอลาแล้ว · รออนุมัติ', 'success');
+    // Reset form
+    document.getElementById('leaveReason').value = '';
+    document.getElementById('leaveAttachment').value = '';
+    document.getElementById('leaveAttachmentPreview').innerHTML = '';
+    loadMyLeaves();
+  } catch (e) {
+    toast('❌ ' + e.message, 'error');
+  } finally { hideSpinner(); }
+}
+
+async function loadMyLeaves() {
+  const el = document.getElementById('myLeaveList');
+  if (!el) return;
+  el.innerHTML = '<div class="text-sm text-muted">กำลังโหลด...</div>';
+  try {
+    const res = await callAppsScript('getMyLeaves', { empId: currentUser.empId });
+    const leaves = res.leaves || [];
+    if (leaves.length === 0) {
+      el.innerHTML = '<div class="empty"><div class="ico">📋</div>ยังไม่มีคำขอลา</div>';
+      return;
+    }
+    el.innerHTML = leaves.map(l => {
+      const statusBadge = l.status === 'approved' ? '<span class="tag tag-in">✓ อนุมัติ</span>'
+        : l.status === 'rejected' ? '<span class="tag" style="background:rgba(231,76,60,.15);color:var(--danger)">✗ ปฏิเสธ</span>'
+        : '<span class="tag" style="background:rgba(243,156,18,.15);color:var(--warning)">⏳ รอ</span>';
+      const typeLabel = { sick:'🤒 ป่วย', personal:'👤 กิจ', vacation:'🏖 พักร้อน', other:'อื่นๆ' }[l.type] || l.type;
+      return `<div class="list-item">
+        <div class="info">
+          <div class="title">${typeLabel} · ${l.dateFrom}${l.dateTo && l.dateTo!==l.dateFrom ? ' → '+l.dateTo : ''}</div>
+          <div class="sub">${l.reason || ''} ${statusBadge}</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    el.innerHTML = `<div class="alert alert-warn">โหลดไม่ได้: ${e.message}</div>`;
+  }
+}
+
+/* ---- Time Adjustment ---- */
+function renderTimeAdjustPage() {
+  const dateEl = document.getElementById('taDate');
+  if (dateEl && !dateEl.value) dateEl.value = todayKey();
+  // Fill branches
+  const sel = document.getElementById('taBranch');
+  if (sel) {
+    sel.innerHTML = locations.map(l => `<option value="${l.code}">${l.code} — ${l.name}</option>`).join('');
+  }
+  loadMyTimeAdjusts();
+}
+
+async function submitTimeAdjust() {
+  const date = document.getElementById('taDate').value;
+  const type = document.getElementById('taType').value;
+  const time = document.getElementById('taTime').value;
+  const branch = document.getElementById('taBranch').value;
+  const reason = document.getElementById('taReason').value.trim();
+  if (!date || !time || !reason) { toast('กรอกข้อมูลให้ครบ', 'warning'); return; }
+  try {
+    showSpinner('กำลังยื่นคำขอ...');
+    await callAppsScript('submitTimeAdjust', {
+      empId: currentUser.empId,
+      name: currentUser.name,
+      date, type, time, branch, reason,
+    });
+    toast('✓ ยื่นคำขอแก้เวลาแล้ว', 'success');
+    document.getElementById('taReason').value = '';
+    loadMyTimeAdjusts();
+  } catch (e) {
+    toast('❌ ' + e.message, 'error');
+  } finally { hideSpinner(); }
+}
+
+async function loadMyTimeAdjusts() {
+  const el = document.getElementById('myTimeAdjustList');
+  if (!el) return;
+  try {
+    const res = await callAppsScript('getMyTimeAdjusts', { empId: currentUser.empId });
+    const items = res.timeAdjusts || [];
+    if (items.length === 0) {
+      el.innerHTML = '<div class="empty"><div class="ico">📋</div>ยังไม่มีคำขอ</div>';
+      return;
+    }
+    el.innerHTML = items.map(t => {
+      const statusBadge = t.status === 'approved' ? '<span class="tag tag-in">✓ อนุมัติ</span>'
+        : t.status === 'rejected' ? '<span class="tag" style="background:rgba(231,76,60,.15);color:var(--danger)">✗ ปฏิเสธ</span>'
+        : '<span class="tag" style="background:rgba(243,156,18,.15);color:var(--warning)">⏳ รอ</span>';
+      return `<div class="list-item">
+        <div class="info">
+          <div class="title">${t.type==='in'?'📥 เข้า':'📤 ออก'} · ${t.date} ${t.time}</div>
+          <div class="sub">${t.reason || ''} ${statusBadge}</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    el.innerHTML = `<div class="alert alert-warn">โหลดไม่ได้: ${e.message}</div>`;
+  }
+}
+
+/* ---- Approvals (Supervisor/HR) ---- */
+async function renderApprovalsPage() {
+  loadApprovals();
+}
+
+async function loadApprovals() {
+  const el = document.getElementById('approvalsList');
+  const kpi = document.getElementById('approvalsKpi');
+  if (!el) return;
+  el.innerHTML = '<div class="text-sm text-muted">กำลังโหลด...</div>';
+  try {
+    const res = await callAppsScript('getPendingApprovals');
+    const items = res.approvals || [];
+    const leaves = items.filter(i => i.kind === 'leave');
+    const tas = items.filter(i => i.kind === 'timeAdjust');
+    if (kpi) {
+      kpi.innerHTML = `
+        <div class="kpi"><div class="num">${leaves.length}</div><div class="label">ลา</div></div>
+        <div class="kpi"><div class="num">${tas.length}</div><div class="label">แก้เวลา</div></div>
+        <div class="kpi"><div class="num">${items.length}</div><div class="label">รวม</div></div>`;
+    }
+    if (items.length === 0) {
+      el.innerHTML = '<div class="empty"><div class="ico">✓</div>ไม่มีคำขอรอ</div>';
+      return;
+    }
+    el.innerHTML = items.map(item => {
+      if (item.kind === 'leave') {
+        const typeLabel = { sick:'🤒 ป่วย', personal:'👤 กิจ', vacation:'🏖 พักร้อน' }[item.type] || item.type;
+        return `<div class="list-item">
+          <div class="info">
+            <div class="title">${item.name} · ${typeLabel}</div>
+            <div class="sub">${item.dateFrom}${item.dateTo && item.dateTo!==item.dateFrom ? ' → '+item.dateTo : ''} · ${item.reason || ''}</div>
+          </div>
+          <div class="actions">
+            <button class="mini-btn" style="background:var(--success);color:#fff" onclick="approveItem('leave','${item.id}','approved')">✓ อนุมัติ</button>
+            <button class="mini-btn" onclick="approveItem('leave','${item.id}','rejected')">✗ ปฏิเสธ</button>
+          </div>
+        </div>`;
+      } else {
+        return `<div class="list-item">
+          <div class="info">
+            <div class="title">${item.name} · ${item.type==='in'?'📥 เข้า':'📤 ออก'}</div>
+            <div class="sub">${item.date} ${item.time} · ${item.reason || ''}</div>
+          </div>
+          <div class="actions">
+            <button class="mini-btn" style="background:var(--success);color:#fff" onclick="approveItem('timeAdjust','${item.id}','approved')">✓</button>
+            <button class="mini-btn" onclick="approveItem('timeAdjust','${item.id}','rejected')">✗</button>
+          </div>
+        </div>`;
+      }
+    }).join('');
+  } catch (e) {
+    el.innerHTML = `<div class="alert alert-warn">โหลดไม่ได้: ${e.message}</div>`;
+  }
+}
+
+async function approveItem(kind, id, decision) {
+  if (decision === 'rejected' && !confirm('ยืนยันปฏิเสธคำขอ?')) return;
+  try {
+    showSpinner('กำลังบันทึก...');
+    await callAppsScript('approveItem', { kind, id, decision });
+    toast(decision === 'approved' ? '✓ อนุมัติแล้ว' : '✗ ปฏิเสธแล้ว', 'success');
+    loadApprovals();
+  } catch (e) {
+    toast('❌ ' + e.message, 'error');
+  } finally { hideSpinner(); }
+}
+
+/* ---- Warning Letter ---- */
+function renderWarningPage() {
+  const sel = document.getElementById('warningEmpSelect');
+  if (sel) {
+    // Show team members + (HR sees all)
+    const list = currentUser.role === 'hr'
+      ? allUsers.filter(u => u.status === 'Active')
+      : team.filter(m => m.empId);
+    sel.innerHTML = '<option value="">-- เลือกพนักงาน --</option>' +
+      list.map(u => `<option value="${u.empId}">${u.empId} · ${u.name}</option>`).join('');
+  }
+  const dateEl = document.getElementById('warningIncidentDate');
+  if (dateEl && !dateEl.value) dateEl.value = todayKey();
+  loadWarningHistory();
+}
+
+function generateWarningLetter() {
+  const empId = document.getElementById('warningEmpSelect').value;
+  const level = document.getElementById('warningLevel').value;
+  const category = document.getElementById('warningCategory').value;
+  const detail = document.getElementById('warningDetail').value.trim();
+  const incidentDate = document.getElementById('warningIncidentDate').value;
+  if (!empId || !detail) { toast('กรอกข้อมูลให้ครบ', 'warning'); return; }
+  const emp = (currentUser.role === 'hr' ? allUsers : team).find(u => u.empId === empId);
+  if (!emp) { toast('ไม่พบพนักงาน', 'error'); return; }
+
+  const levelText = { verbal:'ตักเตือนด้วยวาจา (ครั้งที่ 1)', written:'ใบเตือนเขียน (ครั้งที่ 2)', final:'ใบเตือนสุดท้าย (ครั้งที่ 3)' }[level];
+  const categoryText = {
+    late:'มาสายเกินกำหนด', absent:'ขาดงานโดยไม่แจ้ง',
+    leave_abuse:'ลาผิดระเบียบ', duty:'บกพร่องต่อหน้าที่',
+    discipline:'ไม่ปฏิบัติตามระเบียบบริษัท', other:'อื่นๆ'
+  }[category];
+  const today = new Date().toLocaleDateString('th-TH', { day:'numeric', month:'long', year:'numeric' });
+  const expiryDate = new Date(); expiryDate.setMonth(expiryDate.getMonth() + 6);
+  const expiryStr = expiryDate.toLocaleDateString('th-TH', { day:'numeric', month:'long', year:'numeric' });
+
+  const html = `
+    <div id="letterPrint" style="background:#fff;color:#000;padding:30px;border-radius:8px;font-family:'Sarabun',sans-serif;line-height:1.8">
+      <div style="text-align:center;margin-bottom:30px">
+        <div style="font-size:24px;font-weight:bold">บริษัท รัตนไพบูลย์ จำกัด</div>
+        <div style="font-size:18px;margin-top:8px">${levelText}</div>
+      </div>
+      <div style="text-align:right;margin-bottom:20px">วันที่ ${today}</div>
+      <div style="margin-bottom:16px"><strong>เรื่อง:</strong> ${levelText}</div>
+      <div style="margin-bottom:16px"><strong>เรียน:</strong> ${emp.name} (รหัส ${emp.empId})</div>
+      <div style="margin-bottom:16px;text-indent:30px">
+        ตามที่ท่านได้กระทำการ${categoryText} เมื่อวันที่ ${incidentDate ? new Date(incidentDate).toLocaleDateString('th-TH') : '-'}
+        โดยมีรายละเอียดดังนี้:
+      </div>
+      <div style="background:#f5f5f5;padding:14px;border-left:4px solid #c9a84c;margin-bottom:16px">
+        ${detail.replace(/\n/g, '<br>')}
+      </div>
+      <div style="margin-bottom:16px;text-indent:30px">
+        บริษัทฯ ขอตักเตือนท่านในการกระทำดังกล่าว และขอให้ท่านแก้ไขปรับปรุงพฤติกรรม
+        หากท่านยังคงกระทำผิดซ้ำอีก บริษัทฯ จะพิจารณาดำเนินการตามระเบียบของบริษัทต่อไป
+      </div>
+      <div style="margin-bottom:16px;font-size:14px;color:#666">
+        * ใบเตือนนี้มีผลบังคับใช้ 6 เดือน นับจากวันที่ออก (ถึง ${expiryStr})
+      </div>
+      <div style="margin-top:50px;display:flex;justify-content:space-between">
+        <div style="text-align:center;width:45%">
+          <div>____________________</div>
+          <div style="margin-top:8px">${currentUser.name}</div>
+          <div style="font-size:13px;color:#666">${currentUser.role === 'hr' ? 'ฝ่ายบุคคล' : 'หัวหน้างาน'}</div>
+        </div>
+        <div style="text-align:center;width:45%">
+          <div>____________________</div>
+          <div style="margin-top:8px">${emp.name}</div>
+          <div style="font-size:13px;color:#666">ผู้รับทราบ</div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('warningPreview').innerHTML = html;
+
+  // Save to backend
+  callAppsScript('saveWarning', {
+    empId, empName: emp.name,
+    level, category, detail,
+    incidentDate,
+    issuedBy: currentUser.empId,
+    issuedByName: currentUser.name,
+  }).then(() => {
+    toast('✓ บันทึกใบเตือนแล้ว · กดพิมพ์เพื่อ print', 'success');
+    loadWarningHistory();
+  }).catch(e => toast('Sheet sync ล้มเหลว: ' + e.message, 'warning'));
+}
+
+function printWarningLetter() {
+  const el = document.getElementById('letterPrint');
+  if (!el) { toast('สร้างใบเตือนก่อน', 'warning'); return; }
+  const w = window.open('', '', 'width=800,height=900');
+  w.document.write(`<html><head><title>ใบเตือน</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+    </head><body style="font-family:'Sarabun',sans-serif">${el.outerHTML}</body></html>`);
+  w.document.close();
+  setTimeout(() => w.print(), 500);
+}
+
+async function loadWarningHistory() {
+  const el = document.getElementById('warningHistory');
+  if (!el) return;
+  try {
+    const res = await callAppsScript('getWarnings');
+    const items = res.warnings || [];
+    if (items.length === 0) {
+      el.innerHTML = '<div class="empty"><div class="ico">📋</div>ยังไม่มีใบเตือน</div>';
+      return;
+    }
+    el.innerHTML = items.slice(-50).reverse().map(w => {
+      const lvl = { verbal:'1', written:'2', final:'3' }[w.level] || '?';
+      return `<div class="list-item">
+        <div class="num" style="background:rgba(231,76,60,.15);color:var(--danger)">${lvl}</div>
+        <div class="info">
+          <div class="title">${w.empName} (${w.empId})</div>
+          <div class="sub">${w.category} · ${w.incidentDate} · ออกโดย ${w.issuedByName}</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    el.innerHTML = `<div class="alert alert-warn">โหลดไม่ได้: ${e.message}</div>`;
+  }
+}
+
+/* ---- Reports ---- */
+function renderReportsPage() {
+  const m = document.getElementById('reportMonth');
+  if (m && !m.value) {
+    const now = new Date();
+    m.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  }
+  computeMonthlyReport();
+}
+
+function computeMonthlyReport() {
+  const monthEl = document.getElementById('reportMonth');
+  const month = monthEl?.value;
+  if (!month) return;
+  const monthStart = new Date(month + '-01');
+  const monthEnd = new Date(monthStart); monthEnd.setMonth(monthEnd.getMonth()+1);
+
+  // Use combined logs (local + remote)
+  const allLogs = [...logs];
+  const localIds = new Set(logs.map(l => l.id));
+  remoteLogs.forEach(r => { if (!localIds.has(r.id)) allLogs.push(r); });
+
+  const monthLogs = allLogs.filter(l => {
+    const ts = new Date(l.ts);
+    return ts >= monthStart && ts < monthEnd;
+  });
+
+  // Group by empId
+  const byEmp = {};
+  monthLogs.forEach(l => {
+    if (!byEmp[l.empId]) byEmp[l.empId] = { name: l.name, days: new Set(), ins: 0, outs: 0, lateCount: 0 };
+    byEmp[l.empId].days.add(l.dateKey);
+    if (l.type === 'in') {
+      byEmp[l.empId].ins++;
+      const s = settings.startTime.split(':');
+      const ms = new Date(l.ts); ms.setHours(+s[0], +s[1], 0, 0);
+      if (new Date(l.ts) - ms > (settings.lateGrace||0)*60000) byEmp[l.empId].lateCount++;
+    }
+    if (l.type === 'out') byEmp[l.empId].outs++;
+  });
+
+  const summary = Object.entries(byEmp).map(([empId, d]) => ({
+    empId, name: d.name,
+    workDays: d.days.size, ins: d.ins, outs: d.outs, late: d.lateCount,
+  }));
+
+  // KPI
+  const kpi = document.getElementById('reportKpi');
+  if (kpi) {
+    const totalLate = summary.reduce((s, e) => s + e.late, 0);
+    kpi.innerHTML = `
+      <div class="kpi"><div class="num">${summary.length}</div><div class="label">พนักงาน</div></div>
+      <div class="kpi"><div class="num">${monthLogs.length}</div><div class="label">รายการ</div></div>
+      <div class="kpi"><div class="num danger">${totalLate}</div><div class="label">สาย</div></div>`;
+  }
+
+  // Table
+  const tbl = document.getElementById('reportTable');
+  if (tbl) {
+    if (summary.length === 0) {
+      tbl.innerHTML = '<div class="empty">ไม่มีข้อมูลในเดือนนี้</div>';
+    } else {
+      tbl.innerHTML = `<div class="table-wrap"><table>
+        <thead><tr><th>รหัส</th><th>ชื่อ</th><th>วันทำงาน</th><th>เข้า</th><th>ออก</th><th>สาย</th></tr></thead>
+        <tbody>${summary.map(e => `<tr><td>${e.empId}</td><td>${e.name}</td><td>${e.workDays}</td><td>${e.ins}</td><td>${e.outs}</td><td class="${e.late>0?'danger':''}">${e.late}</td></tr>`).join('')}</tbody>
+      </table></div>`;
+    }
+  }
+  return summary;
+}
+
+function exportMonthlyReport() {
+  const summary = computeMonthlyReport();
+  if (!summary || summary.length === 0) { toast('ไม่มีข้อมูล', 'warning'); return; }
+  const month = document.getElementById('reportMonth').value;
+  if (typeof XLSX === 'undefined') { toast('SheetJS ยังไม่โหลด', 'error'); return; }
+  const ws = XLSX.utils.json_to_sheet(summary.map(e => ({
+    'รหัส': e.empId, 'ชื่อ': e.name,
+    'วันทำงาน': e.workDays, 'เข้างาน': e.ins, 'ออกงาน': e.outs, 'สาย': e.late,
+  })));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Monthly Report');
+  XLSX.writeFile(wb, `monthly-report-${month}.xlsx`);
+  toast('✓ Export Excel แล้ว', 'success');
+}
+
+function exportLateReport() {
+  const summary = computeMonthlyReport();
+  if (!summary) return;
+  const lateOnly = summary.filter(e => e.late > 0);
+  if (lateOnly.length === 0) { toast('ไม่มีคนสาย', 'success'); return; }
+  if (typeof XLSX === 'undefined') return;
+  const month = document.getElementById('reportMonth').value;
+  const ws = XLSX.utils.json_to_sheet(lateOnly);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Late');
+  XLSX.writeFile(wb, `late-report-${month}.xlsx`);
+  toast(`Export ${lateOnly.length} คน`, 'success');
 }
 
 loadAll();
