@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0d1b3e">
-<title>Rattana Face Check-in v4.2</title>
+<title>Rattana Face Check-in v4.2.1</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -549,7 +549,7 @@ body.dark .alert-warn { background:rgba(243,156,18,.15); color:#f7c873; }
       </div>
     </div>
 
-    <div class="text-sm text-muted mt-12">v4.2 · 28 เม.ย. 2569</div>
+    <div class="text-sm text-muted mt-12">v4.2.1 · 29 เม.ย. 2569</div>
   </div>
 </div>
 
@@ -1056,7 +1056,7 @@ body.dark .alert-warn { background:rgba(243,156,18,.15); color:#f7c873; }
    Rattana Face Check-in v2.0
    ============================================================ */
 
-const APP_VERSION = '4.2';
+const APP_VERSION = '4.2.1';
 const FACE_MODELS_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
 
 const DEFAULT_LOCATIONS = [
@@ -1860,18 +1860,24 @@ async function empMatchTick() {
     .detectSingleFace(v, new faceapi.TinyFaceDetectorOptions({ inputSize:320, scoreThreshold:0.5 }))
     .withFaceLandmarks().withFaceDescriptor();
   if (!det) {
-    document.getElementById('empCamWrap').className = 'camera-wrap';
-    updateFaceCheck({found:false}); return;
+    document.getElementById('empCamWrap').className = 'camera-wrap home-cam';
+    lastFaceMatch = { found:false };
+    updateFaceCheck({found:false});
+    evaluateAction();
+    return;
   }
   drawBox('empCanvas', 'empVideo', det);
   if (!registeredDescriptor) {
-    document.getElementById('empCamWrap').className = 'camera-wrap matching';
-    updateFaceCheck({found:true, registered:false}); return;
+    document.getElementById('empCamWrap').className = 'camera-wrap home-cam matching';
+    lastFaceMatch = { found:true, registered:false };
+    updateFaceCheck({found:true, registered:false});
+    evaluateAction();
+    return;
   }
   const dist = faceapi.euclideanDistance(det.descriptor, registeredDescriptor);
   const ok = dist <= settings.faceThr;
-  document.getElementById('empCamWrap').className = 'camera-wrap ' + (ok ? 'success' : 'matching');
-  lastFaceMatch = { ok, distance:dist, descriptor:det.descriptor, time:Date.now() };
+  document.getElementById('empCamWrap').className = 'camera-wrap home-cam ' + (ok ? 'success' : 'matching');
+  lastFaceMatch = { found:true, ok, distance:dist, descriptor:det.descriptor, time:Date.now() };
   updateFaceCheck({found:true, registered:true, ok, distance:dist});
   evaluateAction();
 }
