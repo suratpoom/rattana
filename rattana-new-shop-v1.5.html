@@ -550,6 +550,13 @@ body.dark .shop-card .name{color:var(--gold-light)}
         </div>
       </div>
       <div class="field">
+        <label>เลขใบกำกับภาษี / เลขบัตรประชาชน <span style="color:var(--muted);font-weight:400;font-size:12px">(ไม่บังคับ)</span></label>
+        <input type="text" id="taxId" inputmode="numeric" maxlength="17"
+               placeholder="13 หลัก" autocomplete="off"
+               oninput="formatTaxId(event)">
+        <div class="hint">สำหรับออกใบกำกับภาษี — กรอกเฉพาะเลข 13 หลัก</div>
+      </div>
+      <div class="field">
         <label>ประเภทร้าน (ขนาด) <span class="req">*</span></label>
         <div class="shop-types">
           <input type="radio" name="shopType" id="size-S" value="S">
@@ -1561,6 +1568,19 @@ function removePhoto(){
   document.getElementById('photoPreview').style.display = 'none';
 }
 
+// Format tax ID / national ID to 1-2345-67890-12-3 (Thai standard)
+function formatTaxId(e){
+  const input = e.target;
+  let v = input.value.replace(/\D/g, '').slice(0, 13);
+  let f = '';
+  if(v.length > 0)  f += v.slice(0, 1);
+  if(v.length > 1)  f += '-' + v.slice(1, 5);
+  if(v.length > 5)  f += '-' + v.slice(5, 10);
+  if(v.length > 10) f += '-' + v.slice(10, 12);
+  if(v.length > 12) f += '-' + v.slice(12, 13);
+  input.value = f;
+}
+
 // ============ DRAFT (autosave) ============
 function getFormData(){
   const coords = getCoords();
@@ -1577,6 +1597,7 @@ function getFormData(){
     shopName: document.getElementById('shopName').value.trim(),
     ownerName: document.getElementById('ownerName').value.trim(),
     phone: document.getElementById('phone').value.trim(),
+    taxId: document.getElementById('taxId').value.replace(/\D/g,''),
     shopType: document.querySelector('input[name=shopType]:checked')?.value || '',
     houseNo,
     province: a.province,
@@ -1607,6 +1628,11 @@ function restoreDraft(){
     if(d.shopName) document.getElementById('shopName').value = d.shopName;
     if(d.ownerName) document.getElementById('ownerName').value = d.ownerName;
     if(d.phone) document.getElementById('phone').value = d.phone;
+    if(d.taxId){
+      const inp = document.getElementById('taxId');
+      inp.value = d.taxId;
+      formatTaxId({target: inp});
+    }
     if(d.houseNo) document.getElementById('houseNo').value = d.houseNo;
     if(d.note) document.getElementById('note').value = d.note;
     if(d.shopType) document.getElementById('size-'+d.shopType).checked = true;
@@ -1619,6 +1645,7 @@ function clearForm(){
   document.getElementById('shopName').value = '';
   document.getElementById('ownerName').value = '';
   document.getElementById('phone').value = '';
+  document.getElementById('taxId').value = '';
   document.getElementById('houseNo').value = '';
   document.getElementById('note').value = '';
   document.querySelectorAll('input[name=shopType]').forEach(r => r.checked = false);
@@ -1693,6 +1720,7 @@ async function submitForm(){
     document.getElementById('shopName').value = '';
     document.getElementById('ownerName').value = '';
     document.getElementById('phone').value = '';
+    document.getElementById('taxId').value = '';
     document.getElementById('houseNo').value = '';
     document.getElementById('note').value = '';
     document.querySelectorAll('input[name=shopType]').forEach(r => r.checked = false);
