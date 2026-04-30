@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0d1b3e">
-<title>Rattana Face Check-in v4.6</title>
+<title>Rattana Face Check-in v5.0</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -62,24 +62,90 @@ header {
 .icon-btn:active { transform:scale(.95); }
 @keyframes spin { to { transform:rotate(360deg); } }
 
-/* ---- TABS ---- */
-.tabs {
-  display:flex; gap:4px; padding:8px; overflow-x:auto;
-  background:var(--card-bg); border-bottom:1px solid var(--border);
-  scrollbar-width:none; -ms-overflow-style:none; position:sticky; top:62px; z-index:90;
+/* ---- HAMBURGER DRAWER (v5.0) ---- */
+.btn-ham {
+  background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.15);
+  color:#fff; width:42px; height:42px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px; flex-shrink:0; cursor:pointer;
+  transition:all .2s; -webkit-tap-highlight-color:transparent;
 }
-.tabs::-webkit-scrollbar { display:none; }
-.tab {
-  border:none; background:transparent; padding:10px 14px; border-radius:8px;
-  font-size:14px; color:var(--muted); white-space:nowrap; font-weight:500;
-  display:flex; align-items:center; gap:6px; transition:all .2s;
+.btn-ham:hover { background:rgba(255,255,255,.2); }
+.btn-ham:active { transform:scale(.92); }
+
+/* Backdrop */
+.drawer-backdrop {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,.5); z-index:290;
+  transition:opacity .25s;
 }
-.tab.active { background:var(--navy); color:#fff; }
-body.dark .tab.active { background:var(--gold); color:var(--navy); }
-.tab .badge { background:var(--gold); color:var(--navy); border-radius:10px; padding:1px 6px; font-size:10px; font-weight:700; }
+.drawer-backdrop.open { display:block; animation:fadeBackdrop .25s ease; }
+@keyframes fadeBackdrop { from{opacity:0} to{opacity:1} }
+
+/* Drawer panel */
+.nav-drawer {
+  position:fixed; top:0; left:0;
+  width:280px; max-width:88vw; height:100%;
+  background:var(--navy);
+  z-index:300;
+  transform:translateX(-100%);
+  transition:transform .25s cubic-bezier(.4,0,.2,1);
+  overflow-y:auto; overflow-x:hidden;
+  box-shadow:6px 0 24px rgba(0,0,0,.35);
+  display:flex; flex-direction:column;
+  padding-top:max(0px, env(safe-area-inset-top));
+  padding-bottom:max(16px, env(safe-area-inset-bottom));
+}
+.nav-drawer.open { transform:translateX(0); }
+
+/* Drawer header */
+.drawer-head {
+  display:flex; align-items:center; gap:10px;
+  padding:16px 18px;
+  border-bottom:1px solid rgba(255,255,255,.12);
+  margin-bottom:4px;
+}
+.drawer-logo {
+  width:38px; height:38px; border-radius:8px;
+  background:var(--gold); color:var(--navy);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; font-size:18px; flex-shrink:0;
+}
+.drawer-brand { flex:1; min-width:0; }
+.drawer-brand-name { font-weight:700; font-size:14px; color:#fff; line-height:1.2; }
+.drawer-brand-sub { font-size:11px; color:var(--gold-light); }
+.drawer-close {
+  background:rgba(255,255,255,.1); border:none; color:#fff;
+  width:32px; height:32px; border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; font-size:16px; flex-shrink:0;
+}
+.drawer-close:hover { background:rgba(255,255,255,.2); }
+
+/* Drawer items */
+.drawer-item {
+  display:flex; align-items:center; gap:14px;
+  padding:13px 20px; cursor:pointer; font-size:15px;
+  color:rgba(255,255,255,.78); white-space:nowrap;
+  text-decoration:none; border:none; background:transparent;
+  width:100%; text-align:left; font-family:inherit;
+  transition:background .12s, color .12s;
+}
+.drawer-item:hover { background:rgba(255,255,255,.07); color:#fff; }
+.drawer-item:active { background:rgba(255,255,255,.12); }
+.drawer-item.active { background:rgba(201,168,76,.18); color:var(--gold); font-weight:600; }
+.drawer-item .d-icon { font-size:20px; width:26px; text-align:center; flex-shrink:0; }
+.drawer-divider { height:1px; background:rgba(255,255,255,.1); margin:6px 16px; }
+.drawer-section-label {
+  font-size:10px; font-weight:700; letter-spacing:.08em;
+  color:rgba(255,255,255,.4); padding:10px 20px 4px; text-transform:uppercase;
+}
+
+/* Legacy refs — keep .tabs hidden so JS refs don't break */
+.tabs { display:none; }
 
 /* ---- LAYOUT ---- */
-main { padding:12px; padding-bottom:max(80px, calc(60px + env(safe-area-inset-bottom))); }
+main { padding:12px; padding-bottom:max(24px, env(safe-area-inset-bottom)); }
 .page { display:none; }
 .page.active { display:block; animation:fadeIn .3s ease; }
 @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
@@ -191,38 +257,6 @@ body.dark .status-row { background:var(--navy-mid); }
 .status-row.warn .icon { background:rgba(243,156,18,.15); color:var(--warning); }
 .status-row.err .icon { background:rgba(231,76,60,.15); color:var(--danger); }
 .status-row.pending .icon { background:rgba(108,117,125,.15); color:var(--muted); }
-
-/* ---- ⋮ MORE MENU ---- */
-.tab-more {
-  position: relative;
-}
-.more-menu {
-  display: none;
-  position: absolute;
-  top: 100%;
-  right: 8px;
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-  padding: 8px 0;
-  min-width: 220px;
-  z-index: 1000;
-  margin-top: 6px;
-}
-.more-menu.open { display: block; }
-.more-item {
-  display: block;
-  padding: 10px 18px;
-  cursor: pointer;
-  font-size: 14px;
-  color: var(--text);
-  white-space: nowrap;
-  text-decoration: none;
-}
-.more-item:hover {
-  background: rgba(13,27,62,.06);
-}
 
 /* ---- HOME SINGLE-SCREEN LAYOUT (mobile-first) ---- */
 .home-cam {
@@ -529,7 +563,7 @@ body.dark .alert-warn { background:rgba(243,156,18,.15); color:#f7c873; }
   <div class="login-card">
     <div class="login-logo">R</div>
     <div class="login-title">Rattana Face Check-in</div>
-    <div class="login-sub">v4.2 · ระบบลงเวลาด้วยใบหน้าและ GPS</div>
+    <div class="login-sub">v5.0 · ระบบลงเวลาด้วยใบหน้าและ GPS</div>
 
     <!-- Google Sign-In View -->
     <div id="loginGoogleView">
@@ -599,14 +633,29 @@ body.dark .alert-warn { background:rgba(243,156,18,.15); color:#f7c873; }
       </div>
     </div>
 
-    <div class="text-sm text-muted mt-12">v4.6 · 29 เม.ย. 2569</div>
+    <div class="text-sm text-muted mt-12">v5.0 · 30 เม.ย. 2569</div>
   </div>
 </div>
 
 <!-- ============== APP ============== -->
 <div id="appScreen" style="display:none">
 
+  <!-- Hamburger Drawer -->
+  <div id="drawerBackdrop" class="drawer-backdrop" onclick="closeDrawer()"></div>
+  <div id="navDrawer" class="nav-drawer">
+    <div class="drawer-head">
+      <div class="drawer-logo">R</div>
+      <div class="drawer-brand">
+        <div class="drawer-brand-name">Face Check-in</div>
+        <div class="drawer-brand-sub" id="drawerUserSub">รัตนไพบูลย์</div>
+      </div>
+      <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    </div>
+    <div id="drawerNav"><!-- filled by buildDrawer() --></div>
+  </div>
+
   <header>
+    <button class="btn-ham" onclick="toggleDrawer()" title="เมนู" id="btnHam">&#9776;</button>
     <div class="brand">
       <div class="brand-logo">R</div>
       <div class="brand-text">
@@ -697,6 +746,9 @@ body.dark .alert-warn { background:rgba(243,156,18,.15); color:#f7c873; }
           <button class="big-action" id="btnAction" onclick="doSelfCheckIn()" disabled>
             <span id="btnActionText">บันทึกเข้างาน</span>
             <span class="sub" id="btnActionSub">กรุณาสแกนใบหน้าและรอ GPS</span>
+          </button>
+          <button class="btn btn-outline" id="btnOffSite" onclick="doOffSiteCheckOut()" style="display:none;margin-top:8px;width:100%;padding:12px">
+            📍 Check-out นอกพื้นที่
           </button>
         </div>
 
@@ -1135,6 +1187,39 @@ body.dark .alert-warn { background:rgba(243,156,18,.15); color:#f7c873; }
         </div>
       </div>
 
+      <!-- GPS Diagnostic Card — HR only -->
+      <div class="card" id="gpsCalibCard" style="display:none">
+        <div class="card-header">
+          <div class="card-icon">📡</div>
+          <div class="card-title">ตรวจสอบพิกัด GPS (HR)</div>
+        </div>
+        <div class="alert alert-info mb-12 text-sm">
+          ใช้เครื่องมือนี้เมื่อพนักงานไม่ผ่าน GPS ทั้งที่อยู่ในสถานที่ถูกต้อง — ตรวจและอัปเดตพิกัดสาขา
+        </div>
+        <button class="btn btn-outline mb-12" onclick="readCurrentGpsForCalib()">
+          📡 อ่านพิกัด GPS ของฉัน ณ ตอนนี้
+        </button>
+        <div id="gpsCalibResult" style="display:none">
+          <div class="input-group">
+            <label>พิกัด GPS จริง (วัดได้ ณ ตอนนี้)</label>
+            <div class="alert" style="background:var(--off-white);font-family:monospace;font-size:13px" id="gpsCalibCurrent"></div>
+          </div>
+          <div class="input-group">
+            <label>เลือกสาขาที่ต้องการอัปเดต</label>
+            <select id="gpsCalibLocSel" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:10px;font-size:15px"></select>
+          </div>
+          <div class="input-group" id="gpsCalibCompareWrap">
+            <label>พิกัดปัจจุบันใน Sheet</label>
+            <div class="alert" style="background:var(--off-white);font-family:monospace;font-size:13px" id="gpsCalibSheetCoord"></div>
+          </div>
+          <div class="alert alert-warn text-sm mb-12" id="gpsCalibDiff"></div>
+          <button class="btn btn-gold" onclick="applyGpsCalib()">
+            📍 อัปเดตพิกัดสาขานี้ด้วยพิกัดปัจจุบัน
+          </button>
+          <div class="text-sm text-muted mt-8">* อัปเดตใน localStorage เท่านั้น — ต้องแก้ Sheet Locations ด้วยมือภายหลัง</div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-header"><div class="card-icon">ℹ</div><div class="card-title">ข้อมูลระบบ</div></div>
         <div id="systemInfo"></div>
@@ -1278,7 +1363,7 @@ body.dark .alert-warn { background:rgba(243,156,18,.15); color:#f7c873; }
    Rattana Face Check-in v2.0
    ============================================================ */
 
-const APP_VERSION = '4.6';
+const APP_VERSION = '5.0';
 const FACE_MODELS_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
 
 const DEFAULT_LOCATIONS = [
@@ -2239,10 +2324,9 @@ function checkSession() {
     }
     initApp();
   } else {
-    // ถ้า user มี แต่ idToken หมดอายุ → clear session แล้ว show login
+    // ถ้า user มี แต่ idToken หมดอายุ → clear session เงียบๆ (หน้า login จะแสดงให้เห็นเอง)
     if (s && !idToken) {
       sessionStorage.removeItem('rfc3_user');
-      toast('Session หมดอายุ — กรุณา login ใหม่', 'warning');
     }
     setTimeout(initGoogleSignIn, 200);
   }
@@ -2697,30 +2781,44 @@ function evaluateAction() {
   const lineTime = document.getElementById('lineTime');
   const next = nextActionType(currentUser.empId);
   btn.classList.toggle('checkout', next==='out');
-  txt.textContent = next==='in' ? '📥 บันทึกเข้างาน' : '📤 บันทึกออกงาน';
 
-  // Specific failure messages — มองเห็นชัดเจนว่าอะไรไม่ผ่าน
   const reasons = [];
   if (faceapiReady && !registeredDescriptor) reasons.push('❗ ยังไม่ได้ลงทะเบียนใบหน้า — ติดต่อ HR');
   else if (faceapiReady && (!lastFaceMatch || !lastFaceMatch.found)) reasons.push('👤 มองตรงกล้องให้เห็นใบหน้า');
   else if (faceapiReady && lastFaceMatch && !lastFaceMatch.ok) reasons.push('❌ ใบหน้าไม่ตรง');
 
-  if (!lastGps) reasons.push('📡 รอสัญญาณ GPS');
+  const gpsOk = lastGps?.withinRadius;
+  const gpsHas = !!lastGps;
+  const isOffSitePossible = gpsHas && !gpsOk && next === 'out';
+
+  if (!gpsHas) reasons.push('📡 รอสัญญาณ GPS');
   else if (lastGps.nearestIdx < 0) reasons.push('📍 ไม่มีจุดเช็คอินในระบบ');
-  else if (!lastGps.withinRadius) {
+  else if (!gpsOk) {
     const over = (lastGps.distance - lastGps.radius).toFixed(0);
-    reasons.push(`📍 ห่างจาก${lastGps.locName} เกิน ${over} ม.`);
+    reasons.push(`📍 ห่างจาก${lastGps.locName} ${over} ม.`);
   }
 
   document.getElementById('chkTime').textContent = new Date().toLocaleTimeString('th-TH');
-  if (lineTime) {
-    lineTime.classList.remove('pending');
-    lineTime.classList.add('ok');
-  }
+  if (lineTime) { lineTime.classList.remove('pending'); lineTime.classList.add('ok'); }
 
+  const faceOk = !faceapiReady || !registeredDescriptor || lastFaceMatch?.ok;
   const ready = reasons.length === 0;
+
+  // ปุ่มหลัก
+  txt.textContent = next==='in' ? '📥 บันทึกเข้างาน' : '📤 บันทึกออกงาน';
   btn.disabled = !ready;
   sub.textContent = ready ? '✓ พร้อมบันทึก · กดเพื่อยืนยัน' : reasons[0];
+
+  // ปุ่ม Off-site check-out (เฉพาะ check-out นอกพื้นที่ + ใบหน้าผ่าน)
+  const offSiteBtn = document.getElementById('btnOffSite');
+  if (offSiteBtn) {
+    if (isOffSitePossible && faceOk) {
+      offSiteBtn.style.display = 'block';
+      offSiteBtn.textContent = `📍 Check-out นอกพื้นที่ · ${lastGps.locName ? 'ห่าง '+lastGps.distance.toFixed(0)+' ม.' : 'GPS พร้อม'}`;
+    } else {
+      offSiteBtn.style.display = 'none';
+    }
+  }
 }
 async function doSelfCheckIn() {
   if (!lastGps?.withinRadius) { toast('📍 นอกรัศมี — เข้าใกล้สาขามากกว่านี้', 'error'); return; }
@@ -2781,6 +2879,87 @@ function saveLog(data) {
     ...data,
   });
   saveLogs();
+}
+
+/* Off-site check-out — สำหรับพนักงานนอกพื้นที่ (ต้องกรอกเหตุผล) */
+function doOffSiteCheckOut() {
+  if (!lastGps) { toast('รอ GPS ก่อน', 'warning'); return; }
+  if (faceapiReady && registeredDescriptor && (!lastFaceMatch?.ok)) { toast('❌ ใบหน้าไม่ตรง', 'error'); return; }
+
+  // Modal popup ให้กรอกเหตุผล
+  const modal = document.createElement('div');
+  modal.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:flex;align-items:flex-end;`;
+  modal.innerHTML = `
+    <div style="background:var(--card-bg);border-radius:18px 18px 0 0;padding:24px;width:100%;max-height:80vh;overflow-y:auto">
+      <div style="font-size:16px;font-weight:700;margin-bottom:4px">📍 Check-out นอกพื้นที่</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:16px">
+        พิกัดปัจจุบัน: ${lastGps.lat.toFixed(5)}, ${lastGps.lng.toFixed(5)}<br>
+        ${lastGps.locName ? `ห่างจาก ${lastGps.locName} ${lastGps.distance.toFixed(0)} ม.` : ''}
+      </div>
+      <div class="input-group">
+        <label>เหตุผล <span style="color:var(--danger)">*</span></label>
+        <select id="offsiteReason" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text)">
+          <option value="delivery">🚚 ส่งสินค้า/กระจายสินค้า</option>
+          <option value="customer">🤝 เข้าพบลูกค้า</option>
+          <option value="wfh">🏠 Work from Home</option>
+          <option value="field">🌾 ปฏิบัติงานภาคสนาม</option>
+          <option value="other">อื่นๆ (ระบุด้านล่าง)</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>รายละเอียดเพิ่มเติม</label>
+        <textarea id="offsiteNote" rows="2" placeholder="เช่น ส่งสินค้าลูกค้า บริษัท ABC จ.ชลบุรี" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);resize:none"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button onclick="this.closest('div[style]').remove()" style="flex:1;padding:14px;border:1px solid var(--border);border-radius:10px;background:transparent;color:var(--text);font-size:15px">ยกเลิก</button>
+        <button onclick="confirmOffSiteCheckOut(this)" style="flex:2;padding:14px;border:none;border-radius:10px;background:var(--navy);color:#fff;font-weight:700;font-size:15px">✓ ยืนยัน Check-out</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+}
+
+async function confirmOffSiteCheckOut(btn) {
+  const modal = btn.closest('div[style*="position:fixed"]');
+  const reasonEl = document.getElementById('offsiteReason');
+  const noteEl = document.getElementById('offsiteNote');
+  const reasonLabels = {
+    delivery:'ส่งสินค้า', customer:'เข้าพบลูกค้า',
+    wfh:'Work from Home', field:'ปฏิบัติงานภาคสนาม', other:'อื่นๆ',
+  };
+  const reason = reasonLabels[reasonEl?.value] || 'ออกงานนอกพื้นที่';
+  const note = noteEl?.value?.trim() || '';
+  const fullReason = note ? `${reason}: ${note}` : reason;
+
+  btn.textContent = '⏳ กำลังบันทึก...';
+  btn.disabled = true;
+
+  const v = document.getElementById('empVideo');
+  const photo = (empStream && v?.videoWidth) ? capturePhoto(v) : null;
+  const logData = {
+    empId: currentUser.empId, name: currentUser.name, branch: currentUser.branch,
+    type: 'out',
+    lat: lastGps.lat, lng: lastGps.lng, accuracy: lastGps.accuracy,
+    distance: lastGps.distance, locCode: lastGps.locCode || 'OFFSITE',
+    locName: lastGps.locName || 'นอกพื้นที่',
+    faceDist: lastFaceMatch ? +lastFaceMatch.distance.toFixed(3) : null,
+    photo, scannedBy: 'self',
+    offSite: true, reason: fullReason,
+  };
+
+  saveLog(logData);
+  let synced = false;
+  if (config.appsScriptUrl) {
+    try { await apiCheckin({...logData, retroactive:false}); synced = true; }
+    catch(e) { console.error(e); }
+  }
+
+  modal?.remove();
+  toast(`✓ Check-out นอกพื้นที่ · ${fullReason}${synced?' · ☁️':''}`, 'success');
+  setTimeout(() => {
+    cancelCheckinFlow();
+    renderTodayStatus(); renderTodayPage(); renderHistory(); renderDashboard();
+  }, 1500);
 }
 
 /* ============================================================
@@ -3538,6 +3717,71 @@ function renderSystemInfo() {
     <div class="status-row"><div class="icon">📊</div><div><div class="label">บันทึก</div><div class="value">${logs.length} รายการ</div></div></div>
     <div class="status-row"><div class="icon">🛡</div><div><div class="label">Liveness</div><div class="value">${settings.liveness}</div></div></div>`;
   renderConfigInfo();
+  // Show GPS calib card for HR
+  const calibCard = document.getElementById('gpsCalibCard');
+  if (calibCard) calibCard.style.display = canSeeSettings() ? 'block' : 'none';
+  // Populate location selector
+  populateGpsCalibSel();
+}
+
+let _gpsCalibCoords = null; // { lat, lng, accuracy }
+
+function populateGpsCalibSel() {
+  const sel = document.getElementById('gpsCalibLocSel');
+  if (!sel) return;
+  sel.innerHTML = locations.map((l,i) =>
+    `<option value="${i}">${l.code} — ${l.name} (${l.lat.toFixed(5)}, ${l.lng.toFixed(5)}) r=${l.radius}m</option>`
+  ).join('');
+  sel.addEventListener('change', updateGpsCalibCompare);
+}
+
+function updateGpsCalibCompare() {
+  const sel = document.getElementById('gpsCalibLocSel');
+  const idx = parseInt(sel.value);
+  if (isNaN(idx) || !locations[idx]) return;
+  const loc = locations[idx];
+  const sheetEl = document.getElementById('gpsCalibSheetCoord');
+  const diffEl  = document.getElementById('gpsCalibDiff');
+  if (sheetEl) sheetEl.textContent = `lat: ${loc.lat}, lng: ${loc.lng} (radius: ${loc.radius}m)`;
+  if (_gpsCalibCoords && diffEl) {
+    const d = haversine(_gpsCalibCoords.lat, _gpsCalibCoords.lng, loc.lat, loc.lng);
+    diffEl.textContent = `ระยะห่างระหว่าง GPS ปัจจุบัน กับ พิกัดใน Sheet: ${d.toFixed(1)} เมตร — ${d <= loc.radius ? '✓ อยู่ในรัศมีแล้ว' : '✗ นอกรัศมี — ควรอัปเดตพิกัด'}`;
+    diffEl.style.background = d <= loc.radius ? 'rgba(46,204,113,.1)' : 'rgba(231,76,60,.1)';
+  }
+}
+
+function readCurrentGpsForCalib() {
+  if (!navigator.geolocation) { toast('GPS ไม่รองรับ', 'error'); return; }
+  toast('กำลังอ่าน GPS...', 'info');
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const { latitude:lat, longitude:lng, accuracy } = pos.coords;
+      _gpsCalibCoords = { lat, lng, accuracy };
+      const cur = document.getElementById('gpsCalibCurrent');
+      if (cur) cur.textContent = `lat: ${lat.toFixed(6)}, lng: ${lng.toFixed(6)} (±${accuracy.toFixed(0)}m)`;
+      document.getElementById('gpsCalibResult').style.display = 'block';
+      updateGpsCalibCompare();
+      toast(`GPS อ่านแล้ว ±${accuracy.toFixed(0)}m`, 'success');
+    },
+    err => toast(`GPS error: ${err.message}`, 'error'),
+    { enableHighAccuracy:true, timeout:20000, maximumAge:0 }
+  );
+}
+
+function applyGpsCalib() {
+  if (!_gpsCalibCoords) { toast('ยังไม่ได้อ่าน GPS', 'warning'); return; }
+  const sel = document.getElementById('gpsCalibLocSel');
+  const idx = parseInt(sel.value);
+  if (isNaN(idx) || !locations[idx]) { toast('เลือกสาขาก่อน', 'warning'); return; }
+  const loc = locations[idx];
+  const oldLat = loc.lat, oldLng = loc.lng;
+  loc.lat = parseFloat(_gpsCalibCoords.lat.toFixed(6));
+  loc.lng = parseFloat(_gpsCalibCoords.lng.toFixed(6));
+  saveLocations();
+  populateGpsCalibSel();
+  toast(`✓ อัปเดตพิกัด ${loc.code} แล้ว (เดิม: ${oldLat},${oldLng})`, 'success');
+  // Re-evaluate GPS if there's a current reading
+  if (lastGps) { onGpsOk({ coords: { latitude: lastGps.lat, longitude: lastGps.lng, accuracy: lastGps.accuracy }}); }
 }
 
 /* ============================================================
@@ -3671,7 +3915,12 @@ function showPage(p) {
   if (p === 'approvals') renderApprovalsPage();
   if (p === 'warning') renderWarningPage();
   if (p === 'reports') renderReportsPage();
-  // Close more menu if open
+  // Update drawer active state
+  document.querySelectorAll('.drawer-item').forEach(t => {
+    const pid = t.id.replace('ditem-','');
+    t.classList.toggle('active', pid === p);
+  });
+  // Close more menu if open (legacy stub)
   const moreMenu = document.getElementById('moreMenu');
   if (moreMenu) moreMenu.classList.remove('open');
 }
@@ -3732,56 +3981,78 @@ function canSeeReports()   { return getRoleLevel() >= 6 || currentUser?.role ===
 function canApprove()      { return getRoleLevel() >= 5 || currentUser?.role === 'supervisor' || currentUser?.role === 'hr'; }
 function canWriteWarning() { return canApprove(); /* ใครก็ตามที่ approve ได้ = ออกใบเตือนได้ */ }
 
-function buildTabs() {
-  const tabs = document.getElementById('tabsBar');
-  // Main visible tabs (พนักงานเห็นเสมอ + role-based)
-  const mainItems = [
-    { id:'home', label:'🏠 สแกน' },
-    canSeeKiosk() && { id:'kiosk', label:'📷 Kiosk' },
-    canSeeDashboard() && { id:'dashboard', label: getRoleLevel()>=6 || currentUser?.role==='hr' ? '📊 บริษัท' : '📊 ทีม' },
-    canSeeTeam() && { id:'team', label: getRoleLevel()>=6 || currentUser?.role==='hr' ? '👥 พนักงาน' : '👥 ทีม' },
-    { id:'today', label:'📅 วันนี้' },
-    { id:'history', label:'📜 ประวัติ' },
-  ].filter(Boolean);
+/* ============================================================
+   HAMBURGER DRAWER — v5.0
+   ============================================================ */
 
-  // Items ใน "⋮ เพิ่มเติม" menu — features ที่ใช้น้อย / role-specific
-  const moreItems = [
-    { id:'leave', label:'🤒 ลาป่วย/กิจ/พักร้อน', show: true },
-    { id:'timeadjust', label:'⏰ แก้เวลาย้อนหลัง', show: true },
-    { id:'approvals', label:'✍️ อนุมัติคำขอ', show: canApprove() },
-    { id:'warning', label:'⚠️ ใบเตือน', show: canWriteWarning() },
-    { id:'reports', label:'📈 รายงาน', show: canSeeReports() },
-    { id:'locations', label:'📍 สาขา', show: canSeeLocations() },
-    { id:'setup', label:'⚙ ตั้งค่า', show: canSeeSettings() },
+function buildDrawer() {
+  const mainItems = [
+    { id:'home',      emoji:'🏠', label:'สแกนตัวเอง',  show: true },
+    { id:'kiosk',     emoji:'📷', label:'Kiosk',        show: canSeeKiosk() },
+    { id:'dashboard', emoji:'📊', label: getRoleLevel()>=6 ? 'Dashboard บริษัท' : 'Dashboard ทีม', show: canSeeDashboard() },
+    { id:'team',      emoji:'👥', label: getRoleLevel()>=6 ? 'พนักงานทั้งหมด' : 'ทีมของฉัน', show: canSeeTeam() },
+    { id:'today',     emoji:'📅', label:'วันนี้',       show: true },
+    { id:'history',   emoji:'📜', label:'ประวัติของฉัน', show: true },
   ].filter(i => i.show);
 
-  // Render main tabs
-  let html = mainItems.map((t,i) =>
-    `<button class="tab ${i===0?'active':''}" data-page="${t.id}" onclick="showPage('${t.id}')">${t.label}</button>`
+  const extraItems = [
+    { id:'leave',     emoji:'🤒', label:'ลาป่วย / กิจ / พักร้อน', show: true },
+    { id:'timeadjust',emoji:'⏰', label:'แก้เวลาย้อนหลัง',         show: true },
+    { id:'approvals', emoji:'✍️', label:'อนุมัติคำขอ',              show: canApprove() },
+    { id:'warning',   emoji:'⚠️', label:'ใบเตือน',                  show: canWriteWarning() },
+    { id:'reports',   emoji:'📈', label:'รายงาน',                   show: canSeeReports() },
+    { id:'locations', emoji:'📍', label:'สาขา',                     show: canSeeLocations() },
+    { id:'setup',     emoji:'⚙', label:'ตั้งค่า',                   show: canSeeSettings() },
+  ].filter(i => i.show);
+
+  let html = '';
+  // Main section
+  html += `<div class="drawer-section-label">หน้าหลัก</div>`;
+  html += mainItems.map(t =>
+    `<button class="drawer-item" id="ditem-${t.id}" onclick="showPage('${t.id}');closeDrawer();" type="button">
+       <span class="d-icon">${t.emoji}</span>${t.label}
+     </button>`
   ).join('');
 
-  // Render "⋮ More" button + dropdown
-  if (moreItems.length > 0) {
-    html += `<button class="tab tab-more" onclick="toggleMoreMenu(event)">⋮ เพิ่มเติม</button>`;
-    html += `<div id="moreMenu" class="more-menu">` +
-      moreItems.map(t => `<a class="more-item" onclick="showPage('${t.id}')">${t.label}</a>`).join('') +
-      `</div>`;
+  // Extra / HR section
+  if (extraItems.length > 0) {
+    html += `<div class="drawer-divider"></div>`;
+    html += `<div class="drawer-section-label">เพิ่มเติม</div>`;
+    html += extraItems.map(t =>
+      `<button class="drawer-item" id="ditem-${t.id}" onclick="showPage('${t.id}');closeDrawer();" type="button">
+         <span class="d-icon">${t.emoji}</span>${t.label}
+       </button>`
+    ).join('');
   }
-  tabs.innerHTML = html;
+
+  document.getElementById('drawerNav').innerHTML = html;
 }
 
-function toggleMoreMenu(e) {
-  e.stopPropagation();
-  const menu = document.getElementById('moreMenu');
-  if (menu) menu.classList.toggle('open');
+// Alias so old calls to buildTabs() still work
+function buildTabs() { buildDrawer(); }
+
+function toggleDrawer() {
+  const drawer = document.getElementById('navDrawer');
+  const backdrop = document.getElementById('drawerBackdrop');
+  const isOpen = drawer.classList.contains('open');
+  if (isOpen) { closeDrawer(); } else { openDrawer(); }
 }
-// Close more menu on click elsewhere
-document.addEventListener('click', (e) => {
-  const menu = document.getElementById('moreMenu');
-  if (menu && !e.target.closest('.tab-more') && !e.target.closest('.more-menu')) {
-    menu.classList.remove('open');
-  }
-});
+function openDrawer() {
+  document.getElementById('navDrawer').classList.add('open');
+  document.getElementById('drawerBackdrop').classList.add('open');
+  document.body.style.overflow = 'hidden'; // prevent scroll behind drawer
+}
+function closeDrawer() {
+  document.getElementById('navDrawer').classList.remove('open');
+  document.getElementById('drawerBackdrop').classList.remove('open');
+  document.body.style.overflow = '';
+}
+// Close drawer on Escape key
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+// Stub old functions so no ReferenceErrors
+function toggleMoreMenu() {}
+function closeMoreMenu() {}
 
 /* ============================================================
    INIT
@@ -3791,6 +4062,8 @@ function initApp() {
   const roleLabel = { employee:'EMP', supervisor:'SUP', hr:'HR' }[currentUser.role] || 'EMP';
   document.getElementById('roleBadge').textContent = roleLabel;
   document.getElementById('userSub').textContent = `${currentUser.name}${currentUser.nickname?' ('+currentUser.nickname+')':''} · ${currentUser.branch||''}`;
+  const drawerSubEl = document.getElementById('drawerUserSub');
+  if (drawerSubEl) drawerSubEl.textContent = `${currentUser.name} · ${currentUser.branch||''}`;
   document.getElementById('userInfo').innerHTML = `${currentUser.googlePicture?`<img src="${currentUser.googlePicture}" style="width:20px;height:20px;border-radius:50%;vertical-align:middle;margin-right:6px">`:''}${currentUser.name} · ${currentUser.email||''} · ${currentUser.branch||''}`;
 
   buildTabs();
@@ -4399,6 +4672,9 @@ function exportLateReport() {
   XLSX.writeFile(wb, `late-report-${month}.xlsx`);
   toast(`Export ${lateOnly.length} คน`, 'success');
 }
+
+// Version log + cache check
+console.log('%c Rattana Face Check-in v' + APP_VERSION + ' ', 'background:#0d1b3e;color:#c9a84c;font-weight:bold;padding:4px 8px;border-radius:4px');
 
 loadAll();
 checkSession();
