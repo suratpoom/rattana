@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana ยอดหนี้คงค้าง v2.0</title>
+<title>Rattana ยอดหนี้คงค้าง v2.1</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -423,7 +423,18 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
       <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="signin_with" data-shape="rectangular" data-logo_alignment="left"></div>
     </div>
     <div id="loginError"></div>
-    <p class="footer-note">v2.0 · เฉพาะพนักงานที่ได้รับอนุญาต</p>
+    <p class="footer-note">v2.1 · เฉพาะพนักงานที่ได้รับอนุญาต</p>
+    <p class="footer-note"><a href="#" onclick="openLoginDiag(event)" style="color:var(--gold);text-decoration:underline">🔍 ตรวจสอบรายชื่อในระบบ</a></p>
+  </div>
+</div>
+
+<!-- Login Diagnostic Modal -->
+<div id="loginDiagModal" class="modal-overlay" onclick="closeLoginDiag(event)">
+  <div class="modal-card" onclick="event.stopPropagation()" style="max-width:560px;text-align:left">
+    <button class="modal-close" onclick="closeLoginDiag()">&times;</button>
+    <h3 style="text-align:center">🔍 รายชื่อ Users ในระบบ</h3>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;text-align:center">ใช้ตรวจสอบว่า email/Status ใน Sheet ถูกต้องหรือไม่</p>
+    <div id="loginDiagBody" style="font-size:12px;max-height:60vh;overflow-y:auto"></div>
   </div>
 </div>
 
@@ -435,7 +446,7 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
     </div>
     <div class="title">
       <h1>ยอดหนี้คงค้าง</h1>
-      <div class="ver">v2.0</div>
+      <div class="ver">v2.1</div>
     </div>
     <div class="actions">
       <div class="user" id="userInfo"></div>
@@ -736,45 +747,50 @@ function setCache(key, data){
    CSV PARSER (keeps first occurrence of duplicate columns)
    ======================== */
 function parseCsv(text){
-  const parseRow = r => {
-    const cells = []; let cur = '', inQ = false;
-    for (let i = 0; i < r.length; i++){
-      const ch = r[i];
-      if (ch === '"'){
-        if (inQ && r[i+1] === '"'){ cur += '"'; i++; }
-        else inQ = !inQ;
-      } else if (ch === ',' && !inQ){
-        cells.push(cur); cur = '';
-      } else { cur += ch; }
-    }
-    cells.push(cur);
-    return cells;
-  };
+  if (!text) return [];
+  // Strip BOM
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
 
-  // Normalize line endings, then split rows respecting quoted newlines
-  text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  // Helper: clean cell - remove zero-width chars, normalize NBSP, trim
+  const clean = s => String(s||'')
+    .replace(/[\u200B\u200C\u200D\uFEFF]/g, '')   // zero-width
+    .replace(/\u00A0/g, ' ')                       // NBSP → space
+    .trim();
+
+  // Single-pass parser (handles quoted newlines correctly)
   const rows = [];
-  let cur = '', inQ = false;
+  let row = [], cell = '', inQuote = false;
   for (let i = 0; i < text.length; i++){
     const ch = text[i];
-    if (ch === '"') inQ = !inQ;
-    if (ch === '\n' && !inQ){ rows.push(cur); cur = ''; }
-    else cur += ch;
+    if (inQuote){
+      if (ch === '"'){
+        if (text[i+1] === '"'){ cell += '"'; i++; }   // escaped ""
+        else inQuote = false;
+      } else cell += ch;
+    } else {
+      if (ch === '"') inQuote = true;
+      else if (ch === ',') { row.push(cell); cell = ''; }
+      else if (ch === '\r') { /* skip */ }
+      else if (ch === '\n') { row.push(cell); rows.push(row); row = []; cell = ''; }
+      else cell += ch;
+    }
   }
-  if (cur) rows.push(cur);
+  if (cell.length || row.length){ row.push(cell); rows.push(row); }
 
   if (!rows.length) return [];
-  const headers = parseRow(rows[0]).map(h => h.trim());
 
-  return rows.slice(1).filter(r => r.trim()).map(r => {
-    const cells = parseRow(r);
-    const obj = {};
-    headers.forEach((k, i) => {
-      // first occurrence wins (handles duplicate column names)
-      if (!(k in obj)) obj[k] = (cells[i] || '').trim();
+  const headers = rows[0].map(clean);
+
+  return rows.slice(1)
+    .filter(r => r.some(c => clean(c)))   // skip totally empty rows
+    .map(r => {
+      const obj = {};
+      headers.forEach((k, i) => {
+        // first occurrence wins (handles duplicate column names)
+        if (!(k in obj)) obj[k] = clean(r[i] || '');
+      });
+      return obj;
     });
-    return obj;
-  });
 }
 
 async function loadFromSheets(sheetId, sheetName, captureD = false){
@@ -809,24 +825,56 @@ async function loadFromSheets(sheetId, sheetName, captureD = false){
 /* ========================
    AUTH
    ======================== */
+/* ========================
+   AUTH HELPERS — base64url-safe JWT + normalization
+   ======================== */
+function decodeJwtPayload(token){
+  const parts = String(token||'').split('.');
+  if (parts.length < 2) throw new Error('JWT format invalid');
+  // base64url → base64
+  let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+  // pad
+  const pad = (4 - b64.length % 4) % 4;
+  if (pad) b64 += '='.repeat(pad);
+  // base64 → bytes → UTF-8
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return JSON.parse(new TextDecoder('utf-8').decode(bytes));
+}
+
+function normalizeEmail(s){
+  return String(s||'')
+    .replace(/[\u200B\u200C\u200D\uFEFF]/g, '')   // zero-width chars
+    .replace(/\s+/g, '')                          // ALL whitespace incl. NBSP
+    .toLowerCase();
+}
+
+function isActiveStatus(s){
+  return String(s||'').trim().toLowerCase() === 'active';
+}
+
+/* ========================
+   AUTH
+   ======================== */
 async function handleGoogleLogin(response){
   showSpinner('กำลังตรวจสอบสิทธิ์...');
   $('loginError').classList.remove('show');
   try {
-    const payload = JSON.parse(atob(response.credential.split('.')[1]));
-    const email = (payload.email || '').toLowerCase().trim();
+    const payload = decodeJwtPayload(response.credential);
+    const email = normalizeEmail(payload.email);
     if (!email) throw new Error('no email');
 
     const users = await loadFromSheets(CONFIG.usersSheetId, CONFIG.usersSheetName);
-    const user = users.find(u => (u['E-mail'] || '').toLowerCase().trim() === email);
+    const user = users.find(u => normalizeEmail(u['E-mail']) === email);
 
     if (!user){
-      showLoginError('ไม่พบอีเมลนี้ในระบบ กรุณาติดต่อแอดมิน');
+      showLoginError(`ไม่พบอีเมล ${email} ในระบบ กรุณาติดต่อแอดมิน`);
       hideSpinner();
       return;
     }
-    if ((user['Status'] || '').trim() !== 'Active'){
-      showLoginError('บัญชีถูกระงับ กรุณาติดต่อแอดมิน');
+    if (!isActiveStatus(user['Status'])){
+      showLoginError(`บัญชีถูกระงับ (Status: "${user['Status']||'(ว่าง)'}") กรุณาติดต่อแอดมิน`);
       hideSpinner();
       return;
     }
@@ -845,8 +893,8 @@ async function handleGoogleLogin(response){
     saveSession(currentUser);
     enterApp();
   } catch (e){
-    console.error(e);
-    showLoginError('เกิดข้อผิดพลาด กรุณาลองใหม่');
+    console.error('Login error:', e);
+    showLoginError('เกิดข้อผิดพลาด: ' + (e.message || 'unknown') + ' (ดู Console สำหรับรายละเอียด)');
     hideSpinner();
   }
 }
@@ -891,13 +939,14 @@ function checkSession(){
 async function revalidateUser(){
   try {
     const users = await loadFromSheets(CONFIG.usersSheetId, CONFIG.usersSheetName);
-    const u = users.find(x => (x['E-mail']||'').toLowerCase().trim() === currentUser.email);
+    const myEmail = normalizeEmail(currentUser.email);
+    const u = users.find(x => normalizeEmail(x['E-mail']) === myEmail);
     if (!u){
       showToast('บัญชีถูกลบออกจากระบบ', 'error');
       setTimeout(logout, 1500);
       return;
     }
-    if ((u['Status']||'').trim() !== 'Active'){
+    if (!isActiveStatus(u['Status'])){
       showToast('บัญชีถูกระงับ', 'error');
       setTimeout(logout, 1500);
       return;
@@ -924,6 +973,78 @@ function logout(){
   clearSession();
   if (autoRefreshTimer) clearInterval(autoRefreshTimer);
   location.reload();
+}
+
+/* ========================
+   LOGIN DIAGNOSTIC
+   ======================== */
+async function openLoginDiag(e){
+  if (e) e.preventDefault();
+  const modal = $('loginDiagModal');
+  const body = $('loginDiagBody');
+  body.innerHTML = '<p style="text-align:center;padding:20px;color:var(--muted)">กำลังโหลด...</p>';
+  modal.classList.add('show');
+
+  try {
+    const users = await loadFromSheets(CONFIG.usersSheetId, CONFIG.usersSheetName);
+    if (!users.length){
+      body.innerHTML = '<p style="text-align:center;padding:20px;color:var(--danger)">ไม่พบข้อมูลใน Users Sheet</p>';
+      return;
+    }
+    // Build table
+    const rows = users.map(u => {
+      const email = u['E-mail'] || '';
+      const name = u['ชื่อ - สกุล'] || '';
+      const status = u['Status'] || '';
+      const role = u['User Role'] || '';
+      const wh = u['W'] || '';
+      const isActive = isActiveStatus(status);
+      const normEmail = normalizeEmail(email);
+      return `
+        <tr>
+          <td style="padding:6px 8px;border-bottom:1px solid var(--border);font-family:'Courier New',monospace;font-size:11px;${normEmail !== email.toLowerCase() ? 'color:var(--warning)' : ''}">
+            ${escapeHtml(email)}
+            ${normEmail !== email.toLowerCase() ? '<br><small style="color:var(--warning)">⚠ มี space/case ต่าง</small>' : ''}
+          </td>
+          <td style="padding:6px 8px;border-bottom:1px solid var(--border)">${escapeHtml(name)}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid var(--border);text-align:center">
+            <span style="color:${isActive ? 'var(--success)' : 'var(--danger)'};font-weight:600">${escapeHtml(status || '(ว่าง)')}</span>
+            ${!isActive && status ? '<br><small style="color:var(--danger)">⚠ ไม่ใช่ Active</small>' : ''}
+          </td>
+          <td style="padding:6px 8px;border-bottom:1px solid var(--border);text-align:center">${escapeHtml(role)}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid var(--border);text-align:center">${escapeHtml(wh)}</td>
+        </tr>
+      `;
+    }).join('');
+
+    body.innerHTML = `
+      <p style="margin-bottom:8px;color:var(--muted)">รวม <strong>${users.length}</strong> รายชื่อ</p>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:11px">
+          <thead>
+            <tr style="background:var(--off-white);position:sticky;top:0">
+              <th style="padding:6px 8px;text-align:left">Email</th>
+              <th style="padding:6px 8px;text-align:left">ชื่อ</th>
+              <th style="padding:6px 8px;text-align:center">Status</th>
+              <th style="padding:6px 8px;text-align:center">Role</th>
+              <th style="padding:6px 8px;text-align:center">W</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      <p style="margin-top:12px;font-size:11px;color:var(--muted);line-height:1.5">
+        💡 <strong>วิธีใช้:</strong> มองหาแถวของคุณ — ถ้าไม่เจอแสดงว่ายังไม่ได้เพิ่มใน Sheet · ถ้า Status ไม่เป็น "Active" → admin ต้องแก้ใน Sheet · ถ้า email มี space ก่อนหน้า/หลัง — ลบช่องว่างใน Sheet
+      </p>
+    `;
+  } catch (e){
+    body.innerHTML = `<p style="color:var(--danger);padding:20px;text-align:center">เกิดข้อผิดพลาด: ${escapeHtml(e.message)}</p>`;
+  }
+}
+
+function closeLoginDiag(e){
+  if (e && e.type === 'click' && e.target.id !== 'loginDiagModal') return;
+  $('loginDiagModal').classList.remove('show');
 }
 
 function enterApp(){
