@@ -2559,20 +2559,22 @@ function openCustomerFromRank(code){
   selectCustomer(code);
 }
 
-// Quick share: build QR with all overdue + CN bills, open modal
+// Quick share: build QR with all overdue + CN bills (exclude D-MAN), open modal
 function quickShareQR(code){
   const c = collectCustList.find(x => x.code === code);
   if (!c) return;
-  // Get bills: overdue + CN (exclude not-yet-due)
+  // Get bills: overdue + CN, exclude not-yet-due AND exclude D-MAN
   const bills = allRows.filter(r =>
-    r.custCode === code && (r.amount < 0 || r.overdue > 0)
+    r.custCode === code &&
+    (r.amount < 0 || r.overdue > 0) &&
+    dmanShouldCount(r.dman)            // ← D-MAN filter
   ).sort((a,b) => {
     if (a.amount > 0 && b.amount < 0) return -1;
     if (a.amount < 0 && b.amount > 0) return 1;
     return b.aging - a.aging;
   });
   if (!bills.length){
-    showToast('ไม่มีบิลที่ถึงเวลาเก็บ','warning');
+    showToast('ไม่มีบิลที่ถึงเวลาเก็บ (หรือทุกบิลเป็น D-MAN รอตัดบัญชี)','warning');
     return;
   }
   const total = bills.reduce((s,b) => s + b.amount, 0);
@@ -2682,32 +2684,42 @@ function loadCustomerBills(code){
   if (!code){ clearCustomer(); return; }
   $('cEmpty').style.display = 'none';
 
-  const bills = allRows.filter(r => r.custCode === code).sort((a,b) => {
+  const allBills = allRows.filter(r => r.custCode === code).sort((a,b) => {
     if (a.amount > 0 && b.amount < 0) return -1;
     if (a.amount < 0 && b.amount > 0) return 1;
     return b.aging - a.aging;
   });
 
-  if (!bills.length){
+  if (!allBills.length){
     showToast('ไม่พบบิลของลูกหนี้รายนี้','warning');
     return;
   }
 
-  collectSelectedCust = bills[0];
-  collectBills = bills;
-  collectSelected = new Set(bills.map((_, i) => i));
+  // แยก D-MAN (รอตัดบัญชี) ออก — แสดงแต่ไม่ pre-select
+  const countableBills = allBills.filter(b => dmanShouldCount(b.dman));
+  const dmanBills = allBills.filter(b => !dmanShouldCount(b.dman));
 
-  const totalDebt = bills.filter(b => b.amount > 0).reduce((s, b) => s + b.amount, 0);
-  const totalCN = bills.filter(b => b.amount < 0).reduce((s, b) => s + b.amount, 0);
-  const overdueCount = bills.filter(b => b.overdue > 0).length;
+  collectSelectedCust = allBills[0];
+  collectBills = allBills; // เก็บทั้งหมดเพื่อแสดง
+  // Pre-select เฉพาะบิลที่นับได้
+  collectSelected = new Set(
+    allBills.map((_, i) => i).filter(i => dmanShouldCount(allBills[i].dman))
+  );
+
+  const totalDebt = countableBills.filter(b => b.amount > 0).reduce((s,b) => s + b.amount, 0);
+  const totalCN = countableBills.filter(b => b.amount < 0).reduce((s,b) => s + b.amount, 0);
+  const overdueCount = countableBills.filter(b => b.overdue > 0).length;
+  const dmanTotal = dmanBills.reduce((s,b) => s + b.amount, 0);
+
   $('cCustomerInfo').style.display = 'block';
   $('cCustomerInfo').innerHTML = `
     <div class="ci-row"><span class="ci-label">ลูกหนี้:</span><span class="ci-val">${escapeHtml(collectSelectedCust.custName)} (${escapeHtml(collectSelectedCust.custCode)})</span></div>
     <div class="ci-row"><span class="ci-label">พนักงานขาย:</span><span class="ci-val">${escapeHtml(collectSelectedCust.salesName || '-')}</span></div>
     <div class="ci-row"><span class="ci-label">คลัง:</span><span class="ci-val">${escapeHtml(collectSelectedCust.warehouse || '-')}</span></div>
-    <div class="ci-row"><span class="ci-label">ยอดหนี้รวม:</span><span class="ci-val">${fmtBaht(totalDebt)} บาท (${bills.filter(b=>b.amount>0).length} บิล)</span></div>
-    ${totalCN < 0 ? `<div class="ci-row"><span class="ci-label">CN:</span><span class="ci-val" style="color:var(--success)">${fmtBaht(totalCN)} บาท (${bills.filter(b=>b.amount<0).length} ใบ)</span></div>` : ''}
+    <div class="ci-row"><span class="ci-label">ยอดหนี้รวม:</span><span class="ci-val">${fmtBaht(totalDebt)} บาท (${countableBills.filter(b=>b.amount>0).length} บิล)</span></div>
+    ${totalCN < 0 ? `<div class="ci-row"><span class="ci-label">CN:</span><span class="ci-val" style="color:var(--success)">${fmtBaht(totalCN)} บาท (${countableBills.filter(b=>b.amount<0).length} ใบ)</span></div>` : ''}
     ${overdueCount > 0 ? `<div class="ci-row"><span class="ci-label">เกินเครดิต:</span><span class="ci-val" style="color:var(--danger)">${overdueCount} เอกสาร</span></div>` : ''}
+    ${dmanBills.length > 0 ? `<div class="ci-row"><span class="ci-label">🚚 รอตัดบัญชี:</span><span class="ci-val" style="color:#7ec8e3">${dmanBills.length} บิล · ${fmtBaht(dmanTotal)} บาท (ไม่นำมาคำนวณ)</span></div>` : ''}
   `;
 
   renderCollectBills();
@@ -2747,27 +2759,38 @@ function updateComboHighlight(items){
 }
 
 function renderCollectBills(){
-  $('cBillsCount').textContent = `${collectBills.length} เอกสาร`;
+  const countable = collectBills.filter(b => dmanShouldCount(b.dman)).length;
+  const dmanCount = collectBills.length - countable;
+  $('cBillsCount').textContent = `${countable} เอกสาร${dmanCount > 0 ? ` (+${dmanCount} รอตัดบัญชี)` : ''}`;
   $('cBillsList').innerHTML = collectBills.map((b, i) => {
     const isCN = b.amount < 0;
+    const isDman = !dmanShouldCount(b.dman);
     const checked = collectSelected.has(i);
     const overdueLabel = b.overdue > 0
       ? `<span class="b-status badge-w3" style="background:#ffd5d0;color:#c0392b">เกิน ${b.overdue} วัน</span>`
       : (b.amount < 0 ? `<span class="b-status" style="background:#e8f7ee;color:#1e8449">CN</span>` : '');
+    const dmanLabel = isDman
+      ? `<span class="b-status badge-dman">🚚 รอตัดบัญชี · D-MAN: ${escapeHtml(b.dman)}</span>`
+      : '';
     return `
-      <label class="bill-row" onclick="event.stopPropagation()">
-        <input type="checkbox" data-idx="${i}" ${checked ? 'checked' : ''} onchange="toggleBill(${i}, this.checked)">
+      <label class="bill-row" style="${isDman ? 'opacity:.45;cursor:default' : ''}" onclick="event.stopPropagation()">
+        <input type="checkbox" data-idx="${i}"
+          ${checked && !isDman ? 'checked' : ''}
+          ${isDman ? 'disabled style="opacity:.3"' : ''}
+          onchange="toggleBill(${i}, this.checked)">
         <div class="b-info">
           <div class="b-doc">${escapeHtml(b.docNo)}</div>
-          <div class="b-meta">${escapeHtml(b.docDate)} · อายุ ${b.aging} วัน · เครดิต ${b.credit} วัน ${overdueLabel}</div>
+          <div class="b-meta">${escapeHtml(b.docDate)} · อายุ ${b.aging} วัน · เครดิต ${b.credit} วัน ${overdueLabel}${dmanLabel}</div>
         </div>
-        <div class="b-amt ${isCN ? 'cn' : ''}">${fmtBaht(b.amount)}</div>
+        <div class="b-amt ${isCN ? 'cn' : ''}" style="${isDman ? 'color:var(--muted)' : ''}">${fmtBaht(b.amount)}</div>
       </label>
     `;
   }).join('');
 }
 
 function toggleBill(idx, checked){
+  // Never allow selecting D-MAN rows
+  if (!dmanShouldCount(collectBills[idx]?.dman)) return;
   if (checked) collectSelected.add(idx);
   else collectSelected.delete(idx);
   updateCollectSummary();
@@ -2775,8 +2798,11 @@ function toggleBill(idx, checked){
 
 function toggleAllBills(checked){
   collectSelected.clear();
-  if (checked) collectBills.forEach((_, i) => collectSelected.add(i));
-  document.querySelectorAll('#cBillsList input[type="checkbox"]').forEach(cb => cb.checked = checked);
+  if (checked){
+    // Only select countable (non-D-MAN) bills
+    collectBills.forEach((b, i) => { if (dmanShouldCount(b.dman)) collectSelected.add(i); });
+  }
+  document.querySelectorAll('#cBillsList input[type="checkbox"]:not(:disabled)').forEach(cb => cb.checked = checked);
   updateCollectSummary();
 }
 
