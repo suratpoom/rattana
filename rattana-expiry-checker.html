@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0d1b3e">
-<title>Rattana Expiry Checker v1.6</title>
+<title>Rattana Expiry Checker v1.7</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -259,7 +259,7 @@ body.dark nav.bottom-nav button.active{color:var(--gold-light)}
        data-auto_prompt="false"></div>
     <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="pill" data-locale="th"></div>
     <div id="loginError"></div>
-    <div class="login-version">v1.6 · 2026-04-30</div>
+    <div class="login-version">v1.7 · 2026-04-30</div>
   </div>
 </div>
 
@@ -270,7 +270,7 @@ body.dark nav.bottom-nav button.active{color:var(--gold-light)}
   <img class="logo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%230d1b3e'/><circle cx='50' cy='50' r='40' fill='none' stroke='%23c9a84c' stroke-width='2'/><text x='50' y='60' text-anchor='middle' font-family='serif' font-size='32' fill='%23c9a84c' font-weight='bold'>R</text></svg>" alt="Rattana">
   <div class="title">
     <h1 id="topTitle">เช็คสินค้าใกล้หมดอายุ</h1>
-    <div class="ver">Rattana · v1.6</div>
+    <div class="ver">Rattana · v1.7</div>
   </div>
   <button class="topbar-btn" id="btnRefresh" onclick="refreshAll()" title="รีเฟรช">&#x1F504;</button>
   <button class="topbar-btn" id="btnDark" onclick="toggleDark()" title="โหมดมืด">&#x1F319;</button>
@@ -452,10 +452,10 @@ body.dark nav.bottom-nav button.active{color:var(--gold-light)}
 
 <script>
 /* ============================================================
- *  RATTANA EXPIRY CHECKER  v1.6 — 2026-04-30
+ *  RATTANA EXPIRY CHECKER  v1.7 — 2026-04-30
  *  Single-file HTML app for tracking near-expiry / damaged items
- *  v1.6: Save reliability — universal Apps Script URL, iframe POST fallback
- *        for iOS Safari "Load failed" errors
+ *  v1.7: Save verification — re-fetch Sheet after save to confirm record exists
+ *        URLSearchParams POST (more iOS-friendly than text/plain)
  * ============================================================ */
 
 // ---------- CONFIG ----------
@@ -1323,55 +1323,116 @@ async function saveRecord(){
     expiryDate: expiry,
     deviceTimestamp: new Date().toISOString(),
   };
+  const sentAt = Date.now();
 
   showSpinner('กำลังบันทึก...');
   $('saveBtn').disabled = true;
 
-  let savedOk = false;
+  let methodUsed = '';
   let lastErr = '';
+  let serverReply = '';
 
-  // ---- METHOD 1: fetch + text/plain (works on Chrome/Android, sometimes iOS) ----
+  // ---- METHOD 1: fetch with URLSearchParams (simple, iOS-friendly) ----
   try {
+    const params = new URLSearchParams();
+    params.append('payload', JSON.stringify(payload));
     const res = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload),
+      body: params,
       redirect: 'follow',
     });
     const text = await res.text();
+    serverReply = text.slice(0, 200);
     let result;
-    try { result = JSON.parse(text); } catch { result = { ok: res.ok, raw: text }; }
-    if (result.ok) savedOk = true;
-    else throw new Error(result.error || result.raw || 'unknown');
+    try { result = JSON.parse(text); } catch { result = { ok: false, raw: text }; }
+    if (result.ok) methodUsed = 'fetch';
+    else throw new Error(result.error || result.raw || 'fetch returned not-ok');
   } catch(e){
     lastErr = e.message || String(e);
-    console.warn('Method 1 failed:', lastErr);
+    console.warn('Method 1 (fetch) failed:', lastErr);
   }
 
   // ---- METHOD 2 (fallback): hidden iframe form POST ----
-  // Used when iOS Safari blocks cross-origin fetch ("Load failed")
-  if (!savedOk){
+  if (!methodUsed){
     try {
       await iframeFormPost(payload);
-      savedOk = true;
-      console.log('Method 2 (iframe) succeeded');
+      methodUsed = 'iframe';
+      console.log('Method 2 (iframe) load event fired (need verify)');
     } catch(e2){
-      lastErr = (lastErr ? lastErr+' / ' : '') + (e2.message || String(e2));
+      lastErr = (lastErr ? lastErr+' / ' : '') + 'iframe: ' + (e2.message || String(e2));
       console.warn('Method 2 failed:', e2);
+    }
+  }
+
+  // ---- VERIFY: re-fetch records & look for our just-saved row ----
+  // (iframe load event lies — it fires even on Apps Script errors. Real verify = check Sheet)
+  if (methodUsed){
+    showSpinner('กำลังตรวจสอบ...');
+    await sleep(2500); // give Apps Script time to write
+    const verified = await verifySavedRecord(payload, sentAt);
+    if (verified){
+      hideSpinner();
+      $('saveBtn').disabled = false;
+      showToast(`บันทึกสำเร็จ ✓`, 'success');
+      resetForm();
+      return;
+    } else {
+      // Try one more time after another delay (Apps Script can be slow)
+      showSpinner('รอข้อมูลซิงค์...');
+      await sleep(3000);
+      const retryOk = await verifySavedRecord(payload, sentAt);
+      if (retryOk){
+        hideSpinner();
+        $('saveBtn').disabled = false;
+        showToast(`บันทึกสำเร็จ ✓`, 'success');
+        resetForm();
+        return;
+      }
+      lastErr = `${methodUsed} เรียก Apps Script แล้ว แต่ไม่พบข้อมูลใน Sheet — กรุณา redeploy Apps Script เป็น v1.1`;
     }
   }
 
   hideSpinner();
   $('saveBtn').disabled = false;
+  showSaveErrorDialog(lastErr, serverReply);
+}
 
-  if (savedOk){
-    showToast('บันทึกสำเร็จ ✓', 'success');
-    resetForm();
-    setTimeout(()=>loadRecords(true).catch(()=>{}), 1500);
-  } else {
-    showToast('บันทึกไม่สำเร็จ: '+lastErr, 'error', 6000);
+function showSaveErrorDialog(err, serverReply){
+  const msg = `❌ บันทึกไม่สำเร็จ\n\n${err}\n\n` +
+    (serverReply ? `Server reply: ${serverReply.slice(0,150)}\n\n` : '') +
+    `วิธีแก้:\n` +
+    `1. เปิด Apps Script → ลบโค้ดเดิม → วาง v1.1 → Save\n` +
+    `2. กด Deploy → Manage deployments → ✏️ → New version → Deploy\n` +
+    `3. ลองบันทึกใหม่`;
+  alert(msg);
+}
+
+// Verify save by re-fetching records & looking for matching row
+async function verifySavedRecord(payload, sentAt){
+  try {
+    const csv = await fetchCsv(DATA_SHEET_ID, RECORDS_SHEET_NAME);
+    const records = parseCsvObjects(csv);
+    // Update cache with fresh data
+    allRecords = records;
+    cacheSet('rec_records_v1', records);
+    refreshRecordsViews();
+    // Look for the just-saved record (within last 2 minutes)
+    const cutoff = sentAt - 60*1000; // allow up to 1 min clock skew
+    const found = records.some(r => {
+      const ts = new Date(r['Timestamp']);
+      if (isNaN(ts) || ts.getTime() < cutoff) return false;
+      return normalizeEmail(r['Email']) === currentUser.email
+          && String(r['บาร์โค้ด']||'').trim() === String(payload.barcode).trim()
+          && Number(r['จำนวน (EA)']) === Number(payload.quantity);
+    });
+    return found;
+  } catch(e){
+    console.warn('Verify failed:', e);
+    return false;
   }
 }
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 // Fallback save method: submit form via hidden iframe (always works, even iOS Safari)
 function iframeFormPost(payload){
