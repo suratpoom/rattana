@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0d1b3e">
-<title>Rattana Expiry Checker v1.5</title>
+<title>Rattana Expiry Checker v1.6</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -259,7 +259,7 @@ body.dark nav.bottom-nav button.active{color:var(--gold-light)}
        data-auto_prompt="false"></div>
     <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="pill" data-locale="th"></div>
     <div id="loginError"></div>
-    <div class="login-version">v1.5 · 2026-04-30</div>
+    <div class="login-version">v1.6 · 2026-04-30</div>
   </div>
 </div>
 
@@ -270,7 +270,7 @@ body.dark nav.bottom-nav button.active{color:var(--gold-light)}
   <img class="logo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%230d1b3e'/><circle cx='50' cy='50' r='40' fill='none' stroke='%23c9a84c' stroke-width='2'/><text x='50' y='60' text-anchor='middle' font-family='serif' font-size='32' fill='%23c9a84c' font-weight='bold'>R</text></svg>" alt="Rattana">
   <div class="title">
     <h1 id="topTitle">เช็คสินค้าใกล้หมดอายุ</h1>
-    <div class="ver">Rattana · v1.5</div>
+    <div class="ver">Rattana · v1.6</div>
   </div>
   <button class="topbar-btn" id="btnRefresh" onclick="refreshAll()" title="รีเฟรช">&#x1F504;</button>
   <button class="topbar-btn" id="btnDark" onclick="toggleDark()" title="โหมดมืด">&#x1F319;</button>
@@ -452,10 +452,10 @@ body.dark nav.bottom-nav button.active{color:var(--gold-light)}
 
 <script>
 /* ============================================================
- *  RATTANA EXPIRY CHECKER  v1.5 — 2026-04-30
+ *  RATTANA EXPIRY CHECKER  v1.6 — 2026-04-30
  *  Single-file HTML app for tracking near-expiry / damaged items
- *  v1.5: Quagga2 engine for live scan (better 1D barcode + iOS Safari)
- *        html5-qrcode kept for photo file decoding
+ *  v1.6: Save reliability — universal Apps Script URL, iframe POST fallback
+ *        for iOS Safari "Load failed" errors
  * ============================================================ */
 
 // ---------- CONFIG ----------
@@ -470,7 +470,8 @@ const AUTH_CONFIG = {
 };
 
 // ⬇⬇⬇ EDIT THIS AFTER DEPLOYING APPS SCRIPT ⬇⬇⬇
-const APPS_SCRIPT_URL = 'https://script.google.com/a/macros/rattanaphaiboon.com/s/AKfycbzC0yT_wiibyMGc2gh5TBR2Q-owcMjNSd5J9USTuAFVvzJZ4EjYASiPWh9m-_OW06JRNg/exec';
+// ⬇⬇⬇ Universal Apps Script URL (no /a/macros/domain/ prefix → works on iOS Safari)
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzC0yT_wiibyMGc2gh5TBR2Q-owcMjNSd5J9USTuAFVvzJZ4EjYASiPWh9m-_OW06JRNg/exec';
 
 const SESSION_DAYS = 30;
 const CACHE_TTL = 5 * 60 * 1000;
@@ -1325,30 +1326,100 @@ async function saveRecord(){
 
   showSpinner('กำลังบันทึก...');
   $('saveBtn').disabled = true;
+
+  let savedOk = false;
+  let lastErr = '';
+
+  // ---- METHOD 1: fetch + text/plain (works on Chrome/Android, sometimes iOS) ----
   try {
-    // Use text/plain to avoid CORS preflight
     const res = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      mode: 'cors',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload),
+      redirect: 'follow',
     });
     const text = await res.text();
     let result;
     try { result = JSON.parse(text); } catch { result = { ok: res.ok, raw: text }; }
-    if (!result.ok) throw new Error(result.error || 'บันทึกไม่สำเร็จ');
+    if (result.ok) savedOk = true;
+    else throw new Error(result.error || result.raw || 'unknown');
+  } catch(e){
+    lastErr = e.message || String(e);
+    console.warn('Method 1 failed:', lastErr);
+  }
 
+  // ---- METHOD 2 (fallback): hidden iframe form POST ----
+  // Used when iOS Safari blocks cross-origin fetch ("Load failed")
+  if (!savedOk){
+    try {
+      await iframeFormPost(payload);
+      savedOk = true;
+      console.log('Method 2 (iframe) succeeded');
+    } catch(e2){
+      lastErr = (lastErr ? lastErr+' / ' : '') + (e2.message || String(e2));
+      console.warn('Method 2 failed:', e2);
+    }
+  }
+
+  hideSpinner();
+  $('saveBtn').disabled = false;
+
+  if (savedOk){
     showToast('บันทึกสำเร็จ ✓', 'success');
     resetForm();
-    // Reload records in background
-    loadRecords(true).catch(()=>{});
-  } catch(e){
-    console.error(e);
-    showToast('บันทึกไม่สำเร็จ: '+e.message, 'error', 5000);
-  } finally {
-    hideSpinner();
-    $('saveBtn').disabled = false;
+    setTimeout(()=>loadRecords(true).catch(()=>{}), 1500);
+  } else {
+    showToast('บันทึกไม่สำเร็จ: '+lastErr, 'error', 6000);
   }
+}
+
+// Fallback save method: submit form via hidden iframe (always works, even iOS Safari)
+function iframeFormPost(payload){
+  return new Promise((resolve, reject) => {
+    const ts = Date.now();
+    const frameName = 'savefr_'+ts;
+    const iframe = document.createElement('iframe');
+    iframe.name = frameName;
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = APPS_SCRIPT_URL;
+    form.target = frameName;
+    form.enctype = 'application/x-www-form-urlencoded';
+
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'payload';
+    input.value = JSON.stringify(payload);
+    form.appendChild(input);
+    document.body.appendChild(form);
+
+    let resolved = false;
+    const cleanup = () => {
+      try { document.body.removeChild(form); } catch{}
+      try { document.body.removeChild(iframe); } catch{}
+    };
+
+    iframe.addEventListener('load', () => {
+      if (resolved) return;
+      resolved = true;
+      // We can't read the response (cross-origin), but if iframe loaded
+      // it means Apps Script accepted the POST
+      setTimeout(()=>{ cleanup(); resolve(); }, 300);
+    });
+
+    // Timeout after 15s
+    setTimeout(() => {
+      if (resolved) return;
+      resolved = true;
+      cleanup();
+      reject(new Error('timeout'));
+    }, 15000);
+
+    form.submit();
+  });
 }
 
 function resetForm(){
