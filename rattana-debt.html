@@ -2469,7 +2469,7 @@ async function shareQR(){
 
     // Build share text with bill details
     const lines = [];
-    if (qrCurrentCustomer) lines.push(qrCurrentCustomer);
+    if (qrCurrentCustomer) lines.push(`เรียกเก็บจาก: ${qrCurrentCustomer}`);
     lines.push(`ยอดชำระ: ${fmtBaht(parseFloat(qrCurrentAmount))} บาท`);
     if (qrCurrentBills && qrCurrentBills.length > 0){
       lines.push(``);
@@ -2483,15 +2483,29 @@ async function shareQR(){
     lines.push(`ชื่อบัญชี ${RATTANA_RECEIVER.name}`);
     const shareText = lines.join('\n');
 
-    if (navigator.canShare && navigator.canShare({files:[file]})){
-      await navigator.share({
-        files:[file],
-        title:'QR ชำระเงิน Rattana',
-        text: shareText,
-      });
-      showToast('แชร์เรียบร้อย','success');
+    const canShareFiles = navigator.canShare && navigator.canShare({files:[file]});
+
+    if (canShareFiles){
+      // Step 1: Share text first (so LINE gets the message)
+      try {
+        await navigator.share({ title:'QR ชำระเงิน Rattana', text: shareText });
+      } catch(e1){
+        // User may have cancelled text share — don't abort
+        if (e1.name === 'AbortError') return;
+      }
+      // Step 2: Share image (user picks LINE again)
+      try {
+        await navigator.share({ files:[file], title:'QR ชำระเงิน' });
+        showToast('แชร์เรียบร้อย ✓', 'success');
+      } catch(e2){
+        if (e2.name !== 'AbortError'){
+          // Fallback: download image if 2nd share fails
+          downloadBlob(blob, `rattana-qr-${Date.now()}.png`);
+          showToast('บันทึกรูป QR แล้ว', 'info');
+        }
+      }
     } else {
-      // Fallback: download + copy text
+      // Desktop/unsupported: download + copy text
       downloadBlob(blob, `rattana-qr-${Date.now()}.png`);
       try { await navigator.clipboard.writeText(shareText); } catch {}
       showToast('บันทึกรูปแล้ว · คัดลอกข้อความให้แล้ว แนบส่งใน LINE/Messenger ได้เลย','info');
@@ -3061,15 +3075,26 @@ async function shareCustomQR(){
     if (!blob){ showToast('สร้างรูปไม่ได้','error'); return; }
     const file = new File([blob], `rattana-qr-${Date.now()}.png`, {type:'image/png'});
     const text = [
-      cqrCurrentName || 'QR ชำระเงิน Rattana',
+      cqrCurrentName ? `เรียกเก็บจาก: ${cqrCurrentName}` : 'QR ชำระเงิน Rattana',
       `ยอดชำระ: ${fmtBaht(cqrCurrentAmount)} บาท`,
-      `TTB · 447-2-63710-9`,
+      ``,
+      `ธนาคาร TTB · 447-2-63710-9`,
       RATTANA_RECEIVER.name,
     ].join('\n');
 
-    if (navigator.canShare && navigator.canShare({files:[file]})){
-      await navigator.share({ files:[file], title:'QR ชำระเงิน Rattana', text });
-      showToast('แชร์เรียบร้อย','success');
+    const canShareFiles = navigator.canShare && navigator.canShare({files:[file]});
+    if (canShareFiles){
+      try { await navigator.share({ title:'QR ชำระเงิน Rattana', text }); }
+      catch(e1){ if (e1.name === 'AbortError') return; }
+      try {
+        await navigator.share({ files:[file], title:'QR ชำระเงิน' });
+        showToast('แชร์เรียบร้อย ✓','success');
+      } catch(e2){
+        if (e2.name !== 'AbortError'){
+          downloadBlob(blob, `rattana-qr-${Date.now()}.png`);
+          showToast('บันทึกรูป QR แล้ว','info');
+        }
+      }
     } else {
       downloadBlob(blob, `rattana-qr-${Date.now()}.png`);
       try { await navigator.clipboard.writeText(text); } catch {}
