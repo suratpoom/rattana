@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0d1b3e">
-<title>Rattana Expiry Checker v1.3</title>
+<title>Rattana Expiry Checker v1.4</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -109,14 +109,14 @@ body.dark .sr-meta .sr-bc{background:rgba(255,255,255,.08)}
 /* Scanner — Premium (Mart v5.2-style) */
 #scannerWrap{display:none;border-radius:14px;overflow:hidden;background:#000;margin-bottom:12px;position:relative;min-height:300px}
 #qr-reader{width:100%;background:#000}
-#qr-reader video{width:100%!important;height:auto!important;display:block;object-fit:cover}
+#qr-reader video{width:100%!important;height:auto!important;display:block;object-fit:cover;cursor:pointer}
 #qr-reader__dashboard,#qr-reader__header_message{display:none!important}
 .scanner-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:10}
-.scan-zone-dim{position:absolute;inset:0;background:rgba(0,0,0,.45);pointer-events:none;z-index:9}
-.scanner-frame{width:300px;height:170px;position:relative;max-width:80vw}
-.scanner-line{position:absolute;left:10px;right:10px;height:2px;background:var(--gold);box-shadow:0 0 12px var(--gold);opacity:.85;animation:scanline 1.8s ease-in-out infinite}
-@keyframes scanline{0%{top:6px;opacity:1}50%{top:160px;opacity:.6}100%{top:6px;opacity:1}}
-.scan-corner{position:absolute;width:24px;height:24px;border-color:var(--gold);border-style:solid;border-width:0}
+.scan-zone-dim{position:absolute;inset:0;background:rgba(0,0,0,.35);pointer-events:none;z-index:9}
+.scanner-frame{width:80%;max-width:520px;aspect-ratio:1.6/1;position:relative}
+.scanner-line{position:absolute;left:8px;right:8px;height:2px;background:var(--gold);box-shadow:0 0 14px var(--gold);opacity:.85;animation:scanline 1.6s ease-in-out infinite}
+@keyframes scanline{0%{top:6px;opacity:1}50%{top:calc(100% - 8px);opacity:.6}100%{top:6px;opacity:1}}
+.scan-corner{position:absolute;width:28px;height:28px;border-color:var(--gold);border-style:solid;border-width:0}
 .scan-corner.tl{top:0;left:0;border-top-width:3px;border-left-width:3px;border-top-left-radius:8px}
 .scan-corner.tr{top:0;right:0;border-top-width:3px;border-right-width:3px;border-top-right-radius:8px}
 .scan-corner.bl{bottom:0;left:0;border-bottom-width:3px;border-left-width:3px;border-bottom-left-radius:8px}
@@ -126,6 +126,11 @@ body.dark .sr-meta .sr-bc{background:rgba(255,255,255,.08)}
 .scanner-controls button.on{background:var(--gold);color:var(--navy);border-color:var(--gold)}
 .scanner-controls button:active{transform:scale(.92)}
 .scanner-hint{position:absolute;bottom:0;left:0;right:0;padding:8px 12px;background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.85) 100%);color:#fff;font-size:12px;text-align:center;z-index:8;line-height:1.4}
+.scanner-hint .tip{color:var(--gold-light);font-weight:600}
+.tap-focus{position:absolute;width:60px;height:60px;border:2px solid var(--gold);border-radius:50%;pointer-events:none;z-index:11;animation:focusPulse .6s ease-out forwards}
+@keyframes focusPulse{0%{transform:translate(-50%,-50%) scale(1.4);opacity:0}30%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(-50%,-50%) scale(.85);opacity:0}}
+.scan-photo-fallback{display:none;position:absolute;bottom:48px;left:50%;transform:translateX(-50%);z-index:15;background:var(--gold);color:var(--navy);padding:9px 16px;border-radius:20px;font-weight:600;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.3);align-items:center;gap:6px}
+.scan-photo-fallback.show{display:flex}
 .scan-status{margin-bottom:12px;padding:10px 14px;background:var(--card-bg);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;min-height:42px}
 .scan-status.ok{background:#f0fff6;border-color:#a0d8b0;color:#1f7a3e}
 .scan-status.err{background:#fff0f0;border-color:#f0a0a0;color:#a82424}
@@ -253,7 +258,7 @@ body.dark nav.bottom-nav button.active{color:var(--gold-light)}
        data-auto_prompt="false"></div>
     <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="pill" data-locale="th"></div>
     <div id="loginError"></div>
-    <div class="login-version">v1.3 · 2026-04-30</div>
+    <div class="login-version">v1.4 · 2026-04-30</div>
   </div>
 </div>
 
@@ -264,7 +269,7 @@ body.dark nav.bottom-nav button.active{color:var(--gold-light)}
   <img class="logo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%230d1b3e'/><circle cx='50' cy='50' r='40' fill='none' stroke='%23c9a84c' stroke-width='2'/><text x='50' y='60' text-anchor='middle' font-family='serif' font-size='32' fill='%23c9a84c' font-weight='bold'>R</text></svg>" alt="Rattana">
   <div class="title">
     <h1 id="topTitle">เช็คสินค้าใกล้หมดอายุ</h1>
-    <div class="ver">Rattana · v1.3</div>
+    <div class="ver">Rattana · v1.4</div>
   </div>
   <button class="topbar-btn" id="btnRefresh" onclick="refreshAll()" title="รีเฟรช">&#x1F504;</button>
   <button class="topbar-btn" id="btnDark" onclick="toggleDark()" title="โหมดมืด">&#x1F319;</button>
@@ -321,8 +326,14 @@ body.dark nav.bottom-nav button.active{color:var(--gold-light)}
         <button id="torchBtn" onclick="toggleTorch()" title="ไฟฉาย" style="display:none">🔦</button>
         <button id="scannerCancel" onclick="stopScanner()" title="ปิด">✕</button>
       </div>
-      <div class="scanner-hint" id="scannerHint">วางบาร์โค้ดในกรอบทอง — ถอยห่าง 15-25 ซม. หากเบลอ</div>
+      <button class="scan-photo-fallback" id="photoFallbackBtn" onclick="$('photoFile').click()">
+        📷 ถ่ายรูปบาร์โค้ดแทน
+      </button>
+      <div class="scanner-hint" id="scannerHint">วางบาร์โค้ดในกรอบทอง — แตะหน้าจอเพื่อโฟกัส</div>
     </div>
+
+    <!-- Hidden file input for photo fallback -->
+    <input type="file" id="photoFile" accept="image/*" capture="environment" style="display:none" onchange="onPhotoSelected(event)">
 
     <!-- Scan status -->
     <div class="scan-status" id="scanStatus" style="display:none">
@@ -440,10 +451,10 @@ body.dark nav.bottom-nav button.active{color:var(--gold-light)}
 
 <script>
 /* ============================================================
- *  RATTANA EXPIRY CHECKER  v1.3 — 2026-04-30
+ *  RATTANA EXPIRY CHECKER  v1.4 — 2026-04-30
  *  Single-file HTML app for tracking near-expiry / damaged items
- *  v1.3: Unified search bar (Mart-style) — type or scan,
- *        searches name/barcode/brand/all columns, live results
+ *  v1.4: Scanner reliability fixes — dynamic qrbox, tap-to-focus,
+ *        adaptive hints, photo upload fallback, lower res tolerance
  * ============================================================ */
 
 // ---------- CONFIG ----------
@@ -889,6 +900,9 @@ function selectProduct(idx){
   setTimeout(()=>$('formDetailsCard').scrollIntoView({behavior:'smooth',block:'start'}), 100);
 }
 
+let scanStartTime = 0;
+let scanHintTimer = null;
+
 async function startScanner(){
   const wrap = $('scannerWrap');
   const status = $('scanStatus');
@@ -900,8 +914,11 @@ async function startScanner(){
   lastScannedCode = '';
   torchOn = false;
   torchTrack = null;
+  scanStartTime = Date.now();
   $('torchBtn').classList.remove('on');
   $('torchBtn').style.display = 'none';
+  $('photoFallbackBtn').classList.remove('show');
+  $('scannerHint').innerHTML = 'วางบาร์โค้ดในกรอบทอง — แตะหน้าจอเพื่อโฟกัส';
 
   if (typeof Html5Qrcode === 'undefined'){
     setScanStatus('โหลดไลบรารีไม่ได้ — กรุณาเช็คอินเทอร์เน็ต', 'err');
@@ -930,19 +947,28 @@ async function startScanner(){
 
     html5QrCode = new Html5Qrcode("qr-reader", {
       verbose: false,
-      experimentalFeatures: { useBarCodeDetectorIfSupported: true }, // native = faster
+      experimentalFeatures: { useBarCodeDetectorIfSupported: true },
     });
 
+    // ⭐ DYNAMIC qrbox — scan a much larger portion of the frame
+    // (matches the gold visual frame — 80% width, ratio 1.6:1)
+    const qrboxFn = (vw, vh) => {
+      const minDim = Math.min(vw, vh);
+      const w = Math.floor(Math.min(vw * 0.85, 700));
+      const h = Math.floor(Math.min(w / 1.6, vh * 0.65, 380));
+      return { width: w, height: h };
+    };
+
     const config = {
-      fps: 25,
-      qrbox: { width: 320, height: 180 },
-      aspectRatio: 1.7777,
+      fps: 15,                            // lower = more time per frame for ZXing
+      qrbox: qrboxFn,                     // dynamic, fills 85% of viewfinder
+      // No aspectRatio constraint — let device pick natural ratio
       videoConstraints: {
         facingMode: { ideal: 'environment' },
-        width:  { ideal: 1920, min: 1280 },
-        height: { ideal: 1080, min: 720 },
+        width:  { ideal: 1280, min: 640 },   // lower min so old phones work
+        height: { ideal: 720,  min: 480 },
         focusMode: 'continuous',
-        advanced: [{ focusMode: 'continuous' }, { zoom: 1.5 }],
+        advanced: [{ focusMode: 'continuous' }],
       },
       formatsToSupport: typeof Html5QrcodeSupportedFormats !== 'undefined' ? [
         Html5QrcodeSupportedFormats.EAN_13,
@@ -954,6 +980,8 @@ async function startScanner(){
         Html5QrcodeSupportedFormats.CODE_93,
         Html5QrcodeSupportedFormats.ITF,
         Html5QrcodeSupportedFormats.QR_CODE,
+        Html5QrcodeSupportedFormats.DATA_MATRIX,
+        Html5QrcodeSupportedFormats.CODABAR,
       ] : undefined,
     };
 
@@ -980,17 +1008,20 @@ async function startScanner(){
           const tracks = v.srcObject.getVideoTracks();
           if (tracks.length){
             const track = tracks[0];
-            // Torch detection
             const caps = track.getCapabilities ? track.getCapabilities() : {};
+            // Torch
             if (caps.torch){
               torchTrack = track;
               $('torchBtn').style.display = 'flex';
             }
-            // Apply continuous focus + zoom if supported
+            // Continuous focus + slight zoom
             const advanced = [];
             if (caps.focusMode && caps.focusMode.includes('continuous')) advanced.push({focusMode:'continuous'});
             if (caps.zoom && caps.zoom.max >= 1.5) advanced.push({zoom: Math.min(1.5, caps.zoom.max)});
             if (advanced.length) track.applyConstraints({advanced}).catch(()=>{});
+
+            // 👆 Tap-to-focus
+            v.addEventListener('click', e => onTapToFocus(e, track, v));
           }
         }
       } catch{}
@@ -998,9 +1029,13 @@ async function startScanner(){
 
     setScanStatus('กล้องพร้อม — วางบาร์โค้ดในกรอบทอง', 'ok');
 
+    // Adaptive hints — escalate help if no scan after 5s, 10s, 15s
+    clearInterval(scanHintTimer);
+    scanHintTimer = setInterval(updateScanHint, 5000);
+
   } catch(e){
     console.error(e);
-    let msg = 'เปิดกล้องไม่ได้ — ลองโหมด "พิมพ์" แทน';
+    let msg = 'เปิดกล้องไม่ได้ — ลองพิมพ์ค้นหาแทน';
     if (e.name === 'NotAllowedError' || String(e).includes('Permission')){
       msg = 'กรุณาอนุญาตกล้อง: Settings → Browser → Camera → Allow';
     } else if (e.name === 'NotFoundError'){
@@ -1014,6 +1049,82 @@ async function startScanner(){
   }
 }
 
+function updateScanHint(){
+  if (!scannerActive) return;
+  const elapsed = Date.now() - scanStartTime;
+  const hint = $('scannerHint');
+  if (elapsed > 15000){
+    hint.innerHTML = '<span class="tip">💡 อ่านยาก?</span> ลองถ่ายรูปแทน หรือพิมพ์ค้นหาด้านล่าง';
+    $('photoFallbackBtn').classList.add('show');
+  } else if (elapsed > 10000){
+    hint.innerHTML = '<span class="tip">💡 ลองนี้:</span> เปิดไฟฉาย • ถอยห่าง 15-25 ซม. • วางในกรอบทอง';
+  } else if (elapsed > 5000){
+    hint.innerHTML = '<span class="tip">💡 Tip:</span> แตะหน้าจอเพื่อโฟกัส • ทำให้บาร์โค้ดอยู่ในกรอบทอง';
+  }
+}
+
+function onTapToFocus(e, track, video){
+  if (!track.getCapabilities) return;
+  const caps = track.getCapabilities();
+  // Show visual feedback
+  const rect = video.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  const ring = document.createElement('div');
+  ring.className = 'tap-focus';
+  ring.style.left = x + 'px';
+  ring.style.top = y + 'px';
+  $('scannerWrap').appendChild(ring);
+  setTimeout(()=>ring.remove(), 700);
+  // Try to apply manual focus (if supported)
+  try {
+    const advanced = [];
+    if (caps.focusMode && caps.focusMode.includes('manual')){
+      advanced.push({focusMode:'manual'});
+      // After a moment, switch back to continuous
+      setTimeout(()=>{
+        if (caps.focusMode.includes('continuous')){
+          track.applyConstraints({advanced:[{focusMode:'continuous'}]}).catch(()=>{});
+        }
+      }, 1500);
+    } else if (caps.focusMode && caps.focusMode.includes('continuous')){
+      // Re-trigger continuous focus
+      track.applyConstraints({advanced:[{focusMode:'continuous'}]}).catch(()=>{});
+    }
+    if (advanced.length) track.applyConstraints({advanced}).catch(()=>{});
+  } catch{}
+}
+
+// 📷 Photo fallback — decode barcode from a still image
+async function onPhotoSelected(e){
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  setScanStatus('กำลังอ่านบาร์โค้ดจากรูป...', 'loading');
+  try {
+    // Stop live scanner first
+    const wasActive = scannerActive;
+    if (html5QrCode && wasActive){
+      try { await html5QrCode.stop(); } catch{}
+    }
+    if (!html5QrCode){
+      html5QrCode = new Html5Qrcode("qr-reader", { verbose: false });
+    }
+    const result = await html5QrCode.scanFile(file, false);
+    if (result){
+      beep();
+      navigator.vibrate && navigator.vibrate([60, 40, 60]);
+      onBarcodeFound(result);
+    } else {
+      setScanStatus('ไม่พบบาร์โค้ดในรูป — ลองรูปอื่น', 'err');
+    }
+  } catch(err){
+    console.error(err);
+    setScanStatus('อ่านบาร์โค้ดไม่ได้ — ลองพิมพ์ค้นหา', 'err');
+  } finally {
+    e.target.value = ''; // reset so same file can be re-picked
+  }
+}
+
 function setScanStatus(msg, type=''){
   const el = $('scanStatus');
   el.className = 'scan-status' + (type ? ' '+type : '');
@@ -1024,6 +1135,7 @@ function setScanStatus(msg, type=''){
 
 async function stopScanner(){
   scannerActive = false;
+  clearInterval(scanHintTimer);
   // Turn off torch
   if (torchOn && torchTrack){
     try { await torchTrack.applyConstraints({advanced:[{torch:false}]}); } catch{}
@@ -1032,6 +1144,7 @@ async function stopScanner(){
   torchTrack = null;
   $('torchBtn').classList.remove('on');
   $('torchBtn').style.display = 'none';
+  $('photoFallbackBtn').classList.remove('show');
   if (html5QrCode){
     try { await html5QrCode.stop(); } catch{}
     try { html5QrCode.clear(); } catch{}
