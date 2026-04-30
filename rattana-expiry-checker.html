@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0d1b3e">
-<title>Rattana Expiry Checker v1.1</title>
+<title>Rattana Expiry Checker v1.2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -85,12 +85,36 @@ body.dark .card-title{color:var(--gold-light)}
 .scan-mode-toggle button .ic{font-size:22px}
 .scan-mode-toggle button.active{background:var(--gold);border-color:var(--gold);color:var(--navy)}
 
-/* Scanner */
-#scannerWrap{display:none;border-radius:14px;overflow:hidden;background:#000;margin-bottom:14px;position:relative}
-#qr-reader{width:100%}
-#qr-reader video{width:100%!important;height:auto!important;display:block}
-#qr-reader__dashboard{padding:8px!important;background:rgba(0,0,0,.5)!important}
-#scannerCancel{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.6);color:#fff;width:36px;height:36px;border-radius:50%;font-size:16px;display:flex;align-items:center;justify-content:center;z-index:10}
+/* Scanner — Premium (Mart v5.2-style) */
+#scannerWrap{display:none;border-radius:14px;overflow:hidden;background:#000;margin-bottom:12px;position:relative;min-height:300px}
+#qr-reader{width:100%;background:#000}
+#qr-reader video{width:100%!important;height:auto!important;display:block;object-fit:cover}
+#qr-reader__dashboard,#qr-reader__header_message{display:none!important}
+.scanner-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:10}
+.scan-zone-dim{position:absolute;inset:0;background:rgba(0,0,0,.45);pointer-events:none;z-index:9}
+.scanner-frame{width:300px;height:170px;position:relative;max-width:80vw}
+.scanner-line{position:absolute;left:10px;right:10px;height:2px;background:var(--gold);box-shadow:0 0 12px var(--gold);opacity:.85;animation:scanline 1.8s ease-in-out infinite}
+@keyframes scanline{0%{top:6px;opacity:1}50%{top:160px;opacity:.6}100%{top:6px;opacity:1}}
+.scan-corner{position:absolute;width:24px;height:24px;border-color:var(--gold);border-style:solid;border-width:0}
+.scan-corner.tl{top:0;left:0;border-top-width:3px;border-left-width:3px;border-top-left-radius:8px}
+.scan-corner.tr{top:0;right:0;border-top-width:3px;border-right-width:3px;border-top-right-radius:8px}
+.scan-corner.bl{bottom:0;left:0;border-bottom-width:3px;border-left-width:3px;border-bottom-left-radius:8px}
+.scan-corner.br{bottom:0;right:0;border-bottom-width:3px;border-right-width:3px;border-bottom-right-radius:8px}
+.scanner-controls{position:absolute;top:10px;right:10px;z-index:20;display:flex;gap:8px}
+.scanner-controls button{background:rgba(0,0,0,.65);color:#fff;width:40px;height:40px;border-radius:50%;font-size:18px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.15);backdrop-filter:blur(4px)}
+.scanner-controls button.on{background:var(--gold);color:var(--navy);border-color:var(--gold)}
+.scanner-controls button:active{transform:scale(.92)}
+.scanner-hint{position:absolute;bottom:0;left:0;right:0;padding:8px 12px;background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.85) 100%);color:#fff;font-size:12px;text-align:center;z-index:8;line-height:1.4}
+.scan-status{margin-bottom:12px;padding:10px 14px;background:var(--card-bg);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;min-height:42px}
+.scan-status.ok{background:#f0fff6;border-color:#a0d8b0;color:#1f7a3e}
+.scan-status.err{background:#fff0f0;border-color:#f0a0a0;color:#a82424}
+body.dark .scan-status.ok{background:#0f2a18;border-color:#1f7a3e;color:#9be8b8}
+body.dark .scan-status.err{background:#2a1010;border-color:#a82424;color:#ffb8b8}
+.sdot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.sdot.loading{background:var(--gold);animation:pulse 1.2s ease-in-out infinite}
+.sdot.ok{background:var(--success)}
+.sdot.err{background:var(--danger)}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
 
 /* Product info card */
 #productInfo{display:none;background:linear-gradient(135deg,#fffaed 0%,#fff5d8 100%);border:1.5px solid var(--gold);border-radius:12px;padding:14px;margin-bottom:14px}
@@ -208,7 +232,7 @@ body.dark nav.bottom-nav button.active{color:var(--gold-light)}
        data-auto_prompt="false"></div>
     <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="pill" data-locale="th"></div>
     <div id="loginError"></div>
-    <div class="login-version">v1.1 · 2026-04-30</div>
+    <div class="login-version">v1.2 · 2026-04-30</div>
   </div>
 </div>
 
@@ -219,7 +243,7 @@ body.dark nav.bottom-nav button.active{color:var(--gold-light)}
   <img class="logo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%230d1b3e'/><circle cx='50' cy='50' r='40' fill='none' stroke='%23c9a84c' stroke-width='2'/><text x='50' y='60' text-anchor='middle' font-family='serif' font-size='32' fill='%23c9a84c' font-weight='bold'>R</text></svg>" alt="Rattana">
   <div class="title">
     <h1 id="topTitle">เช็คสินค้าใกล้หมดอายุ</h1>
-    <div class="ver">Rattana · v1.1</div>
+    <div class="ver">Rattana · v1.2</div>
   </div>
   <button class="topbar-btn" id="btnRefresh" onclick="refreshAll()" title="รีเฟรช">&#x1F504;</button>
   <button class="topbar-btn" id="btnDark" onclick="toggleDark()" title="โหมดมืด">&#x1F319;</button>
@@ -256,8 +280,26 @@ body.dark nav.bottom-nav button.active{color:var(--gold-light)}
 
     <!-- Scanner -->
     <div id="scannerWrap">
-      <button id="scannerCancel" onclick="stopScanner()">✕</button>
       <div id="qr-reader"></div>
+      <div class="scan-zone-dim"></div>
+      <div class="scanner-overlay">
+        <div class="scanner-frame">
+          <div class="scan-corner tl"></div><div class="scan-corner tr"></div>
+          <div class="scan-corner bl"></div><div class="scan-corner br"></div>
+          <div class="scanner-line"></div>
+        </div>
+      </div>
+      <div class="scanner-controls">
+        <button id="torchBtn" onclick="toggleTorch()" title="ไฟฉาย" style="display:none">🔦</button>
+        <button id="scannerCancel" onclick="stopScanner()" title="ปิด">✕</button>
+      </div>
+      <div class="scanner-hint" id="scannerHint">วางบาร์โค้ดในกรอบทอง — ถอยห่าง 15-25 ซม. หากเบลอ</div>
+    </div>
+
+    <!-- Scan status -->
+    <div class="scan-status" id="scanStatus" style="display:none">
+      <div class="sdot loading"></div>
+      <span id="scanStatusText">กำลังเปิดกล้อง...</span>
     </div>
 
     <!-- Type input -->
@@ -379,9 +421,10 @@ body.dark nav.bottom-nav button.active{color:var(--gold-light)}
 
 <script>
 /* ============================================================
- *  RATTANA EXPIRY CHECKER  v1.1 — 2026-04-30
+ *  RATTANA EXPIRY CHECKER  v1.2 — 2026-04-30
  *  Single-file HTML app for tracking near-expiry / damaged items
- *  v1.1: Apps Script URL configured (rattanaphaiboon.com domain)
+ *  v1.2: Premium scanner (Mart v5.2-style) — torch, autofocus,
+ *        zoom 1.5x, native BarcodeDetector, gold frame UI
  * ============================================================ */
 
 // ---------- CONFIG ----------
@@ -408,6 +451,10 @@ let scannedBarcode = '';
 let scannedProduct = null;     // {name, barcodes} | null
 let inputMode = 'scan';        // 'scan' | 'type'
 let html5QrCode = null;
+let scannerActive = false;
+let lastScannedCode = '';
+let torchOn = false;
+let torchTrack = null;
 let summaryGroup = 'product';
 let allRecords = [];
 let myRecords = [];
@@ -681,67 +728,182 @@ function setMode(m){
 
 async function startScanner(){
   const wrap = $('scannerWrap');
+  const status = $('scanStatus');
+  setScanStatus('กำลังเปิดกล้อง...', 'loading');
+  status.style.display = 'flex';
   wrap.style.display = 'block';
   $('startScanBtn').style.display = 'none';
-  if (!html5QrCode){
-    html5QrCode = new Html5Qrcode("qr-reader", { verbose: false });
+  scannerActive = true;
+  lastScannedCode = '';
+  torchOn = false;
+  torchTrack = null;
+  $('torchBtn').classList.remove('on');
+  $('torchBtn').style.display = 'none';
+
+  if (typeof Html5Qrcode === 'undefined'){
+    setScanStatus('โหลดไลบรารีไม่ได้ — กรุณาเช็คอินเทอร์เน็ต', 'err');
+    return;
   }
-  const config = {
-    fps: 10,
-    qrbox: { width: 260, height: 160 },
-    aspectRatio: 1.5,
-    formatsToSupport: typeof Html5QrcodeSupportedFormats !== 'undefined' ? [
-      Html5QrcodeSupportedFormats.EAN_13,
-      Html5QrcodeSupportedFormats.EAN_8,
-      Html5QrcodeSupportedFormats.UPC_A,
-      Html5QrcodeSupportedFormats.UPC_E,
-      Html5QrcodeSupportedFormats.CODE_128,
-      Html5QrcodeSupportedFormats.CODE_39,
-      Html5QrcodeSupportedFormats.QR_CODE,
-      Html5QrcodeSupportedFormats.ITF,
-    ] : undefined,
-  };
+
   try {
+    // Pre-warm camera permission
+    await navigator.mediaDevices.getUserMedia({video:true})
+      .then(s => s.getTracks().forEach(t => t.stop()))
+      .catch(()=>{});
+
+    // Pick back camera
+    const devices = await Html5Qrcode.getCameras().catch(()=>[]);
+    let camId = null;
+    if (devices && devices.length){
+      const back = devices.find(d => /(back|rear|environment|0)/i.test(d.label));
+      camId = (back || devices[devices.length-1]).id;
+    }
+
+    // Cleanup previous instance
+    if (html5QrCode){
+      try { await html5QrCode.stop(); } catch{}
+      html5QrCode = null;
+    }
+
+    html5QrCode = new Html5Qrcode("qr-reader", {
+      verbose: false,
+      experimentalFeatures: { useBarCodeDetectorIfSupported: true }, // native = faster
+    });
+
+    const config = {
+      fps: 25,
+      qrbox: { width: 320, height: 180 },
+      aspectRatio: 1.7777,
+      videoConstraints: {
+        facingMode: { ideal: 'environment' },
+        width:  { ideal: 1920, min: 1280 },
+        height: { ideal: 1080, min: 720 },
+        focusMode: 'continuous',
+        advanced: [{ focusMode: 'continuous' }, { zoom: 1.5 }],
+      },
+      formatsToSupport: typeof Html5QrcodeSupportedFormats !== 'undefined' ? [
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.UPC_A,
+        Html5QrcodeSupportedFormats.UPC_E,
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.CODE_93,
+        Html5QrcodeSupportedFormats.ITF,
+        Html5QrcodeSupportedFormats.QR_CODE,
+      ] : undefined,
+    };
+
+    const cameraConfig = camId ? { deviceId: { exact: camId } } : { facingMode: { exact: 'environment' } };
+
     await html5QrCode.start(
-      { facingMode: "environment" },
+      cameraConfig,
       config,
-      (decodedText) => onBarcodeFound(decodedText),
+      (decodedText) => {
+        if (!scannerActive || decodedText === lastScannedCode) return;
+        lastScannedCode = decodedText;
+        beep();
+        navigator.vibrate && navigator.vibrate([60, 40, 60]);
+        onBarcodeFound(decodedText);
+      },
       () => {} // ignore per-frame fail
     );
+
+    // Apply torch + autofocus + zoom after start
+    setTimeout(() => {
+      try {
+        const v = document.querySelector('#qr-reader video');
+        if (v && v.srcObject){
+          const tracks = v.srcObject.getVideoTracks();
+          if (tracks.length){
+            const track = tracks[0];
+            // Torch detection
+            const caps = track.getCapabilities ? track.getCapabilities() : {};
+            if (caps.torch){
+              torchTrack = track;
+              $('torchBtn').style.display = 'flex';
+            }
+            // Apply continuous focus + zoom if supported
+            const advanced = [];
+            if (caps.focusMode && caps.focusMode.includes('continuous')) advanced.push({focusMode:'continuous'});
+            if (caps.zoom && caps.zoom.max >= 1.5) advanced.push({zoom: Math.min(1.5, caps.zoom.max)});
+            if (advanced.length) track.applyConstraints({advanced}).catch(()=>{});
+          }
+        }
+      } catch{}
+    }, 800);
+
+    setScanStatus('กล้องพร้อม — วางบาร์โค้ดในกรอบทอง', 'ok');
+
   } catch(e){
     console.error(e);
-    showToast('กล้องเปิดไม่ได้: '+e.message, 'error');
+    let msg = 'เปิดกล้องไม่ได้ — ลองโหมด "พิมพ์" แทน';
+    if (e.name === 'NotAllowedError' || String(e).includes('Permission')){
+      msg = 'กรุณาอนุญาตกล้อง: Settings → Browser → Camera → Allow';
+    } else if (e.name === 'NotFoundError'){
+      msg = 'ไม่พบกล้อง — ลองโหมด "พิมพ์" แทน';
+    }
+    setScanStatus(msg, 'err');
     wrap.style.display = 'none';
     $('startScanBtn').style.display = '';
   }
 }
 
+function setScanStatus(msg, type=''){
+  const el = $('scanStatus');
+  el.className = 'scan-status' + (type ? ' '+type : '');
+  const dot = el.querySelector('.sdot');
+  if (dot) dot.className = 'sdot ' + (type === 'ok' ? 'ok' : type === 'err' ? 'err' : 'loading');
+  $('scanStatusText').textContent = msg;
+}
+
 async function stopScanner(){
-  if (html5QrCode && html5QrCode.isScanning){
+  scannerActive = false;
+  // Turn off torch
+  if (torchOn && torchTrack){
+    try { await torchTrack.applyConstraints({advanced:[{torch:false}]}); } catch{}
+  }
+  torchOn = false;
+  torchTrack = null;
+  $('torchBtn').classList.remove('on');
+  $('torchBtn').style.display = 'none';
+  if (html5QrCode){
     try { await html5QrCode.stop(); } catch{}
+    try { html5QrCode.clear(); } catch{}
+    html5QrCode = null;
   }
   $('scannerWrap').style.display = 'none';
+  $('scanStatus').style.display = 'none';
   if (inputMode === 'scan') $('startScanBtn').style.display = '';
 }
 
-let lastScanTime = 0;
+async function toggleTorch(){
+  if (!torchTrack) return;
+  try {
+    torchOn = !torchOn;
+    await torchTrack.applyConstraints({advanced:[{torch:torchOn}]});
+    $('torchBtn').classList.toggle('on', torchOn);
+  } catch(e){
+    $('torchBtn').style.display = 'none';
+    showToast('ไฟฉายใช้ไม่ได้บนอุปกรณ์นี้', 'warning');
+  }
+}
+
 function onBarcodeFound(code){
-  // debounce duplicate scans
-  if (Date.now() - lastScanTime < 1500) return;
-  lastScanTime = Date.now();
-  // beep
-  try { beep(); } catch{}
-  navigator.vibrate && navigator.vibrate(80);
   stopScanner();
   applyBarcode(code);
 }
 
 function beep(){
-  const ctx = new (window.AudioContext||window.webkitAudioContext)();
-  const o = ctx.createOscillator(); const g = ctx.createGain();
-  o.frequency.value = 880; g.gain.value = 0.06;
-  o.connect(g); g.connect(ctx.destination);
-  o.start(); o.stop(ctx.currentTime + 0.12);
+  try {
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = 'square'; o.frequency.value = 1200;
+    g.gain.setValueAtTime(.3, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+    o.start(ctx.currentTime); o.stop(ctx.currentTime + 0.12);
+  } catch{}
 }
 
 // Manual type input
