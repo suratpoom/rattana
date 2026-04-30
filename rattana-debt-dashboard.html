@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana ยอดหนี้คงค้าง v2.2</title>
+<title>Rattana ยอดหนี้คงค้าง v2.3</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -460,7 +460,7 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
       <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="signin_with" data-shape="rectangular" data-logo_alignment="left"></div>
     </div>
     <div id="loginError"></div>
-    <p class="footer-note">v2.2 · เฉพาะพนักงานที่ได้รับอนุญาต</p>
+    <p class="footer-note">v2.3 · เฉพาะพนักงานที่ได้รับอนุญาต</p>
     <p class="footer-note"><a href="#" onclick="openLoginDiag(event)" style="color:var(--gold);text-decoration:underline">🔍 ตรวจสอบรายชื่อในระบบ</a></p>
   </div>
 </div>
@@ -483,7 +483,7 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
     </div>
     <div class="title">
       <h1>ยอดหนี้คงค้าง</h1>
-      <div class="ver">v2.2</div>
+      <div class="ver">v2.3</div>
     </div>
     <div class="actions">
       <div class="user" id="userInfo"></div>
@@ -795,6 +795,28 @@ let _diag = {
 const $ = id => document.getElementById(id);
 const fmtBaht = n => (Number(n)||0).toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2});
 const fmtInt  = n => (Number(n)||0).toLocaleString('th-TH');
+// Normalize sales name for grouping:
+// - Remove " (ROO)" suffix (ROO = added sales unit, same person)
+// - Remove leading "คุณ " (Thai honorific — Users Sheet may have it, SQL Data may not)
+// - Normalize whitespace
+function normSalesName(s){
+  return String(s || '')
+    .replace(/\s*\(ROO\)\s*/gi, '')  // strip (ROO) anywhere
+    .replace(/^คุณ\s+/u, '')         // strip leading "คุณ "
+    .replace(/\s+/g, ' ')            // normalize multiple spaces
+    .trim();
+}
+
+// For empId-based filtering: also check if the row's salesName (normalized) matches
+// the current user's name (normalized). Used as fallback when empId is missing from data.
+function salesNameMatchesUser(r){
+  const myName = normSalesName(currentUser.name);
+  const myNick = normSalesName(currentUser.nickname || '');
+  const rowName = normSalesName(r.salesName);
+  if (!rowName || !myName) return false;
+  return rowName === myName || (myNick && rowName === myNick);
+}
+
 // Normalize D-MAN value from sheet (handles VLOOKUP results, #N/A, errors, whitespace)
 function normDman(raw){
   const s = String(raw == null ? '' : raw)
@@ -1159,11 +1181,16 @@ function enterApp(){
   $('loginScreen').style.display = 'none';
   $('appScreen').classList.add('show');
 
-  // Display user info
+  // Display user info — dept overrides role label
+  const normDeptUI = s => String(s||'').replace(/\s+/g,' ').trim();
+  const deptUI = normDeptUI(currentUser.dept);
   let roleLabel;
-  if (currentUser.role < 5) roleLabel = 'พนักงานขาย';
-  else if (currentUser.role === 5) roleLabel = `ซุป · คลัง ${currentUser.warehouse || '?'}`;
-  else roleLabel = 'ผู้จัดการ';
+  if (deptUI === 'บัญชีและการเงิน')      roleLabel = '💼 บัญชีและการเงิน';
+  else if (deptUI === 'ธุรการขาย')        roleLabel = `🏢 ธุรการขาย · คลัง ${currentUser.warehouse || '?'}`;
+  else if (currentUser.role < 5)          roleLabel = 'พนักงานขาย';
+  else if (currentUser.role === 5)        roleLabel = `ซุป · คลัง ${currentUser.warehouse || '?'}`;
+  else                                    roleLabel = 'ผู้จัดการ';
+
   $('userInfo').innerHTML = `
     <div>
       <div class="name">${currentUser.nickname || currentUser.name}</div>
@@ -1171,25 +1198,29 @@ function enterApp(){
     </div>
   `;
 
-  // Role-based UI visibility
-  if (currentUser.role < 5){
-    // Salesperson: hide sales dropdown + warehouse dropdown (only see self)
+  // UI visibility — dept takes priority over role number
+  const canSeeAll = (deptUI === 'บัญชีและการเงิน') || (currentUser.role > 5);
+  const isWarehouseOnly = (deptUI === 'ธุรการขาย') || (currentUser.role === 5 && deptUI !== 'บัญชีและการเงิน');
+  const isSalesOnly = !canSeeAll && !isWarehouseOnly && currentUser.role < 5;
+
+  if (isSalesOnly){
+    // Salesperson: hide sales + warehouse dropdowns, show only aging chart
     $('lblSales').style.display = 'none';
     const salesTab = document.querySelector('.ctab[data-cmode="sales"]');
     if (salesTab) salesTab.style.display = 'none';
     const whTab = document.querySelector('.ctab[data-cmode="warehouse"]');
     if (whTab) whTab.style.display = 'none';
-    // Default to aging breakdown
     chartMode = 'aging';
     document.querySelectorAll('.ctab').forEach(b => {
       b.classList.toggle('active', b.dataset.cmode === 'aging');
     });
-  } else if (currentUser.role === 5){
-    // Supervisor: locked to one warehouse → hide warehouse dropdown + warehouse chart tab
+  } else if (isWarehouseOnly){
+    // Supervisor / ธุรการขาย: hide warehouse dropdown + warehouse chart (locked to 1 WH)
     $('lblWarehouse').style.display = 'none';
     const whTab = document.querySelector('.ctab[data-cmode="warehouse"]');
     if (whTab) whTab.style.display = 'none';
   }
+  // canSeeAll: show everything — no UI changes needed
 
   // Restore dark mode
   if (localStorage.getItem('rattanaDark') === '1') document.body.classList.add('dark');
@@ -1294,7 +1325,7 @@ function processData(raw){
     return {
       warehouse:  (r['คลัง'] || '').trim(),
       empId:      (r['รหัสพนักงาน'] || '').trim(),
-      salesName:  (r['ชื่อพนักงานขาย'] || '').trim(),
+      salesName:  normSalesName(r['ชื่อพนักงานขาย'] || ''),
       custCode:   (r['รหัสลูกหนี้'] || '').trim(),
       custName:   (r['ชื่อลูกหนี้'] || '').trim(),
       docDate:    (r['วันที่เอกสาร'] || '').trim(),
@@ -1314,38 +1345,76 @@ function processData(raw){
   const rows = mapped.filter(r => r.amount > 0 || r.docNo);
   _diag.rowsAfterAmountFilter = rows.length;
 
-  // Role-based filtering
-  // role < 5  : พนักงานขาย → เห็นเฉพาะของตัวเอง
-  // role = 5  : ซุปเปอร์ไวเซอร์ → เห็นทั้งคลังเดียวกัน
-  // role > 5  : ผู้จัดการ → เห็นทั้งหมด
-  if (currentUser.role < 5){
-    allRows = rows.filter(r => r.empId === currentUser.empId);
-    if (rows.length > 0 && allRows.length === 0){
-      showToast(`ไม่พบข้อมูลของพนักงาน "${currentUser.empId || '(ไม่มีรหัส)'}" — ตรวจสอบรหัสพนักงานใน Users Sheet`, 'warning');
-    }
-  } else if (currentUser.role === 5){
-    const myWh = (currentUser.warehouse || '').trim();
+  // Access control — dept (column R) overrides role:
+  // บัญชีและการเงิน  → เห็นทั้งหมด (finance needs full view)
+  // ธุรการขาย        → เห็นเฉพาะ W ตัวเอง
+  // role > 5         → เห็นทั้งหมด (manager)
+  // role = 5         → เห็นเฉพาะ W ตัวเอง (supervisor)
+  // role < 5         → เห็นเฉพาะ empId ตัวเอง (salesperson)
+  const normDept = s => String(s||'').replace(/\s+/g,' ').trim();
+  const dept = normDept(currentUser.dept);
+
+  if (dept === 'บัญชีและการเงิน'){
+    // Finance: see everything
+    allRows = rows;
+  } else if (dept === 'ธุรการขาย'){
+    // Sales admin: warehouse-only
+    const myWh = (currentUser.warehouse || '').trim().toLowerCase();
     if (myWh){
-      // Match by warehouse code (case-insensitive, trimmed)
-      const myWhKey = myWh.toLowerCase();
-      allRows = rows.filter(r => (r.warehouse || '').trim().toLowerCase() === myWhKey);
+      allRows = rows.filter(r => (r.warehouse || '').trim().toLowerCase() === myWh);
       if (rows.length > 0 && allRows.length === 0){
-        showToast(`ไม่พบข้อมูลของคลัง "${myWh}" — ตรวจสอบรหัสคลัง W ใน Users Sheet`, 'warning');
+        showToast(`ธุรการขาย: ไม่พบข้อมูลคลัง "${currentUser.warehouse}" — ตรวจสอบ W ใน Users Sheet`, 'warning');
+      }
+    } else {
+      allRows = rows; // no warehouse set → show all (safe fallback for admin)
+      showToast('ธุรการขาย: ไม่ได้กำหนด W — แสดงทุกคลัง', 'info');
+    }
+  } else if (currentUser.role > 5){
+    // Manager: see everything
+    allRows = rows;
+  } else if (currentUser.role === 5){
+    // Supervisor: warehouse only
+    const myWh = (currentUser.warehouse || '').trim().toLowerCase();
+    if (myWh){
+      allRows = rows.filter(r => (r.warehouse || '').trim().toLowerCase() === myWh);
+      if (rows.length > 0 && allRows.length === 0){
+        showToast(`ไม่พบข้อมูลคลัง "${currentUser.warehouse}" — ตรวจสอบ W ใน Users Sheet`, 'warning');
       }
     } else {
       allRows = rows.filter(r => r.empId === currentUser.empId);
       showToast('ไม่ได้กำหนดคลัง — โหมดสำรอง: เห็นเฉพาะของตัวเอง', 'info');
     }
   } else {
-    allRows = rows;
+    // Salesperson: own empId only
+    // Primary match: empId exact
+    // Fallback: normalized name match (กรณี empId ใน SQL Data ไม่ตรงกัน)
+    let filtered = rows.filter(r => r.empId && r.empId === currentUser.empId);
+    if (filtered.length === 0 && rows.length > 0){
+      // Fallback: match by normalized name
+      filtered = rows.filter(r => salesNameMatchesUser(r));
+      if (filtered.length > 0){
+        showToast('ใช้ชื่อแทนรหัสพนักงาน (empId ไม่ตรง) — ตรวจสอบ Users Sheet', 'warning');
+      }
+    }
+    allRows = filtered;
+    if (allRows.length === 0){
+      showToast(`ไม่พบข้อมูลของพนักงาน "${currentUser.empId || currentUser.name}" — ตรวจสอบรหัสพนักงานใน Users Sheet`, 'warning');
+    }
   }
   _diag.rowsAfterRoleFilter = allRows.length;
 
   // Build lookups for dropdowns
+  // Group by empId first, then by normalized name (merges ROO rows)
   const wSet = new Set(), sMap = new Map();
   allRows.forEach(r => {
     if (r.warehouse) wSet.add(r.warehouse);
-    if (r.salesName) sMap.set(r.empId + '|' + r.salesName, { empId: r.empId, name: r.salesName });
+    if (r.salesName){
+      // Key: empId if available, else normalized name (fallback for missing IDs)
+      const key = r.empId || ('name:' + r.salesName);
+      if (!sMap.has(key)){
+        sMap.set(key, { empId: r.empId, name: r.salesName });
+      }
+    }
   });
   lookups.warehouses = [...wSet].sort();
   lookups.sales = [...sMap.values()].sort((a,b) => a.name.localeCompare(b.name, 'th'));
@@ -1711,7 +1780,9 @@ function renderChart(){
     if (!dmanShouldCount(r.dman)) return; // D-MAN รอตัดบัญชี — ไม่นับในกราฟ
     let key, label, sub = '';
     if (chartMode === 'sales'){
-      key = r.empId || r.salesName || '(ไม่ระบุ)';
+      // Group by empId (merges ROO rows since same empId)
+      // salesName already normalized (ROO stripped) by normSalesName at data load
+      key = r.empId || ('name:' + r.salesName) || '(ไม่ระบุ)';
       label = r.salesName || '(ไม่ระบุ)';
       sub = r.empId ? `รหัส ${r.empId}` : '';
     } else if (chartMode === 'warehouse'){
@@ -2011,8 +2082,15 @@ function renderDebug(){
       <div class="val">${_diag.rowsAfterAmountFilter.toLocaleString()} แถว</div>
     </div>
     <div class="row">
-      <div class="key">หลัง role filter (role ${currentUser?.role || '-'})</div>
-      <div class="val ${finalClass}">${_diag.rowsAfterRoleFilter.toLocaleString()} แถว ${currentUser?.role < 5 ? '(filter: empId=' + escapeHtml(currentUser?.empId || '') + ')' : '(เห็นทั้งหมด)'}</div>
+      <div class="key">หลัง role/dept filter (role ${currentUser?.role || '-'} · แผนก: ${escapeHtml(currentUser?.dept || '-')})</div>
+      <div class="val ${finalClass}">${_diag.rowsAfterRoleFilter.toLocaleString()} แถว · ${(() => {
+        const d = String(currentUser?.dept||'').trim();
+        if (d === 'บัญชีและการเงิน') return '💼 เห็นทั้งหมด (บัญชีและการเงิน)';
+        if (d === 'ธุรการขาย') return `🏢 เห็นเฉพาะ W=${escapeHtml(currentUser?.warehouse||'?')} (ธุรการขาย)`;
+        if ((currentUser?.role||0) > 5) return 'เห็นทั้งหมด (Manager)';
+        if ((currentUser?.role||0) === 5) return `เห็นคลัง W=${escapeHtml(currentUser?.warehouse||'?')} (Sup)`;
+        return `เห็นเฉพาะ empId=${escapeHtml(currentUser?.empId||'')}`;
+      })()}</div>
     </div>
     <div class="row">
       <div class="key">🚚 D-MAN diagnostic</div>
