@@ -798,12 +798,15 @@ const fmtInt  = n => (Number(n)||0).toLocaleString('th-TH');
 // Normalize sales name for grouping:
 // - Remove " (ROO)" suffix (ROO = added sales unit, same person)
 // - Remove leading "คุณ " (Thai honorific — Users Sheet may have it, SQL Data may not)
-// - Normalize whitespace
+// - Remove zero-width chars and NBSP
+// - Normalize all whitespace
 function normSalesName(s){
   return String(s || '')
-    .replace(/\s*\(ROO\)\s*/gi, '')  // strip (ROO) anywhere
-    .replace(/^คุณ\s+/u, '')         // strip leading "คุณ "
-    .replace(/\s+/g, ' ')            // normalize multiple spaces
+    .replace(/[\u200B\u200C\u200D\uFEFF]/g, '') // zero-width chars
+    .replace(/\u00A0/g, ' ')                    // NBSP → space
+    .replace(/\s*\(ROO\)\s*/gi, '')             // strip (ROO) anywhere
+    .replace(/^คุณ\s+/u, '')                    // strip leading "คุณ "
+    .replace(/\s+/g, ' ')                       // normalize multiple spaces
     .trim();
 }
 
@@ -1410,7 +1413,8 @@ function processData(raw){
     if (r.warehouse) wSet.add(r.warehouse);
     if (r.salesName){
       // Key: empId if available, else normalized name (fallback for missing IDs)
-      const key = r.empId || ('name:' + r.salesName);
+      // Key by normalized name (ROO already stripped) so same person always merges
+      const key = r.salesName || '(ไม่ระบุ)';
       if (!sMap.has(key)){
         sMap.set(key, { empId: r.empId, name: r.salesName });
       }
@@ -1780,9 +1784,8 @@ function renderChart(){
     if (!dmanShouldCount(r.dman)) return; // D-MAN รอตัดบัญชี — ไม่นับในกราฟ
     let key, label, sub = '';
     if (chartMode === 'sales'){
-      // Group by empId (merges ROO rows since same empId)
-      // salesName already normalized (ROO stripped) by normSalesName at data load
-      key = r.empId || ('name:' + r.salesName) || '(ไม่ระบุ)';
+      // Key by normalized name so ROO rows merge into same bar
+      key = r.salesName || '(ไม่ระบุ)';
       label = r.salesName || '(ไม่ระบุ)';
       sub = r.empId ? `รหัส ${r.empId}` : '';
     } else if (chartMode === 'warehouse'){
@@ -2101,6 +2104,26 @@ function renderDebug(){
           const excluded = rows.filter(r => !dmanShouldCount(r.dman)).length;
           const counted = rows.filter(r => dmanShouldCount(r.dman)).length;
           return `ใน 200 แถวแรก — นับ: ${counted}, รอตัดบัญชี: ${excluded}<br>ค่าที่พบใน D-MAN: ${dmanVals.map(v => '<code style="background:rgba(0,0,0,.08);padding:1px 4px;border-radius:3px">' + escapeHtml(v) + '</code>').join(' ')}`;
+        })()}
+      </div>
+    </div>
+    <div class="row">
+      <div class="key">👤 ชื่อพนักงาน diagnostic (ROO / ซ้ำ)</div>
+      <div class="val" style="font-size:11px">
+        ${(() => {
+          // Show all unique raw salesNames found in allRows + their normalized version
+          const nameMap = new Map();
+          allRows.forEach(r => {
+            const raw = (r['_rawSalesName'] || r.salesName || '');
+            if (!nameMap.has(r.salesName)) nameMap.set(r.salesName, { count: 0, empIds: new Set() });
+            const e = nameMap.get(r.salesName);
+            e.count++;
+            if (r.empId) e.empIds.add(r.empId);
+          });
+          const names = [...nameMap.entries()].sort((a,b) => b[1].count - a[1].count).slice(0, 20);
+          return `ชื่อ normalized ที่พบ (top 20):<br>` + names.map(([name, info]) =>
+            `<code style="background:rgba(0,0,0,.08);padding:1px 4px;border-radius:3px">${escapeHtml(name)}</code> (${info.count} แถว · empId: ${[...info.empIds].join(',') || '-'})`
+          ).join('<br>');
         })()}
       </div>
     </div>
