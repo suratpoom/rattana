@@ -381,6 +381,10 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;fon
 td.code{font-family:'Courier New',monospace;font-weight:600;font-size:12px;white-space:nowrap}
 td.aging{text-align:center}
 .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap}
+.s-dman-note{grid-column:1/-1;background:#0d2035;color:#7ec8e3;padding:7px 12px;border-radius:8px;font-size:12px;font-weight:500;border:1px solid #1a3a5e}
+body.dark .s-dman-note{background:#091525;border-color:#1a3a5e}
+.badge-dman{background:#1a3a5e;color:#7ec8e3;margin-left:4px;font-size:10px}
+body.dark .badge-dman{background:#0d2035;color:#5bb8d4}
 .badge-ok{background:#e8f7ee;color:#1e8449}
 .badge-w1{background:#fef3d7;color:#a87800}
 .badge-w2{background:#ffe5d0;color:#b85a00}
@@ -791,6 +795,24 @@ let _diag = {
 const $ = id => document.getElementById(id);
 const fmtBaht = n => (Number(n)||0).toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2});
 const fmtInt  = n => (Number(n)||0).toLocaleString('th-TH');
+// Normalize D-MAN value from sheet (handles VLOOKUP results, #N/A, errors, whitespace)
+function normDman(raw){
+  const s = String(raw == null ? '' : raw)
+    .replace(/[\u200B\u200C\u200D\uFEFF]/g, '')  // zero-width
+    .replace(/\u00A0/g, ' ')                      // NBSP
+    .trim();
+  // Treat these as "empty" = ยังไม่เก็บ / ยังไม่ชำระ = นับในยอด
+  if (!s || s === '0' || s === '-' || s.startsWith('#')) return '';
+  return s;
+}
+
+// D-MAN = ว่าง หรือ "ไม่ชำระ" → นับในยอด
+// D-MAN = มีค่าอื่น → รอตัดบัญชี → ไม่นับในยอด
+function dmanShouldCount(dman){
+  if (!dman) return true;
+  return dman.toLowerCase() === 'ไม่ชำระ';
+}
+
 const parseNum = s => {
   if (s === null || s === undefined || s === '') return 0;
   const n = parseFloat(String(s).replace(/[, ]/g, ''));
@@ -1284,6 +1306,7 @@ function processData(raw){
       limit:      parseNum(r['วงเงิน']),
       note:       (r['หมายเหตุ'] || '').trim(),
       flag:       (r['ธง'] || '').trim(),
+      dman:       normDman(r['D-MAN']),  // normalize VLOOKUP result
     };
   });
 
@@ -1617,9 +1640,14 @@ function sortBy(col){
    ======================== */
 function computeSummary(){
   let total = 0, totalOverdue = 0, custSet = new Set(), overdueCount = 0;
+  let dmanCount = 0; // rows excluded due to D-MAN
   viewRows.forEach(r => {
-    total += r.amount;
     if (r.custCode) custSet.add(r.custCode);
+    if (!dmanShouldCount(r.dman)){
+      dmanCount++;
+      return; // D-MAN รอตัดบัญชี — ไม่นับในยอด
+    }
+    total += r.amount;
     if (r.overdue > 0){
       totalOverdue += r.amount;
       overdueCount++;
@@ -1630,17 +1658,22 @@ function computeSummary(){
     totalOverdue,
     customers: custSet.size,
     docs: viewRows.length,
+    docsExcluded: dmanCount,
     overdueCount,
   };
 }
 
 function renderSummary(){
   const overduePct = summary.total > 0 ? Math.round(summary.totalOverdue / summary.total * 100) : 0;
+  const dmanNote = summary.docsExcluded > 0
+    ? `<div class="s-dman-note">🚚 ไม่นับ ${fmtInt(summary.docsExcluded)} เอกสาร รอตัดบัญชี (D-MAN)</div>`
+    : '';
   $('summary').innerHTML = `
+    ${dmanNote}
     <div class="s-card">
       <div class="label">ยอดหนี้รวม</div>
       <div class="value">${fmtBaht(summary.total)}</div>
-      <div class="sub">บาท · ${fmtInt(summary.docs)} เอกสาร</div>
+      <div class="sub">บาท · ${fmtInt(summary.docs - (summary.docsExcluded||0))} เอกสาร</div>
     </div>
     <div class="s-card success">
       <div class="label">ลูกหนี้</div>
@@ -1654,7 +1687,7 @@ function renderSummary(){
     </div>
     <div class="s-card">
       <div class="label">เฉลี่ย/เอกสาร</div>
-      <div class="value">${fmtBaht(summary.docs ? summary.total/summary.docs : 0)}</div>
+      <div class="value">${fmtBaht((summary.docs - (summary.docsExcluded||0)) ? summary.total/(summary.docs-(summary.docsExcluded||0)) : 0)}</div>
       <div class="sub">บาท</div>
     </div>
   `;
@@ -1675,6 +1708,7 @@ function renderChart(){
   // Aggregate by mode
   const groups = new Map();
   viewRows.forEach(r => {
+    if (!dmanShouldCount(r.dman)) return; // D-MAN รอตัดบัญชี — ไม่นับในกราฟ
     let key, label, sub = '';
     if (chartMode === 'sales'){
       key = r.empId || r.salesName || '(ไม่ระบุ)';
@@ -1797,12 +1831,20 @@ function renderTable(){
   // Build HTML in batch (faster than appendChild loop)
   const html = slice.map((r, i) => {
     const idx = start + i;
+    const counts = dmanShouldCount(r.dman);
+    const dmanBadge = !counts
+      ? `<span class="badge badge-dman" title="D-MAN: ${escapeAttr(r.dman)}">🚚 รอตัดบัญชี</span>`
+      : '';
+    const rowStyle = !counts ? 'opacity:.55' : '';
+    const qrBtn = (r.amount > 0 && counts)
+      ? `<button class="qr-btn" onclick="showQRForBill(${idx})" title="สร้าง QR เก็บเงิน">📱</button>`
+      : (r.amount > 0 ? `<span title="รอตัดบัญชี — ไม่สร้าง QR" style="font-size:18px;opacity:.35">📱</span>` : '');
     return `
-    <tr>
-      <td style="text-align:center">${r.amount > 0 ? `<button class="qr-btn" onclick="showQRForBill(${idx})" title="สร้าง QR เก็บเงิน">📱</button>` : ''}</td>
+    <tr style="${rowStyle}">
+      <td style="text-align:center">${qrBtn}</td>
       <td>${escapeHtml(r.custName)}</td>
       <td class="num">${fmtBaht(r.amount)}</td>
-      <td class="aging">${agingBadge(r.overdue)}</td>
+      <td class="aging">${agingBadge(r.overdue)}${dmanBadge}</td>
       <td class="code">${escapeHtml(r.docNo)}</td>
       <td>${escapeHtml(r.docDate)}</td>
       <td class="num" style="text-align:center">${r.aging}</td>
@@ -1971,6 +2013,18 @@ function renderDebug(){
     <div class="row">
       <div class="key">หลัง role filter (role ${currentUser?.role || '-'})</div>
       <div class="val ${finalClass}">${_diag.rowsAfterRoleFilter.toLocaleString()} แถว ${currentUser?.role < 5 ? '(filter: empId=' + escapeHtml(currentUser?.empId || '') + ')' : '(เห็นทั้งหมด)'}</div>
+    </div>
+    <div class="row">
+      <div class="key">🚚 D-MAN diagnostic</div>
+      <div class="val" style="font-size:11px">
+        ${(() => {
+          const rows = allRows.slice(0, 200);
+          const dmanVals = [...new Set(rows.map(r => r.dman || '(ว่าง)'))].slice(0, 15);
+          const excluded = rows.filter(r => !dmanShouldCount(r.dman)).length;
+          const counted = rows.filter(r => dmanShouldCount(r.dman)).length;
+          return `ใน 200 แถวแรก — นับ: ${counted}, รอตัดบัญชี: ${excluded}<br>ค่าที่พบใน D-MAN: ${dmanVals.map(v => '<code style="background:rgba(0,0,0,.08);padding:1px 4px;border-radius:3px">' + escapeHtml(v) + '</code>').join(' ')}`;
+        })()}
+      </div>
     </div>
     <div class="row">
       <div class="key">LAST UPDATE</div>
@@ -2401,11 +2455,19 @@ function initCollectTab(){
         cnCount: 0,
         notDueAmount: 0,
         notDueCount: 0,
+        dmanAmount: 0,
+        dmanCount: 0,
       });
     }
     const c = map.get(key);
-    c.total += r.amount;
     c.count++;
+    // D-MAN รอตัดบัญชี → นับแสดงแต่ไม่รวมในยอดเก็บ
+    if (!dmanShouldCount(r.dman)){
+      c.dmanAmount += r.amount;
+      c.dmanCount++;
+      return;
+    }
+    c.total += r.amount;
     if (r.amount < 0){
       c.cnAmount += r.amount;
       c.cnCount++;
