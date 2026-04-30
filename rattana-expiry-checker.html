@@ -5,12 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0d1b3e">
-<title>Rattana Expiry Checker v1.4</title>
+<title>Rattana Expiry Checker v1.5</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.7.6/dist/quagga.min.js"></script>
 <style>
 :root{
   --navy:#0d1b3e;--navy-mid:#1a2f5e;--navy-light:#243b73;
@@ -258,7 +259,7 @@ body.dark nav.bottom-nav button.active{color:var(--gold-light)}
        data-auto_prompt="false"></div>
     <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="pill" data-locale="th"></div>
     <div id="loginError"></div>
-    <div class="login-version">v1.4 · 2026-04-30</div>
+    <div class="login-version">v1.5 · 2026-04-30</div>
   </div>
 </div>
 
@@ -269,7 +270,7 @@ body.dark nav.bottom-nav button.active{color:var(--gold-light)}
   <img class="logo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%230d1b3e'/><circle cx='50' cy='50' r='40' fill='none' stroke='%23c9a84c' stroke-width='2'/><text x='50' y='60' text-anchor='middle' font-family='serif' font-size='32' fill='%23c9a84c' font-weight='bold'>R</text></svg>" alt="Rattana">
   <div class="title">
     <h1 id="topTitle">เช็คสินค้าใกล้หมดอายุ</h1>
-    <div class="ver">Rattana · v1.4</div>
+    <div class="ver">Rattana · v1.5</div>
   </div>
   <button class="topbar-btn" id="btnRefresh" onclick="refreshAll()" title="รีเฟรช">&#x1F504;</button>
   <button class="topbar-btn" id="btnDark" onclick="toggleDark()" title="โหมดมืด">&#x1F319;</button>
@@ -451,10 +452,10 @@ body.dark nav.bottom-nav button.active{color:var(--gold-light)}
 
 <script>
 /* ============================================================
- *  RATTANA EXPIRY CHECKER  v1.4 — 2026-04-30
+ *  RATTANA EXPIRY CHECKER  v1.5 — 2026-04-30
  *  Single-file HTML app for tracking near-expiry / damaged items
- *  v1.4: Scanner reliability fixes — dynamic qrbox, tap-to-focus,
- *        adaptive hints, photo upload fallback, lower res tolerance
+ *  v1.5: Quagga2 engine for live scan (better 1D barcode + iOS Safari)
+ *        html5-qrcode kept for photo file decoding
  * ============================================================ */
 
 // ---------- CONFIG ----------
@@ -902,6 +903,7 @@ function selectProduct(idx){
 
 let scanStartTime = 0;
 let scanHintTimer = null;
+let quaggaActive = false;
 
 async function startScanner(){
   const wrap = $('scannerWrap');
@@ -920,123 +922,140 @@ async function startScanner(){
   $('photoFallbackBtn').classList.remove('show');
   $('scannerHint').innerHTML = 'วางบาร์โค้ดในกรอบทอง — แตะหน้าจอเพื่อโฟกัส';
 
-  if (typeof Html5Qrcode === 'undefined'){
-    setScanStatus('โหลดไลบรารีไม่ได้ — กรุณาเช็คอินเทอร์เน็ต', 'err');
+  if (typeof Quagga === 'undefined'){
+    setScanStatus('โหลด Quagga2 ไม่ได้ — กรุณาเช็คอินเทอร์เน็ต', 'err');
     return;
   }
 
   try {
     // Pre-warm camera permission
-    await navigator.mediaDevices.getUserMedia({video:true})
+    await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}})
       .then(s => s.getTracks().forEach(t => t.stop()))
       .catch(()=>{});
 
-    // Pick back camera
-    const devices = await Html5Qrcode.getCameras().catch(()=>[]);
-    let camId = null;
-    if (devices && devices.length){
-      const back = devices.find(d => /(back|rear|environment|0)/i.test(d.label));
-      camId = (back || devices[devices.length-1]).id;
-    }
+    // Stop any previous scanner
+    if (quaggaActive){ try { Quagga.stop(); } catch{} quaggaActive = false; }
 
-    // Cleanup previous instance
-    if (html5QrCode){
-      try { await html5QrCode.stop(); } catch{}
-      html5QrCode = null;
-    }
+    // Clear any previous video element
+    const target = $('qr-reader');
+    target.innerHTML = '';
 
-    html5QrCode = new Html5Qrcode("qr-reader", {
-      verbose: false,
-      experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+    await new Promise((resolve, reject) => {
+      Quagga.init({
+        inputStream: {
+          name: "Live",
+          type: "LiveStream",
+          target: target,
+          constraints: {
+            width:  { min: 640, ideal: 1280 },
+            height: { min: 480, ideal: 720 },
+            facingMode: "environment",
+            aspectRatio: { ideal: 16/9 },
+          },
+          area: { // restrict to center region (matches gold frame)
+            top: "15%", right: "10%", left: "10%", bottom: "15%",
+          },
+        },
+        locator: {
+          patchSize: "medium",
+          halfSample: true,
+        },
+        numOfWorkers: navigator.hardwareConcurrency ? Math.min(4, navigator.hardwareConcurrency) : 2,
+        frequency: 10,           // 10 scans/sec
+        decoder: {
+          readers: [
+            "ean_reader",          // EAN-13 (most common in Thailand)
+            "ean_8_reader",
+            "upc_reader",
+            "upc_e_reader",
+            "code_128_reader",
+            "code_39_reader",
+            "code_93_reader",
+            "codabar_reader",
+            "i2of5_reader",        // ITF
+          ],
+          multiple: false,
+        },
+        locate: true,
+      }, (err) => {
+        if (err) return reject(err);
+        resolve();
+      });
     });
 
-    // ⭐ DYNAMIC qrbox — scan a much larger portion of the frame
-    // (matches the gold visual frame — 80% width, ratio 1.6:1)
-    const qrboxFn = (vw, vh) => {
-      const minDim = Math.min(vw, vh);
-      const w = Math.floor(Math.min(vw * 0.85, 700));
-      const h = Math.floor(Math.min(w / 1.6, vh * 0.65, 380));
-      return { width: w, height: h };
-    };
+    Quagga.start();
+    quaggaActive = true;
 
-    const config = {
-      fps: 15,                            // lower = more time per frame for ZXing
-      qrbox: qrboxFn,                     // dynamic, fills 85% of viewfinder
-      // No aspectRatio constraint — let device pick natural ratio
-      videoConstraints: {
-        facingMode: { ideal: 'environment' },
-        width:  { ideal: 1280, min: 640 },   // lower min so old phones work
-        height: { ideal: 720,  min: 480 },
-        focusMode: 'continuous',
-        advanced: [{ focusMode: 'continuous' }],
-      },
-      formatsToSupport: typeof Html5QrcodeSupportedFormats !== 'undefined' ? [
-        Html5QrcodeSupportedFormats.EAN_13,
-        Html5QrcodeSupportedFormats.EAN_8,
-        Html5QrcodeSupportedFormats.UPC_A,
-        Html5QrcodeSupportedFormats.UPC_E,
-        Html5QrcodeSupportedFormats.CODE_128,
-        Html5QrcodeSupportedFormats.CODE_39,
-        Html5QrcodeSupportedFormats.CODE_93,
-        Html5QrcodeSupportedFormats.ITF,
-        Html5QrcodeSupportedFormats.QR_CODE,
-        Html5QrcodeSupportedFormats.DATA_MATRIX,
-        Html5QrcodeSupportedFormats.CODABAR,
-      ] : undefined,
-    };
-
-    const cameraConfig = camId ? { deviceId: { exact: camId } } : { facingMode: { exact: 'environment' } };
-
-    await html5QrCode.start(
-      cameraConfig,
-      config,
-      (decodedText) => {
-        if (!scannerActive || decodedText === lastScannedCode) return;
-        lastScannedCode = decodedText;
-        beep();
-        navigator.vibrate && navigator.vibrate([60, 40, 60]);
-        onBarcodeFound(decodedText);
-      },
-      () => {} // ignore per-frame fail
-    );
-
-    // Apply torch + autofocus + zoom after start
+    // Style the video element to fill container
     setTimeout(() => {
-      try {
-        const v = document.querySelector('#qr-reader video');
-        if (v && v.srcObject){
+      const v = document.querySelector('#qr-reader video');
+      const c = document.querySelector('#qr-reader canvas');
+      if (v){
+        v.style.width = '100%';
+        v.style.height = 'auto';
+        v.style.display = 'block';
+        v.style.objectFit = 'cover';
+        v.style.cursor = 'pointer';
+        // Tap-to-focus
+        v.addEventListener('click', e => {
+          if (v.srcObject){
+            const tracks = v.srcObject.getVideoTracks();
+            if (tracks.length) onTapToFocus(e, tracks[0], v);
+          }
+        });
+        // Try to detect torch capability
+        if (v.srcObject){
           const tracks = v.srcObject.getVideoTracks();
           if (tracks.length){
             const track = tracks[0];
             const caps = track.getCapabilities ? track.getCapabilities() : {};
-            // Torch
             if (caps.torch){
               torchTrack = track;
               $('torchBtn').style.display = 'flex';
             }
-            // Continuous focus + slight zoom
+            // Apply continuous focus + zoom
             const advanced = [];
             if (caps.focusMode && caps.focusMode.includes('continuous')) advanced.push({focusMode:'continuous'});
             if (caps.zoom && caps.zoom.max >= 1.5) advanced.push({zoom: Math.min(1.5, caps.zoom.max)});
             if (advanced.length) track.applyConstraints({advanced}).catch(()=>{});
-
-            // 👆 Tap-to-focus
-            v.addEventListener('click', e => onTapToFocus(e, track, v));
           }
         }
-      } catch{}
-    }, 800);
+      }
+      if (c) c.style.display = 'none'; // hide debug canvas
+    }, 600);
+
+    // Detection handler — debounced to avoid duplicates
+    Quagga.offDetected();
+    let detectionBuffer = []; // collect repeat detections for confidence
+    Quagga.onDetected(result => {
+      if (!scannerActive) return;
+      const code = result?.codeResult?.code;
+      if (!code) return;
+      // Confidence boost: require same code twice in a row to reduce false positives
+      detectionBuffer.push(code);
+      if (detectionBuffer.length > 3) detectionBuffer.shift();
+      const counts = {};
+      detectionBuffer.forEach(c => counts[c] = (counts[c]||0)+1);
+      const top = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+      if (top[1] < 2) return; // need at least 2 hits
+      const winner = top[0];
+      if (winner === lastScannedCode) return;
+      lastScannedCode = winner;
+      beep();
+      navigator.vibrate && navigator.vibrate([60, 40, 60]);
+      onBarcodeFound(winner);
+    });
 
     setScanStatus('กล้องพร้อม — วางบาร์โค้ดในกรอบทอง', 'ok');
 
-    // Adaptive hints — escalate help if no scan after 5s, 10s, 15s
+    // Adaptive hints
     clearInterval(scanHintTimer);
     scanHintTimer = setInterval(updateScanHint, 5000);
 
   } catch(e){
-    console.error(e);
+    console.error('Scanner error:', e);
     let msg = 'เปิดกล้องไม่ได้ — ลองพิมพ์ค้นหาแทน';
-    if (e.name === 'NotAllowedError' || String(e).includes('Permission')){
+    if (e.name === 'NotAllowedError' || String(e).includes('Permission') || String(e).includes('denied')){
       msg = 'กรุณาอนุญาตกล้อง: Settings → Browser → Camera → Allow';
     } else if (e.name === 'NotFoundError'){
       msg = 'ไม่พบกล้อง — พิมพ์ค้นหาแทน';
@@ -1045,7 +1064,7 @@ async function startScanner(){
     setTimeout(()=>{
       wrap.style.display = 'none';
       $('scanStatus').style.display = 'none';
-    }, 3000);
+    }, 3500);
   }
 }
 
@@ -1096,33 +1115,60 @@ function onTapToFocus(e, track, video){
 }
 
 // 📷 Photo fallback — decode barcode from a still image
+// Try Quagga first (better for 1D), fall back to html5-qrcode (handles QR + 1D)
 async function onPhotoSelected(e){
   const file = e.target.files && e.target.files[0];
   if (!file) return;
   setScanStatus('กำลังอ่านบาร์โค้ดจากรูป...', 'loading');
-  try {
-    // Stop live scanner first
-    const wasActive = scannerActive;
-    if (html5QrCode && wasActive){
-      try { await html5QrCode.stop(); } catch{}
+
+  // Stop live Quagga first to free camera
+  if (quaggaActive){ try { Quagga.stop(); } catch{} quaggaActive = false; }
+
+  const reader = new FileReader();
+  reader.onload = async (ev) => {
+    const dataUrl = ev.target.result;
+    let code = null;
+
+    // Try Quagga decodeSingle
+    try {
+      code = await new Promise((resolve) => {
+        Quagga.decodeSingle({
+          src: dataUrl,
+          numOfWorkers: 0,
+          inputStream: { size: 1280 },
+          locator: { patchSize: "medium", halfSample: false },
+          decoder: {
+            readers: [
+              "ean_reader","ean_8_reader","upc_reader","upc_e_reader",
+              "code_128_reader","code_39_reader","code_93_reader",
+              "codabar_reader","i2of5_reader",
+            ],
+          },
+          locate: true,
+        }, (result) => {
+          resolve(result?.codeResult?.code || null);
+        });
+      });
+    } catch{}
+
+    // Fallback to html5-qrcode (esp. for QR codes)
+    if (!code){
+      try {
+        if (!html5QrCode) html5QrCode = new Html5Qrcode("qr-reader", { verbose: false });
+        code = await html5QrCode.scanFile(file, false);
+      } catch{}
     }
-    if (!html5QrCode){
-      html5QrCode = new Html5Qrcode("qr-reader", { verbose: false });
-    }
-    const result = await html5QrCode.scanFile(file, false);
-    if (result){
+
+    if (code){
       beep();
       navigator.vibrate && navigator.vibrate([60, 40, 60]);
-      onBarcodeFound(result);
+      onBarcodeFound(code);
     } else {
-      setScanStatus('ไม่พบบาร์โค้ดในรูป — ลองรูปอื่น', 'err');
+      setScanStatus('ไม่พบบาร์โค้ดในรูป — ลองรูปอื่น หรือพิมพ์ค้นหา', 'err');
     }
-  } catch(err){
-    console.error(err);
-    setScanStatus('อ่านบาร์โค้ดไม่ได้ — ลองพิมพ์ค้นหา', 'err');
-  } finally {
-    e.target.value = ''; // reset so same file can be re-picked
-  }
+    e.target.value = '';
+  };
+  reader.readAsDataURL(file);
 }
 
 function setScanStatus(msg, type=''){
@@ -1145,11 +1191,20 @@ async function stopScanner(){
   $('torchBtn').classList.remove('on');
   $('torchBtn').style.display = 'none';
   $('photoFallbackBtn').classList.remove('show');
+  // Stop Quagga (live scanner)
+  if (quaggaActive){
+    try { Quagga.offDetected(); } catch{}
+    try { Quagga.stop(); } catch{}
+    quaggaActive = false;
+  }
+  // Stop html5-qrcode if it was used (photo decode)
   if (html5QrCode){
     try { await html5QrCode.stop(); } catch{}
     try { html5QrCode.clear(); } catch{}
     html5QrCode = null;
   }
+  // Clear container
+  $('qr-reader').innerHTML = '';
   $('scannerWrap').style.display = 'none';
   $('scanStatus').style.display = 'none';
 }
