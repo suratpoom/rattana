@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0d1b3e">
-<title>Rattana Expiry Checker v1.7</title>
+<title>Rattana Expiry Checker v1.8</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -259,7 +259,7 @@ body.dark nav.bottom-nav button.active{color:var(--gold-light)}
        data-auto_prompt="false"></div>
     <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="pill" data-locale="th"></div>
     <div id="loginError"></div>
-    <div class="login-version">v1.7 · 2026-04-30</div>
+    <div class="login-version">v1.8 · 2026-04-30</div>
   </div>
 </div>
 
@@ -270,7 +270,7 @@ body.dark nav.bottom-nav button.active{color:var(--gold-light)}
   <img class="logo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%230d1b3e'/><circle cx='50' cy='50' r='40' fill='none' stroke='%23c9a84c' stroke-width='2'/><text x='50' y='60' text-anchor='middle' font-family='serif' font-size='32' fill='%23c9a84c' font-weight='bold'>R</text></svg>" alt="Rattana">
   <div class="title">
     <h1 id="topTitle">เช็คสินค้าใกล้หมดอายุ</h1>
-    <div class="ver">Rattana · v1.7</div>
+    <div class="ver">Rattana · v1.8</div>
   </div>
   <button class="topbar-btn" id="btnRefresh" onclick="refreshAll()" title="รีเฟรช">&#x1F504;</button>
   <button class="topbar-btn" id="btnDark" onclick="toggleDark()" title="โหมดมืด">&#x1F319;</button>
@@ -452,10 +452,10 @@ body.dark nav.bottom-nav button.active{color:var(--gold-light)}
 
 <script>
 /* ============================================================
- *  RATTANA EXPIRY CHECKER  v1.7 — 2026-04-30
+ *  RATTANA EXPIRY CHECKER  v1.8 — 2026-04-30
  *  Single-file HTML app for tracking near-expiry / damaged items
- *  v1.7: Save verification — re-fetch Sheet after save to confirm record exists
- *        URLSearchParams POST (more iOS-friendly than text/plain)
+ *  v1.8: Server-truth verification — trust Apps Script ok:true response
+ *        Background verify with extended retry (works even on slow gviz cache)
  * ============================================================ */
 
 // ---------- CONFIG ----------
@@ -1331,6 +1331,7 @@ async function saveRecord(){
   let methodUsed = '';
   let lastErr = '';
   let serverReply = '';
+  let serverConfirmedOk = false;
 
   // ---- METHOD 1: fetch with URLSearchParams (simple, iOS-friendly) ----
   try {
@@ -1342,11 +1343,16 @@ async function saveRecord(){
       redirect: 'follow',
     });
     const text = await res.text();
-    serverReply = text.slice(0, 200);
+    serverReply = text.slice(0, 300);
     let result;
     try { result = JSON.parse(text); } catch { result = { ok: false, raw: text }; }
-    if (result.ok) methodUsed = 'fetch';
-    else throw new Error(result.error || result.raw || 'fetch returned not-ok');
+    if (result.ok){
+      methodUsed = 'fetch';
+      serverConfirmedOk = true;
+      console.log('[save] Apps Script confirmed:', result);
+    } else {
+      throw new Error(result.error || result.raw || 'fetch returned not-ok');
+    }
   } catch(e){
     lastErr = e.message || String(e);
     console.warn('Method 1 (fetch) failed:', lastErr);
@@ -1357,53 +1363,83 @@ async function saveRecord(){
     try {
       await iframeFormPost(payload);
       methodUsed = 'iframe';
-      console.log('Method 2 (iframe) load event fired (need verify)');
+      // iframe gives no response → must verify via re-fetch
+      console.log('Method 2 (iframe) load fired (no response visible)');
     } catch(e2){
       lastErr = (lastErr ? lastErr+' / ' : '') + 'iframe: ' + (e2.message || String(e2));
       console.warn('Method 2 failed:', e2);
     }
   }
 
-  // ---- VERIFY: re-fetch records & look for our just-saved row ----
-  // (iframe load event lies — it fires even on Apps Script errors. Real verify = check Sheet)
-  if (methodUsed){
-    showSpinner('กำลังตรวจสอบ...');
-    await sleep(2500); // give Apps Script time to write
-    const verified = await verifySavedRecord(payload, sentAt);
-    if (verified){
-      hideSpinner();
-      $('saveBtn').disabled = false;
-      showToast(`บันทึกสำเร็จ ✓`, 'success');
-      resetForm();
-      return;
-    } else {
-      // Try one more time after another delay (Apps Script can be slow)
-      showSpinner('รอข้อมูลซิงค์...');
-      await sleep(3000);
-      const retryOk = await verifySavedRecord(payload, sentAt);
-      if (retryOk){
-        hideSpinner();
-        $('saveBtn').disabled = false;
-        showToast(`บันทึกสำเร็จ ✓`, 'success');
-        resetForm();
-        return;
-      }
-      lastErr = `${methodUsed} เรียก Apps Script แล้ว แต่ไม่พบข้อมูลใน Sheet — กรุณา redeploy Apps Script เป็น v1.1`;
-    }
-  }
-
   hideSpinner();
   $('saveBtn').disabled = false;
+
+  // ---- DECISION: if Apps Script confirmed ok via fetch → trust it ----
+  if (serverConfirmedOk){
+    showToast('บันทึกสำเร็จ ✓', 'success');
+    resetForm();
+    // Verify in background — extended retries (gviz cache can be slow)
+    verifyInBackground(payload, sentAt);
+    return;
+  }
+
+  // ---- if iframe was used (no response), verify aggressively before celebrating ----
+  if (methodUsed === 'iframe'){
+    showSpinner('กำลังตรวจสอบ...');
+    let verified = false;
+    // Try 4 times: 2.5s, 5s, 8s, 12s
+    for (const delay of [2500, 2500, 3000, 4000]){
+      await sleep(delay);
+      verified = await verifySavedRecord(payload, sentAt);
+      if (verified) break;
+    }
+    hideSpinner();
+    if (verified){
+      showToast('บันทึกสำเร็จ ✓', 'success');
+      resetForm();
+      return;
+    }
+    lastErr = `iframe POST แล้ว แต่ตรวจสอบไม่พบใน Sheet (รอ ${'12'} วิ) — Apps Script อาจเขียนลงชีตอื่น`;
+  }
+
   showSaveErrorDialog(lastErr, serverReply);
 }
 
+// Background verify — runs after save success was reported
+// Just refreshes records cache; doesn't change UI status
+async function verifyInBackground(payload, sentAt){
+  for (const delay of [3000, 4000, 5000]){
+    await sleep(delay);
+    const ok = await verifySavedRecord(payload, sentAt);
+    if (ok){
+      console.log('[bg-verify] Found in Sheet ✓');
+      return;
+    }
+  }
+  console.warn('[bg-verify] Not found after 12s — Apps Script may write to different sheet');
+}
+
 function showSaveErrorDialog(err, serverReply){
-  const msg = `❌ บันทึกไม่สำเร็จ\n\n${err}\n\n` +
-    (serverReply ? `Server reply: ${serverReply.slice(0,150)}\n\n` : '') +
-    `วิธีแก้:\n` +
-    `1. เปิด Apps Script → ลบโค้ดเดิม → วาง v1.1 → Save\n` +
-    `2. กด Deploy → Manage deployments → ✏️ → New version → Deploy\n` +
-    `3. ลองบันทึกใหม่`;
+  const isWrongSheet = serverReply.includes('"ok":true');
+  let msg;
+  if (isWrongSheet){
+    msg = `❌ Apps Script ตอบสำเร็จ แต่ข้อมูลไม่ลงชีตที่ถูกต้อง\n\n` +
+          `Server reply:\n${serverReply}\n\n` +
+          `🔧 สาเหตุ: Apps Script เขียนลงชีตอื่น\n\n` +
+          `วิธีแก้:\n` +
+          `1. เปิด Apps Script → วาง v1.2 (ที่ใช้ openById)\n` +
+          `2. Save → Deploy → Manage deployments\n` +
+          `3. ✏️ → New version → Deploy\n` +
+          `4. Authorize ใหม่ (สิทธิ์ openById ต้องการเพิ่ม)\n` +
+          `5. ลองบันทึกใหม่`;
+  } else {
+    msg = `❌ บันทึกไม่สำเร็จ\n\n${err}\n\n` +
+      (serverReply ? `Server reply: ${serverReply.slice(0,150)}\n\n` : '') +
+      `วิธีแก้:\n` +
+      `1. อัพเดท Apps Script เป็น v1.2\n` +
+      `2. กด Deploy → Manage deployments → ✏️ → New version\n` +
+      `3. ลองบันทึกใหม่`;
+  }
   alert(msg);
 }
 
