@@ -6,10 +6,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0d2b5e">
-<title>รัตนมาร์ท — ระบบค้นหาสินค้า v5.5</title>
+<title>รัตนมาร์ท — ระบบค้นหาสินค้า v5.6</title>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 :root{
   --navy:#0d2b5e;--navy2:#1a3a6b;--navy3:#0a1f47;
   --gold:#c9a84c;--gold2:#f0c040;--gold3:#a07830;
@@ -353,7 +353,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 .hist-chip:active{opacity:.8}
 
 /* ══════════════════════════════════════════════════
-   v5.5 — Toast + Loading Bar + Spinner Overlay + Refresh Button
+   v5.6 — Toast + Loading Bar + Spinner Overlay + Refresh Button
    ══════════════════════════════════════════════════ */
 
 /* Loading Bar (top of viewport) */
@@ -447,7 +447,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 </style>
 </head>
 <body>
-<!-- v5.5: Toast + Loading Bar + Spinner Overlay -->
+<!-- v5.6: Toast + Loading Bar + Spinner Overlay -->
 <div id="loading-bar"></div>
 <div class="toast-wrap" id="toast-wrap"></div>
 <div id="spinner-overlay">
@@ -468,7 +468,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
       alt="Rattana Mart">
     <div class="login-card">
       <div style="text-align:center;color:var(--navy);font-weight:700;font-size:17px;margin-bottom:2px">ระบบค้นหาสินค้า</div>
-      <div style="text-align:center;color:var(--muted);font-size:12px;margin-bottom:22px">v5.5 — เข้าสู่ระบบด้วยบัญชี Google</div>
+      <div style="text-align:center;color:var(--muted);font-size:12px;margin-bottom:22px">v5.6 — เข้าสู่ระบบด้วยบัญชี Google</div>
 
       <div id="g_id_onload"
         data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
@@ -504,7 +504,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
     </div>
     <div style="flex:1;min-width:0">
       <div class="topbar-title">รัตนมาร์ท</div>
-      <div class="topbar-sub">ระบบค้นหาสินค้า v5.5</div>
+      <div class="topbar-sub">ระบบค้นหาสินค้า v5.6</div>
     </div>
     <button class="btn-refresh" onclick="globalRefresh()" id="btn-refresh-main" title="โหลดข้อมูลใหม่">
       <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
@@ -549,7 +549,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
     </button>
     <div style="flex:1">
       <div class="topbar-title">สแกนบาร์โค้ด</div>
-      <div class="topbar-sub">รัตนมาร์ท v5.5</div>
+      <div class="topbar-sub">รัตนมาร์ท v5.6</div>
     </div>
   </div>
   <div class="content">
@@ -614,6 +614,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
     <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
     <span>นับสต็อค</span>
   </button>
+  <button class="bnav-item" id="bnav-dead" onclick="navTo('dead')">
+    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill-opacity=".4"/><path d="M20 6.5l-1.5-1.5L8 15.5 3.5 11 2 12.5l6 6L20 6.5z"/></svg>
+    <span>ของค้าง</span>
+  </button>
   <button class="bnav-item" id="bnav-hist" onclick="navTo('hist')">
     <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 1 0 9 9h-2a7 7 0 1 1-7-7V3zm-1 5v5l4.25 2.52.75-1.23-3.5-2.08V8H12z"/></svg>
     <span>ประวัติ</span>
@@ -628,7 +632,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
     </div>
     <div style="flex:1;min-width:0">
       <div class="topbar-title">นับสต็อค</div>
-      <div class="topbar-sub" id="sc-topbar-sub">รัตนมาร์ท v5.5</div>
+      <div class="topbar-sub" id="sc-topbar-sub">รัตนมาร์ท v5.6</div>
     </div>
     <button class="btn-refresh" onclick="globalRefresh()" id="btn-refresh-stock" title="โหลดข้อมูลใหม่">
       <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
@@ -680,7 +684,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
       <!-- preview EA ที่คำนวณได้ -->
       <div id="sc-ea-preview" style="text-align:center;font-size:14px;color:var(--muted);margin-bottom:10px;display:none">—</div>
 
-      <!-- v5.5: ช่องวันหมดอายุ (โผล่เสมอ — required ถ้า coverage > 30 วัน) -->
+      <!-- v5.6: ช่องวันหมดอายุ (โผล่เสมอ — required ถ้า coverage > 30 วัน) -->
       <div id="sc-expiry-section" style="margin-bottom:12px;padding:10px 12px;background:#faf5ff;border:1.5px solid #d8b8e8;border-radius:8px">
         <div style="font-size:11px;font-weight:700;color:#5a1f80;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:6px">
           <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:#5a1f80"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
@@ -713,7 +717,34 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
   </div>
 </div>
 
-<!-- v5.5: s-expiry screen removed (merged into นับสต็อค) -->
+<!-- v5.6: s-expiry screen removed (merged into นับสต็อค) -->
+
+<!-- ══ SCREEN: ของค้าง (มีสต็อค + ไม่มียอดขาย) — NEW v5.6 ══ -->
+<div id="s-dead" class="screen has-bnav">
+  <div class="topbar">
+    <div class="topbar-logo">
+      <img src="https://lh3.googleusercontent.com/d/1BVFXkoVvXYHpkk1aNNc79kgUoBWbl2h8" onerror="this.style.display='none'" alt="">
+    </div>
+    <div style="flex:1;min-width:0">
+      <div class="topbar-title">📦 ของค้าง</div>
+      <div class="topbar-sub">มีสต็อค C4 แต่ไม่มียอดขาย</div>
+    </div>
+    <button class="btn-refresh" onclick="globalRefresh()" id="btn-refresh-dead" title="โหลดข้อมูลใหม่">
+      <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+    </button>
+    <div class="user-chip">
+      <span class="chip-name" id="dead-chip-name"></span>
+      <span class="role-badge" id="dead-chip-role"></span>
+    </div>
+  </div>
+  <div class="content has-bnav" id="dead-content">
+    <div class="sbar" id="dead-status">
+      <div class="sdot loading"></div>
+      <span id="dead-status-text">กำลังคำนวณ...</span>
+    </div>
+    <div id="dead-list"></div>
+  </div>
+</div>
 
 <!-- ══ SCREEN: ประวัติ ══ -->
 <div id="s-hist" class="screen has-bnav">
@@ -825,7 +856,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
       </div>
     </div>
 
-    <!-- v5.5: ผลคำนวณ 4 ชั้น cascade — แสดงเฉพาะโหมดเบิก -->
+    <!-- v5.6: ผลคำนวณ 4 ชั้น cascade — แสดงเฉพาะโหมดเบิก -->
     <div class="transfer-box" id="transfer-box">
       <div id="tf-threshold-info" style="font-size:11px;color:var(--muted);margin-bottom:8px;text-align:center;font-weight:600">—</div>
 
@@ -896,7 +927,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Sarabun,sans-serif;
 
 <script>
 /* ══════════════════════════════════════════════════
-   CONFIG — รัตนมาร์ท V5.5 (Merged expiry + Thai BE date + 3-step request cascade)
+   CONFIG — รัตนมาร์ท V5.6 (Merged expiry + Thai BE date + 3-step request cascade)
    ══════════════════════════════════════════════════ */
 const CONFIG = {
   PROD_SHEET_ID:   '1bi5igVC65g5ksjgzeWOOytc_-fXJ9q6-yBjkbBh8gFw',
@@ -904,11 +935,11 @@ const CONFIG = {
   PROD_TAB:        'สินค้า',
   USER_TAB:        'Rattana Users for apps',                          /* ← Company-wide tab */
   REQUEST_TAB:     'เบิก-สั่ง',
-  STOCK_COUNT_TAB: 'นับสต็อค',                                      /* ← v5.5: column 12 = วันหมดอายุ */
+  STOCK_COUNT_TAB: 'นับสต็อค',                                      /* ← v5.6: column 12 = วันหมดอายุ */
   ROLE_RESTRICTED: 5,
-  SESSION_KEY:     'rattana_v10_session',                             /* ← v5.5: Bumped (force re-login, new shape with loginAt) */
-  MAX_SESSION_DAYS: 30,                                                /* ← v5.5: auto-logout หลัง 30 วัน */
-  AUTO_REFRESH_MS: 2*60*60*1000,                                       /* ← v5.5: refresh data ทุก 2 ชม. */
+  SESSION_KEY:     'rattana_v10_session',                             /* ← v5.6: Bumped (force re-login, new shape with loginAt) */
+  MAX_SESSION_DAYS: 30,                                                /* ← v5.6: auto-logout หลัง 30 วัน */
+  AUTO_REFRESH_MS: 2*60*60*1000,                                       /* ← v5.6: refresh data ทุก 2 ชม. */
   IMG_FOLDER_ID:   '17WrWJ9eU1-UcxBJ1s52I1kzizHndDWJY',
   APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwT9t7XdrYb1qobr2tdsuHpevyQF_3SnpVTpDEk7CUXHwiwgdW0Qziu1jKYQRvYpPJRXg/exec',
   GOOGLE_CLIENT_ID:'615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com',
@@ -970,7 +1001,7 @@ function fmtPrice(v){if(!v||v==='')return'—';const n=parseFloat(v);return isNa
 function fmtStock(v){if(!v||v==='')return'—';const n=parseInt(v);return isNaN(n)?'—':n.toLocaleString('th-TH');}
 
 /* ══════════════════════════════════════════════════
-   v5.5 — Thai BE date + Coverage + Request cascade
+   v5.6 — Thai BE date + Coverage + Request cascade
    ══════════════════════════════════════════════════ */
 
 /* convert yyyy-mm-dd (HTML date input ค.ศ.) → dd/mm/yyyy พ.ศ. */
@@ -996,20 +1027,21 @@ function isExpiryRequired(prod){
   return calcCoverage(prod)>30;
 }
 
-/* คำนวณ cascade เบิก: 4 ชั้น (CS only) — v5.5 fixed
+/* คำนวณ cascade เบิก: 4 ชั้น (CS only) — v5.6 floor ทุกค่าให้เป็นเต็มลัง
    threshold = (avg_monthly/30) × 2 = ~2 วันของยอดขาย (เป้าหมายเติมชั้นวาง)
    - เติม C4 (ชั้นวาง)   = min(qty, threshold, C4_stock)   ← cap by C4 stock จริง
    - เบิกสต็อค C4        = min(remaining, c4_remaining)
    - โอนจาก W4           = min(remaining, W4_stock)
    - จัดซื้อสั่ง         = remaining สุดท้าย */
 function calcRequestCascade(qty,prod){
-  const c4=parseFloat(safeStockStr(prod&&prod['STOCK C4']))||0;
-  const w4=parseFloat(safeStockStr(prod&&prod['STOCK W4']))||0;
+  /* v5.6: floor stocks ให้เต็มลัง — เพราะ STOCK C4 อาจมีทศนิยม เช่น 5.12 */
+  const c4=Math.floor(parseFloat(safeStockStr(prod&&prod['STOCK C4']))||0);
+  const w4=Math.floor(parseFloat(safeStockStr(prod&&prod['STOCK W4']))||0);
   const avg=parseFloat(prod&&prod['AVERAGE 3MONTH'])||0;
   /* threshold ปัดขึ้นเป็นจำนวนเต็ม (CS) */
   const threshold=Math.max(1,Math.ceil((avg/30)*2));
 
-  let remaining=Math.max(0,qty);
+  let remaining=Math.max(0,Math.floor(qty));
   let beikC4=0,kalangC4=0,beikW4=0,orderMore=0;
 
   /* ขั้น 1: เติม C4 (ชั้นวาง) — cap ทั้ง threshold และ C4 stock จริง */
@@ -1042,7 +1074,7 @@ function loadSession(){try{return JSON.parse(localStorage.getItem(CONFIG.SESSION
 function clearSession(){try{localStorage.removeItem(CONFIG.SESSION_KEY);}catch(e){}}
 
 /* ══════════════════════════════════════════════════
-   v5.5 — Toast / Loading Bar / Spinner / Session expiry
+   v5.6 — Toast / Loading Bar / Spinner / Session expiry
    ══════════════════════════════════════════════════ */
 function toast(msg,type){
   type=type||'info';
@@ -1144,8 +1176,8 @@ function stopAutoRefresh(){
 
 function updateChips(){
   const n=currentUser?currentUser.name:'';const r=currentUser?'Role '+currentUser.role:'';
-  ['chip-name','dchip-name','sc-chip-name','hist-chip-name'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=n;});
-  ['chip-role','dchip-role','sc-chip-role','hist-chip-role'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=r;});
+  ['chip-name','dchip-name','sc-chip-name','hist-chip-name','dead-chip-name'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=n;});
+  ['chip-role','dchip-role','sc-chip-role','hist-chip-role','dead-chip-role'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=r;});
 }
 
 /* ══ AUTH — Google Sign-In ══ */
@@ -1207,7 +1239,7 @@ async function handleGoogleLogin(response){
       empId:String(user['รหัสพนักงาน']||'').trim(),
       dept:String(user['แผนก']||'').trim(),
       company:String(user['บริษัท']||'').trim(),
-      loginAt:Date.now(),                                    /* ← v5.5: ใช้คำนวณ session 30 วัน */
+      loginAt:Date.now(),                                    /* ← v5.6: ใช้คำนวณ session 30 วัน */
     };
     saveSession(currentUser);
     toast('ยินดีต้อนรับ '+(currentUser.nickname||currentUser.name),'success');
@@ -1231,7 +1263,7 @@ async function enterApp(){
     const rows=await fetchSheet(CONFIG.PROD_SHEET_ID,CONFIG.PROD_TAB);
     allData=rows.filter(r=>r['PRODUCT NAME']||BC_COLS.some(k=>r[k]));
     setStat('โหลดสำเร็จ — พบ '+allData.length.toLocaleString('th-TH')+' รายการ','ok');
-    /* v5.5: เริ่ม auto-refresh background ทุก 2 ชม. */
+    /* v5.6: เริ่ม auto-refresh background ทุก 2 ชม. */
     startAutoRefresh();
   }catch(e){
     setStat('โหลดข้อมูลไม่สำเร็จ — ตรวจสอบสิทธิ์ Sheet','err');
@@ -1245,7 +1277,7 @@ function doLogout(){
   clearSession();currentUser=null;allData=[];clearSearch();
   document.getElementById('bottom-nav').style.display='none';
   scClearSession();
-  stopAutoRefresh();                                          /* ← v5.5 */
+  stopAutoRefresh();                                          /* ← v5.6 */
   /* disable Google auto-select so next user can pick a different account */
   try{if(window.google&&google.accounts&&google.accounts.id)google.accounts.id.disableAutoSelect();}catch(e){}
   show('s-login');
@@ -1792,7 +1824,7 @@ function calcTransfer(){
   const r=_curProd;
   const qty=parseInt(document.getElementById('req-qty').value)||0;
 
-  /* v5.5: ใช้ cascade calculation 4 ชั้น */
+  /* v5.6: ใช้ cascade calculation 4 ชั้น */
   const c=calcRequestCascade(qty,r);
 
   const box=document.getElementById('transfer-box');
@@ -1935,7 +1967,7 @@ async function submitRequest(){
   const date=now.toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit',year:'numeric'});
   const time=now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
 
-  /* v5.5: ใช้ cascade calculation (4 ชั้น) */
+  /* v5.6: ใช้ cascade calculation (4 ชั้น) */
   const cascade=!isKhad?calcRequestCascade(qty,r):{beikC4:0,kalangC4:0,beikW4:0,orderMore:0,threshold:0};
 
   const payload={
@@ -1951,7 +1983,7 @@ async function submitRequest(){
     stockC4:safeStockStr(r?r['STOCK C4']:''),
     stockW4:safeStockStr(r?r['STOCK W4']:''),
     fromC4:!isKhad?cascade.beikC4:'',         /* ขั้น 1: เบิก C4 ปกติ (ชั้นวาง) */
-    kalangC4:!isKhad?cascade.kalangC4:'',     /* ← v5.5 NEW: ขั้น 2: คลังC4จัดให้ */
+    kalangC4:!isKhad?cascade.kalangC4:'',     /* ← v5.6 NEW: ขั้น 2: คลังC4จัดให้ */
     fromW4:!isKhad?cascade.beikW4:'',          /* ขั้น 3: โอนจาก W4 */
     needOrder:!isKhad?cascade.orderMore:'',   /* ขั้น 4: จัดซื้อสั่ง */
   };
@@ -1989,6 +2021,10 @@ function navTo(page){
     document.getElementById('bnav-stock').classList.add('active');
     show('s-stock');
     scUpdateTopbarSub();
+  } else if(page==='dead'){
+    document.getElementById('bnav-dead').classList.add('active');
+    show('s-dead');
+    deadRender();
   } else if(page==='hist'){
     document.getElementById('bnav-hist').classList.add('active');
     show('s-hist');
@@ -2004,8 +2040,8 @@ let _scCurUnit='CS';
 let _scCurMultipliers={EA:1,PA:1,BP:1,CS:1};
 
 function scUpdateTopbarSub(){
-  /* v5.5: แสดง version แทนชื่อสาขา */
-  document.getElementById('sc-topbar-sub').textContent='รัตนมาร์ท v5.5';
+  /* v5.6: แสดง version แทนชื่อสาขา */
+  document.getElementById('sc-topbar-sub').textContent='รัตนมาร์ท v5.6';
 }
 
 /* ─ ค้นหาสินค้าจากบาร์โค้ด + detect หน่วย (EA/PA/BP/CS) ─ */
@@ -2140,7 +2176,7 @@ function scShowFound(prod,unit){
   document.getElementById('sc-found-card').classList.add('visible');
   document.getElementById('sc-add-btn').disabled=false;
 
-  /* v5.5: ตั้งค่าช่องวันหมดอายุ */
+  /* v5.6: ตั้งค่าช่องวันหมดอายุ */
   const expDateEl=document.getElementById('sc-expiry-date');
   const expTagEl=document.getElementById('sc-expiry-tag');
   const expHintEl=document.getElementById('sc-expiry-hint');
@@ -2265,7 +2301,7 @@ function scAddItem(){
 
   const prod=_scCurProd;
 
-  /* v5.5: ตรวจสอบ expiry date — required เมื่อ coverage > 30 วัน */
+  /* v5.6: ตรวจสอบ expiry date — required เมื่อ coverage > 30 วัน */
   const expDateIso=document.getElementById('sc-expiry-date').value;
   const required=isExpiryRequired(prod);
   if(required&&!expDateIso){
@@ -2461,7 +2497,7 @@ async function scCommit(){
     locC4:item.locC4||'',         /* Location สินค้าใน C4 (column BC) */
     branch:CONFIG.LOCATION||'',   /* สาขา */
     user:currentUser?currentUser.name:'',
-    expiryDate:item.expiryDate||'',  /* v5.5: column 12 = วันหมดอายุ (พ.ศ.) */
+    expiryDate:item.expiryDate||'',  /* v5.6: column 12 = วันหมดอายุ (พ.ศ.) */
   }));
 
   /* fire-and-forget ทุก row (text/plain = ข้าม CORS preflight → เร็วขึ้น) */
@@ -2483,7 +2519,79 @@ async function scCommit(){
   },2500);
 }
 
-/* v5.5: standalone EXPIRY block removed (merged into นับสต็อค) */
+/* v5.6: standalone EXPIRY block removed (merged into นับสต็อค) */
+
+/* ══════════════════════════════════════════════════
+   ของค้าง (Dead stock) — NEW v5.6
+   มีสต็อค C4 > 0 แต่ AVERAGE 3MONTH = 0 หรือว่าง
+   ══════════════════════════════════════════════════ */
+function deadRender(){
+  const list=document.getElementById('dead-list');
+  const stat=document.getElementById('dead-status');
+  const stxt=document.getElementById('dead-status-text');
+  const dot=stat?stat.querySelector('.sdot'):null;
+
+  if(!allData||!allData.length){
+    if(dot)dot.className='sdot err';
+    if(stxt)stxt.textContent='ยังไม่ได้โหลดข้อมูลสินค้า';
+    list.innerHTML='';
+    return;
+  }
+
+  if(dot)dot.className='sdot loading';
+  if(stxt)stxt.textContent='กำลังกรองสินค้า...';
+
+  /* กรอง: stock C4 > 0 และ avg = 0 หรือว่าง */
+  const dead=allData.filter(r=>{
+    const stock=Math.floor(parseFloat(safeStockStr(r['STOCK C4']))||0);
+    const avgRaw=String(r['AVERAGE 3MONTH']||'').trim();
+    const avg=parseFloat(avgRaw)||0;
+    return stock>0&&(avgRaw===''||avg<=0);
+  }).sort((a,b)=>{
+    const sa=parseFloat(safeStockStr(a['STOCK C4']))||0;
+    const sb=parseFloat(safeStockStr(b['STOCK C4']))||0;
+    return sb-sa;  /* DESC: เยอะสุดขึ้นก่อน */
+  });
+
+  if(dot)dot.className='sdot ok';
+  if(stxt)stxt.textContent='พบ '+dead.length.toLocaleString('th-TH')+' รายการ — เรียงสต็อคเยอะ → น้อย';
+
+  if(!dead.length){
+    list.innerHTML='<div class="sc-empty">ไม่มีสินค้าค้างในขณะนี้ 🎉</div>';
+    return;
+  }
+
+  list.innerHTML='<div class="result-count">พบ '+dead.length+' รายการ</div>'+
+    dead.map((r,i)=>{
+      const idx=allData.indexOf(r);
+      const name=r['PRODUCT NAME']||'—';
+      const sku=r['CODE EA']||r['CODE CS']||'';
+      const stock=Math.floor(parseFloat(safeStockStr(r['STOCK C4']))||0);
+      const stockW4=Math.floor(parseFloat(safeStockStr(r['STOCK W4']))||0);
+      const loc=r['Location']||r['LOCATION']||r['location']||r['BC']||r['LOC']||'';
+      const cat=[r['CAT GROUP'],r['CAT BRAND']].filter(Boolean).join(' · ');
+      const thumbUrl=getThumb(r);
+      const thumb=thumbUrl?`<img src="${thumbUrl}" style="width:56px;height:56px;border-radius:10px;object-fit:contain" loading="lazy" onerror="this.style.display='none'">`:NOIMG;
+      const rankBadge=i<3?`<span style="background:var(--urgent);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;margin-left:6px">TOP ${i+1}</span>`:'';
+      return `<div class="list-item" onclick="showDetail(allData[${idx}])">
+        <div class="list-top">
+          <div class="lthumb">${thumb}</div>
+          <div style="flex:1;min-width:0">
+            <div class="lname">${name}${rankBadge}</div>
+            <div class="lsku">${sku?'CODE EA: '+sku:''}${cat?' · '+cat:''}${loc?' · 📍'+loc:''}</div>
+          </div>
+          <svg class="lchev" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;border-top:1px solid var(--light);padding-top:10px;margin-top:8px">
+          <div class="lpc" style="background:#fff0e8"><div class="lpl" style="color:#a05000">สต็อค C4</div><div class="lpv" style="color:var(--urgent)">${stock.toLocaleString('th-TH')}</div></div>
+          <div class="lpc"><div class="lpl">สต็อค W4</div><div class="lpv">${stockW4.toLocaleString('th-TH')}</div></div>
+          <div class="lpc"><div class="lpl">ขาย/เดือน</div><div class="lpv" style="color:var(--muted)">0</div></div>
+        </div>
+      </div>`;
+    }).join('');
+}
+
+window.deadRender=deadRender;
 
 /* ══ HISTORY — ดึงข้อมูลจาก 2 tab แล้วโชว์รวมวันนี้ ══ */
 let _histLoadedOnce=false;
@@ -2560,7 +2668,7 @@ async function histRefresh(){
       systemEA:r['ระบบ (EA)']||'',
       diffEA:r['ขาด/เกิน (EA)']||'',
       qtyPerCS:r['QTY/CS']||'',
-      expiryDate:r['วันหมดอายุ']||''   /* v5.5: from new column 12 in นับสต็อค */
+      expiryDate:r['วันหมดอายุ']||''   /* v5.6: from new column 12 in นับสต็อค */
     });
   });
 
