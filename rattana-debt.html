@@ -334,13 +334,28 @@ body.dark .qr-details{background:rgba(255,255,255,.04)}
 .ai-name{padding:2px 0 4px}
 
 /* Filter bar */
-.filter-bar{background:var(--card-bg);margin:0;padding:8px 10px;border-radius:0;border:none;border-bottom:1px solid var(--border);display:grid;grid-template-columns:repeat(2,1fr);gap:6px;animation:fadeIn .4s;position:sticky;top:54px;z-index:55}
+.filter-bar-wrap{position:sticky;top:54px;z-index:55;background:var(--card-bg);border-bottom:1px solid var(--border)}
+@media(min-width:640px){.filter-bar-wrap{top:60px}}
+
+.filter-toggle-row{display:flex;align-items:center;padding:4px 10px;background:var(--navy);border-bottom:1px solid rgba(255,255,255,.08)}
+@media(min-width:640px){.filter-toggle-row{display:none}} /* hide toggle on desktop — always show filter */
+.filter-toggle-btn{background:transparent;border:none;color:rgba(255,255,255,.8);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:6px;padding:3px 0;-webkit-tap-highlight-color:transparent}
+.filter-toggle-btn:hover{color:#fff}
+.filter-active-badge{background:var(--gold);color:var(--navy);font-size:10px;font-weight:700;padding:1px 6px;border-radius:8px;line-height:1.5}
+
+.filter-bar{background:var(--card-bg);margin:0;padding:6px 8px;border-radius:0;border:none;display:grid;grid-template-columns:repeat(2,1fr);gap:5px;animation:fadeIn .2s}
+.filter-bar.collapsed{display:none}
 .filter-bar label.fb-search{grid-column:1/-1}
-@media(min-width:640px){.filter-bar{padding:10px 14px;grid-template-columns:repeat(5,1fr);gap:8px;top:60px}.filter-bar label.fb-search{grid-column:auto}}
-@media(min-width:1024px){.filter-bar{grid-template-columns:1fr 1fr 1fr 1fr 1.5fr}}
+.filter-bar label.fb-reset{display:flex;align-items:flex-end}
+@media(min-width:640px){.filter-bar{padding:8px 14px;grid-template-columns:1fr 1fr 1fr 1fr 1.5fr auto;gap:8px}.filter-bar label.fb-search{grid-column:auto}.filter-bar label.fb-reset{display:flex}}
+@media(min-width:1024px){.filter-bar{grid-template-columns:1fr 1fr 1fr 1fr 1.5fr auto}}
 .filter-bar .lbl{font-size:9px;color:var(--muted);font-weight:600;letter-spacing:.2px;line-height:1}
 @media(min-width:640px){.filter-bar .lbl{font-size:10px}}
 .filter-bar label{display:flex;flex-direction:column;gap:2px;min-width:0}
+.btn-filter-reset{height:30px;padding:0 10px;border-radius:6px;border:1px solid var(--border);background:var(--off-white);color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;width:100%;transition:all .15s}
+.btn-filter-reset:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
+body.dark .btn-filter-reset{background:var(--navy-light);color:var(--muted)}
+@media(min-width:640px){.btn-filter-reset{height:34px;font-size:12px}}
 .filter-bar select,.filter-bar input{height:30px;padding:0 6px;border-radius:6px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);outline:none;width:100%;max-width:100%;font-size:12px;transition:border-color .15s;-webkit-appearance:none;appearance:none;font-family:inherit;box-sizing:border-box;min-width:0;background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236b7896'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");background-repeat:no-repeat;background-position:right 2px center;background-size:16px;padding-right:20px}
 .filter-bar input{background-image:none;padding-right:6px}
 @media(min-width:640px){.filter-bar select,.filter-bar input{height:34px;font-size:13px;padding:0 8px;padding-right:24px}.filter-bar input{padding-right:8px}}
@@ -495,7 +510,14 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
   </header>
 
   <!-- GLOBAL FILTER BAR (works for both tabs) -->
-  <div class="filter-bar" id="filterBar">
+  <div class="filter-bar-wrap" id="filterBarWrap">
+    <div class="filter-toggle-row">
+      <button class="filter-toggle-btn" id="filterToggleBtn" onclick="toggleFilterBar()" title="ซ่อน/แสดง Filter">
+        <span id="filterToggleIcon">▲</span> <span id="filterToggleLabel">ฟิลเตอร์</span>
+        <span id="filterActiveBadge" class="filter-active-badge" style="display:none"></span>
+      </button>
+    </div>
+    <div class="filter-bar" id="filterBar">
     <label id="lblWarehouse"><span class="lbl">คลัง</span><select id="fWarehouse"><option value="">— ทุก —</option></select></label>
     <label id="lblSales"><span class="lbl">พนักงาน</span><select id="fSales"><option value="">— ทุก —</option></select></label>
     <label><span class="lbl">อายุหนี้</span><select id="fAging">
@@ -515,7 +537,9 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
       <option value="customer_asc">ชื่อ A→Z</option>
     </select></label>
     <label class="fb-search"><span class="lbl">ค้นหา</span><input type="text" id="fSearch" placeholder="พิมพ์ ชื่อ, รหัส, ยอด, วันที่..."></label>
+    <label class="fb-reset"><button class="btn-filter-reset" onclick="resetFilters()" title="ล้างฟิลเตอร์">✕ ล้าง</button></label>
   </div>
+  </div><!-- /filter-bar-wrap -->
 
   <!-- TAB NAV -->
   <nav class="tab-nav">
@@ -528,10 +552,9 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
   <!-- TAB: DEBT (table only — no charts) -->
   <div class="tab-pane active" id="tabDebt">
 
-  <div class="result-row" style="padding-top:12px">
+  <div class="result-row" style="padding-top:8px">
     <div class="result-count" id="resultCount"></div>
     <div class="action-btns">
-      <button class="btn outline" onclick="resetFilters()">ล้างฟิลเตอร์</button>
       <button class="btn gold" onclick="exportExcel()">⬇ Excel</button>
     </div>
   </div>
@@ -1463,15 +1486,12 @@ function enhanceSelect(selectEl){
   const lbl = selectEl.closest('label');
   if (!lbl) return;
 
-  // Create wrapper
   const wrap = document.createElement('div');
   wrap.className = 'fcombo';
-  // Move select INTO wrap (hidden)
   selectEl.parentNode.insertBefore(wrap, selectEl);
   wrap.appendChild(selectEl);
   selectEl.style.cssText = 'position:absolute;width:1px;height:1px;opacity:0;pointer-events:none';
 
-  // Create display button
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'fcombo-input';
@@ -1483,7 +1503,6 @@ function enhanceSelect(selectEl){
   arrow.textContent = '▾';
   wrap.appendChild(arrow);
 
-  // Create dropdown list
   const list = document.createElement('div');
   list.className = 'fcombo-list';
   wrap.appendChild(list);
@@ -1493,6 +1512,9 @@ function enhanceSelect(selectEl){
   const searchInput = document.createElement('input');
   searchInput.type = 'text';
   searchInput.placeholder = 'พิมพ์เพื่อค้นหา...';
+  searchInput.setAttribute('autocomplete','off');
+  searchInput.setAttribute('autocorrect','off');
+  searchInput.setAttribute('autocapitalize','off');
   searchWrap.appendChild(searchInput);
   list.appendChild(searchWrap);
 
@@ -1512,20 +1534,18 @@ function enhanceSelect(selectEl){
     }
     itemsWrap.innerHTML = matches.map(o => {
       const isSel = o.value === selectEl.value;
-      return `<div class="fcombo-item ${isSel?'selected':''}" data-value="${escapeAttr(o.value)}">${escapeHtml(o.text)}</div>`;
+      return `<div class="fcombo-item${isSel?' selected':''}" data-value="${escapeAttr(o.value)}">${escapeHtml(o.text)}</div>`;
     }).join('');
-    // Bind clicks
-    itemsWrap.querySelectorAll('.fcombo-item').forEach(it => {
-      it.addEventListener('click', () => {
-        const val = it.dataset.value;
-        selectEl.value = val;
-        btn.textContent = it.textContent;
-        wrap.classList.remove('open');
-        searchInput.value = '';
-        // Trigger native change event
-        selectEl.dispatchEvent(new Event('change', {bubbles:true}));
-      });
-    });
+  }
+
+  function selectItem(val, text){
+    selectEl.value = val;
+    btn.textContent = text;
+    close();
+    searchInput.value = '';
+    // update active badge
+    updateFilterBadge();
+    selectEl.dispatchEvent(new Event('change', {bubbles:true}));
   }
 
   function open(){
@@ -1533,44 +1553,116 @@ function enhanceSelect(selectEl){
     wrap.classList.add('open');
     searchInput.value = '';
     renderItems('');
-    // Focus search after a tick (avoid mobile keyboard flash)
-    setTimeout(() => { searchInput.focus(); }, 50);
+    setTimeout(() => { searchInput.focus({preventScroll:true}); }, 30);
   }
 
-  btn.addEventListener('click', e => {
-    e.stopPropagation();
-    if (wrap.classList.contains('open')) wrap.classList.remove('open');
-    else open();
+  function close(){
+    wrap.classList.remove('open');
+  }
+
+  // Use mousedown/touchstart (fires before blur) to avoid iOS double-open
+  // Track whether open was triggered to suppress the paired click
+  let skipNextClick = false;
+
+  btn.addEventListener('mousedown', e => {
+    e.preventDefault(); // prevent focus loss / iOS quirks
+    if (wrap.classList.contains('open')){ close(); skipNextClick = true; }
+    else { open(); skipNextClick = true; }
   });
+  btn.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (wrap.classList.contains('open')){ close(); }
+    else { open(); }
+  }, {passive:false});
+  btn.addEventListener('click', e => {
+    // Suppress click if already handled by mousedown/touchstart
+    if (skipNextClick){ skipNextClick = false; e.stopPropagation(); }
+  });
+
+  // Items: use mousedown to prevent blur-close race on iOS
+  itemsWrap.addEventListener('mousedown', e => {
+    const item = e.target.closest('.fcombo-item');
+    if (!item) return;
+    e.preventDefault();
+    selectItem(item.dataset.value, item.textContent);
+  });
+  itemsWrap.addEventListener('touchend', e => {
+    const item = e.target.closest('.fcombo-item');
+    if (!item) return;
+    e.preventDefault();
+    selectItem(item.dataset.value, item.textContent);
+  });
+
   searchInput.addEventListener('input', () => renderItems(searchInput.value));
   searchInput.addEventListener('keydown', e => {
-    if (e.key === 'Escape'){ wrap.classList.remove('open'); btn.focus(); }
+    if (e.key === 'Escape'){ close(); btn.focus(); }
     else if (e.key === 'Enter'){
       const first = itemsWrap.querySelector('.fcombo-item');
-      if (first) first.click();
+      if (first) selectItem(first.dataset.value, first.textContent);
     }
   });
 
-  // Update display when select value changes externally
   const updateDisplay = () => {
     btn.textContent = selectEl.options[selectEl.selectedIndex]?.text || '';
   };
   selectEl.addEventListener('change', updateDisplay);
 
-  // Close on outside click
-  document.addEventListener('click', e => {
-    if (!wrap.contains(e.target)) wrap.classList.remove('open');
+  // Close on outside click/touch
+  document.addEventListener('mousedown', e => {
+    if (!wrap.contains(e.target)) close();
   });
+  document.addEventListener('touchstart', e => {
+    if (!wrap.contains(e.target)) close();
+  }, {passive:true});
+}
+
+/* ========================
+   FILTER BAR COLLAPSE
+   ======================== */
+let filterBarCollapsed = false;
+
+function toggleFilterBar(){
+  filterBarCollapsed = !filterBarCollapsed;
+  const bar = $('filterBar');
+  const icon = $('filterToggleIcon');
+  const label = $('filterToggleLabel');
+  if (filterBarCollapsed){
+    bar.classList.add('collapsed');
+    icon.textContent = '▼';
+    label.textContent = 'ฟิลเตอร์';
+  } else {
+    bar.classList.remove('collapsed');
+    icon.textContent = '▲';
+    label.textContent = 'ฟิลเตอร์';
+  }
+}
+
+function updateFilterBadge(){
+  const active = [
+    $('fWarehouse').value,
+    $('fSales').value,
+    $('fAging').value,
+    $('fSearch').value.trim(),
+    ($('fSort').value !== 'overdue_desc') ? '1' : '',
+  ].filter(Boolean).length;
+  const badge = $('filterActiveBadge');
+  if (!badge) return;
+  if (active > 0){
+    badge.textContent = active;
+    badge.style.display = 'inline-block';
+  } else {
+    badge.style.display = 'none';
+  }
 }
 
 function bindFilters(){
   ['fWarehouse','fSales','fAging','fSort'].forEach(id => {
-    $(id).addEventListener('change', () => { currentPage = 1; applyFilters(); });
+    $(id).addEventListener('change', () => { currentPage = 1; applyFilters(); updateFilterBadge(); });
     enhanceSelect($(id));
   });
   $('fSearch').addEventListener('input', () => {
     clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => { currentPage = 1; applyFilters(); }, 200);
+    searchTimer = setTimeout(() => { currentPage = 1; applyFilters(); updateFilterBadge(); }, 200);
   });
   // Chart mode tabs
   document.querySelectorAll('.ctab').forEach(b => {
@@ -1620,8 +1712,18 @@ function resetFilters(){
   $('fAging').value = '';
   $('fSort').value = 'overdue_desc';
   $('fSearch').value = '';
+  // Sync fcombo display buttons
+  ['fWarehouse','fSales','fAging','fSort'].forEach(id => {
+    const sel = $(id);
+    const wrap = sel?.closest?.('.fcombo');
+    if (wrap){
+      const btn = wrap.querySelector('.fcombo-input');
+      if (btn) btn.textContent = sel.options[sel.selectedIndex]?.text || '';
+    }
+  });
   currentPage = 1;
   applyFilters();
+  updateFilterBadge();
 }
 
 function applyFilters(){
@@ -2486,29 +2588,26 @@ async function shareQR(){
     const canShareFiles = navigator.canShare && navigator.canShare({files:[file]});
 
     if (canShareFiles){
-      // Step 1: Share text first (so LINE gets the message)
+      // Single call — iOS allows only ONE navigator.share() per user gesture
+      // Try files + text together
       try {
-        await navigator.share({ title:'QR ชำระเงิน Rattana', text: shareText });
-      } catch(e1){
-        // User may have cancelled text share — don't abort
-        if (e1.name === 'AbortError') return;
-      }
-      // Step 2: Share image (user picks LINE again)
-      try {
-        await navigator.share({ files:[file], title:'QR ชำระเงิน' });
+        await navigator.share({ files:[file], title:'QR ชำระเงิน Rattana', text: shareText });
         showToast('แชร์เรียบร้อย ✓', 'success');
-      } catch(e2){
-        if (e2.name !== 'AbortError'){
-          // Fallback: download image if 2nd share fails
-          downloadBlob(blob, `rattana-qr-${Date.now()}.png`);
-          showToast('บันทึกรูป QR แล้ว', 'info');
+      } catch(e1){
+        if (e1.name === 'AbortError') return;
+        // Some browsers reject text+files combined → retry files only
+        try {
+          await navigator.share({ files:[file], title:'QR ชำระเงิน Rattana' });
+          showToast('แชร์รูปเรียบร้อย ✓', 'success');
+        } catch(e2){
+          if (e2.name !== 'AbortError') showToast('แชร์ไม่ได้: ' + e2.message, 'error');
         }
       }
     } else {
-      // Desktop/unsupported: download + copy text
+      // Desktop fallback: download + copy text
       downloadBlob(blob, `rattana-qr-${Date.now()}.png`);
       try { await navigator.clipboard.writeText(shareText); } catch {}
-      showToast('บันทึกรูปแล้ว · คัดลอกข้อความให้แล้ว แนบส่งใน LINE/Messenger ได้เลย','info');
+      showToast('บันทึกรูปแล้ว · คัดลอกข้อความให้แล้ว แนบส่งใน LINE ได้เลย','info');
     }
   } catch (e){
     if (e.name !== 'AbortError'){
@@ -3082,17 +3181,17 @@ async function shareCustomQR(){
       RATTANA_RECEIVER.name,
     ].join('\n');
 
-    const canShareFiles = navigator.canShare && navigator.canShare({files:[file]});
     if (canShareFiles){
-      try { await navigator.share({ title:'QR ชำระเงิน Rattana', text }); }
-      catch(e1){ if (e1.name === 'AbortError') return; }
       try {
-        await navigator.share({ files:[file], title:'QR ชำระเงิน' });
+        await navigator.share({ files:[file], title:'QR ชำระเงิน Rattana', text });
         showToast('แชร์เรียบร้อย ✓','success');
-      } catch(e2){
-        if (e2.name !== 'AbortError'){
-          downloadBlob(blob, `rattana-qr-${Date.now()}.png`);
-          showToast('บันทึกรูป QR แล้ว','info');
+      } catch(e1){
+        if (e1.name === 'AbortError') return;
+        try {
+          await navigator.share({ files:[file], title:'QR ชำระเงิน Rattana' });
+          showToast('แชร์รูปเรียบร้อย ✓','success');
+        } catch(e2){
+          if (e2.name !== 'AbortError') showToast('แชร์ไม่ได้: ' + e2.message, 'error');
         }
       }
     } else {
