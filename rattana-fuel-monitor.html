@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Fuel Monitor v1.0</title>
+<title>Rattana Fuel Monitor v1.1</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -235,7 +235,7 @@ footer{text-align:center;color:#94a3b8;font-size:11px;padding:20px;border-top:1p
   <div class="brand">
     <div class="txt">
       <b>Rattana Fuel Monitor</b>
-      <span>คาดการณ์ราคาน้ำมัน 2-5 วัน • v1.0</span>
+      <span>คาดการณ์ราคาน้ำมัน 2-5 วัน • v1.1</span>
     </div>
   </div>
   <button id="btnRefresh" onclick="refreshAll()" title="ดึงราคาใหม่ทุกตัว">&#x1F504;</button>
@@ -317,8 +317,8 @@ footer{text-align:center;color:#94a3b8;font-size:11px;padding:20px;border-top:1p
 
 <footer>
   <b>แหล่งข้อมูล:</b><br>
-  Stooq.com (Brent / WTI / RBOB / Heating Oil / USDTHB) • Bangchak (bangchak.co.th) • PTTOR (pttor.com) • EPPO (eppo.go.th)<br>
-  © Rattana (รัตนไพบูลย์) — Fuel Monitor v1.0 · Forecast 2-5 days
+  Yahoo Finance (BZ=F / CL=F / RB=F / HO=F) • Stooq.com (fallback) • Frankfurter API (FX) • Bangchak / PTTOR / EPPO<br>
+  © Rattana (รัตนไพบูลย์) — Fuel Monitor v1.1 · Forecast 2-5 days
 </footer>
 </div>
 
@@ -433,10 +433,44 @@ async function fetchViaAnyProxyDedup(targetUrl, timeoutMs = FETCH_TIMEOUT){
   return p;
 }
 
-// Stooq snapshot (current price only) — direct, ~1-2s
+// ─── YAHOO FINANCE (primary indicator source) ──────────────────
+// Returns { price, date, history:[{date,close}, ...] } — all in one request.
+// Yahoo blocks CORS, so we always go via proxy.
+async function fetchYahoo(symbol, range = '1mo'){
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?range=${range}&interval=1d`;
+  const text = await fetchViaAnyProxyDedup(url, 7000);
+  let json;
+  try { json = JSON.parse(text); } catch(e){ throw new Error('yahoo: bad json'); }
+  const result = json?.chart?.result?.[0];
+  if(!result) throw new Error('yahoo: no result');
+  const meta = result.meta || {};
+  const ts = result.timestamp || [];
+  const closes = result.indicators?.quote?.[0]?.close || [];
+  if(!ts.length || !closes.length) throw new Error('yahoo: empty timeseries');
+  // Build history (skip nulls — Yahoo sometimes returns null on holidays)
+  const history = [];
+  for(let i=0; i<ts.length; i++){
+    const c = closes[i];
+    if(c == null || isNaN(c) || c <= 0) continue;
+    history.push({
+      date: new Date(ts[i] * 1000).toISOString().slice(0,10),
+      close: parseFloat(c)
+    });
+  }
+  if(!history.length) throw new Error('yahoo: no valid prices');
+  // Current price: prefer regularMarketPrice if available
+  const price = meta.regularMarketPrice ?? history[history.length-1].close;
+  if(isNaN(price) || price <= 0) throw new Error('yahoo: invalid current price');
+  const date = meta.regularMarketTime
+    ? new Date(meta.regularMarketTime * 1000).toISOString().slice(0,10)
+    : history[history.length-1].date;
+  return { price: parseFloat(price), date, history };
+}
+
+// ─── STOOQ FALLBACK (was direct, now via proxy too) ────────────
 async function fetchStooq(symbol){
   const url = `https://stooq.com/q/l/?s=${symbol}&f=sd2t2ohlc&h&e=csv`;
-  const text = await fetchDirect(url);
+  const text = await fetchViaAnyProxyDedup(url);
   const lines = text.trim().split('\n');
   if(lines.length < 2) throw new Error('empty stooq response');
   const cols = lines[1].split(',');
@@ -446,25 +480,48 @@ async function fetchStooq(symbol){
   return { price, date: `${cols[1]} ${cols[2] || ''}`.trim() };
 }
 
-// Stooq historical CSV — daily, last N days. Used for slope/trend analysis.
-// Returns array of {date:'YYYY-MM-DD', close:Number} sorted oldest→newest.
 async function fetchStooqHistory(symbol, days = HISTORY_LEN){
   const today = new Date();
-  const past = new Date(today.getTime() - (days + 14) * 24 * 60 * 60 * 1000); // extra buffer for weekends
+  const past = new Date(today.getTime() - (days + 14) * 24 * 60 * 60 * 1000);
   const fmt = d => d.toISOString().slice(0,10).replace(/-/g,'');
   const url = `https://stooq.com/q/d/l/?s=${symbol}&i=d&d1=${fmt(past)}&d2=${fmt(today)}`;
-  const text = await fetchDirect(url, 7000);
+  const text = await fetchViaAnyProxyDedup(url, 7000);
   const rows = text.trim().split('\n');
   if(rows.length < 2) throw new Error('empty stooq history');
   const out = [];
   for(let i=1; i<rows.length; i++){
     const c = rows[i].split(',');
-    // Format: Date,Open,High,Low,Close,Volume
     if(c.length < 5) continue;
     const close = parseFloat(c[4]);
     if(!isNaN(close) && close > 0) out.push({ date: c[0], close });
   }
   if(!out.length) throw new Error('no valid history rows');
+  return out.slice(-days);
+}
+
+// ─── FRANKFURTER (FX, CORS-OK direct, no API key) ──────────────
+// https://frankfurter.dev — ECB rates, free, public, CORS enabled
+async function fetchFrankfurterFX(from = 'USD', to = 'THB'){
+  // Latest: https://api.frankfurter.app/latest?from=USD&to=THB
+  const url = `https://api.frankfurter.app/latest?from=${from}&to=${to}`;
+  const text = await fetchDirect(url);
+  const json = JSON.parse(text);
+  const rate = json?.rates?.[to];
+  if(!rate || isNaN(rate) || rate <= 0) throw new Error('frankfurter: bad rate');
+  return { price: parseFloat(rate), date: json.date || todayThai() };
+}
+async function fetchFrankfurterHistory(from = 'USD', to = 'THB', days = HISTORY_LEN){
+  const today = new Date();
+  const past = new Date(today.getTime() - (days + 5) * 24 * 60 * 60 * 1000);
+  const fmt = d => d.toISOString().slice(0,10);
+  const url = `https://api.frankfurter.app/${fmt(past)}..${fmt(today)}?from=${from}&to=${to}`;
+  const text = await fetchDirect(url, 7000);
+  const json = JSON.parse(text);
+  const rates = json?.rates || {};
+  const out = Object.keys(rates).sort().map(d => ({
+    date: d, close: parseFloat(rates[d][to])
+  })).filter(p => !isNaN(p.close) && p.close > 0);
+  if(!out.length) throw new Error('frankfurter history: empty');
   return out.slice(-days);
 }
 
@@ -511,6 +568,112 @@ function loadHistory(key){
 }
 
 function todayThai(){ return formatThaiDate(new Date()); }
+
+// ─── INDICATOR FETCH HELPER (Yahoo → Stooq fallback) ─────────────
+// Returns { price, date, history? } or throws. Validates price range.
+async function fetchIndicator(key, minPrice, maxPrice){
+  const c = FUELS[key];
+  // 1. Yahoo Finance — primary (richer data, returns history in same call)
+  try {
+    if(c.yahoo_symbol){
+      const r = await fetchYahoo(c.yahoo_symbol, '1mo');
+      if(r.price < minPrice || r.price > maxPrice) throw new Error('Yahoo price out of range '+r.price);
+      return r; // includes .history
+    }
+  } catch(yErr){
+    console.warn(`[${key}] Yahoo failed, trying Stooq:`, yErr.message);
+  }
+  // 2. Stooq snapshot via proxy
+  if(!c.stooq_symbol) throw new Error('no stooq_symbol configured');
+  const snap = await fetchStooq(c.stooq_symbol);
+  if(snap.price < minPrice || snap.price > maxPrice) throw new Error('Stooq price out of range '+snap.price);
+  // 3. Try Stooq history (optional)
+  try {
+    const hist = await fetchStooqHistory(c.stooq_symbol, HISTORY_LEN);
+    if(hist && hist.length >= 3) return { ...snap, history: hist };
+  } catch(hErr){}
+  return snap;
+}
+
+// ─── THAI RETAIL FUEL PRICE FETCHER ──────────────────────────────
+// Tries multiple Thai sources in order. Bangchak/PTTOR pages render via JS so
+// raw HTML scraping rarely returns a number — but we try anyway in case the
+// pages are server-rendered for crawlers. Falls through to error so the card
+// uses baseline + manual override (which still drives the forecast engine).
+//
+// SOURCE PROBES (each may or may not work depending on what they expose today):
+//   1. Bangchak page HTML — text-search for grade label near a price
+//   2. PTTOR API (if reachable)
+//   3. EPPO daily price PDF/HTML
+async function fetchThaiRetailPrice(key){
+  const grade = THAI_GRADE_PATTERNS[key];
+  if(!grade) throw new Error('grade ไม่รองรับ: '+key);
+
+  const errors = [];
+
+  // ── Attempt 1: Bangchak HTML page ──
+  try {
+    const html = await fetchViaAnyProxyDedup('https://www.bangchak.co.th/th/oilprice');
+    const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+    for(const re of grade.patterns){
+      const m = text.match(re);
+      if(m){
+        const p = parseFloat(m[1]);
+        if(p >= grade.min && p <= grade.max){
+          return { price: p, date: todayThai(), extra: 'Bangchak' };
+        }
+      }
+    }
+    errors.push('Bangchak: pattern not matched');
+  } catch(e){ errors.push('Bangchak: '+e.message); }
+
+  // ── Attempt 2: PTTOR public price endpoint (best-guess; may 404) ──
+  try {
+    const html = await fetchViaAnyProxyDedup('https://www.pttor.com/th/oilprice');
+    const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+    for(const re of grade.patterns){
+      const m = text.match(re);
+      if(m){
+        const p = parseFloat(m[1]);
+        if(p >= grade.min && p <= grade.max){
+          return { price: p, date: todayThai(), extra: 'PTTOR' };
+        }
+      }
+    }
+    errors.push('PTTOR: pattern not matched');
+  } catch(e){ errors.push('PTTOR: '+e.message); }
+
+  // All sources failed — caller will use baseline + manual override
+  throw new Error('ดึงไม่ได้ทุกแหล่ง · ' + errors.slice(0, 2).join(' / '));
+}
+
+// Grade configs for retail price scraping
+const THAI_GRADE_PATTERNS = {
+  diesel_b7: {
+    min: 20, max: 50,
+    patterns: [
+      /ดีเซล\s*B7[\s\S]{0,80}?(\d{2}\.\d{2})/,
+      /ดีเซลหมุนเร็ว\s*B7[\s\S]{0,80}?(\d{2}\.\d{2})/,
+      /B7[\s\S]{0,60}?(\d{2}\.\d{2})/i,
+      /Diesel\s*B7[\s\S]{0,80}?(\d{2}\.\d{2})/i,
+    ],
+  },
+  benzene_95: {
+    min: 30, max: 60,
+    patterns: [
+      /(?:เบนซิน|ULG)\s*95[\s\S]{0,80}?(\d{2}\.\d{2})/,
+      /Benzene\s*95[\s\S]{0,80}?(\d{2}\.\d{2})/i,
+    ],
+  },
+  gasohol_95: {
+    min: 25, max: 55,
+    patterns: [
+      /(?:แก๊สโซฮอล์|Gasohol)\s*95[\s\S]{0,80}?(\d{2}\.\d{2})/i,
+      /โซฮอล์\s*95[\s\S]{0,80}?(\d{2}\.\d{2})/,
+      /Gasohol\s*95\s*E10[\s\S]{0,80}?(\d{2}\.\d{2})/i,
+    ],
+  },
+};
 function formatThaiDate(input){
   if(!input) return '—';
   let d;
@@ -541,6 +704,9 @@ function formatThaiDate(input){
 // Indicators all from Stooq direct (CORS-OK, 1-2s).
 const FUELS = {
   // ─── RETAIL ──────────────────────────────────────────────────
+  // Retail fetch is best-effort. Bangchak/PTTOR render prices via JS so plain
+  // HTML scraping rarely works — we try a few JSON API paths, then fall back
+  // to baseline + manual override. Forecasts still work from manual price.
   diesel_b7: {
     title: '⛽ ดีเซล B7',
     unit: '฿/ลิตร',
@@ -552,28 +718,9 @@ const FUELS = {
     historyLabels: ['10 วันก่อน','7 วันก่อน','5 วันก่อน','เมื่อวาน','วันนี้'],
     historyValues: [31.94, 31.94, 31.94, 31.94, 31.94],
     description: 'ราคาดีเซล B7 (Bangkok Metro) — ลีดด้วย Heating Oil + Brent',
-    leadingFrom: ['ho_oil', 'brent_oil'], // these crudes drive diesel
+    leadingFrom: ['ho_oil', 'brent_oil'],
     leadWeights: { ho_oil: 0.55, brent_oil: 0.30, fx_thb: 0.15 },
-    fetch: async () => {
-      // Try Bangchak HTML — looks for "B7" label near a price like 31.94
-      try {
-        const html = await fetchViaAnyProxyDedup('https://www.bangchak.co.th/th/oilprice');
-        const text = html.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ');
-        const patterns = [
-          /B7[\s\S]{0,80}?(\d{2}\.\d{2})/i,
-          /ดีเซล\s*B7[\s\S]{0,80}?(\d{2}\.\d{2})/,
-          /ดีเซลหมุนเร็ว\s*B7[\s\S]{0,80}?(\d{2}\.\d{2})/,
-        ];
-        for(const re of patterns){
-          const m = text.match(re);
-          if(m){
-            const p = parseFloat(m[1]);
-            if(p >= 20 && p <= 50) return { price: p, date: todayThai(), extra: 'Bangchak B7' };
-          }
-        }
-        throw new Error('B7 ไม่พบใน Bangchak HTML');
-      } catch(e){ throw new Error('Bangchak: '+e.message); }
-    }
+    fetch: async () => fetchThaiRetailPrice('diesel_b7'),
   },
   benzene_95: {
     title: '⛽ เบนซิน 95',
@@ -587,24 +734,7 @@ const FUELS = {
     description: 'เบนซิน 95 (อ้างอิงราคา Bangkok) — ลีดด้วย RBOB + Brent',
     leadingFrom: ['rbob_gas', 'brent_oil'],
     leadWeights: { rbob_gas: 0.55, brent_oil: 0.30, fx_thb: 0.15 },
-    fetch: async () => {
-      try {
-        const html = await fetchViaAnyProxyDedup('https://www.bangchak.co.th/th/oilprice');
-        const text = html.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ');
-        const patterns = [
-          /(?:เบนซิน|ULG)\s*95[\s\S]{0,80}?(\d{2}\.\d{2})/,
-          /Benzene\s*95[\s\S]{0,80}?(\d{2}\.\d{2})/i,
-        ];
-        for(const re of patterns){
-          const m = text.match(re);
-          if(m){
-            const p = parseFloat(m[1]);
-            if(p >= 30 && p <= 60) return { price: p, date: todayThai(), extra: 'Bangchak 95' };
-          }
-        }
-        throw new Error('เบนซิน 95 ไม่พบใน Bangchak HTML');
-      } catch(e){ throw new Error('Bangchak: '+e.message); }
-    }
+    fetch: async () => fetchThaiRetailPrice('benzene_95'),
   },
   gasohol_95: {
     title: '⛽ แก๊สโซฮอล์ 95',
@@ -618,43 +748,25 @@ const FUELS = {
     description: 'แก๊สโซฮอล์ 95 E10 (Bangkok) — ลีดด้วย RBOB + Brent + ส่วนผสม Ethanol',
     leadingFrom: ['rbob_gas', 'brent_oil'],
     leadWeights: { rbob_gas: 0.50, brent_oil: 0.30, fx_thb: 0.20 },
-    fetch: async () => {
-      try {
-        const html = await fetchViaAnyProxyDedup('https://www.bangchak.co.th/th/oilprice');
-        const text = html.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ');
-        const patterns = [
-          /(?:แก๊สโซฮอล์|Gasohol)\s*95[\s\S]{0,80}?(\d{2}\.\d{2})/i,
-          /โซฮอล์\s*95[\s\S]{0,80}?(\d{2}\.\d{2})/,
-        ];
-        for(const re of patterns){
-          const m = text.match(re);
-          if(m){
-            const p = parseFloat(m[1]);
-            if(p >= 25 && p <= 55) return { price: p, date: todayThai(), extra: 'Bangchak Gasohol 95' };
-          }
-        }
-        throw new Error('โซฮอล์ 95 ไม่พบใน Bangchak HTML');
-      } catch(e){ throw new Error('Bangchak: '+e.message); }
-    }
+    fetch: async () => fetchThaiRetailPrice('gasohol_95'),
   },
 
   // ─── INDICATORS ──────────────────────────────────────────────
+  // Each tries Yahoo first (rich JSON with history) → Stooq fallback
   brent_oil: {
     title: '🛢 Brent Crude',
     unit: '$/บาร์เรล',
     baseline: 75.0,
     category: 'crude',
     isIndicator: true,
-    sourceLabel: 'Stooq cb.f',
-    sourceUrl: 'https://stooq.com/q/?s=cb.f',
+    yahoo_symbol: 'BZ=F',
+    stooq_symbol: 'cb.f',
+    sourceLabel: 'Yahoo BZ=F / Stooq cb.f',
+    sourceUrl: 'https://finance.yahoo.com/quote/BZ%3DF',
     historyLabels: ['10d','7d','5d','1d','now'],
     historyValues: [75, 75, 75, 75, 75],
     description: 'น้ำมันดิบ Brent ICE futures — ลีดราคาน้ำมันไทยผ่าน MOPS Singapore',
-    fetch: async () => {
-      const r = await fetchStooq('cb.f');
-      if(r.price < 30 || r.price > 200) throw new Error('Brent ราคาผิดปกติ '+r.price);
-      return r;
-    }
+    fetch: async () => fetchIndicator('brent_oil', 30, 200),
   },
   wti_oil: {
     title: '🛢 WTI Crude',
@@ -662,16 +774,14 @@ const FUELS = {
     baseline: 71.0,
     category: 'crude',
     isIndicator: true,
-    sourceLabel: 'Stooq cl.f',
-    sourceUrl: 'https://stooq.com/q/?s=cl.f',
+    yahoo_symbol: 'CL=F',
+    stooq_symbol: 'cl.f',
+    sourceLabel: 'Yahoo CL=F / Stooq cl.f',
+    sourceUrl: 'https://finance.yahoo.com/quote/CL%3DF',
     historyLabels: ['10d','7d','5d','1d','now'],
     historyValues: [71, 71, 71, 71, 71],
     description: 'น้ำมันดิบ WTI NYMEX futures — ใช้ confirm ทิศทาง Brent',
-    fetch: async () => {
-      const r = await fetchStooq('cl.f');
-      if(r.price < 30 || r.price > 200) throw new Error('WTI ราคาผิดปกติ '+r.price);
-      return r;
-    }
+    fetch: async () => fetchIndicator('wti_oil', 30, 200),
   },
   rbob_gas: {
     title: '⛽ RBOB Gasoline',
@@ -679,16 +789,14 @@ const FUELS = {
     baseline: 2.10,
     category: 'crude',
     isIndicator: true,
-    sourceLabel: 'Stooq rb.f',
-    sourceUrl: 'https://stooq.com/q/?s=rb.f',
+    yahoo_symbol: 'RB=F',
+    stooq_symbol: 'rb.f',
+    sourceLabel: 'Yahoo RB=F / Stooq rb.f',
+    sourceUrl: 'https://finance.yahoo.com/quote/RB%3DF',
     historyLabels: ['10d','7d','5d','1d','now'],
     historyValues: [2.10, 2.10, 2.10, 2.10, 2.10],
     description: 'น้ำมันเบนซิน wholesale US — ลีดราคาเบนซิน/แก๊สโซฮอล์ในไทย',
-    fetch: async () => {
-      const r = await fetchStooq('rb.f');
-      if(r.price < 0.5 || r.price > 6) throw new Error('RBOB ราคาผิดปกติ '+r.price);
-      return r;
-    }
+    fetch: async () => fetchIndicator('rbob_gas', 0.5, 6),
   },
   ho_oil: {
     title: '🛢 Heating Oil',
@@ -696,16 +804,14 @@ const FUELS = {
     baseline: 2.30,
     category: 'crude',
     isIndicator: true,
-    sourceLabel: 'Stooq ho.f',
-    sourceUrl: 'https://stooq.com/q/?s=ho.f',
+    yahoo_symbol: 'HO=F',
+    stooq_symbol: 'ho.f',
+    sourceLabel: 'Yahoo HO=F / Stooq ho.f',
+    sourceUrl: 'https://finance.yahoo.com/quote/HO%3DF',
     historyLabels: ['10d','7d','5d','1d','now'],
     historyValues: [2.30, 2.30, 2.30, 2.30, 2.30],
     description: 'Heating Oil (Ultra Low Sulfur Diesel) — proxy สำหรับราคาดีเซลโลก',
-    fetch: async () => {
-      const r = await fetchStooq('ho.f');
-      if(r.price < 0.5 || r.price > 6) throw new Error('HO ราคาผิดปกติ '+r.price);
-      return r;
-    }
+    fetch: async () => fetchIndicator('ho_oil', 0.5, 6),
   },
   fx_thb: {
     title: '💱 USD / THB',
@@ -713,15 +819,27 @@ const FUELS = {
     baseline: 34.50,
     category: 'crude',
     isIndicator: true,
-    sourceLabel: 'Stooq usdthb',
-    sourceUrl: 'https://stooq.com/q/?s=usdthb',
+    yahoo_symbol: 'THB=X',
+    stooq_symbol: 'usdthb',
+    sourceLabel: 'Frankfurter (ECB)',
+    sourceUrl: 'https://api.frankfurter.app/latest?from=USD&to=THB',
     historyLabels: ['10d','7d','5d','1d','now'],
     historyValues: [34.5, 34.5, 34.5, 34.5, 34.5],
     description: 'อัตราแลกเปลี่ยน — บาทอ่อน → ต้นทุนนำเข้าน้ำมันแพงขึ้น',
     fetch: async () => {
-      const r = await fetchStooq('usdthb');
-      if(r.price < 25 || r.price > 50) throw new Error('USDTHB ผิดปกติ '+r.price);
-      return r;
+      // Frankfurter direct (CORS-OK) — no proxy needed
+      try {
+        const r = await fetchFrankfurterFX('USD', 'THB');
+        if(r.price < 25 || r.price > 50) throw new Error('FX out of range '+r.price);
+        // Fetch history separately (small JSON)
+        try {
+          const hist = await fetchFrankfurterHistory('USD', 'THB', HISTORY_LEN);
+          return { ...r, history: hist };
+        } catch(e2){ return r; } // history optional
+      } catch(e1){
+        // Fallback to Yahoo + Stooq
+        return fetchIndicator('fx_thb', 25, 50);
+      }
     }
   },
 };
@@ -1121,22 +1239,10 @@ async function fetchOne(key){
     appendHistory(key, result.price);
     fetchCounters.ok++;
 
-    // For indicators — also try to fetch full historical CSV (better slope)
-    if(c.isIndicator){
-      try {
-        const sym = (c.sourceUrl.match(/s=([^&]+)/) || [])[1];
-        if(sym){
-          const hist = await fetchStooqHistory(sym, HISTORY_LEN);
-          if(hist && hist.length >= 3){
-            // Persist this richer history
-            STATE[key].history = hist;
-            try { localStorage.setItem('rattana-fuel-hist-'+key, JSON.stringify(hist)); } catch(e){}
-          }
-        }
-      } catch(histErr){
-        // Non-fatal — just use point-in-time history
-        console.warn(`[${key}] history fetch failed:`, histErr.message);
-      }
+    // If the fetch returned a richer history (Yahoo / Frankfurter / Stooq), use it.
+    if(result.history && Array.isArray(result.history) && result.history.length >= 3){
+      STATE[key].history = result.history;
+      try { localStorage.setItem('rattana-fuel-hist-'+key, JSON.stringify(result.history)); } catch(e){}
     }
   } catch(err){
     console.warn(`[${key}] fetch failed:`, err.message);
