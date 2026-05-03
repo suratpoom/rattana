@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0d2b5e">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<title>รัตนมาร์ท — ระบบค้นหาสินค้า v11.4 · 2026-05-03 16:42 · 2026-05-03 16:16 · 2026-05-03 14:41 · 2026-05-03 14:35 · 2026-05-03 13:28</title>
+<title>รัตนมาร์ท — ระบบค้นหาสินค้า v11.5</title>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
@@ -1227,7 +1227,7 @@ body.demo-mode .topbar{padding-top:calc(max(14px,env(safe-area-inset-top)) + 20p
     </div>
     <div style="flex:1;min-width:0">
       <div class="topbar-title">รัตนมาร์ท</div>
-      <div class="topbar-sub">ระบบค้นหาสินค้า v11.0</div>
+      <div class="topbar-sub">ระบบค้นหาสินค้า v11.5 · 2026-05-03 17:00</div>
     </div>
     <button class="btn-refresh" onclick="globalRefresh()" id="btn-refresh-main" title="โหลดข้อมูลใหม่">
       <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
@@ -1272,7 +1272,7 @@ body.demo-mode .topbar{padding-top:calc(max(14px,env(safe-area-inset-top)) + 20p
     </button>
     <div style="flex:1">
       <div class="topbar-title">สแกนบาร์โค้ด</div>
-      <div class="topbar-sub">รัตนมาร์ท v11.0</div>
+      <div class="topbar-sub">รัตนมาร์ท v11.5</div>
     </div>
   </div>
   <div class="content">
@@ -1361,7 +1361,7 @@ body.demo-mode .topbar{padding-top:calc(max(14px,env(safe-area-inset-top)) + 20p
     </button>
     <div style="flex:1;min-width:0">
       <div class="topbar-title">นับสต็อค</div>
-      <div class="topbar-sub" id="sc-topbar-sub">รัตนมาร์ท v11.0 • แตะ ‹ เพื่อกลับไปค้นหา</div>
+      <div class="topbar-sub" id="sc-topbar-sub">รัตนมาร์ท v11.5 • แตะ ‹ เพื่อกลับไปค้นหา</div>
     </div>
     <button class="btn-refresh" onclick="globalRefresh()" id="btn-refresh-stock" title="โหลดข้อมูลใหม่">
       <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
@@ -4226,7 +4226,7 @@ let _scCurMultipliers={EA:1,PA:1,BP:1,CS:1};
 
 function scUpdateTopbarSub(){
   /* v11.0: แสดง version แทนชื่อสาขา */
-  document.getElementById('sc-topbar-sub').textContent='รัตนมาร์ท v11.0';
+  document.getElementById('sc-topbar-sub').textContent='รัตนมาร์ท v11.5';
 }
 
 /* ─ ค้นหาสินค้าจากบาร์โค้ด + detect หน่วย (EA/PA/BP/CS) ─ */
@@ -4410,11 +4410,26 @@ function scShowFound(prod,unit){
   const expSectionEl=document.getElementById('sc-expiry-section');
   const expTagEl=document.getElementById('sc-expiry-tag');
   const expHintEl=document.getElementById('sc-expiry-hint');
-  /* v11.4: check if product already has expiry recorded — show read-only */
+  /* v11.5: check expiry sources (priority: session > sheet cache) */
+  const _expEA=String(prod['CODE EA']||'').trim();
+  const _expCS=String(prod['CODE CS']||'').trim();
+  /* 1. check current session — same product entered already this round */
+  const sessionMatch=_scSession.find(x=>{
+    if(_expEA&&x.codeEA===_expEA)return true;
+    if(_expCS&&!_expEA&&x.codeCS===_expCS)return true;
+    return false;
+  });
+  let sessionExp='';
+  if(sessionMatch&&sessionMatch.expiryDate){
+    sessionExp=sessionMatch.expiryDate;  /* format YYYY/MM/DD */
+  }
+  /* 2. fallback to sheet cache */
   const existingExp=getExpiryLatest&&typeof getExpiryLatest==='function'?getExpiryLatest(prod):null;
-  if(existingExp&&existingExp.expiryDate){
-    /* convert from sheet format YYYY/MM/DD → ISO YYYY-MM-DD for picker */
-    const expIso=existingExp.expiryDate.replace(/\//g,'-');
+  const fromSession=!!sessionExp;
+  const fromCache=!sessionExp&&existingExp&&existingExp.expiryDate;
+  const expDateToShow=sessionExp||(existingExp?existingExp.expiryDate:'');
+  if(expDateToShow){
+    const expIso=expDateToShow.replace(/\//g,'-');
     tdpUpdateTrigger('sc-expiry-trigger',expIso,'แตะเพื่อเลือกวันที่');
   } else {
     tdpUpdateTrigger('sc-expiry-trigger','','แตะเพื่อเลือกวันที่');
@@ -4429,12 +4444,26 @@ function scShowFound(prod,unit){
     expTagEl.textContent=required?'⚠️ จำเป็น':'ไม่บังคับ';
   }
   if(expHintEl){
-    if(existingExp&&existingExp.expiryDate){
-      /* v11.4: already has expiry — read-only style, can edit */
+    if(fromSession){
+      /* v11.5: same product already entered this round */
+      expHintEl.innerHTML='✓ ใช้วันหมดอายุเดียวกับครั้งก่อนในรอบนี้ — กดเพื่อแก้ไข';
+      expHintEl.style.color='#059669';
+      expHintEl.style.fontWeight='600';
+      if(expSectionEl){
+        expSectionEl.classList.remove('exp-optional','exp-required');
+        expSectionEl.classList.add('exp-optional');
+        expSectionEl.style.background='#ecfdf5';
+        expSectionEl.style.borderColor='#a7f3d0';
+      }
+      if(expTagEl){
+        expTagEl.textContent='✓ ใช้รอบเดียวกัน';
+        expTagEl.style.background='#059669';
+      }
+    } else if(fromCache){
+      /* v11.4: already has expiry in sheet cache */
       expHintEl.innerHTML='✓ มีวันหมดอายุล่าสุดในระบบแล้ว — กดเพื่อแก้ไข (ถ้าจำเป็น)';
       expHintEl.style.color='#059669';
       expHintEl.style.fontWeight='600';
-      /* override section style — show "บันทึกไว้แล้ว" */
       if(expSectionEl){
         expSectionEl.classList.remove('exp-optional','exp-required');
         expSectionEl.classList.add('exp-optional');
