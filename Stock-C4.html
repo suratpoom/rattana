@@ -21,7 +21,7 @@
 <meta name="application-name" content="รัตนมาร์ท">
 <!-- Web App Manifest (inline base64) for Android / Chrome -->
 <link rel="manifest" href='data:application/manifest+json;charset=utf-8,{"name":"รัตนมาร์ท - ระบบค้นหาสินค้า","short_name":"รัตนมาร์ท","start_url":"./","display":"standalone","background_color":"%23f8fafc","theme_color":"%230d2b5e","icons":[{"src":"https://drive.google.com/thumbnail?id=1BVFXkoVvXYHpkk1aNNc79kgUoBWbl2h8&sz=w192","sizes":"192x192","type":"image/png"},{"src":"https://drive.google.com/thumbnail?id=1BVFXkoVvXYHpkk1aNNc79kgUoBWbl2h8&sz=w512","sizes":"512x512","type":"image/png"}]}'>
-<title>รัตนมาร์ท — ระบบค้นหาสินค้า v11.6</title>
+<title>รัตนมาร์ท — ระบบค้นหาสินค้า v11.9</title>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
@@ -88,17 +88,20 @@ body{font-family:'Sarabun',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-seri
 
 /* FAB scroll-to-top */
 .fab-top{
-  position:fixed;bottom:28px;right:20px;
-  width:52px;height:52px;
+  position:fixed;
+  /* v11.8: lift above bottom-nav (64px) + safe-area + gap */
+  bottom:calc(80px + env(safe-area-inset-bottom,0px));
+  right:18px;
+  width:50px;height:50px;
   background:var(--navy);border:2px solid var(--gold2);
   border-radius:50%;
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;
-  box-shadow:0 4px 16px rgba(13,43,94,.35);
+  box-shadow:0 6px 20px rgba(13,43,94,.4);
   opacity:0;pointer-events:none;
   transition:opacity .25s,transform .25s;
   transform:translateY(8px);
-  z-index:999;
+  z-index:9998;
 }
 .fab-top.visible{opacity:1;pointer-events:auto;transform:translateY(0)}
 .fab-top svg{width:22px;height:22px;fill:var(--gold2)}
@@ -1238,7 +1241,7 @@ body.demo-mode .topbar{padding-top:calc(max(14px,env(safe-area-inset-top)) + 20p
     </div>
     <div style="flex:1;min-width:0">
       <div class="topbar-title">รัตนมาร์ท</div>
-      <div class="topbar-sub">ระบบค้นหาสินค้า v11.6 · 2026-05-03 17:15</div>
+      <div class="topbar-sub">ระบบค้นหาสินค้า v11.9 · 2026-05-04 01:49</div>
     </div>
     <button class="btn-refresh" onclick="globalRefresh()" id="btn-refresh-main" title="โหลดข้อมูลใหม่">
       <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
@@ -1283,7 +1286,7 @@ body.demo-mode .topbar{padding-top:calc(max(14px,env(safe-area-inset-top)) + 20p
     </button>
     <div style="flex:1">
       <div class="topbar-title">สแกนบาร์โค้ด</div>
-      <div class="topbar-sub">รัตนมาร์ท v11.6</div>
+      <div class="topbar-sub">รัตนมาร์ท v11.9</div>
     </div>
   </div>
   <div class="content">
@@ -1372,7 +1375,7 @@ body.demo-mode .topbar{padding-top:calc(max(14px,env(safe-area-inset-top)) + 20p
     </button>
     <div style="flex:1;min-width:0">
       <div class="topbar-title">นับสต็อค</div>
-      <div class="topbar-sub" id="sc-topbar-sub">รัตนมาร์ท v11.6 • แตะ ‹ เพื่อกลับไปค้นหา</div>
+      <div class="topbar-sub" id="sc-topbar-sub">รัตนมาร์ท v11.9 • แตะ ‹ เพื่อกลับไปค้นหา</div>
     </div>
     <button class="btn-refresh" onclick="globalRefresh()" id="btn-refresh-stock" title="โหลดข้อมูลใหม่">
       <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
@@ -1499,10 +1502,17 @@ body.demo-mode .topbar{padding-top:calc(max(14px,env(safe-area-inset-top)) + 20p
     </div>
 
     <!-- v11.0: Search box สำหรับ filter ทุก sub-tab -->
-    <div style="position:relative;margin-bottom:10px">
+    <div style="position:relative;margin-bottom:8px">
       <input type="text" id="summary-search" placeholder="🔍 ค้นหาชื่อสินค้า / barcode / location..." autocomplete="off"
         style="width:100%;padding:10px 36px 10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box;background:var(--white)">
       <button id="summary-search-clear" onclick="summaryClearSearch()" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--light);border:none;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:14px;color:var(--muted);font-family:inherit">✕</button>
+    </div>
+
+    <!-- v11.9: Shared stock filter (deadstock/fastlow/expiry — noprice มี filter ของตัวเอง) -->
+    <div id="summary-stock-filter" style="display:flex;gap:6px;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:10px">
+      <button class="sum-stk-filter active" data-stk-filter="all" onclick="summarySetStockFilter('all')" style="flex:1;padding:8px;border:none;border-radius:8px;background:#1a3a6b;color:#f0c862;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s">ทั้งหมด</button>
+      <button class="sum-stk-filter" data-stk-filter="c4" onclick="summarySetStockFilter('c4')" style="flex:1;padding:8px;border:none;border-radius:8px;background:none;color:#6b7896;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s">มีใน C4</button>
+      <button class="sum-stk-filter" data-stk-filter="w4" onclick="summarySetStockFilter('w4')" style="flex:1;padding:8px;border:none;border-radius:8px;background:none;color:#6b7896;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s">มีใน W4</button>
     </div>
 
     <div id="summary-deadstock-section">
@@ -1529,10 +1539,16 @@ body.demo-mode .topbar{padding-top:calc(max(14px,env(safe-area-inset-top)) + 20p
 
     <!-- v11.4: สินค้าขายดี-สต็อคน้อย -->
     <div id="summary-fastlow-section" style="display:none">
-      <div class="sbar" id="fastlow-status">
-        <div class="sdot loading"></div>
-        <span id="fastlow-status-text">กำลังคำนวณ...</span>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div class="sbar" id="fastlow-status" style="flex:1;margin-bottom:0">
+          <div class="sdot loading"></div>
+          <span id="fastlow-status-text">กำลังคำนวณ...</span>
+        </div>
+        <button onclick="fastlowExport()" style="background:linear-gradient(135deg,#10b981 0%,#059669 100%);color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;flex-shrink:0;box-shadow:0 3px 10px rgba(5,150,105,.3)">
+          📊 Excel
+        </button>
       </div>
+      <div style="font-size:11px;color:#6b7896;margin-bottom:8px;padding:0 4px">💡 แตะรายการเพื่อ <b style="color:#0d2b5e">คัดลอกชื่อสินค้า</b></div>
       <div id="fastlow-list"></div>
     </div>
 
@@ -4237,7 +4253,7 @@ let _scCurMultipliers={EA:1,PA:1,BP:1,CS:1};
 
 function scUpdateTopbarSub(){
   /* v11.0: แสดง version แทนชื่อสาขา */
-  document.getElementById('sc-topbar-sub').textContent='รัตนมาร์ท v11.6';
+  document.getElementById('sc-topbar-sub').textContent='รัตนมาร์ท v11.9';
 }
 
 /* ─ ค้นหาสินค้าจากบาร์โค้ด + detect หน่วย (EA/PA/BP/CS) ─ */
@@ -4899,6 +4915,8 @@ function deadRender(){
     const stock=Math.floor(parseFloat(safeStockStr(r['STOCK C4']))||0);
     const sEA=salesPerDayEA(r);
     if(!(stock>0&&sEA<=0))return false;
+    /* v11.9: shared stock filter */
+    if(!_summaryStockFilterPasses(r))return false;
     /* search filter */
     if(q){
       const name=String(r['PRODUCT NAME']||'').toLowerCase();
@@ -5078,6 +5096,8 @@ function fastlowRender(){
     const avg=salesPerDayEA(r);
     /* coverday < 7 + ขายเฉลี่ย > 0 */
     if(!(avg>0&&cov<7&&cov!==Infinity))return false;
+    /* v11.9: shared stock filter */
+    if(!_summaryStockFilterPasses(r))return false;
     /* search filter */
     if(q){
       const name=String(r['PRODUCT NAME']||'').toLowerCase();
@@ -5117,7 +5137,7 @@ function fastlowRender(){
     const urgent=it.cov<3;
     const covPillStyle=urgent?'background:#dc2626;color:#fff':'background:#f59e0b;color:#fff';
     const meta=[sku,loc?'📍'+loc:'','📈 '+avgStr+' EA/วัน'].filter(Boolean).join(' · ');
-    return `<div class="dead-item" onclick="deadOpenForCount(${idx})" style="border-left-color:${urgent?'#dc2626':'#f59e0b'}">
+    return `<div class="dead-item" onclick="fastlowCopyName(${idx},this)" style="border-left-color:${urgent?'#dc2626':'#f59e0b'}">
       <div style="flex:1;min-width:0">
         <div class="dead-name">${rankBadge}${name}</div>
         <div class="dead-meta">${meta}</div>
@@ -5129,6 +5149,113 @@ function fastlowRender(){
   }).join('');
 }
 window.fastlowRender=fastlowRender;
+
+/* v11.7: copy product name to clipboard with visual feedback */
+function fastlowCopyName(idx,el){
+  const prod=allData[idx];
+  if(!prod)return;
+  const name=String(prod['PRODUCT NAME']||'').trim();
+  if(!name){toast('ไม่มีชื่อสินค้า','warning');return;}
+  /* Use Clipboard API with fallback */
+  const doFlash=()=>{
+    if(el){
+      const orig=el.style.background;
+      const origColor=el.style.borderLeftColor;
+      el.style.background='#dcfce7';
+      el.style.borderLeftColor='#059669';
+      setTimeout(()=>{
+        el.style.background=orig||'';
+        el.style.borderLeftColor=origColor||'';
+      },600);
+    }
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(name).then(()=>{
+      toast('คัดลอกแล้ว: '+name.slice(0,30)+(name.length>30?'...':''),'success');
+      doFlash();
+    }).catch(()=>{
+      _fallbackCopy(name);doFlash();
+    });
+  } else {
+    _fallbackCopy(name);doFlash();
+  }
+}
+function _fallbackCopy(text){
+  try{
+    const ta=document.createElement('textarea');
+    ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();
+    document.execCommand('copy');document.body.removeChild(ta);
+    toast('คัดลอกแล้ว: '+text.slice(0,30),'success');
+  }catch(e){toast('คัดลอกไม่สำเร็จ','error');}
+}
+window.fastlowCopyName=fastlowCopyName;
+
+/* v11.7: export fastlow list to .xlsx */
+async function fastlowExport(){
+  if(!allData||!allData.length){toast('ยังไม่มีข้อมูลสินค้า','warning');return;}
+  /* Re-compute filtered list (matches fastlowRender filter) */
+  const items=allData.filter(r=>{
+    const cov=calcCoverage(r);
+    const avg=salesPerDayEA(r);
+    return avg>0&&cov<7&&cov!==Infinity;
+  }).map(r=>({prod:r,cov:calcCoverage(r),avg:salesPerDayEA(r)}));
+  items.sort((a,b)=>{
+    if(a.cov!==b.cov)return a.cov-b.cov;
+    return b.avg-a.avg;
+  });
+  if(!items.length){toast('ไม่มีรายการสำหรับ export','warning');return;}
+
+  /* Load SheetJS lib if not loaded */
+  if(typeof XLSX==='undefined'){
+    toast('กำลังโหลด Excel library...','info');
+    await new Promise((res,rej)=>{
+      const s=document.createElement('script');
+      s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+      s.onload=res;s.onerror=rej;
+      document.head.appendChild(s);
+    }).catch(()=>{toast('โหลด library ไม่สำเร็จ — ตรวจสอบเน็ต','error');});
+  }
+  if(typeof XLSX==='undefined'){toast('Excel library ไม่พร้อม','error');return;}
+
+  /* Build rows */
+  const rows=items.map((it,i)=>{
+    const r=it.prod;
+    const stock=Math.floor(parseFloat(safeStockStr(r['STOCK C4']))||0);
+    const stockW4=Math.floor(parseFloat(safeStockStr(r['STOCK W4']))||0);
+    const loc=r['Location']||r['LOCATION']||r['BC']||r['LOC']||'';
+    return{
+      'ลำดับ':i+1,
+      'ชื่อสินค้า':r['PRODUCT NAME']||'',
+      'CODE EA':r['CODE EA']||'',
+      'CODE CS':r['CODE CS']||'',
+      'Location':loc,
+      'ยอดขายเฉลี่ย/วัน (EA)':Number((it.avg||0).toFixed(2)),
+      'Coverage (วัน)':Number((it.cov||0).toFixed(1)),
+      'สต็อก C4':stock,
+      'สต็อก W4':stockW4,
+      'หมวดหมู่':[r['CAT GROUP'],r['CAT BRAND']].filter(Boolean).join(' · '),
+      'Rank C4':r['RANK C4']||'',
+    };
+  });
+
+  const ws=XLSX.utils.json_to_sheet(rows);
+  /* Set column widths */
+  ws['!cols']=[
+    {wch:6},{wch:40},{wch:16},{wch:16},{wch:14},
+    {wch:18},{wch:14},{wch:10},{wch:10},{wch:24},{wch:10}
+  ];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'ขายดี-สต็อคน้อย');
+
+  const now=new Date();
+  const ymd=now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');
+  const hm=String(now.getHours()).padStart(2,'0')+String(now.getMinutes()).padStart(2,'0');
+  XLSX.writeFile(wb,'รัตนมาร์ท_ขายดี-สต็อคน้อย_'+ymd+'_'+hm+'.xlsx');
+  toast('Export สำเร็จ — '+items.length+' รายการ','success');
+}
+window.fastlowExport=fastlowExport;
+
 
 
 /* ══════════════════════════════════════════════════
@@ -5257,6 +5384,52 @@ let _summaryCurTab='deadstock';
 let _summarySearchQuery='';
 let _summarySearchTimer=null;
 
+
+/* v11.9: shared stock filter for deadstock / fastlow / expiry */
+let _summaryStockFilter='all';  /* 'all' | 'c4' | 'w4' */
+
+function summarySetStockFilter(filter){
+  _summaryStockFilter=filter;
+  document.querySelectorAll('.sum-stk-filter').forEach(b=>{
+    const isActive=b.dataset.stkFilter===filter;
+    b.classList.toggle('active',isActive);
+    if(isActive){
+      b.style.background='var(--navy)';
+      b.style.color='var(--gold2)';
+      b.style.fontWeight='700';
+    } else {
+      b.style.background='none';
+      b.style.color='var(--muted)';
+      b.style.fontWeight='600';
+    }
+  });
+  /* Re-render current tab */
+  if(_summaryCurTab==='deadstock')deadRender();
+  else if(_summaryCurTab==='fastlow')fastlowRender();
+  else if(_summaryCurTab==='expiry'){
+    if(_expiryGroupsCache)expiryRenderFiltered();
+  }
+}
+window.summarySetStockFilter=summarySetStockFilter;
+
+/* helper: does product pass the current stock filter? */
+function _summaryStockFilterPasses(prod){
+  if(_summaryStockFilter==='all')return true;
+  const c4=Math.floor(parseFloat(safeStockStr(prod['STOCK C4']))||0);
+  const w4=Math.floor(parseFloat(safeStockStr(prod['STOCK W4']))||0);
+  if(_summaryStockFilter==='c4')return c4>0;
+  if(_summaryStockFilter==='w4')return w4>0;
+  return true;
+}
+window._summaryStockFilterPasses=_summaryStockFilterPasses;
+
+/* v11.9: hide shared filter when noprice tab (it has its own) */
+function summaryToggleSharedFilter(show){
+  const el=document.getElementById('summary-stock-filter');
+  if(el)el.style.display=show?'flex':'none';
+}
+window.summaryToggleSharedFilter=summaryToggleSharedFilter;
+
 function summarySwitch(tab){
   _summaryCurTab=tab;
   document.getElementById('subtab-deadstock').classList.toggle('active',tab==='deadstock');
@@ -5267,6 +5440,8 @@ function summarySwitch(tab){
   document.getElementById('summary-fastlow-section').style.display=tab==='fastlow'?'':'none';
   document.getElementById('summary-noprice-section').style.display=tab==='noprice'?'':'none';
   document.getElementById('summary-expiry-section').style.display=tab==='expiry'?'':'none';
+  /* v11.9: hide shared filter when noprice (it has its own) */
+  summaryToggleSharedFilter(tab!=='noprice');
   summaryReload();
 }
 window.summarySwitch=summarySwitch;
@@ -5933,6 +6108,17 @@ function expiryRenderFiltered(){
   }
   const q=(_summarySearchQuery||'').trim().toLowerCase();
   const groups=_expiryGroupsCache.filter(g=>{
+    /* v11.9: shared stock filter — find product by code in allData */
+    if(_summaryStockFilter!=='all'){
+      const codeEA=String(g.codeEA||'').trim();
+      const codeCS=String(g.codeCS||'').trim();
+      const prod=allData.find(p=>{
+        if(codeEA&&String(p['CODE EA']||'').trim()===codeEA)return true;
+        if(codeCS&&String(p['CODE CS']||'').trim()===codeCS)return true;
+        return false;
+      });
+      if(!prod||!_summaryStockFilterPasses(prod))return false;
+    }
     if(!q)return true;
     const name=(g.name||'').toLowerCase();
     const ea=(g.codeEA||'').toLowerCase();
