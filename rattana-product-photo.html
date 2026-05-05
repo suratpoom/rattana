@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>Rattana Product Photos v2.0</title>
+<title>Rattana Product Photos v2.1</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -55,6 +55,7 @@ header{background:var(--navy);color:#fff;padding:12px 16px;position:sticky;top:0
 
 /* Cards */
 .card{background:var(--card-bg);border-radius:var(--radius-md);border:1px solid var(--border);box-shadow:var(--shadow-md);margin-bottom:14px;overflow:hidden}
+.card.card-dropdown{overflow:visible;position:relative;z-index:50}
 .card-gold{border-top:3px solid var(--gold)}
 .card-success{border-top:3px solid var(--success)}
 .card-info{border-top:3px solid var(--info)}
@@ -89,7 +90,7 @@ body.dark .badge-warn{background:#3a2e15;color:#e8c86a}
 .dd-wrap{position:relative;width:100%}
 .dd-trigger{width:100%;min-height:48px;padding:10px 14px;background:var(--card-bg);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:'Sarabun',sans-serif;font-size:15px;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .dd-trigger:hover{border-color:var(--gold)}
-.dd-panel{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--card-bg);border:1.5px solid var(--border);border-radius:10px;z-index:500;box-shadow:0 8px 24px rgba(0,0,0,.15);max-height:320px;display:flex;flex-direction:column}
+.dd-panel{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--card-bg);border:1.5px solid var(--border);border-radius:10px;z-index:1000;box-shadow:0 12px 32px rgba(0,0,0,.25);max-height:320px;display:flex;flex-direction:column}
 .dd-search{padding:12px 14px;font-size:16px;border:none;border-bottom:1px solid var(--border);background:transparent;color:var(--text);outline:none;border-radius:10px 10px 0 0;font-family:'Sarabun',sans-serif}
 .dd-list{overflow-y:auto;flex:1;list-style:none;padding:4px 0;margin:0}
 .dd-list li{padding:10px 14px;cursor:pointer;font-size:14px;border-bottom:1px solid var(--border)}
@@ -199,7 +200,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 <div id="loginScreen">
   <div class="login-card">
     <div class="logo-big">RATTANA <span>PRODUCT PHOTOS</span></div>
-    <div class="sub">รัตนไพบูลย์ · v2.0</div>
+    <div class="sub">รัตนไพบูลย์ · v2.1</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -212,7 +213,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 <!-- App Screen -->
 <div id="appScreen" class="page" style="display:none">
   <header>
-    <div class="logo-text">RATTANA <span>PRODUCT PHOTOS</span><span class="ver">v2.0 · 2026-05-05</span></div>
+    <div class="logo-text">RATTANA <span>PRODUCT PHOTOS</span><span class="ver">v2.1 · 2026-05-05</span></div>
     <button class="icon-btn" onclick="refreshAll()" title="รีเฟรช" id="btnRefresh">⟳</button>
     <button class="icon-btn" onclick="toggleDark()" title="โหมดมืด">🌓</button>
     <button class="icon-btn" onclick="logout()" title="ออก">⏻</button>
@@ -235,9 +236,9 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
       </div>
 
       <!-- Step 1: Select Product -->
-      <div class="card card-gold">
+      <div class="card card-gold card-dropdown">
         <div class="card-head"><span><span class="step">1</span>เลือกสินค้า</span></div>
-        <div class="card-body">
+        <div class="card-body" style="overflow:visible">
           <div class="dd-wrap" id="ddProduct">
             <button class="dd-trigger" onclick="toggleProductDD()" type="button">
               <span id="ddProductLabel" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">— เลือกสินค้า —</span>
@@ -369,7 +370,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
     </div>
 
     <div class="app-footer">
-      Rattana Product Photos · <span class="ver">v2.0</span> · 2026-05-05
+      Rattana Product Photos · <span class="ver">v2.1</span> · 2026-05-05
     </div>
   </div>
 </div>
@@ -395,6 +396,14 @@ const CONFIG = {
   // 4) ขนาด output JPEG
   outputSize:     1000,    // px (สี่เหลี่ยมจัตุรัส 1000x1000)
   outputQuality:  0.85,    // 0.1-1.0
+
+  // 5) AI Performance — ตัวเลือกความเร็ว vs คุณภาพ
+  // 'isnet'        = ดีสุด ช้าสุด (15-30 วิ)
+  // 'isnet_fp16'   = ดี เร็วปานกลาง (8-15 วิ)
+  // 'isnet_quint8' = ดีพอใช้ เร็วสุด (4-8 วิ) ⭐ default
+  aiModel:           'isnet_quint8',
+  preprocessMaxSize: 1024,    // resize input ก่อนส่ง AI (ลดเวลา ~30%) — set 0 ถ้าไม่ต้องการ
+  prewarmAI:         true,    // โหลด AI ตั้งแต่เปิดแอป (ครั้งแรกไม่ต้องรอ)
 };
 
 // Auth (Rattana Users Sheet)
@@ -558,6 +567,12 @@ async function initApp() {
   renderConfig();
   checkSetup();
   await loadProducts();
+  // Pre-warm AI in background — ไม่ block UI
+  if (CONFIG.prewarmAI) {
+    setTimeout(() => {
+      loadBgRemovalLib().catch(e => console.warn('Pre-warm AI failed:', e));
+    }, 500);
+  }
 }
 
 function initTabs() {
@@ -614,6 +629,9 @@ function renderConfig() {
     ['Apps Script URL', CONFIG.gasUrl],
     ['Output Size (px)', CONFIG.outputSize + ' × ' + CONFIG.outputSize],
     ['JPEG Quality', Math.round(CONFIG.outputQuality * 100) + '%'],
+    ['AI Model', CONFIG.aiModel],
+    ['Pre-process Resize', CONFIG.preprocessMaxSize > 0 ? CONFIG.preprocessMaxSize + ' px' : 'ปิด'],
+    ['Pre-warm AI', CONFIG.prewarmAI ? 'เปิด' : 'ปิด'],
   ];
   $('cfgList').innerHTML = fields.map(([k, v]) => {
     const isUnset = String(v).startsWith('YOUR_');
@@ -840,27 +858,39 @@ window.processBgRemoval = async function() {
   $('progressBar').style.width = '0%';
   $('progressText').textContent = 'กำลังเริ่มต้น...';
 
+  const t0 = performance.now();
+
   try {
     const lib = await loadBgRemovalLib();
 
     $('progressBar').style.width = '5%';
-    $('progressText').textContent = 'กำลังเตรียม...';
+    $('progressText').textContent = 'กำลังเตรียมรูป...';
+
+    // Resize input ถ้าใหญ่เกิน — ลดเวลา AI processing
+    let inputBlob = originalImageBlob;
+    if (CONFIG.preprocessMaxSize > 0) {
+      inputBlob = await resizeIfTooLarge(originalImageBlob, CONFIG.preprocessMaxSize);
+    }
 
     const config = {
+      model: CONFIG.aiModel || 'isnet_quint8',
       progress: (key, current, total) => {
         const pct = total ? Math.round(current / total * 100) : 0;
         $('progressBar').style.width = pct + '%';
-        $('progressText').textContent = `${key}: ${pct}%`;
+        // Friendlier labels
+        const label = key.includes('download') ? 'ดาวน์โหลด AI' :
+                      key.includes('compute') ? 'กำลังลบพื้นหลัง' : key;
+        $('progressText').textContent = `${label}: ${pct}%`;
       },
       output: { format: 'image/png', quality: 1.0 },
     };
 
-    const transparentBlob = await lib.removeBackground(originalImageBlob, config);
+    const transparentBlob = await lib.removeBackground(inputBlob, config);
 
     $('progressText').textContent = 'กำลังใส่พื้นขาว...';
     $('progressBar').style.width = '95%';
 
-    // Composite onto white background, square crop, resize
+    // Composite onto white background, square crop, resize to output size
     const finalBlob = await compositeOnWhite(transparentBlob, CONFIG.outputSize, CONFIG.outputQuality);
     processedImageBlob = finalBlob;
     processedImageDataUrl = await blobToDataUrl(finalBlob);
@@ -870,15 +900,16 @@ window.processBgRemoval = async function() {
     zone.innerHTML = `<img src="${processedImageDataUrl}" alt="processed">`;
 
     $('progressBar').style.width = '100%';
-    $('progressText').textContent = '✓ เสร็จสมบูรณ์';
+    const elapsed = ((performance.now() - t0) / 1000).toFixed(1);
+    $('progressText').textContent = `✓ เสร็จ (${elapsed} วิ)`;
     setTimeout(() => {
       $('progressWrap').style.display = 'none';
       $('progressText').style.display = 'none';
-    }, 1500);
+    }, 2000);
 
     $('saveCard').style.display = 'block';
     updateFilenamePreview();
-    showToast('ลบพื้นหลังเรียบร้อย ✓', 'success');
+    showToast(`ลบพื้นหลังเรียบร้อย ✓ (${elapsed} วิ)`, 'success');
   } catch (e) {
     console.error('BG removal error:', e);
     const msg = e?.message || String(e);
@@ -889,6 +920,21 @@ window.processBgRemoval = async function() {
     btn.disabled = false;
   }
 };
+
+async function resizeIfTooLarge(blob, maxDim) {
+  const img = await blobToImage(blob);
+  if (img.width <= maxDim && img.height <= maxDim) return blob;
+  const scale = maxDim / Math.max(img.width, img.height);
+  const w = Math.round(img.width * scale);
+  const h = Math.round(img.height * scale);
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(img, 0, 0, w, h);
+  return new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.92));
+}
 
 async function compositeOnWhite(transparentBlob, size, quality) {
   const img = await blobToImage(transparentBlob);
