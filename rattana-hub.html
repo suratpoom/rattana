@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0d1b3e">
+<title>Rattana Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root{
+  --navy:#0d1b3e; --navy-mid:#1a2f5e; --navy-light:#243b73;
+  --gold:#c9a84c; --gold-light:#e8c86a;
+  --success:#2ecc71; --danger:#e74c3c; --warning:#f39c12; --info:#3498db;
+
+  --bg:#f4f6fb;
+  --text:#0d1b3e;
+  --card-bg:#fff;
+  --border:#dde3f0;
+  --muted:#6b7896;
+  --row-alt:#fafbfd;
+
+  --radius-sm:6px; --radius-md:12px; --radius-lg:16px;
+  --shadow-md:0 2px 8px rgba(0,0,0,.08);
+  --shadow-lg:0 8px 24px rgba(13,27,62,.12);
+  --shadow-gold:0 4px 12px rgba(201,168,76,.35);
+
+  --fav-strip-bg:linear-gradient(135deg,rgba(255,215,0,.12),rgba(201,168,76,.03));
+  --fav-strip-border:rgba(201,168,76,.4);
+  --card-icon-bg:linear-gradient(135deg,rgba(201,168,76,.12),rgba(201,168,76,.04));
+}
+body.dark{
+  --bg:#05080f;
+  --text:#ffffff;
+  --card-bg:#0d1b3e;
+  --border:#1f3563;
+  --muted:#b8c2dc;
+  --row-alt:#0a1226;
+
+  --fav-strip-bg:transparent;
+  --fav-strip-border:rgba(201,168,76,.55);
+  --card-icon-bg:rgba(201,168,76,.16);
+
+  --shadow-lg:0 8px 24px rgba(0,0,0,.5);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg)}
+body{font-family:'Sarabun',sans-serif;font-size:14px;line-height:1.5;min-height:100dvh;overflow-x:hidden;color:var(--text);transition:background .25s,color .25s;-webkit-overflow-scrolling:touch}
+button{font-family:inherit;cursor:pointer;border:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+input{font-family:inherit;font-size:16px}
+a{text-decoration:none;color:inherit}
+
+/* ── Login screen ── */
+#loginScreen{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,var(--navy) 0%,var(--navy-mid) 50%,var(--navy-light) 100%);position:relative}
+#loginScreen::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 20% 30%,rgba(201,168,76,.15) 0%,transparent 50%),radial-gradient(circle at 80% 70%,rgba(201,168,76,.1) 0%,transparent 50%);pointer-events:none}
+.login-box{background:#fff;border-radius:20px;padding:40px 32px;max-width:400px;width:100%;text-align:center;border-top:6px solid var(--gold);box-shadow:0 20px 60px rgba(0,0,0,.3);position:relative;z-index:1}
+.login-logo{font-size:48px;margin-bottom:12px}
+.login-box h1{font-size:24px;font-weight:700;color:var(--navy);letter-spacing:1px;margin-bottom:4px}
+.login-box h1 span{color:var(--gold)}
+.login-box .sub{color:var(--muted);font-size:13px;margin-bottom:28px}
+#g_id_signin{display:flex;justify-content:center;margin-top:12px}
+.login-error{background:rgba(231,76,60,.1);color:var(--danger);padding:10px 14px;border-radius:8px;font-size:13px;margin-top:16px;display:none}
+.login-error.show{display:block}
+.login-foot{margin-top:24px;font-size:11px;color:var(--muted)}
+
+/* ── Header ── */
+header{background:var(--navy);color:#fff;padding:12px 16px;position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:10px;border-bottom:3px solid var(--gold);padding-top:max(12px,env(safe-area-inset-top))}
+.logo-text{font-weight:700;letter-spacing:1.5px;font-size:18px;color:#fff;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.logo-text span{color:var(--gold)}
+.user-chip{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);padding:5px 10px 5px 5px;border-radius:20px;font-size:12px;border:1px solid rgba(255,255,255,.15);color:#fff;cursor:pointer;max-width:160px}
+.user-chip:hover{background:rgba(255,255,255,.18)}
+.user-chip-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--gold);color:var(--navy);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.icon-btn{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.2);width:38px;height:38px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.icon-btn:hover{background:rgba(255,255,255,.12)}
+
+/* User menu dropdown */
+.user-menu{position:absolute;top:calc(100% + 4px);right:8px;background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow-lg);min-width:200px;z-index:200;display:none;overflow:hidden}
+.user-menu.open{display:block;animation:slideDown .18s ease}
+@keyframes slideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.user-menu-info{padding:14px 16px;border-bottom:1px solid var(--border)}
+.user-menu-info .nm{font-weight:700;color:var(--text);font-size:14px;margin-bottom:2px}
+.user-menu-info .em{font-size:11px;color:var(--muted);word-break:break-all}
+.user-menu-info .meta{font-size:11px;color:var(--muted);margin-top:4px}
+.user-menu-action{display:flex;align-items:center;gap:10px;padding:11px 16px;width:100%;background:transparent;color:var(--text);font-size:13px;text-align:left;border:none;cursor:pointer}
+.user-menu-action:hover{background:var(--row-alt)}
+.user-menu-action.danger{color:var(--danger)}
+
+/* ── Hero ── */
+.hero{padding:24px 16px 8px;max-width:1200px;margin:0 auto;background:var(--bg)}
+.hero h1{font-size:20px;font-weight:700;margin-bottom:4px;color:var(--text)}
+.hero p{color:var(--muted);font-size:13px;margin-bottom:16px}
+.search-wrap{position:relative;margin-bottom:14px}
+.search-input{width:100%;min-height:46px;padding:10px 16px 10px 42px;font-size:16px;border:1.5px solid var(--border);border-radius:24px;background:var(--card-bg);color:var(--text);outline:none}
+.search-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.18)}
+.search-input::placeholder{color:var(--muted)}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:16px;pointer-events:none}
+
+.tag-bar{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tag-bar::-webkit-scrollbar{display:none}
+.tag{padding:6px 14px;border-radius:16px;font-size:12px;font-weight:600;border:1.5px solid var(--border);background:var(--card-bg);color:var(--muted);white-space:nowrap;cursor:pointer;transition:all .15s}
+.tag:hover{border-color:var(--gold);color:var(--text)}
+.tag.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+body.dark .tag.active{background:var(--gold);color:var(--navy);border-color:var(--gold)}
+
+/* ── Sections ── */
+.section{max-width:1200px;margin:0 auto;padding:8px 16px 24px;background:var(--bg)}
+.section-head{display:flex;align-items:center;gap:10px;margin:18px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.section-head .icon{font-size:20px}
+.section-head h2{font-size:15px;font-weight:700;letter-spacing:.3px;color:var(--text)}
+.section-head .count{margin-left:auto;font-size:11px;color:var(--muted);background:var(--row-alt);padding:2px 10px;border-radius:10px;border:1px solid var(--border)}
+
+.fav-strip{background:var(--fav-strip-bg);border:1.5px solid var(--fav-strip-border);border-radius:var(--radius-lg);padding:14px;margin-bottom:8px}
+.fav-strip .section-head{margin:0 0 10px;border:none;padding:0}
+
+/* ── Grid ── */
+.grid{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:560px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:900px){.grid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:1200px){.grid{grid-template-columns:repeat(4,1fr)}}
+
+/* ── App card ── */
+.app-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 14px 12px;cursor:pointer;display:flex;flex-direction:column;gap:8px;transition:transform .15s,box-shadow .15s,border-color .15s;position:relative;overflow:hidden;min-height:130px;color:var(--text)}
+.app-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent,var(--gold));opacity:.85}
+.app-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--gold)}
+.app-card:active{transform:translateY(0)}
+.app-card.color-red{--accent:#e74c3c}
+.app-card.color-blue{--accent:#3498db}
+.app-card.color-green{--accent:#2ecc71}
+.app-card.color-gold{--accent:#c9a84c}
+.app-card.color-purple{--accent:#9b59b6}
+.app-card.color-orange{--accent:#f39c12}
+.app-card.color-teal{--accent:#16a085}
+
+.card-top{display:flex;align-items:flex-start;gap:10px}
+.card-icon{font-size:30px;line-height:1;flex-shrink:0;width:46px;height:46px;display:flex;align-items:center;justify-content:center;background:var(--card-icon-bg);border-radius:10px}
+.card-title{font-size:15px;font-weight:700;line-height:1.25;padding-right:32px;color:var(--text)}
+.card-desc{font-size:12px;color:var(--muted);line-height:1.4;flex:1}
+.card-bottom{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:auto}
+.work-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:8px;background:var(--row-alt);color:var(--muted);border:1px solid var(--border)}
+
+.star-btn{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;background:var(--card-bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;transition:all .15s;z-index:2;color:var(--muted)}
+.star-btn:hover{border-color:var(--gold);color:var(--gold);transform:scale(1.1)}
+.star-btn.starred{background:var(--gold);border-color:var(--gold);color:#fff}
+
+/* ── States ── */
+.empty{text-align:center;padding:32px 16px;color:var(--muted);font-size:13px}
+.error-box{margin:16px;padding:16px;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);border-radius:var(--radius-md);color:var(--danger);font-size:13px}
+.error-box strong{display:block;margin-bottom:4px}
+.error-box code{background:rgba(0,0,0,.1);padding:1px 5px;border-radius:3px;font-size:11px}
+
+/* ── Spinner ── */
+#spinner{display:none;position:fixed;inset:0;background:rgba(13,27,62,.55);align-items:center;justify-content:center;z-index:99999;backdrop-filter:blur(3px)}
+#spinner.show{display:flex}
+.spinner-box{background:#fff;border-radius:var(--radius-lg);padding:32px 40px;text-align:center;border-top:4px solid var(--gold);min-width:240px}
+body.dark .spinner-box{background:var(--card-bg)}
+.spinner-ring{width:48px;height:48px;border:5px solid #dde3f0;border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
+body.dark .spinner-ring{border-color:#1f3563;border-top-color:var(--gold)}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:max(24px,env(safe-area-inset-bottom));right:16px;padding:12px 20px;border-radius:var(--radius-md);color:#fff;z-index:9999;animation:slideIn .3s ease;font-weight:500;box-shadow:var(--shadow-lg);max-width:90vw;font-size:13px}
+.toast-success{background:var(--success)}
+.toast-error{background:var(--danger)}
+.toast-info{background:var(--navy-mid);border-left:3px solid var(--gold)}
+@keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* ── Footer ── */
+.footer-note{max-width:1200px;margin:8px auto 24px;padding:12px 16px;font-size:11px;color:var(--muted);text-align:center;border-top:1px solid var(--border);background:var(--bg)}
+.footer-note strong{color:var(--text)}
+</style>
+</head>
+<body>
+
+<!-- ════════════ LOGIN SCREEN ════════════ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">🏢</div>
+    <h1>RATTANA <span>HUB</span></h1>
+    <div class="sub">ศูนย์รวมแอปสำหรับพนักงาน<br>เข้าสู่ระบบเพื่อใช้งาน</div>
+    <div id="g_id_onload"
+         data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
+         data-callback="handleGoogleLogin"
+         data-auto_prompt="false"></div>
+    <div id="g_id_signin" class="g_id_signin"
+         data-type="standard" data-size="large" data-theme="outline"
+         data-text="sign_in_with" data-shape="rectangular"></div>
+    <div id="loginError" class="login-error"></div>
+    <div class="login-foot">© Rattanaphaiboon · v1.0</div>
+  </div>
+</div>
+
+<!-- ════════════ APP SCREEN ════════════ -->
+<div id="appScreen" style="display:none">
+  <header style="position:relative">
+    <span class="logo-text">RATTANA <span>HUB</span></span>
+    <div class="user-chip" id="userChip" onclick="toggleUserMenu(event)">
+      <div class="avatar" id="avatar">?</div>
+      <span class="user-chip-text" id="userChipText">...</span>
+    </div>
+    <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="สลับธีม">🌓</button>
+    <div class="user-menu" id="userMenu">
+      <div class="user-menu-info">
+        <div class="nm" id="umName">-</div>
+        <div class="em" id="umEmail">-</div>
+        <div class="meta" id="umMeta">-</div>
+      </div>
+      <button class="user-menu-action" onclick="refreshApps()">🔄 รีเฟรชรายการแอป</button>
+      <button class="user-menu-action danger" onclick="logout()">🚪 ออกจากระบบ</button>
+    </div>
+  </header>
+
+  <div class="hero">
+    <h1 id="greeting">👋 สวัสดีครับ</h1>
+    <p>เลือกแอปที่ต้องการใช้งาน · login ครั้งเดียวใช้ได้ทุกแอป</p>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" type="text" id="searchInput" placeholder="ค้นหาแอป... (ชื่อ, tags, หมวด)" oninput="filterApps(this.value)">
+    </div>
+    <div class="tag-bar" id="tagBar"></div>
+  </div>
+
+  <div class="section" id="favSection" style="display:none">
+    <div class="fav-strip">
+      <div class="section-head">
+        <span class="icon">⭐</span>
+        <h2>รายการโปรดของฉัน</h2>
+        <span class="count" id="favCount">0 แอป</span>
+      </div>
+      <div class="grid" id="favGrid"></div>
+    </div>
+  </div>
+
+  <div class="section" id="categorySection"></div>
+
+  <div class="footer-note">
+    <strong>Rattana Hub v1.0</strong> · ดึง config จาก Google Sheet<br>
+    Login ครั้งเดียวใช้ได้ทุกแอปใน <code>github.io/rattana/</code>
+  </div>
+</div>
+
+<!-- Spinner -->
+<div id="spinner">
+  <div class="spinner-box">
+    <div class="spinner-ring"></div>
+    <p id="spinnerMsg">Loading...</p>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   CONFIG
+═══════════════════════════════════════════════════════════ */
+const AUTH_CONFIG = {
+  clientId: '615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com',
+  usersSheetId: '1M6HdISsLN684qRWyQ73CA4AmUzmYtZaOlffDJXZZIXQ',
+  usersSheetName: 'Rattana Users for apps',
+};
+const APP_CONFIG = {
+  sheetId: '1cziv8Ksg72YjmXCRVTBRWQ3x15AZId0HZizDnxk1L4s',
+  sheetName: 'list',
+};
+
+const SESSION_KEY  = 'rattana_session';   // SSO key — shared across all Rattana apps
+const LEGACY_KEY   = 'rattanaUser';        // backwards compat — old apps still read this
+const THEME_KEY    = 'rattana_theme';
+const APPS_CACHE_KEY = 'rattana_hub_apps_cache';
+const APPS_CACHE_TTL = 5 * 60 * 1000;     // 5 minutes
+const SESSION_TTL  = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+/* ═══════════════════════════════════════════════════════════
+   THEME
+═══════════════════════════════════════════════════════════ */
+function applyTheme(t){
+  document.body.classList.toggle('dark', t === 'dark');
+  const btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = t === 'dark' ? '☀️' : '🌙';
+}
+function toggleTheme(){
+  const next = document.body.classList.contains('dark') ? 'light' : 'dark';
+  localStorage.setItem(THEME_KEY, next);
+  applyTheme(next);
+}
+applyTheme(localStorage.getItem(THEME_KEY) || 'light');
+
+/* ═══════════════════════════════════════════════════════════
+   SPINNER & TOAST
+═══════════════════════════════════════════════════════════ */
+function showSpinner(msg = 'Loading...') {
+  document.getElementById('spinnerMsg').textContent = msg;
+  document.getElementById('spinner').classList.add('show');
+}
+function hideSpinner() {
+  document.getElementById('spinner').classList.remove('show');
+}
+function showToast(msg, type = 'info') {
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CSV PARSER (RFC-4180)
+═══════════════════════════════════════════════════════════ */
+function parseCsv(text) {
+  if (!text) return [];
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+  const rows = []; let row = [], cell = '', inQuote = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQuote) {
+      if (ch === '"') { if (text[i+1]==='"'){cell+='"';i++;}else inQuote=false; }
+      else cell += ch;
+    } else {
+      if (ch==='"') inQuote=true;
+      else if (ch===',') { row.push(cell); cell=''; }
+      else if (ch==='\r') { /* skip */ }
+      else if (ch==='\n') { row.push(cell); rows.push(row); row=[]; cell=''; }
+      else cell += ch;
+    }
+  }
+  if (cell.length||row.length) { row.push(cell); rows.push(row); }
+  if (!rows.length) return [];
+  const clean = s => String(s||'').replace(/[\u200B\u200C\u200D\uFEFF]/g,'').replace(/\u00A0/g,' ').trim();
+  const headers = rows[0].map(clean);
+  return rows.slice(1).filter(r=>r.some(c=>clean(c))).map(r=>Object.fromEntries(headers.map((k,i)=>[k,clean(r[i])])));
+}
+
+async function loadFromSheets(sheetId, sheetName) {
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Sheet fetch failed (${res.status})`);
+  return parseCsv(await res.text());
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AUTH
+═══════════════════════════════════════════════════════════ */
+function decodeJwtPayload(token) {
+  const parts = String(token||'').split('.');
+  if (parts.length < 2) throw new Error('JWT format invalid');
+  let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+  const pad = (4 - b64.length % 4) % 4;
+  if (pad) b64 += '='.repeat(pad);
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return JSON.parse(new TextDecoder('utf-8').decode(bytes));
+}
+const normalizeEmail = s => String(s||'').replace(/[\u200B\u200C\u200D\uFEFF]/g,'').replace(/\s+/g,'').toLowerCase();
+
+let currentUser = null;
+
+function showLoginError(msg) {
+  const el = document.getElementById('loginError');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+async function handleGoogleLogin(r) {
+  showSpinner('กำลังตรวจสอบสิทธิ์...');
+  try {
+    const payload = decodeJwtPayload(r.credential);
+    const email = normalizeEmail(payload.email);
+    const picture = payload.picture || '';
+
+    const users = await loadFromSheets(AUTH_CONFIG.usersSheetId, AUTH_CONFIG.usersSheetName);
+    const user = users.find(u => normalizeEmail(u['E-mail']) === email);
+
+    if (!user) {
+      showLoginError('ไม่พบ email ในระบบ กรุณาติดต่อผู้ดูแล');
+      return;
+    }
+    if (String(user['Status']||'').trim().toLowerCase() !== 'active') {
+      showLoginError('บัญชีถูกระงับ กรุณาติดต่อผู้ดูแล');
+      return;
+    }
+
+    currentUser = {
+      email,
+      name: user['ชื่อ - สกุล'] || '',
+      nickname: user['ชื่อเล่น'] || '',
+      role: parseInt(user['User Role'])||1,
+      dept: user['แผนก'] || '',
+      company: user['บริษัท'] || '',
+      warehouse: user['W'] || '',
+      empId: String(user['รหัสพนักงาน']||''),
+      picture,
+    };
+
+    saveSession();
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = '';
+    initApp();
+
+  } catch(e) {
+    console.error(e);
+    showLoginError('เข้าสู่ระบบล้มเหลว กรุณาลองอีกครั้ง');
+  } finally {
+    hideSpinner();
+  }
+}
+
+function saveSession() {
+  const payload = { data: currentUser, exp: Date.now() + SESSION_TTL };
+  // Write BOTH: SSO key (new apps) + legacy key (existing apps that haven't migrated)
+  localStorage.setItem(SESSION_KEY, JSON.stringify(payload));
+  localStorage.setItem(LEGACY_KEY, JSON.stringify(payload));
+}
+
+function checkSession() {
+  try {
+    // Prefer new SSO key, fall back to legacy
+    const raw = localStorage.getItem(SESSION_KEY) || localStorage.getItem(LEGACY_KEY);
+    if (!raw) return false;
+    const { data, exp } = JSON.parse(raw);
+    if (Date.now() > exp) {
+      localStorage.removeItem(SESSION_KEY);
+      localStorage.removeItem(LEGACY_KEY);
+      return false;
+    }
+    currentUser = data;
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = '';
+    initApp();
+    return true;
+  } catch {
+    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(LEGACY_KEY);
+    return false;
+  }
+}
+
+function logout() {
+  localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(LEGACY_KEY);
+  // Don't clear favorites or theme — keep user prefs
+  location.reload();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   USER MENU
+═══════════════════════════════════════════════════════════ */
+function toggleUserMenu(ev) {
+  ev.stopPropagation();
+  document.getElementById('userMenu').classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  document.getElementById('userMenu')?.classList.remove('open');
+});
+
+/* ═══════════════════════════════════════════════════════════
+   APPS — fetch, cache, filter, render
+═══════════════════════════════════════════════════════════ */
+let APPS = [];
+let activeTag = 'ทั้งหมด';
+let searchQuery = '';
+let favorites = [];
+
+const VALID_COLORS = ['red','blue','green','gold','purple','orange','teal'];
+
+function loadAppsCache() {
+  try {
+    const raw = localStorage.getItem(APPS_CACHE_KEY);
+    if (!raw) return null;
+    const { data, ts } = JSON.parse(raw);
+    if (Date.now() - ts > APPS_CACHE_TTL) return null;
+    return data;
+  } catch { return null; }
+}
+function saveAppsCache(data) {
+  localStorage.setItem(APPS_CACHE_KEY, JSON.stringify({ data, ts: Date.now() }));
+}
+
+function normalizeApp(row) {
+  const tagsRaw = String(row.tags || '').trim();
+  const tags = tagsRaw ? tagsRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const allowedRaw = String(row.allowed_depts || '').trim();
+  const allowed_depts = allowedRaw ? allowedRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const minRoleRaw = String(row.min_role || '').trim();
+  const min_role = minRoleRaw ? (parseInt(minRoleRaw) || 0) : 0;
+  let color = String(row.color || 'gold').trim().toLowerCase();
+  if (!VALID_COLORS.includes(color)) color = 'gold';
+
+  return {
+    order: parseInt(row.order) || 999,
+    category: row.category || 'อื่นๆ',
+    name_th: row.name_th || '(ไม่มีชื่อ)',
+    description: row.description || '',
+    icon: row.icon || '📱',
+    url: row.url || '#',
+    color,
+    work_area: row.work_area || '',
+    tags,
+    allowed_depts,
+    min_role,
+    active: String(row.active || 'Y').trim().toUpperCase() === 'Y',
+  };
+}
+
+function canUserAccessApp(app) {
+  if (!app.active) return false;
+  // role check
+  if (app.min_role > 0 && (currentUser.role || 0) < app.min_role) return false;
+  // dept check (empty = anyone)
+  if (app.allowed_depts.length) {
+    const dept = String(currentUser.dept || '').trim();
+    if (!app.allowed_depts.some(d => d === dept)) return false;
+  }
+  return true;
+}
+
+async function fetchApps(force = false) {
+  if (!force) {
+    const cached = loadAppsCache();
+    if (cached) {
+      APPS = cached;
+      return;
+    }
+  }
+  try {
+    const rows = await loadFromSheets(APP_CONFIG.sheetId, APP_CONFIG.sheetName);
+    APPS = rows.map(normalizeApp).sort((a,b) => a.order - b.order);
+    saveAppsCache(APPS);
+  } catch (e) {
+    console.error('App fetch failed:', e);
+    throw e;
+  }
+}
+
+async function refreshApps() {
+  document.getElementById('userMenu').classList.remove('open');
+  showSpinner('กำลังดึงรายการแอป...');
+  try {
+    await fetchApps(true);
+    renderAll();
+    showToast('อัพเดทเรียบร้อย ✓', 'success');
+  } catch (e) {
+    showToast('ดึงข้อมูลไม่สำเร็จ', 'error');
+  } finally {
+    hideSpinner();
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FAVORITES
+═══════════════════════════════════════════════════════════ */
+function favKey() { return `rattana_hub_favorites_${currentUser.email}`; }
+function loadFavs() {
+  try { return JSON.parse(localStorage.getItem(favKey()) || '[]'); }
+  catch { return []; }
+}
+function saveFavs() { localStorage.setItem(favKey(), JSON.stringify(favorites)); }
+function isFav(url) { return favorites.includes(url); }
+function toggleFav(url, ev) {
+  ev.preventDefault(); ev.stopPropagation();
+  if (isFav(url)) favorites = favorites.filter(u => u !== url);
+  else favorites.push(url);
+  saveFavs(); renderAll();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════════════════════ */
+function escHtml(s) {
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function getVisibleApps() {
+  return APPS.filter(canUserAccessApp);
+}
+
+function matchesFilter(app) {
+  if (activeTag !== 'ทั้งหมด' && app.work_area !== activeTag) return false;
+  if (searchQuery) {
+    const hay = [app.name_th, app.description, app.category, app.work_area, ...app.tags].join(' ').toLowerCase();
+    if (!hay.includes(searchQuery)) return false;
+  }
+  return true;
+}
+
+function renderTagBar() {
+  const visible = getVisibleApps();
+  const areas = ['ทั้งหมด', ...new Set(visible.map(a => a.work_area).filter(Boolean))];
+  document.getElementById('tagBar').innerHTML = areas.map(t =>
+    `<button class="tag ${t===activeTag?'active':''}" onclick="setTag('${escHtml(t)}')">${escHtml(t)}</button>`
+  ).join('');
+}
+
+function setTag(t) { activeTag = t; renderTagBar(); renderApps(); }
+function filterApps(q) { searchQuery = q.toLowerCase().trim(); renderApps(); }
+
+function appCard(app) {
+  const starred = isFav(app.url);
+  const target = /^https?:\/\//.test(app.url) ? ' target="_blank" rel="noopener"' : '';
+  return `
+    <a class="app-card color-${app.color}" href="${escHtml(app.url)}"${target}>
+      <button class="star-btn ${starred?'starred':''}" onclick="toggleFav('${escHtml(app.url)}', event)" aria-label="${starred?'ลบจากรายการโปรด':'เพิ่มในรายการโปรด'}">${starred?'★':'☆'}</button>
+      <div class="card-top">
+        <div class="card-icon">${escHtml(app.icon)}</div>
+        <div style="flex:1;min-width:0">
+          <div class="card-title">${escHtml(app.name_th)}</div>
+        </div>
+      </div>
+      <div class="card-desc">${escHtml(app.description)}</div>
+      <div class="card-bottom">
+        ${app.work_area ? `<span class="work-badge">${escHtml(app.work_area)}</span>` : ''}
+      </div>
+    </a>
+  `;
+}
+
+function renderApps() {
+  const visible = getVisibleApps();
+  const filtered = visible.filter(matchesFilter);
+
+  // Favorites
+  const favs = filtered.filter(a => isFav(a.url));
+  const favSec = document.getElementById('favSection');
+  if (favs.length) {
+    favSec.style.display = '';
+    document.getElementById('favCount').textContent = `${favs.length} แอป`;
+    document.getElementById('favGrid').innerHTML = favs.map(appCard).join('');
+  } else {
+    favSec.style.display = 'none';
+  }
+
+  // By category
+  const byCat = {};
+  filtered.forEach(a => {
+    if (!byCat[a.category]) byCat[a.category] = [];
+    byCat[a.category].push(a);
+  });
+
+  const catSec = document.getElementById('categorySection');
+  if (!Object.keys(byCat).length) {
+    catSec.innerHTML = visible.length
+      ? '<div class="empty">ไม่พบแอปที่ตรงกับการค้นหา</div>'
+      : '<div class="empty">ยังไม่มีแอปที่คุณมีสิทธิ์เข้าถึง</div>';
+    return;
+  }
+  catSec.innerHTML = Object.entries(byCat).map(([cat, apps]) => `
+    <div class="section-head">
+      <span class="icon">${escHtml(apps[0].icon||'📁')}</span>
+      <h2>${escHtml(cat)}</h2>
+      <span class="count">${apps.length} แอป</span>
+    </div>
+    <div class="grid">${apps.map(appCard).join('')}</div>
+  `).join('');
+}
+
+function renderAll() {
+  renderTagBar();
+  renderApps();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════ */
+function fillUserUI() {
+  const u = currentUser;
+  const initial = (u.nickname || u.name || u.email || '?').trim().charAt(0).toUpperCase();
+  const av = document.getElementById('avatar');
+  if (u.picture) {
+    av.innerHTML = `<img src="${escHtml(u.picture)}" alt="" onerror="this.parentElement.textContent='${initial}'">`;
+  } else {
+    av.textContent = initial;
+  }
+  document.getElementById('userChipText').textContent = `${u.nickname || u.name || u.email} · ${u.dept || '-'}`;
+  document.getElementById('greeting').textContent = `👋 สวัสดีครับ ${u.nickname || u.name || ''}`.trim();
+
+  document.getElementById('umName').textContent = u.name || u.email;
+  document.getElementById('umEmail').textContent = u.email;
+  const meta = [u.dept, u.warehouse, `Role ${u.role}`].filter(Boolean).join(' · ');
+  document.getElementById('umMeta').textContent = meta || '-';
+}
+
+async function initApp() {
+  fillUserUI();
+  favorites = loadFavs();
+  showSpinner('กำลังดึงรายการแอป...');
+  try {
+    await fetchApps();
+    renderAll();
+  } catch (e) {
+    document.getElementById('categorySection').innerHTML = `
+      <div class="error-box">
+        <strong>⚠️ ดึงรายการแอปไม่สำเร็จ</strong>
+        ${escHtml(e.message || String(e))}<br>
+        ตรวจสอบว่า Sheet <code>${escHtml(APP_CONFIG.sheetName)}</code> share เป็น "Anyone with link can view"
+      </div>
+    `;
+  } finally {
+    hideSpinner();
+  }
+}
+
+window.handleGoogleLogin = handleGoogleLogin;
+window.toggleTheme = toggleTheme;
+window.toggleFav = toggleFav;
+window.setTag = setTag;
+window.filterApps = filterApps;
+window.toggleUserMenu = toggleUserMenu;
+window.refreshApps = refreshApps;
+window.logout = logout;
+
+// Try restore session on page load
+window.addEventListener('DOMContentLoaded', () => {
+  checkSession(); // if no session, login screen stays visible
+});
+</script>
+
+</body>
+</html>
