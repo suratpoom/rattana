@@ -167,9 +167,12 @@ body.dark .cqr-acct{background:rgba(255,255,255,.04)}
 /* Collect tab */
 .collect-wrap{padding:16px 12px 80px;max-width:760px;margin:0 auto}
 @media(min-width:640px){.collect-wrap{padding:20px 16px 80px}}
-.collect-head{margin-bottom:18px}
+.collect-head{margin-bottom:14px}
 .collect-head h2{font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px}
-.collect-head p{font-size:13px;color:var(--muted)}
+.collect-head p{font-size:13px;color:var(--muted);margin-bottom:8px}
+.collect-filter-toggle{margin-top:8px;padding:8px 12px;background:rgba(201,168,76,.08);border-radius:8px;border:1px solid rgba(201,168,76,.2)}
+.cft-label{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--text);cursor:pointer}
+.cft-label input[type="checkbox"]{width:16px;height:16px;accent-color:var(--gold);cursor:pointer;flex-shrink:0}
 .collect-controls{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:18px;background:var(--card-bg);padding:14px;border-radius:12px;border:1px solid var(--border)}
 .collect-controls label{display:flex;flex-direction:column;gap:4px}
 .collect-controls .lbl{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.3px}
@@ -400,6 +403,8 @@ td.aging{text-align:center}
 body.dark .s-dman-note{background:#091525;border-color:#1a3a5e}
 .badge-dman{background:#1a3a5e;color:#7ec8e3;margin-left:4px;font-size:10px}
 body.dark .badge-dman{background:#0d2035;color:#5bb8d4}
+.badge-note{background:#3d2e00;color:#f0c040;margin-left:4px;font-size:10px}
+body.dark .badge-note{background:#2a1f00;color:#e8b840}
 .badge-ok{background:#e8f7ee;color:#1e8449}
 .badge-w1{background:#fef3d7;color:#a87800}
 .badge-w2{background:#ffe5d0;color:#b85a00}
@@ -612,6 +617,12 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
       <div class="collect-head">
         <h2>💰 รวมยอดสร้าง QR เก็บเงิน</h2>
         <p>เลือกลูกหนี้ → เลือกยอดที่ต้องการเก็บ → สร้าง QR ส่งให้ลูกค้าจ่ายผ่าน LINE / Messenger</p>
+        <div class="collect-filter-toggle">
+          <label class="cft-label">
+            <input type="checkbox" id="cOnlyCollectible" checked onchange="initCollectTab()">
+            <span>แสดงเฉพาะลูกหนี้ที่ต้องเก็บ (มียอดค้างชำระ + D-MAN ผ่าน)</span>
+          </label>
+        </div>
       </div>
 
       <div class="collect-controls">
@@ -859,6 +870,27 @@ function normDman(raw){
 function dmanShouldCount(dman){
   if (!dman) return true;
   return dman.toLowerCase() === 'ไม่ชำระ';
+}
+
+// Column L (หมายเหตุ): ต้องเป็น "ค้างชำระ" เท่านั้นถึงนับ
+// ค่าอื่น = อาจชำระแล้ว → ไม่นับ
+function noteShouldCount(note){
+  const n = String(note||'').trim().toLowerCase();
+  return n === 'ค้างชำระ';
+}
+
+// Master check: บิลนับในยอด QR/summary เมื่อ
+// 1. หมายเหตุ (L) = "ค้างชำระ"
+// 2. D-MAN (O) = ว่าง หรือ "ไม่ชำระ"
+function rowShouldCount(r){
+  return noteShouldCount(r.note) && rowShouldCount(r);
+}
+
+// Reason why a row doesn't count (for badge display)
+function rowExcludeReason(r){
+  if (!noteShouldCount(r.note)) return 'note'; // หมายเหตุไม่ใช่ค้างชำระ
+  if (!rowShouldCount(r)) return 'dman'; // D-MAN รอตัดบัญชี
+  return null;
 }
 
 const parseNum = s => {
@@ -1818,9 +1850,9 @@ function computeSummary(){
   let dmanCount = 0; // rows excluded due to D-MAN
   viewRows.forEach(r => {
     if (r.custCode) custSet.add(r.custCode);
-    if (!dmanShouldCount(r.dman)){
+    if (!rowShouldCount(r)){
       dmanCount++;
-      return; // D-MAN รอตัดบัญชี — ไม่นับในยอด
+      return; // ไม่นับในยอด (D-MAN หรือ หมายเหตุไม่ใช่ค้างชำระ)
     }
     total += r.amount;
     if (r.overdue > 0){
@@ -1883,7 +1915,7 @@ function renderChart(){
   // Aggregate by mode
   const groups = new Map();
   viewRows.forEach(r => {
-    if (!dmanShouldCount(r.dman)) return; // D-MAN รอตัดบัญชี — ไม่นับในกราฟ
+    if (!rowShouldCount(r)) return; // ไม่นับในกราฟ
     let key, label, sub = '';
     if (chartMode === 'sales'){
       // Key by normalized name so ROO rows merge into same bar
@@ -2007,20 +2039,23 @@ function renderTable(){
   // Build HTML in batch (faster than appendChild loop)
   const html = slice.map((r, i) => {
     const idx = start + i;
-    const counts = dmanShouldCount(r.dman);
-    const dmanBadge = !counts
+    const counts = rowShouldCount(r);
+    const reason = rowExcludeReason(r);
+    const excludeBadge = reason === 'dman'
       ? `<span class="badge badge-dman" title="D-MAN: ${escapeAttr(r.dman)}">🚚 รอตัดบัญชี</span>`
+      : reason === 'note'
+      ? `<span class="badge badge-note" title="หมายเหตุ: ${escapeAttr(r.note)}">📝 ${escapeHtml(r.note||'-')}</span>`
       : '';
     const rowStyle = !counts ? 'opacity:.55' : '';
     const qrBtn = (r.amount > 0 && counts)
       ? `<button class="qr-btn" onclick="showQRForBill(${idx})" title="สร้าง QR เก็บเงิน">📱</button>`
-      : (r.amount > 0 ? `<span title="รอตัดบัญชี — ไม่สร้าง QR" style="font-size:18px;opacity:.35">📱</span>` : '');
+      : (r.amount > 0 ? `<span title="${reason==='dman'?'รอตัดบัญชี':'หมายเหตุไม่ใช่ค้างชำระ'} — ไม่สร้าง QR" style="font-size:18px;opacity:.35">📱</span>` : '');
     return `
     <tr style="${rowStyle}">
       <td style="text-align:center">${qrBtn}</td>
       <td>${escapeHtml(r.custName)}</td>
       <td class="num">${fmtBaht(r.amount)}</td>
-      <td class="aging">${agingBadge(r.overdue)}${dmanBadge}</td>
+      <td class="aging">${agingBadge(r.overdue)}${excludeBadge}</td>
       <td class="code">${escapeHtml(r.docNo)}</td>
       <td>${escapeHtml(r.docDate)}</td>
       <td class="num" style="text-align:center">${r.aging}</td>
@@ -2203,8 +2238,8 @@ function renderDebug(){
         ${(() => {
           const rows = allRows.slice(0, 200);
           const dmanVals = [...new Set(rows.map(r => r.dman || '(ว่าง)'))].slice(0, 15);
-          const excluded = rows.filter(r => !dmanShouldCount(r.dman)).length;
-          const counted = rows.filter(r => dmanShouldCount(r.dman)).length;
+          const excluded = rows.filter(r => !rowShouldCount(r)).length;
+          const counted = rows.filter(r => rowShouldCount(r)).length;
           return `ใน 200 แถวแรก — นับ: ${counted}, รอตัดบัญชี: ${excluded}<br>ค่าที่พบใน D-MAN: ${dmanVals.map(v => '<code style="background:rgba(0,0,0,.08);padding:1px 4px;border-radius:3px">' + escapeHtml(v) + '</code>').join(' ')}`;
         })()}
       </div>
@@ -2646,6 +2681,7 @@ function initCollectTab(){
   // Apply same filters as debt table (so filter bar affects both tabs)
   const w = $('fWarehouse').value;
   const s = $('fSales').value;
+  const onlyCollectible = $('cOnlyCollectible')?.checked !== false; // default true
   let baseRows = allRows;
   if (w) baseRows = baseRows.filter(r => r.warehouse === w);
   if (s) baseRows = baseRows.filter(r => r.empId === s);
@@ -2675,8 +2711,8 @@ function initCollectTab(){
     }
     const c = map.get(key);
     c.count++;
-    // D-MAN รอตัดบัญชี → นับแสดงแต่ไม่รวมในยอดเก็บ
-    if (!dmanShouldCount(r.dman)){
+    // D-MAN หรือ หมายเหตุไม่ใช่ค้างชำระ → ไม่รวมในยอดเก็บ
+    if (!rowShouldCount(r)){
       c.dmanAmount += r.amount;
       c.dmanCount++;
       return;
@@ -2708,10 +2744,14 @@ function initCollectTab(){
 function renderRankedList(){
   const wrap = $('cRankedList');
   if (!wrap) return;
-  // Only customers who have something collectible (overdue > 0 OR CN exists)
+  // Only customers who have something collectible
   // Sort by collectible desc
+  const onlyCollect = $('cOnlyCollectible')?.checked !== false;
   const ranked = collectCustList
-    .filter(c => c.overdueCount > 0 || c.cnCount > 0)
+    .filter(c => onlyCollect
+      ? (c.overdueCount > 0 || c.cnCount > 0) && c.collectible > 0
+      : true
+    )
     .sort((a,b) => b.collectible - a.collectible);
 
   $('crCount').textContent = `${ranked.length} ร้าน`;
@@ -2781,7 +2821,7 @@ function quickShareQR(code){
   const bills = allRows.filter(r =>
     r.custCode === code &&
     (r.amount < 0 || r.overdue > 0) &&
-    dmanShouldCount(r.dman)            // ← D-MAN filter
+    rowShouldCount(r)            // ← D-MAN filter
   ).sort((a,b) => {
     if (a.amount > 0 && b.amount < 0) return -1;
     if (a.amount < 0 && b.amount > 0) return 1;
@@ -2808,9 +2848,14 @@ function quickShareQR(code){
 function renderComboList(query){
   const list = $('custList');
   const q = (query || '').trim().toLowerCase();
-  const matches = q
-    ? collectCustList.filter(c => c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q))
+  const onlyCollect = $('cOnlyCollectible')?.checked !== false;
+  // Base source: filter by collectible if checkbox is on
+  const source = onlyCollect
+    ? collectCustList.filter(c => (c.overdueCount > 0 || c.cnCount > 0) && c.collectible > 0)
     : collectCustList;
+  const matches = q
+    ? source.filter(c => c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q))
+    : source;
 
   if (!matches.length){
     list.innerHTML = `<div class="combo-empty">ไม่พบร้านค้า "${escapeHtml(query)}"</div>`;
@@ -2914,14 +2959,14 @@ function loadCustomerBills(code){
   }
 
   // แยก D-MAN (รอตัดบัญชี) ออก — แสดงแต่ไม่ pre-select
-  const countableBills = allBills.filter(b => dmanShouldCount(b.dman));
-  const dmanBills = allBills.filter(b => !dmanShouldCount(b.dman));
+  const countableBills = allBills.filter(b => rowShouldCount(b));
+  const dmanBills = allBills.filter(b => !rowShouldCount(b));
 
   collectSelectedCust = allBills[0];
   collectBills = allBills; // เก็บทั้งหมดเพื่อแสดง
   // Pre-select เฉพาะบิลที่นับได้
   collectSelected = new Set(
-    allBills.map((_, i) => i).filter(i => dmanShouldCount(allBills[i].dman))
+    allBills.map((_, i) => i).filter(i => rowShouldCount(allBills[i]))
   );
 
   const totalDebt = countableBills.filter(b => b.amount > 0).reduce((s,b) => s + b.amount, 0);
@@ -2977,12 +3022,12 @@ function updateComboHighlight(items){
 }
 
 function renderCollectBills(){
-  const countable = collectBills.filter(b => dmanShouldCount(b.dman)).length;
+  const countable = collectBills.filter(b => rowShouldCount(b)).length;
   const dmanCount = collectBills.length - countable;
   $('cBillsCount').textContent = `${countable} เอกสาร${dmanCount > 0 ? ` (+${dmanCount} รอตัดบัญชี)` : ''}`;
   $('cBillsList').innerHTML = collectBills.map((b, i) => {
     const isCN = b.amount < 0;
-    const isDman = !dmanShouldCount(b.dman);
+    const isDman = !rowShouldCount(b);
     const checked = collectSelected.has(i);
     const overdueLabel = b.overdue > 0
       ? `<span class="b-status badge-w3" style="background:#ffd5d0;color:#c0392b">เกิน ${b.overdue} วัน</span>`
@@ -3008,7 +3053,7 @@ function renderCollectBills(){
 
 function toggleBill(idx, checked){
   // Never allow selecting D-MAN rows
-  if (!dmanShouldCount(collectBills[idx]?.dman)) return;
+  if (!rowShouldCount(collectBills[idx])) return;
   if (checked) collectSelected.add(idx);
   else collectSelected.delete(idx);
   updateCollectSummary();
@@ -3018,7 +3063,7 @@ function toggleAllBills(checked){
   collectSelected.clear();
   if (checked){
     // Only select countable (non-D-MAN) bills
-    collectBills.forEach((b, i) => { if (dmanShouldCount(b.dman)) collectSelected.add(i); });
+    collectBills.forEach((b, i) => { if (rowShouldCount(b)) collectSelected.add(i); });
   }
   document.querySelectorAll('#cBillsList input[type="checkbox"]:not(:disabled)').forEach(cb => cb.checked = checked);
   updateCollectSummary();
