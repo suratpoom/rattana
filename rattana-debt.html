@@ -121,7 +121,7 @@ body.dark .ctab.active{background:var(--gold);color:var(--navy);border-color:var
 }
 
 /* Tab navigation */
-.tab-nav{display:grid;grid-template-columns:repeat(4,1fr);background:var(--navy);border-bottom:3px solid var(--gold);margin:0 0 12px;overflow:hidden}
+.tab-nav{display:grid;grid-template-columns:repeat(4,1fr);background:var(--navy);border-bottom:3px solid var(--gold);margin:0;overflow:hidden;position:sticky;top:54px;z-index:60}
 .tnav{background:transparent;border:none;color:rgba(255,255,255,.6);padding:11px 4px;font-size:11px;font-weight:600;font-family:inherit;cursor:pointer;border-bottom:3px solid transparent;transition:all .18s;margin-bottom:-3px;border-radius:0;text-align:center;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(min-width:480px){.tnav{font-size:12px;padding:12px 6px}}
 @media(min-width:640px){.tnav{font-size:14px;padding:14px 10px}}
@@ -337,8 +337,10 @@ body.dark .qr-details{background:rgba(255,255,255,.04)}
 .ai-name{padding:2px 0 4px}
 
 /* Filter bar */
-.filter-bar-wrap{position:sticky;top:54px;z-index:55;background:var(--card-bg);border-bottom:1px solid var(--border)}
-@media(min-width:640px){.filter-bar-wrap{top:60px}}
+.filter-bar-wrap{position:sticky;top:calc(54px + 38px);z-index:55;background:var(--card-bg);border-bottom:1px solid var(--border)}
+@media(min-width:480px){.tab-nav{top:54px}}
+@media(min-width:640px){.tab-nav{top:60px}}
+@media(min-width:640px){.filter-bar-wrap{top:calc(60px + 46px)}}
 
 .filter-toggle-row{display:flex;align-items:center;padding:4px 10px;background:var(--navy);border-bottom:1px solid rgba(255,255,255,.08)}
 @media(min-width:640px){.filter-toggle-row{display:none}} /* hide toggle on desktop — always show filter */
@@ -349,7 +351,7 @@ body.dark .qr-details{background:rgba(255,255,255,.04)}
 .filter-bar{background:var(--card-bg);margin:0;padding:6px 8px;border-radius:0;border:none;display:grid;grid-template-columns:repeat(2,1fr);gap:5px;animation:fadeIn .2s}
 .filter-bar.collapsed{display:none}
 .filter-bar label.fb-search{grid-column:1/-1}
-.filter-bar label.fb-reset{display:flex;align-items:flex-end;grid-column:1/-1}
+.filter-bar label.fb-reset{display:flex;flex-direction:column;gap:3px;grid-column:1/-1}
 @media(min-width:640px){.filter-bar{padding:8px 14px;grid-template-columns:1fr 1fr 1fr 1fr 1.5fr auto;gap:8px}.filter-bar label.fb-search{grid-column:auto}.filter-bar label.fb-reset{grid-column:auto;display:flex}}
 @media(min-width:1024px){.filter-bar{grid-template-columns:1fr 1fr 1fr 1fr 1.5fr auto}}
 .filter-bar .lbl{font-size:9px;color:var(--muted);font-weight:600;letter-spacing:.2px;line-height:1}
@@ -514,7 +516,15 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
     </div>
   </header>
 
-  <!-- GLOBAL FILTER BAR (works for both tabs) -->
+  <!-- TAB NAV — sticky below header -->
+  <nav class="tab-nav">
+    <button class="tnav active" data-tab="debt">📋 ยอดหนี้คงค้าง</button>
+    <button class="tnav" data-tab="summary">📊 สรุปรวม</button>
+    <button class="tnav" data-tab="collect">💰 เก็บเงิน / QR</button>
+    <button class="tnav" data-tab="custom">✏️ สร้าง QR เอง</button>
+  </nav>
+
+  <!-- GLOBAL FILTER BAR -->
   <div class="filter-bar-wrap" id="filterBarWrap">
     <div class="filter-toggle-row">
       <button class="filter-toggle-btn" id="filterToggleBtn" onclick="toggleFilterBar()" title="ซ่อน/แสดง Filter">
@@ -542,26 +552,18 @@ body.dark #debugPanel .actions button:hover{background:var(--navy-light)}
       <option value="customer_asc">ชื่อ A→Z</option>
     </select></label>
     <label class="fb-search"><span class="lbl">ค้นหา</span><input type="text" id="fSearch" placeholder="พิมพ์ ชื่อ, รหัส, ยอด, วันที่..."></label>
-    <label class="fb-reset"><button class="btn-filter-reset" onclick="resetFilters()" title="ล้างฟิลเตอร์">✕ ล้าง</button></label>
+    <label class="fb-reset">
+      <button class="btn-filter-reset" onclick="resetFilters()" title="ล้างฟิลเตอร์">✕ ล้าง</button>
+      <button class="btn gold" onclick="exportExcel()" style="height:30px;padding:0 12px;font-size:12px;margin-top:2px;border-radius:6px">⬇ Excel</button>
+    </label>
   </div>
   </div><!-- /filter-bar-wrap -->
-
-  <!-- TAB NAV -->
-  <nav class="tab-nav">
-    <button class="tnav active" data-tab="debt">📋 ยอดหนี้คงค้าง</button>
-    <button class="tnav" data-tab="summary">📊 สรุปรวม</button>
-    <button class="tnav" data-tab="collect">💰 เก็บเงิน / QR</button>
-    <button class="tnav" data-tab="custom">✏️ สร้าง QR เอง</button>
-  </nav>
 
   <!-- TAB: DEBT (table only — no charts) -->
   <div class="tab-pane active" id="tabDebt">
 
   <div class="result-row" style="padding-top:8px">
     <div class="result-count" id="resultCount"></div>
-    <div class="action-btns">
-      <button class="btn gold" onclick="exportExcel()">⬇ Excel</button>
-    </div>
   </div>
 
   <div class="table-wrap">
@@ -1638,15 +1640,20 @@ function enhanceSelect(selectEl){
     btn.textContent = selectEl.options[selectEl.selectedIndex]?.text || '';
   };
   selectEl.addEventListener('change', updateDisplay);
-
-  // Close on outside click/touch
-  document.addEventListener('mousedown', e => {
-    if (!wrap.contains(e.target)) close();
-  });
-  document.addEventListener('touchstart', e => {
-    if (!wrap.contains(e.target)) close();
-  }, {passive:true});
+  // Note: close-on-outside listener is registered once globally below
 }
+
+// Single global listener for closing all fcombo dropdowns
+document.addEventListener('mousedown', e => {
+  document.querySelectorAll('.fcombo.open').forEach(wrap => {
+    if (!wrap.contains(e.target)) wrap.classList.remove('open');
+  });
+});
+document.addEventListener('touchstart', e => {
+  document.querySelectorAll('.fcombo.open').forEach(wrap => {
+    if (!wrap.contains(e.target)) wrap.classList.remove('open');
+  });
+}, {passive:true});
 
 /* ========================
    FILTER BAR COLLAPSE
@@ -1806,10 +1813,6 @@ function applyFilters(){
   renderChart();
   renderTable();
   renderPagination();
-  // If collect tab is visible, refresh it too (filter bar is global)
-  if ($('tabCollect') && $('tabCollect').classList.contains('active')){
-    initCollectTab();
-  }
 }
 
 function sortBy(col){
