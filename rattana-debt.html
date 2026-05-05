@@ -884,14 +884,16 @@ function noteShouldCount(note){
 // Master check: บิลนับในยอด QR/summary เมื่อ
 // 1. หมายเหตุ (L) = "ค้างชำระ"
 // 2. D-MAN (O) = ว่าง หรือ "ไม่ชำระ"
+let _hasNoteData = false;
 function rowShouldCount(r){
-  return noteShouldCount(r.note) && rowShouldCount(r);
+  if (!_hasNoteData) return dmanShouldCount(r.dman); // fallback: no ค้างชำระ data
+  return noteShouldCount(r.note) && dmanShouldCount(r.dman);
 }
 
 // Reason why a row doesn't count (for badge display)
 function rowExcludeReason(r){
   if (!noteShouldCount(r.note)) return 'note'; // หมายเหตุไม่ใช่ค้างชำระ
-  if (!rowShouldCount(r)) return 'dman'; // D-MAN รอตัดบัญชี
+  if (!dmanShouldCount(r.dman)) return 'dman'; // D-MAN รอตัดบัญชี
   return null;
 }
 
@@ -1404,6 +1406,8 @@ function processData(raw){
   // Filter empty rows
   const rows = mapped.filter(r => r.amount > 0 || r.docNo);
   _diag.rowsAfterAmountFilter = rows.length;
+  // Detect if column L (หมายเหตุ) has any "ค้างชำระ" values
+  _hasNoteData = rows.some(r => String(r.note||'').trim().toLowerCase() === 'ค้างชำระ');
 
   // Access control — dept (column R) overrides role:
   // บัญชีและการเงิน  → เห็นทั้งหมด (finance needs full view)
@@ -1765,7 +1769,11 @@ function resetFilters(){
   updateFilterBadge();
 }
 
+let _applyingFilters = false;
 function applyFilters(){
+  if (_applyingFilters) return; // prevent re-entrant calls
+  _applyingFilters = true;
+  try {
   const w = $('fWarehouse').value;
   const s = $('fSales').value;
   const a = $('fAging').value;
@@ -1813,6 +1821,7 @@ function applyFilters(){
   renderChart();
   renderTable();
   renderPagination();
+  } finally { _applyingFilters = false; }
 }
 
 function sortBy(col){
