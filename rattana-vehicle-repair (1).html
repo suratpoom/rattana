@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Rattana Vehicle Repair v1.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --navy:#0d1b3e;--navy-mid:#1a2f5e;--navy-light:#243b73;
+  --gold:#c9a84c;--gold-light:#e8c86a;
+  --success:#2ecc71;--danger:#e74c3c;--warning:#f39c12;--info:#3498db;
+  --bg:#f4f6fb;--text:#0d1b3e;--card-bg:#ffffff;--border:#dde3f0;--muted:#6b7896;--row-alt:#fafbfd;
+  --space-xs:4px;--space-sm:8px;--space-md:16px;--space-lg:24px;--space-xl:32px;
+  --radius-sm:6px;--radius-md:12px;--radius-lg:16px;--radius-xl:20px;
+  --shadow-sm:0 1px 4px rgba(0,0,0,.06);--shadow-md:0 2px 8px rgba(0,0,0,.08);
+  --shadow-lg:0 8px 24px rgba(13,27,62,.12);--shadow-gold:0 4px 12px rgba(201,168,76,.35);
+}
+body.dark{--bg:#0a1020;--text:#e8eaf0;--card-bg:#111c35;--border:#243b73;--muted:#8a98b8;--row-alt:#0f1830;}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sarabun',sans-serif;min-height:100dvh;overflow-x:hidden;background:var(--bg);color:var(--text);transition:background .25s,color .25s;font-size:14px;line-height:1.5}
+button{font-family:inherit;cursor:pointer;border:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+input,select,textarea{font-family:inherit;font-size:16px}
+
+/* Header */
+header{background:var(--navy);color:#fff;padding:12px 16px;position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:12px;border-bottom:3px solid var(--gold);padding-top:max(12px,env(safe-area-inset-top))}
+.logo-text{font-weight:700;letter-spacing:1.5px;font-size:18px;color:#fff;flex:1}
+.logo-text span{color:var(--gold)}
+.icon-btn{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.2);width:38px;height:38px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:18px;transition:background .15s}
+.icon-btn:hover{background:rgba(255,255,255,.12)}
+.user-pill{font-size:12px;color:rgba(255,255,255,.85);padding:4px 10px;background:rgba(255,255,255,.1);border-radius:12px;border:1px solid rgba(255,255,255,.15)}
+
+/* Tab nav */
+.tab-nav{display:flex;background:var(--navy);border-bottom:3px solid var(--gold);padding:0 8px;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;position:sticky;top:62px;z-index:99}
+.tab-nav::-webkit-scrollbar{display:none}
+.tab-btn{background:transparent;border:none;color:rgba(255,255,255,.6);padding:12px 18px;font-size:13px;font-weight:600;border-bottom:3px solid transparent;white-space:nowrap;flex-shrink:0;transition:all .18s;margin-bottom:-3px;border-radius:var(--radius-sm) var(--radius-sm) 0 0}
+.tab-btn:hover{color:#fff;background:rgba(255,255,255,.06)}
+.tab-btn.active{color:var(--navy);background:var(--gold);border-bottom-color:var(--gold);font-weight:700;box-shadow:0 -2px 8px rgba(201,168,76,.3)}
+.tab-badge{background:var(--danger);color:#fff;font-size:10px;padding:1px 6px;border-radius:8px;margin-left:6px;font-weight:700}
+
+/* Cards */
+.card{background:var(--card-bg);border-radius:var(--radius-md);border:1px solid var(--border);box-shadow:var(--shadow-md);overflow:hidden}
+.card-gold{border-top:3px solid var(--gold)}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);background:linear-gradient(to right,rgba(201,168,76,.07),transparent)}
+.card-head h3{font-size:15px;font-weight:700}
+.card-body{padding:16px}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;border:1px solid transparent;min-height:40px;transition:opacity .15s,transform .1s;justify-content:center}
+.btn:hover{opacity:.88}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+.btn-gold{background:var(--gold);color:var(--navy);border-color:var(--gold)}
+.btn-gold:hover{background:var(--gold-light)}
+.btn-outline{background:transparent;color:var(--text);border-color:var(--border)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-success{background:var(--success);color:#fff}
+.btn-sm{padding:5px 10px;font-size:12px;min-height:30px}
+.btn-lg{padding:14px 24px;font-size:15px;min-height:52px;border-radius:var(--radius-md)}
+.btn-block{width:100%}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+
+/* Badges */
+.badge{display:inline-block;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap}
+.badge-ok{background:#e8f7ee;color:#1e8449}
+.badge-warn{background:#fef3d7;color:#a87800}
+.badge-danger{background:#ffd5d0;color:#c0392b}
+.badge-info{background:#e3f0fd;color:#1a6fb8}
+.badge-gold{background:rgba(201,168,76,.18);color:var(--navy);border:1px solid rgba(201,168,76,.4)}
+body.dark .badge-ok{background:#1a3a25;color:#7be0a3}
+body.dark .badge-warn{background:#3a2e15;color:#e8c86a}
+body.dark .badge-danger{background:#3a1a17;color:#ff8a7e}
+body.dark .badge-info{background:#13294a;color:#7bb6f0}
+
+/* Table */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tbl{width:100%;border-collapse:collapse;min-width:600px}
+.tbl thead{background:var(--navy);color:#fff}
+.tbl thead th{padding:10px 10px;text-align:left;font-size:12px;font-weight:600;letter-spacing:.3px;white-space:nowrap;border-bottom:2px solid var(--gold)}
+.tbl tbody tr{border-bottom:1px solid var(--border);transition:background .12s;cursor:pointer}
+.tbl tbody tr:nth-child(even){background:var(--row-alt)}
+.tbl tbody tr:hover{background:rgba(201,168,76,.07)}
+.tbl td{padding:9px 10px;font-size:13px;vertical-align:middle}
+.tbl td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:500}
+.tbl td.code{font-family:'Courier New',monospace;font-size:12px;font-weight:600}
+.tbl .empty-row td{text-align:center;padding:48px 20px;color:var(--muted);font-size:14px;cursor:default}
+
+/* Forms */
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.4px;text-transform:uppercase}
+.field label .req{color:var(--danger)}
+.input{height:46px;padding:0 14px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--card-bg);color:var(--text);font-size:16px;outline:none;width:100%;transition:border-color .15s}
+.input:focus{border-color:var(--gold)}
+textarea.input{height:auto;padding:12px 14px;resize:vertical;min-height:90px}
+.readonly-display{background:rgba(201,168,76,.08);border:1px dashed rgba(201,168,76,.4);padding:10px 14px;border-radius:var(--radius-sm);font-size:14px;color:var(--text);min-height:46px;display:flex;align-items:center;font-weight:500}
+.readonly-display.empty{color:var(--muted);font-style:italic;font-weight:400}
+
+/* Auto-fill grid */
+.autofill-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;background:rgba(13,27,62,.04);padding:12px;border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:14px}
+body.dark .autofill-grid{background:rgba(255,255,255,.03)}
+.autofill-item{display:flex;flex-direction:column;gap:2px;font-size:13px}
+.autofill-item .a-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.autofill-item .a-value{font-weight:600;color:var(--text)}
+
+/* Dropdown */
+.dd-wrap{position:relative;width:100%}
+.dd-trigger{width:100%;min-height:46px;padding:10px 14px;background:var(--card-bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:16px;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:border-color .15s}
+.dd-trigger:hover{border-color:var(--gold)}
+.dd-panel{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--card-bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);z-index:500;box-shadow:0 8px 24px rgba(0,0,0,.15);max-height:300px;display:none;flex-direction:column}
+.dd-search{padding:10px 14px;font-size:16px;border:none;border-bottom:1px solid var(--border);background:transparent;color:var(--text);outline:none;border-radius:var(--radius-sm) var(--radius-sm) 0 0;font-family:'Sarabun',sans-serif;width:100%}
+.dd-list{overflow-y:auto;flex:1;list-style:none;padding:4px 0;margin:0}
+.dd-list li{padding:10px 14px;cursor:pointer;font-size:14px;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.dd-list li:hover{background:var(--navy-light);color:#fff}
+.dd-list li .li-meta{font-size:11px;color:var(--muted);font-weight:500}
+.dd-list li:hover .li-meta{color:rgba(255,255,255,.85)}
+.dd-list li.no-result{color:#999;cursor:default;font-style:italic;justify-content:center}
+
+/* Bill upload */
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius-md);padding:20px;text-align:center;background:rgba(201,168,76,.04);cursor:pointer;transition:border-color .15s}
+.upload-zone:hover{border-color:var(--gold);background:rgba(201,168,76,.08)}
+.upload-zone.has-file{border-style:solid;border-color:var(--success);background:rgba(46,204,113,.06)}
+.upload-zone p{color:var(--muted);font-size:13px;margin-top:6px}
+.upload-zone .upload-icon{font-size:32px}
+.bill-preview{max-width:100%;max-height:280px;border-radius:var(--radius-sm);margin-top:10px;box-shadow:var(--shadow-md)}
+
+/* Toast */
+.toast{position:fixed;bottom:max(24px,env(safe-area-inset-bottom));right:16px;padding:12px 20px;border-radius:var(--radius-md);color:#fff;z-index:9999;animation:slideIn .3s ease;font-weight:500;box-shadow:var(--shadow-lg);max-width:90vw;font-size:13px}
+.toast-success{background:var(--success)}.toast-error{background:var(--danger)}.toast-warning{background:var(--warning);color:var(--navy)}.toast-info{background:var(--navy-mid);border-left:3px solid var(--gold)}
+
+/* Spinner */
+.spinner-overlay{display:none;position:fixed;inset:0;background:rgba(13,27,62,.55);align-items:center;justify-content:center;z-index:99999;backdrop-filter:blur(3px)}
+.spinner-overlay.show{display:flex}
+.spinner-box{background:#fff;border-radius:var(--radius-lg);padding:32px 40px;text-align:center;border-top:4px solid var(--gold);min-width:240px}
+.spinner-ring{width:48px;height:48px;border:5px solid #dde3f0;border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
+body.dark .spinner-box{background:var(--card-bg)}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(13,27,62,.65);z-index:9000;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card-bg);border-radius:var(--radius-lg);max-width:560px;width:100%;max-height:92dvh;overflow-y:auto;border-top:4px solid var(--gold);animation:slideUp .22s ease}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card-bg);z-index:1}
+.modal-head h3{font-size:16px;font-weight:700}
+.modal-close{background:transparent;border:none;font-size:26px;color:var(--muted);cursor:pointer;padding:4px 8px;line-height:1}
+.modal-body{padding:20px}
+.modal-foot{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;position:sticky;bottom:0;background:var(--card-bg)}
+
+/* Page layout */
+.page{min-height:100dvh;display:flex;flex-direction:column}
+.content{flex:1;padding:14px;max-width:1200px;margin:0 auto;width:100%}
+@media(min-width:640px){.content{padding:18px}}
+
+/* Login */
+.login-screen{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,var(--navy) 0%,var(--navy-mid) 100%)}
+.login-card{background:#fff;border-radius:var(--radius-lg);padding:36px 28px;max-width:400px;width:100%;text-align:center;border-top:4px solid var(--gold);box-shadow:var(--shadow-lg)}
+.login-logo{font-size:28px;font-weight:700;color:var(--navy);letter-spacing:2px;margin-bottom:6px}
+.login-logo span{color:var(--gold)}
+.login-title{font-size:14px;color:var(--muted);margin-bottom:24px}
+.login-error{background:#ffd5d0;color:#c0392b;padding:10px 14px;border-radius:var(--radius-sm);margin-top:14px;font-size:13px;display:none}
+
+/* Repair card (mobile-friendly list) */
+.repair-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .15s,box-shadow .15s;border-left:4px solid var(--border)}
+.repair-card:hover{border-color:var(--gold);box-shadow:var(--shadow-md)}
+.repair-card.status-pending{border-left-color:var(--warning)}
+.repair-card.status-approved,.repair-card.status-auto{border-left-color:var(--success)}
+.repair-card.status-rejected{border-left-color:var(--danger)}
+.rc-row1{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
+.rc-plate{font-weight:700;font-size:15px;font-family:'Courier New',monospace}
+.rc-meta{font-size:11px;color:var(--muted);margin-top:4px}
+.rc-issue{font-size:13px;color:var(--text);margin-top:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rc-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)}
+.rc-amount{font-weight:700;color:var(--gold);font-size:14px}
+
+/* Stats */
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+@media(min-width:640px){.stat-grid{grid-template-columns:repeat(4,1fr);gap:14px}}
+.stat-card{background:var(--card-bg);border-radius:var(--radius-md);padding:14px;border:1px solid var(--border);border-top:3px solid var(--gold)}
+.stat-card .s-label{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px}
+.stat-card .s-value{font-size:22px;font-weight:700;line-height:1.2}
+.stat-card.warn{border-top-color:var(--warning)}.stat-card.warn .s-value{color:var(--warning)}
+.stat-card.success{border-top-color:var(--success)}.stat-card.success .s-value{color:var(--success)}
+.stat-card.danger{border-top-color:var(--danger)}.stat-card.danger .s-value{color:var(--danger)}
+
+/* Filter bar */
+.filter-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.filter-chip{padding:6px 14px;border-radius:18px;background:var(--card-bg);border:1.5px solid var(--border);font-size:12px;font-weight:600;cursor:pointer;color:var(--muted)}
+.filter-chip.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.filter-chip:hover{border-color:var(--gold)}
+
+/* Detail rows */
+.det-row{display:flex;justify-content:space-between;gap:14px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.det-row:last-child{border-bottom:none}
+.det-label{color:var(--muted);font-weight:500;flex-shrink:0}
+.det-value{font-weight:600;text-align:right;word-break:break-word}
+.det-value.amount{color:var(--gold);font-size:15px}
+
+/* Approval timeline */
+.timeline{padding:8px 0;border-top:1px solid var(--border);margin-top:12px}
+.tl-item{padding:8px 0;display:flex;gap:10px;align-items:flex-start}
+.tl-dot{width:10px;height:10px;border-radius:50%;background:var(--border);margin-top:6px;flex-shrink:0}
+.tl-dot.done{background:var(--success)}
+.tl-dot.reject{background:var(--danger)}
+.tl-dot.pending{background:var(--warning)}
+.tl-content{flex:1;font-size:12px}
+.tl-title{font-weight:600;color:var(--text)}
+.tl-meta{color:var(--muted);font-size:11px;margin-top:2px}
+
+/* Hide-show */
+.hidden{display:none !important}
+
+/* Search input */
+.search-input{height:42px;padding:0 14px 0 38px;border-radius:21px;border:1.5px solid var(--border);background:var(--card-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7896' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E") no-repeat 12px center;color:var(--text);font-size:14px;outline:none;width:100%}
+.search-input:focus{border-color:var(--gold)}
+</style>
+</head>
+<body>
+
+<!-- ──────────────────────────────────────── LOGIN SCREEN ──────────────────────────────────────── -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">RATTANA<span> · </span>REPAIR</div>
+    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v1.0</div>
+    <div id="g_id_onload"
+         data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
+         data-callback="handleGoogleLogin"
+         data-auto_prompt="false"></div>
+    <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" style="display:flex;justify-content:center;margin-top:18px"></div>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────── APP SCREEN ──────────────────────────────────────── -->
+<div class="page hidden" id="appScreen">
+  <header>
+    <div class="logo-text">RATTANA<span> · REPAIR</span></div>
+    <span class="user-pill" id="userPill"></span>
+    <button class="icon-btn" onclick="refreshAll()" title="รีเฟรช" id="btnRefresh">↻</button>
+    <button class="icon-btn" onclick="toggleDark()" title="โหมดมืด">🌙</button>
+    <button class="icon-btn" onclick="logout()" title="ออกจากระบบ">⎋</button>
+  </header>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" data-tab="report" onclick="switchTab('report')">📋 แจ้งซ่อม</button>
+    <button class="tab-btn" data-tab="mine" onclick="switchTab('mine')">📁 รายการของฉัน</button>
+    <button class="tab-btn hidden" data-tab="approve" id="tabApprove" onclick="switchTab('approve')">✅ อนุมัติ <span class="tab-badge hidden" id="approveBadge">0</span></button>
+    <button class="tab-btn hidden" data-tab="all" id="tabAll" onclick="switchTab('all')">📊 ทั้งหมด</button>
+  </div>
+
+  <div class="content">
+    <!-- TAB: แจ้งซ่อม -->
+    <div id="tab-report" class="tab-pane">
+      <div class="card card-gold">
+        <div class="card-head"><h3>แจ้งซ่อมรถใหม่</h3></div>
+        <div class="card-body">
+          <div class="field">
+            <label>ทะเบียนรถ <span class="req">*</span></label>
+            <div class="dd-wrap" id="ddPlate">
+              <button class="dd-trigger" onclick="toggleDD('ddPlate')" type="button">
+                <span id="ddPlateLabel">-- เลือกทะเบียนรถ --</span>
+                <span style="color:var(--muted)">▾</span>
+              </button>
+              <div class="dd-panel" id="ddPlatePanel">
+                <input class="dd-search" type="text" placeholder="🔍 ค้นหาทะเบียน หรือ คนขับ..." oninput="filterPlates(this.value)">
+                <ul class="dd-list" id="ddPlateList"></ul>
+              </div>
+            </div>
+          </div>
+
+          <div id="vehicleAutoFill" class="autofill-grid hidden"></div>
+
+          <div class="field">
+            <label>เลขไมล์ปัจจุบัน (กม.) <span class="req">*</span></label>
+            <input class="input" id="inMileage" type="number" inputmode="numeric" placeholder="เช่น 125000">
+          </div>
+
+          <div class="field">
+            <label>รายละเอียดอาการ / สิ่งที่ต้องซ่อม <span class="req">*</span></label>
+            <textarea class="input" id="inIssue" rows="4" placeholder="เช่น เปลี่ยนถ่ายน้ำมันเครื่อง + กรองอากาศ, เบรกหน้ามีเสียง"></textarea>
+          </div>
+
+          <div class="field">
+            <label>ยอดเงินตามใบเสนอราคา (บาท) <span class="req">*</span></label>
+            <input class="input" id="inAmount" type="number" inputmode="decimal" step="0.01" placeholder="เช่น 2500" oninput="updateApprovalHint()">
+            <div id="approvalHint" style="font-size:12px;color:var(--muted);margin-top:4px"></div>
+          </div>
+
+          <div class="field">
+            <label>รูปใบเสนอราคา <span class="req">*</span></label>
+            <div class="upload-zone" id="uploadZone" onclick="document.getElementById('inBill').click()">
+              <div class="upload-icon">📷</div>
+              <p id="uploadText">แตะเพื่อถ่ายรูป หรือเลือกรูปจากเครื่อง</p>
+              <input type="file" id="inBill" accept="image/*" capture="environment" style="display:none" onchange="handleBillUpload(event)">
+              <img id="billPreview" class="bill-preview hidden">
+            </div>
+          </div>
+
+          <button class="btn btn-gold btn-lg btn-block" onclick="submitRepair()">📤 ส่งคำขอ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: รายการของฉัน -->
+    <div id="tab-mine" class="tab-pane hidden">
+      <div class="stat-grid" id="mineStats"></div>
+      <div class="filter-bar" id="mineFilter">
+        <button class="filter-chip active" data-f="all" onclick="filterMine('all',this)">ทั้งหมด</button>
+        <button class="filter-chip" data-f="pending" onclick="filterMine('pending',this)">รออนุมัติ</button>
+        <button class="filter-chip" data-f="approved" onclick="filterMine('approved',this)">อนุมัติแล้ว</button>
+        <button class="filter-chip" data-f="rejected" onclick="filterMine('rejected',this)">ปฏิเสธ</button>
+      </div>
+      <div id="mineList"></div>
+    </div>
+
+    <!-- TAB: อนุมัติ -->
+    <div id="tab-approve" class="tab-pane hidden">
+      <div class="card card-gold">
+        <div class="card-head"><h3 id="approveTitle">รายการที่รออนุมัติ</h3></div>
+        <div class="card-body">
+          <div id="approveList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: ทั้งหมด -->
+    <div id="tab-all" class="tab-pane hidden">
+      <div class="stat-grid" id="allStats"></div>
+      <div style="margin-bottom:12px"><input class="search-input" id="allSearch" placeholder="ค้นหา ทะเบียน, ผู้แจ้ง, อาการ..." oninput="renderAll()"></div>
+      <div class="filter-bar">
+        <button class="filter-chip active" data-f="all" onclick="filterAll('all',this)">ทั้งหมด</button>
+        <button class="filter-chip" data-f="pending" onclick="filterAll('pending',this)">รออนุมัติ</button>
+        <button class="filter-chip" data-f="approved" onclick="filterAll('approved',this)">อนุมัติแล้ว</button>
+        <button class="filter-chip" data-f="rejected" onclick="filterAll('rejected',this)">ปฏิเสธ</button>
+      </div>
+      <div style="margin-bottom:12px"><button class="btn btn-outline btn-sm" onclick="exportAllExcel()">📊 Export Excel</button></div>
+      <div id="allList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────── DETAIL MODAL ──────────────────────────────────────── -->
+<div class="modal-overlay" id="detailModal" onclick="if(event.target===this)closeDetail()">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="detailTitle">รายละเอียดใบแจ้งซ่อม</h3>
+      <button class="modal-close" onclick="closeDetail()">×</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+    <div class="modal-foot" id="detailFoot"></div>
+  </div>
+</div>
+
+<!-- Approve modal (note input) -->
+<div class="modal-overlay" id="noteModal" onclick="if(event.target===this)closeNote()">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <h3 id="noteTitle">หมายเหตุ</h3>
+      <button class="modal-close" onclick="closeNote()">×</button>
+    </div>
+    <div class="modal-body">
+      <textarea class="input" id="noteText" rows="4" placeholder="เพิ่มหมายเหตุ (ไม่บังคับ)"></textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeNote()">ยกเลิก</button>
+      <button class="btn" id="noteConfirmBtn" onclick="confirmNoteAction()">ยืนยัน</button>
+    </div>
+  </div>
+</div>
+
+<!-- Spinner -->
+<div class="spinner-overlay" id="spinner">
+  <div class="spinner-box">
+    <div class="spinner-ring"></div>
+    <p id="spinnerMsg">กำลังโหลด...</p>
+  </div>
+</div>
+
+<script>
+// ═════════════════════════════════════════════════════════════════════
+// CONFIG — แก้ GAS_URL ให้ตรงกับ Web App URL ที่ deploy แล้ว
+// ═════════════════════════════════════════════════════════════════════
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbz7nzFICPD6MLDikFJ33qjRAst3jqKMD_WOQTsieU1GcmtrfUEwsmN6n4NdRGMwWEP_0g/exec';
+
+const VEHICLE_SHEET_ID = '1B-fFrzUFaQ38Z0LC--1kAjAKy-U0rCQTtcGA8YmQrYw'; // แจ้งซ่อมรถ RTN (ข้อมูลรถ)
+const USERS_SHEET_ID   = '1M6HdISsLN684qRWyQ73CA4AmUzmYtZaOlffDJXZZIXQ';
+const USERS_TAB        = 'Rattana Users for apps';
+const CORS_PROXY       = 'https://api.codetabs.com/v1/proxy?quest=';
+
+// ═════════════════════════════════════════════════════════════════════
+// STATE
+// ═════════════════════════════════════════════════════════════════════
+let currentUser = null;
+let vehicles    = [];   // ข้อมูลรถจาก master sheet
+let repairs     = [];   // ใบแจ้งซ่อมทั้งหมด
+let selectedVehicle = null;
+let billPhotoData = null; // {base64, mime}
+let currentTab = 'report';
+let mineFilterState = 'all';
+let allFilterState  = 'all';
+let pendingApproveAction = null;
+let pendingApproveId = null;
+
+// ═════════════════════════════════════════════════════════════════════
+// UTILITIES
+// ═════════════════════════════════════════════════════════════════════
+const $  = id => document.getElementById(id);
+const showSpinner = (m='กำลังโหลด...') => { $('spinnerMsg').textContent=m; $('spinner').classList.add('show'); };
+const hideSpinner = () => $('spinner').classList.remove('show');
+
+function showToast(msg, type='info') {
+  const t = document.createElement('div');
+  t.className = 'toast toast-' + type;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+function toggleDark() {
+  document.body.classList.toggle('dark');
+  localStorage.setItem('rtnRepairDark', document.body.classList.contains('dark') ? '1' : '0');
+}
+if (localStorage.getItem('rtnRepairDark') === '1') document.body.classList.add('dark');
+
+function formatThaiDate(input) {
+  if (!input) return '-';
+  const d = input instanceof Date ? input : new Date(input);
+  if (isNaN(d)) return '-';
+  return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + (d.getFullYear()+543);
+}
+function formatThaiTime(input) {
+  if (!input) return '';
+  const d = input instanceof Date ? input : new Date(input);
+  if (isNaN(d)) return '';
+  return String(d.getHours()).padStart(2,'0') + '.' + String(d.getMinutes()).padStart(2,'0');
+}
+function formatThaiDateTime(input) {
+  const d = formatThaiDate(input);
+  const t = formatThaiTime(input);
+  return t ? d + ' ' + t : d;
+}
+function fmtMoney(n) {
+  const v = parseFloat(n) || 0;
+  return v.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// JWT decode (handles Thai names)
+function decodeJwtPayload(token) {
+  const parts = String(token||'').split('.');
+  if (parts.length < 2) throw new Error('JWT format invalid');
+  let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+  const pad = (4 - b64.length % 4) % 4;
+  if (pad) b64 += '='.repeat(pad);
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return JSON.parse(new TextDecoder('utf-8').decode(bytes));
+}
+const normalizeEmail = s => String(s||'').replace(/[\u200B\u200C\u200D\uFEFF]/g,'').replace(/\s+/g,'').toLowerCase();
+
+// RFC-4180 CSV parser
+function parseCsv(text) {
+  const rows = [];
+  let row = [], field = '', inQ = false, i = 0;
+  while (i < text.length) {
+    const c = text[i];
+    if (inQ) {
+      if (c === '"') {
+        if (text[i+1] === '"') { field += '"'; i += 2; continue; }
+        inQ = false; i++; continue;
+      }
+      field += c; i++; continue;
+    }
+    if (c === '"') { inQ = true; i++; continue; }
+    if (c === ',') { row.push(field); field = ''; i++; continue; }
+    if (c === '\r') { i++; continue; }
+    if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; i++; continue; }
+    field += c; i++;
+  }
+  if (field !== '' || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+function rowsToObjects(rows) {
+  if (!rows.length) return [];
+  const clean = s => String(s||'').replace(/[\u200B\u200C\u200D\uFEFF]/g,'').replace(/\u00A0/g,' ').trim();
+  const headers = rows[0].map(clean);
+  return rows.slice(1).filter(r => r.some(c => clean(c)))
+    .map(r => Object.fromEntries(headers.map((k,i) => [k, clean(r[i])])));
+}
+
+async function fetchSheetCsv(sheetId, sheetName) {
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv` +
+              (sheetName ? `&sheet=${encodeURIComponent(sheetName)}` : '');
+  let resp;
+  try {
+    resp = await fetch(url);
+    if (!resp.ok) throw new Error('direct fetch failed: ' + resp.status);
+  } catch {
+    resp = await fetch(CORS_PROXY + encodeURIComponent(url));
+    if (!resp.ok) throw new Error('proxy fetch failed: ' + resp.status);
+  }
+  const text = await resp.text();
+  return rowsToObjects(parseCsv(text));
+}
+
+// ═════════════════════════════════════════════════════════════════════
+// LOGIN
+// ═════════════════════════════════════════════════════════════════════
+function showLoginError(msg) {
+  const el = $('loginError');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+async function handleGoogleLogin(r) {
+  showSpinner('กำลังตรวจสอบสิทธิ์...');
+  try {
+    const payload = decodeJwtPayload(r.credential);
+    const email = normalizeEmail(payload.email);
+    const users = await fetchSheetCsv(USERS_SHEET_ID, USERS_TAB);
+    const user = users.find(u => normalizeEmail(u['E-mail']) === email);
+    if (!user) { showLoginError('ไม่พบ email ในระบบ กรุณาติดต่อ Admin'); return; }
+    if (String(user['Status']||'').trim().toLowerCase() !== 'active') {
+      showLoginError('บัญชีของคุณถูกระงับ กรุณาติดต่อ Admin'); return;
+    }
+    currentUser = {
+      email: email,
+      name: user['ชื่อ - สกุล'] || payload.name,
+      nickname: user['ชื่อเล่น'] || '',
+      role: parseInt(user['User Role']) || 1,
+      dept: user['แผนก'] || '',
+      company: user['บริษัท'] || '',
+      warehouse: user['W'] || '',
+      empId: String(user['รหัสพนักงาน'] || ''),
+      approvalStage: parseInt(user['Approval Stage']) || 0
+    };
+    localStorage.setItem('rattanaRepairUser', JSON.stringify({
+      data: currentUser, exp: Date.now() + 30*24*60*60*1000
+    }));
+    enterApp();
+  } catch (e) {
+    console.error(e);
+    showLoginError('เกิดข้อผิดพลาด กรุณาลองใหม่');
+  } finally {
+    hideSpinner();
+  }
+}
+
+function checkSession() {
+  try {
+    const raw = localStorage.getItem('rattanaRepairUser');
+    if (!raw) return false;
+    const { data, exp } = JSON.parse(raw);
+    if (Date.now() > exp) { localStorage.removeItem('rattanaRepairUser'); return false; }
+    currentUser = data;
+    return true;
+  } catch { localStorage.removeItem('rattanaRepairUser'); return false; }
+}
+
+function logout() {
+  if (!confirm('ออกจากระบบ?')) return;
+  localStorage.removeItem('rattanaRepairUser');
+  location.reload();
+}
+
+async function enterApp() {
+  $('loginScreen').classList.add('hidden');
+  $('appScreen').classList.remove('hidden');
+  const u = currentUser;
+  $('userPill').textContent = (u.nickname || u.name || u.email) + (u.warehouse ? ' · ' + u.warehouse : '');
+  // แสดง tab อนุมัติ ถ้า approvalStage > 0 หรือ role >= 5
+  if (u.approvalStage === 1 || u.approvalStage === 2 || u.role >= 5) {
+    $('tabApprove').classList.remove('hidden');
+    $('approveTitle').textContent = u.approvalStage === 2
+      ? 'รายการรออนุมัติ (ขั้นที่ 2 — ผู้บริหาร)'
+      : (u.approvalStage === 1 ? 'รายการรออนุมัติ (ขั้นที่ 1 — หัวหน้า)' : 'รายการรออนุมัติทั้งหมด');
+  }
+  if (u.role >= 7) $('tabAll').classList.remove('hidden');
+  await loadAllData();
+}
+
+// ═════════════════════════════════════════════════════════════════════
+// DATA LOAD
+// ═════════════════════════════════════════════════════════════════════
+async function loadAllData() {
+  showSpinner('กำลังโหลดข้อมูล...');
+  try {
+    await Promise.all([loadVehicles(), loadRepairs()]);
+    renderAll();
+    renderMine();
+    renderApprove();
+    renderTabAll();
+  } catch (e) {
+    console.error(e);
+    showToast('โหลดข้อมูลไม่สำเร็จ: ' + e.message, 'error');
+  } finally {
+    hideSpinner();
+  }
+}
+
+async function loadVehicles() {
+  const rows = await fetchSheetCsv(VEHICLE_SHEET_ID); // tab แรก
+  vehicles = rows
+    .filter(r => r['ทะเบียน Final'])
+    .map(r => ({
+      plate:       r['ทะเบียน Final'] || '',
+      warehouse:   r['คลัง    Final'] || r['คลัง Final'] || '',
+      model:       r['รุ่นรถ Final'] || '',
+      vehicleType: r['ประเภทรถ Fianl'] || r['ประเภทรถ Final'] || '',
+      year:        r['ปีรถ'] || '',
+      fuel:        r['เชื้อเพลิง'] || '',
+      driver:      r['ผู้ดูแล-ขับขี่'] || '',
+      vehicleDept: r['แผนก'] || '',
+      tankSize:    r['ขนาดน้ำมัน'] || ''
+    }));
+  renderPlateList();
+}
+
+async function loadRepairs() {
+  if (!GAS_URL || GAS_URL.includes('PASTE_YOUR')) {
+    showToast('⚠️ ยังไม่ได้ตั้งค่า GAS_URL', 'warning');
+    repairs = [];
+    return;
+  }
+  try {
+    const r = await fetch(GAS_URL + '?action=list', { method: 'GET' });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || 'list failed');
+    repairs = (j.data.rows || []).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+  } catch (e) {
+    console.error('loadRepairs:', e);
+    showToast('โหลดรายการแจ้งซ่อมไม่สำเร็จ', 'error');
+    repairs = [];
+  }
+}
+
+async function refreshAll() {
+  const b = $('btnRefresh');
+  b.disabled = true; b.style.transform = 'rotate(360deg)'; b.style.transition = 'transform .6s';
+  await loadAllData();
+  b.disabled = false; setTimeout(() => { b.style.transform=''; b.style.transition=''; }, 600);
+  showToast('อัพเดทเรียบร้อย ✓', 'success');
+}
+
+// ═════════════════════════════════════════════════════════════════════
+// PLATE DROPDOWN
+// ═════════════════════════════════════════════════════════════════════
+function renderPlateList() {
+  const ul = $('ddPlateList');
+  if (!vehicles.length) {
+    ul.innerHTML = '<li class="no-result">ไม่พบข้อมูลรถ</li>';
+    return;
+  }
+  ul.innerHTML = vehicles.map(v => `
+    <li onclick="selectPlate('${v.plate.replace(/'/g,"\\'")}')">
+      <span><strong>${v.plate}</strong> <span class="li-meta">· ${v.warehouse||'-'} · ${v.vehicleType||v.model||'-'}</span></span>
+      <span class="li-meta">${v.driver || ''}</span>
+    </li>`).join('');
+}
+
+function filterPlates(q) {
+  q = (q||'').toLowerCase();
+  document.querySelectorAll('#ddPlateList li').forEach(li => {
+    li.style.display = li.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+function toggleDD(wrapId) {
+  const p = document.querySelector(`#${wrapId} .dd-panel`);
+  const isOpen = p.style.display === 'flex';
+  document.querySelectorAll('.dd-panel').forEach(x => x.style.display = 'none');
+  if (!isOpen) {
+    p.style.display = 'flex';
+    const s = p.querySelector('.dd-search');
+    if (s) { s.focus(); s.value=''; filterPlates(''); }
+  }
+}
+
+function selectPlate(plate) {
+  const v = vehicles.find(x => x.plate === plate);
+  if (!v) return;
+  selectedVehicle = v;
+  $('ddPlateLabel').textContent = v.plate;
+  $('ddPlatePanel').style.display = 'none';
+  // แสดง auto-fill grid
+  const g = $('vehicleAutoFill');
+  g.classList.remove('hidden');
+  g.innerHTML = [
+    ['คลัง', v.warehouse],
+    ['รุ่นรถ', v.model],
+    ['ประเภท', v.vehicleType],
+    ['ปีรถ', v.year],
+    ['เชื้อเพลิง', v.fuel],
+    ['ผู้ดูแล/คนขับ', v.driver],
+    ['แผนก', v.vehicleDept]
+  ].filter(([,val]) => val)
+   .map(([label, val]) => `<div class="autofill-item"><span class="a-label">${label}</span><span class="a-value">${val}</span></div>`)
+   .join('');
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.dd-wrap')) {
+    document.querySelectorAll('.dd-panel').forEach(x => x.style.display = 'none');
+  }
+});
+
+// ═════════════════════════════════════════════════════════════════════
+// BILL UPLOAD
+// ═════════════════════════════════════════════════════════════════════
+function handleBillUpload(ev) {
+  const file = ev.target.files[0];
+  if (!file) return;
+  if (file.size > 8 * 1024 * 1024) {
+    showToast('ขนาดไฟล์เกิน 8 MB กรุณาเลือกใหม่', 'error');
+    ev.target.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    // เก็บ base64 (ตัด data:image/...;base64, ออก)
+    const dataUrl = e.target.result;
+    const m = /^data:([^;]+);base64,(.+)$/.exec(dataUrl);
+    if (!m) { showToast('อ่านรูปไม่ได้', 'error'); return; }
+    billPhotoData = { mime: m[1], base64: m[2] };
+    $('billPreview').src = dataUrl;
+    $('billPreview').classList.remove('hidden');
+    $('uploadText').textContent = '✓ เลือกแล้ว: ' + file.name + ' (แตะเพื่อเปลี่ยน)';
+    $('uploadZone').classList.add('has-file');
+  };
+  reader.readAsDataURL(file);
+}
+
+function updateApprovalHint() {
+  const amt = parseFloat($('inAmount').value) || 0;
+  const h = $('approvalHint');
+  if (amt <= 0) { h.textContent = ''; return; }
+  if (amt <= 1000) {
+    h.innerHTML = '<span style="color:var(--success)">✓ ยอดไม่เกิน 1,000 บาท — ผ่านอัตโนมัติ ไม่ต้องรออนุมัติ</span>';
+  } else {
+    h.innerHTML = '<span style="color:var(--warning)">⚠ ยอดเกิน 1,000 บาท — ต้องผ่านการอนุมัติจากหัวหน้า → ผู้บริหาร</span>';
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════
+// SUBMIT REPAIR
+// ═════════════════════════════════════════════════════════════════════
+async function submitRepair() {
+  if (!selectedVehicle) { showToast('กรุณาเลือกทะเบียนรถ', 'warning'); return; }
+  const mileage = $('inMileage').value.trim();
+  const issue = $('inIssue').value.trim();
+  const amount = parseFloat($('inAmount').value);
+  if (!mileage) { showToast('กรุณากรอกเลขไมล์', 'warning'); return; }
+  if (!issue) { showToast('กรุณากรอกรายละเอียดอาการ', 'warning'); return; }
+  if (!amount || amount <= 0) { showToast('กรุณากรอกยอดเงิน', 'warning'); return; }
+  if (!billPhotoData) { showToast('กรุณาแนบรูปใบเสนอราคา', 'warning'); return; }
+  if (!GAS_URL || GAS_URL.includes('PASTE_YOUR')) {
+    showToast('ยังไม่ได้ตั้งค่า GAS_URL กรุณาแจ้งผู้ดูแลระบบ', 'error'); return;
+  }
+
+  showSpinner('กำลังส่งคำขอ...');
+  try {
+    const payload = {
+      action: 'createRepair',
+      requesterEmail: currentUser.email,
+      requesterName:  currentUser.name,
+      requesterDept:  currentUser.dept,
+      requesterWarehouse: currentUser.warehouse,
+      plate:        selectedVehicle.plate,
+      warehouse:    selectedVehicle.warehouse,
+      model:        selectedVehicle.model,
+      vehicleType:  selectedVehicle.vehicleType,
+      year:         selectedVehicle.year,
+      fuel:         selectedVehicle.fuel,
+      driver:       selectedVehicle.driver,
+      vehicleDept:  selectedVehicle.vehicleDept,
+      mileage:      mileage,
+      issueDescription: issue,
+      billAmount:   amount,
+      billPhotoBase64: billPhotoData.base64,
+      billPhotoMime:   billPhotoData.mime
+    };
+    const r = await fetch(GAS_URL, {
+      method: 'POST',
+      // หมายเหตุ: ไม่ตั้ง Content-Type เพื่อให้เป็น simple request หลีกเลี่ยง CORS preflight
+      body: JSON.stringify(payload)
+    });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || 'submit failed');
+
+    if (j.data.status === 'auto_approved') {
+      showToast('ส่งคำขอสำเร็จ ✓ ยอดไม่เกิน 1,000 บาท — อนุมัติอัตโนมัติ', 'success');
+    } else {
+      showToast('ส่งคำขอสำเร็จ ✓ รออนุมัติจากหัวหน้า', 'success');
+    }
+    resetForm();
+    await loadRepairs();
+    renderMine(); renderApprove(); renderTabAll();
+    switchTab('mine');
+  } catch (e) {
+    console.error(e);
+    showToast('ส่งไม่สำเร็จ: ' + e.message, 'error');
+  } finally {
+    hideSpinner();
+  }
+}
+
+function resetForm() {
+  selectedVehicle = null;
+  billPhotoData = null;
+  $('ddPlateLabel').textContent = '-- เลือกทะเบียนรถ --';
+  $('vehicleAutoFill').classList.add('hidden');
+  $('inMileage').value = '';
+  $('inIssue').value = '';
+  $('inAmount').value = '';
+  $('inBill').value = '';
+  $('billPreview').classList.add('hidden');
+  $('billPreview').src = '';
+  $('uploadText').textContent = 'แตะเพื่อถ่ายรูป หรือเลือกรูปจากเครื่อง';
+  $('uploadZone').classList.remove('has-file');
+  $('approvalHint').textContent = '';
+}
+
+// ═════════════════════════════════════════════════════════════════════
+// TABS
+// ═════════════════════════════════════════════════════════════════════
+function switchTab(name) {
+  currentTab = name;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
+  $('tab-' + name).classList.remove('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ═════════════════════════════════════════════════════════════════════
+// STATUS HELPERS
+// ═════════════════════════════════════════════════════════════════════
+function statusBadge(s) {
+  const map = {
+    auto_approved:      { txt: '✓ อนุมัติอัตโนมัติ', cls: 'badge-ok' },
+    approved:           { txt: '✓ อนุมัติแล้ว',     cls: 'badge-ok' },
+    pending_supervisor: { txt: '⏳ รอหัวหน้า',       cls: 'badge-warn' },
+    pending_executive:  { txt: '⏳ รอผู้บริหาร',     cls: 'badge-warn' },
+    rejected:           { txt: '✗ ปฏิเสธ',          cls: 'badge-danger' }
+  };
+  const m = map[s] || { txt: s, cls: 'badge-info' };
+  return `<span class="badge ${m.cls}">${m.txt}</span>`;
+}
+
+function statusClass(s) {
+  if (s === 'pending_supervisor' || s === 'pending_executive') return 'status-pending';
+  if (s === 'approved' || s === 'auto_approved') return 'status-approved';
+  if (s === 'rejected') return 'status-rejected';
+  return '';
+}
+
+function isFinalized(s) {
+  return s === 'approved' || s === 'auto_approved' || s === 'rejected';
+}
+function isPending(s) {
+  return s === 'pending_supervisor' || s === 'pending_executive';
+}
+
+// ═════════════════════════════════════════════════════════════════════
+// MINE
+// ═════════════════════════════════════════════════════════════════════
+function myRepairs() {
+  return repairs.filter(r => normalizeEmail(r.requesterEmail) === normalizeEmail(currentUser.email));
+}
+
+function filterMine(f, btn) {
+  mineFilterState = f;
+  document.querySelectorAll('#mineFilter .filter-chip').forEach(c => c.classList.toggle('active', c === btn));
+  renderMine();
+}
+
+function renderMine() {
+  const mine = myRepairs();
+  // stats
+  const stats = [
+    { lbl:'ทั้งหมด',     val:mine.length, cls:'' },
+    { lbl:'รออนุมัติ',   val:mine.filter(r=>isPending(r.status)).length, cls:'warn' },
+    { lbl:'อนุมัติแล้ว', val:mine.filter(r=>r.status==='approved'||r.status==='auto_approved').length, cls:'success' },
+    { lbl:'ปฏิเสธ',      val:mine.filter(r=>r.status==='rejected').length, cls:'danger' }
+  ];
+  $('mineStats').innerHTML = stats.map(s =>
+    `<div class="stat-card ${s.cls}"><div class="s-label">${s.lbl}</div><div class="s-value">${s.val}</div></div>`
+  ).join('');
+
+  let list = mine;
+  if (mineFilterState === 'pending')  list = mine.filter(r => isPending(r.status));
+  if (mineFilterState === 'approved') list = mine.filter(r => r.status==='approved' || r.status==='auto_approved');
+  if (mineFilterState === 'rejected') list = mine.filter(r => r.status==='rejected');
+
+  if (!list.length) {
+    $('mineList').innerHTML = `<div class="card"><div class="card-body" style="text-align:center;padding:40px;color:var(--muted)">ไม่มีรายการ</div></div>`;
+    return;
+  }
+  $('mineList').innerHTML = list.map(r => repairCardHtml(r)).join('');
+}
+
+// ═════════════════════════════════════════════════════════════════════
+// APPROVE
+// ═════════════════════════════════════════════════════════════════════
+function approvableRepairs() {
+  // คืนใบที่ user คนนี้อนุมัติได้
+  if (!currentUser) return [];
+  const stage = currentUser.approvalStage;
+  // approvalStage 1 → ดู pending_supervisor
+  // approvalStage 2 → ดู pending_executive
+  // role >= 7 (super user/admin) → ดูทั้งหมดที่ pending
+  if (stage === 1) return repairs.filter(r => r.status === 'pending_supervisor');
+  if (stage === 2) return repairs.filter(r => r.status === 'pending_executive');
+  if (currentUser.role >= 7) return repairs.filter(r => isPending(r.status));
+  return [];
+}
+
+function renderApprove() {
+  const list = approvableRepairs();
+  const badge = $('approveBadge');
+  if (list.length > 0) {
+    badge.textContent = list.length;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+  if (!list.length) {
+    $('approveList').innerHTML = `<div style="text-align:center;padding:30px;color:var(--muted)">ไม่มีรายการรออนุมัติ 🎉</div>`;
+    return;
+  }
+  $('approveList').innerHTML = list.map(r => repairCardHtml(r)).join('');
+}
+
+// ═════════════════════════════════════════════════════════════════════
+// ALL (admin)
+// ═════════════════════════════════════════════════════════════════════
+function filterAll(f, btn) {
+  allFilterState = f;
+  document.querySelectorAll('#tab-all .filter-chip').forEach(c => c.classList.toggle('active', c === btn));
+  renderTabAll();
+}
+
+function renderTabAll() {
+  const stats = [
+    { lbl:'ใบทั้งหมด', val:repairs.length, cls:'' },
+    { lbl:'รออนุมัติ', val:repairs.filter(r=>isPending(r.status)).length, cls:'warn' },
+    { lbl:'อนุมัติแล้ว', val:repairs.filter(r=>r.status==='approved'||r.status==='auto_approved').length, cls:'success' },
+    { lbl:'ยอดรวม (อนุมัติ)', val:fmtMoney(repairs.filter(r=>r.status==='approved'||r.status==='auto_approved').reduce((s,r)=>s+(parseFloat(r.billAmount)||0),0)), cls:'' }
+  ];
+  $('allStats').innerHTML = stats.map(s =>
+    `<div class="stat-card ${s.cls}"><div class="s-label">${s.lbl}</div><div class="s-value">${s.val}</div></div>`
+  ).join('');
+
+  const q = ($('allSearch').value||'').toLowerCase();
+  let list = repairs;
+  if (allFilterState==='pending')  list = list.filter(r => isPending(r.status));
+  if (allFilterState==='approved') list = list.filter(r => r.status==='approved'||r.status==='auto_approved');
+  if (allFilterState==='rejected') list = list.filter(r => r.status==='rejected');
+  if (q) list = list.filter(r =>
+    String(r.plate||'').toLowerCase().includes(q) ||
+    String(r.requesterName||'').toLowerCase().includes(q) ||
+    String(r.issueDescription||'').toLowerCase().includes(q)
+  );
+
+  if (!list.length) {
+    $('allList').innerHTML = `<div style="text-align:center;padding:30px;color:var(--muted)">ไม่พบรายการ</div>`;
+    return;
+  }
+  $('allList').innerHTML = list.map(r => repairCardHtml(r)).join('');
+}
+
+// ═════════════════════════════════════════════════════════════════════
+// REPAIR CARD HTML
+// ═════════════════════════════════════════════════════════════════════
+function repairCardHtml(r) {
+  return `
+    <div class="repair-card ${statusClass(r.status)}" onclick="openDetail('${r.id}')">
+      <div class="rc-row1">
+        <div>
+          <div class="rc-plate">${r.plate || '-'}</div>
+          <div class="rc-meta">${r.warehouse||''} · ${r.vehicleType||r.model||''} · ${formatThaiDateTime(r.timestamp)}</div>
+        </div>
+        ${statusBadge(r.status)}
+      </div>
+      <div class="rc-issue">${(r.issueDescription||'').substring(0,160)}${(r.issueDescription||'').length>160?'...':''}</div>
+      <div class="rc-bottom">
+        <span class="rc-meta">โดย ${r.requesterName||r.requesterEmail||'-'}</span>
+        <span class="rc-amount">฿${fmtMoney(r.billAmount)}</span>
+      </div>
+    </div>`;
+}
+
+// ═════════════════════════════════════════════════════════════════════
+// DETAIL MODAL
+// ═════════════════════════════════════════════════════════════════════
+function openDetail(id) {
+  const r = repairs.find(x => x.id === id);
+  if (!r) return;
+  $('detailTitle').innerHTML = `${r.plate} <span style="font-size:11px;color:var(--muted);font-weight:400">${r.id}</span>`;
+
+  const rows = [
+    ['สถานะ', statusBadge(r.status)],
+    ['ทะเบียน', `<strong>${r.plate||'-'}</strong>`],
+    ['คลัง / รุ่น', `${r.warehouse||'-'} · ${r.model||'-'}`],
+    ['ประเภท / ปี', `${r.vehicleType||'-'} · ${r.year||'-'}`],
+    ['คนขับ/ผู้ดูแล', r.driver||'-'],
+    ['เลขไมล์', r.mileage ? Number(r.mileage).toLocaleString() + ' กม.' : '-'],
+    ['อาการ/รายละเอียด', `<div style="white-space:pre-wrap">${r.issueDescription||'-'}</div>`],
+    ['ยอดเงิน', `<span class="amount">฿${fmtMoney(r.billAmount)}</span>`],
+    ['ผู้แจ้ง', `${r.requesterName||'-'} <span style="color:var(--muted);font-size:11px">${r.requesterEmail||''}</span>`],
+    ['แผนกผู้แจ้ง / คลัง', `${r.requesterDept||'-'} · ${r.requesterWarehouse||'-'}`],
+    ['วันที่แจ้ง', formatThaiDateTime(r.timestamp)]
+  ];
+
+  let html = rows.map(([l,v]) =>
+    `<div class="det-row"><span class="det-label">${l}</span><span class="det-value">${v}</span></div>`
+  ).join('');
+
+  // รูปบิล
+  if (r.billPhotoUrl) {
+    const directUrl = driveDirectUrl(r.billPhotoUrl);
+    html += `<div style="margin-top:14px;text-align:center">
+      <img src="${directUrl}" style="max-width:100%;max-height:380px;border-radius:8px;border:1px solid var(--border);cursor:pointer" onclick="window.open('${r.billPhotoUrl}','_blank')" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+      <a href="${r.billPhotoUrl}" target="_blank" style="display:none;color:var(--info);font-size:13px">📎 เปิดรูปบิลใน Drive</a>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px">แตะรูปเพื่อเปิดดูใน Drive</div>
+    </div>`;
+  }
+
+  // Timeline
+  html += `<div class="timeline"><div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:6px">การอนุมัติ</div>`;
+  if (r.status === 'auto_approved') {
+    html += tlItem('done', 'อนุมัติอัตโนมัติ', `ยอดไม่เกิน 1,000 บาท · ${formatThaiDateTime(r.timestamp)}`);
+  } else {
+    // Stage 1
+    if (r.supervisorEmail) {
+      const isReject = r.status === 'rejected' && !r.executiveEmail;
+      html += tlItem(isReject ? 'reject' : 'done',
+        (isReject ? 'ปฏิเสธโดยหัวหน้า' : 'อนุมัติโดยหัวหน้า') + ' · ' + (r.supervisorName||r.supervisorEmail),
+        formatThaiDateTime(r.supervisorTs) + (r.supervisorNote ? ' · "' + r.supervisorNote + '"' : ''));
+    } else if (r.status === 'pending_supervisor') {
+      html += tlItem('pending', 'รออนุมัติจากหัวหน้า', '');
+    }
+    // Stage 2
+    if (r.executiveEmail) {
+      const isReject = r.status === 'rejected';
+      html += tlItem(isReject ? 'reject' : 'done',
+        (isReject ? 'ปฏิเสธโดยผู้บริหาร' : 'อนุมัติโดยผู้บริหาร') + ' · ' + (r.executiveName||r.executiveEmail),
+        formatThaiDateTime(r.executiveTs) + (r.executiveNote ? ' · "' + r.executiveNote + '"' : ''));
+    } else if (r.status === 'pending_executive') {
+      html += tlItem('pending', 'รออนุมัติจากผู้บริหาร', '');
+    }
+  }
+  html += `</div>`;
+
+  $('detailBody').innerHTML = html;
+
+  // Footer (action buttons)
+  const foot = $('detailFoot');
+  foot.innerHTML = '<button class="btn btn-outline" onclick="closeDetail()">ปิด</button>';
+  const myStage = currentUser.approvalStage;
+  const canApproveStage1 = (r.status === 'pending_supervisor') && (myStage === 1 || currentUser.role >= 7);
+  const canApproveStage2 = (r.status === 'pending_executive')  && (myStage === 2 || currentUser.role >= 7);
+  if (canApproveStage1 || canApproveStage2) {
+    const stage = canApproveStage1 ? 1 : 2;
+    foot.innerHTML +=
+      `<button class="btn btn-danger" onclick="askNote('reject',${stage},'${r.id}')">✗ ปฏิเสธ</button>` +
+      `<button class="btn btn-success" onclick="askNote('approve',${stage},'${r.id}')">✓ อนุมัติ</button>`;
+  }
+
+  $('detailModal').classList.add('open');
+}
+
+function tlItem(kind, title, meta) {
+  return `<div class="tl-item"><div class="tl-dot ${kind}"></div><div class="tl-content"><div class="tl-title">${title}</div>${meta?'<div class="tl-meta">'+meta+'</div>':''}</div></div>`;
+}
+
+function driveDirectUrl(url) {
+  // แปลง https://drive.google.com/file/d/<ID>/view?usp=... → https://drive.google.com/uc?export=view&id=<ID>
+  const m = /\/d\/([a-zA-Z0-9_-]+)/.exec(url||'');
+  return m ? `https://drive.google.com/thumbnail?id=${m[1]}&sz=w800` : url;
+}
+
+function closeDetail() { $('detailModal').classList.remove('open'); }
+
+// ═════════════════════════════════════════════════════════════════════
+// APPROVE / REJECT
+// ═════════════════════════════════════════════════════════════════════
+function askNote(action, stage, id) {
+  pendingApproveAction = action;
+  pendingApproveId = id;
+  $('noteText').value = '';
+  $('noteTitle').textContent = action === 'approve'
+    ? `ยืนยันการอนุมัติ (ขั้นที่ ${stage})`
+    : `ปฏิเสธคำขอ (ขั้นที่ ${stage})`;
+  const btn = $('noteConfirmBtn');
+  btn.className = 'btn ' + (action==='approve' ? 'btn-success' : 'btn-danger');
+  btn.dataset.stage = stage;
+  btn.textContent = action==='approve' ? '✓ ยืนยันอนุมัติ' : '✗ ยืนยันปฏิเสธ';
+  $('noteModal').classList.add('open');
+}
+function closeNote() { $('noteModal').classList.remove('open'); }
+
+async function confirmNoteAction() {
+  const note = $('noteText').value.trim();
+  const stage = parseInt($('noteConfirmBtn').dataset.stage);
+  const action = pendingApproveAction;
+  const id = pendingApproveId;
+  closeNote();
+  showSpinner('กำลังบันทึก...');
+  try {
+    const payload = {
+      action: action === 'approve' ? 'approve' : 'reject',
+      id: id,
+      approverEmail: currentUser.email,
+      approverName: currentUser.name,
+      approvalStage: stage,
+      note: note
+    };
+    const r = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || 'failed');
+    showToast(action==='approve' ? 'อนุมัติเรียบร้อย ✓' : 'ปฏิเสธเรียบร้อย', 'success');
+    closeDetail();
+    await loadRepairs();
+    renderMine(); renderApprove(); renderTabAll();
+  } catch (e) {
+    showToast('ไม่สำเร็จ: ' + e.message, 'error');
+  } finally {
+    hideSpinner();
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════
+// EXPORT
+// ═════════════════════════════════════════════════════════════════════
+function exportAllExcel() {
+  if (!repairs.length) { showToast('ไม่มีข้อมูลให้ export', 'warning'); return; }
+  const data = repairs.map(r => ({
+    'ID': r.id,
+    'วันที่แจ้ง': formatThaiDateTime(r.timestamp),
+    'ทะเบียน': r.plate, 'คลัง': r.warehouse, 'รุ่น': r.model, 'ประเภท': r.vehicleType, 'ปี': r.year,
+    'คนขับ': r.driver, 'เลขไมล์': r.mileage,
+    'อาการ': r.issueDescription, 'ยอดเงิน': r.billAmount,
+    'ผู้แจ้ง': r.requesterName, 'อีเมลผู้แจ้ง': r.requesterEmail,
+    'แผนกผู้แจ้ง': r.requesterDept, 'คลังผู้แจ้ง': r.requesterWarehouse,
+    'สถานะ': r.status,
+    'หัวหน้าอนุมัติ': r.supervisorName, 'หัวหน้าวันที่': formatThaiDateTime(r.supervisorTs), 'หัวหน้าหมายเหตุ': r.supervisorNote,
+    'ผู้บริหารอนุมัติ': r.executiveName, 'ผู้บริหารวันที่': formatThaiDateTime(r.executiveTs), 'ผู้บริหารหมายเหตุ': r.executiveNote,
+    'ลิงก์รูปบิล': r.billPhotoUrl
+  }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Repairs');
+  XLSX.writeFile(wb, 'rattana-vehicle-repair-' + new Date().toISOString().slice(0,10) + '.xlsx');
+}
+
+// ═════════════════════════════════════════════════════════════════════
+// BOOT
+// ═════════════════════════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  if (checkSession()) enterApp();
+});
+</script>
+</body>
+</html>
