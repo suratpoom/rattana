@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>Rattana Product Photos v2.4</title>
+<title>Rattana Product Photos v2.5</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -144,6 +144,20 @@ body.dark .photo-zone.has-image{background:#fff}
 .dim-helper{font-size:11px;color:var(--muted);margin-top:6px}
 .dim-helper b{color:var(--text)}
 
+/* Rotate controls */
+.rotate-bar{display:flex;align-items:center;gap:10px;background:var(--row-alt);padding:10px 12px;border-radius:8px;margin-top:10px;flex-wrap:wrap}
+.rotate-bar .rot-info{font-size:12px;color:var(--muted);flex:1;min-width:120px}
+.rotate-bar .rot-info b{color:var(--text);font-weight:600}
+.rotate-bar .rot-btn{background:var(--card-bg);border:1px solid var(--border);color:var(--text);width:38px;height:38px;border-radius:8px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;flex-shrink:0;transition:all .15s}
+.rotate-bar .rot-btn:hover{border-color:var(--gold);background:rgba(201,168,76,.08)}
+.rotate-bar .rot-btn:active{transform:scale(.94)}
+.rotate-bar .rot-btn.reset{font-size:14px;font-weight:600;width:auto;padding:0 12px;color:var(--muted)}
+.rotate-slider{flex:1 1 100%;display:flex;align-items:center;gap:10px;margin-top:4px}
+.rotate-slider input[type=range]{flex:1;-webkit-appearance:none;appearance:none;background:var(--border);height:4px;border-radius:2px;outline:none}
+.rotate-slider input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;background:var(--gold);border-radius:50%;cursor:pointer;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.rotate-slider input[type=range]::-moz-range-thumb{width:22px;height:22px;background:var(--gold);border-radius:50%;cursor:pointer;border:2px solid #fff}
+.rotate-slider .deg-label{font-family:'Courier New',monospace;font-size:13px;font-weight:600;color:var(--text);min-width:48px;text-align:right}
+
 /* Field */
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
 .field label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.3px;text-transform:uppercase}
@@ -216,7 +230,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 <div id="loginScreen">
   <div class="login-card">
     <div class="logo-big">RATTANA <span>PRODUCT PHOTOS</span></div>
-    <div class="sub">รัตนไพบูลย์ · v2.4</div>
+    <div class="sub">รัตนไพบูลย์ · v2.5</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -229,7 +243,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 <!-- App Screen -->
 <div id="appScreen" class="page" style="display:none">
   <header>
-    <div class="logo-text">RATTANA <span>PRODUCT PHOTOS</span><span class="ver">v2.4 · 2026-05-05</span></div>
+    <div class="logo-text">RATTANA <span>PRODUCT PHOTOS</span><span class="ver">v2.5 · 2026-05-05</span></div>
     <button class="icon-btn" onclick="refreshAll()" title="รีเฟรช" id="btnRefresh">⟳</button>
     <button class="icon-btn" onclick="toggleDark()" title="โหมดมืด">🌓</button>
     <button class="icon-btn" onclick="logout()" title="ออก">⏻</button>
@@ -354,6 +368,23 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
             <div class="progress-bar" id="progressBar"></div>
           </div>
           <div class="progress-text" id="progressText" style="display:none"></div>
+
+          <!-- Rotate controls (visible after processing) -->
+          <div id="rotateControls" style="display:none">
+            <div class="rotate-bar">
+              <div class="rot-info" id="rotInfo">หมุนรูป (ถ้ายังเอียง)</div>
+              <button class="rot-btn" type="button" onclick="adjustRotation(-90)" title="หมุนซ้าย 90°" aria-label="หมุนซ้าย 90 องศา">↺</button>
+              <button class="rot-btn" type="button" onclick="adjustRotation(90)" title="หมุนขวา 90°" aria-label="หมุนขวา 90 องศา">↻</button>
+              <button class="rot-btn reset" type="button" onclick="resetRotation()" title="รีเซ็ต">↶ รีเซ็ต</button>
+              <div class="rotate-slider">
+                <span style="font-size:11px;color:var(--muted)">−15°</span>
+                <input type="range" id="rotateSlider" min="-15" max="15" step="0.5" value="0" oninput="onSliderChange(this.value)">
+                <span style="font-size:11px;color:var(--muted)">+15°</span>
+                <span class="deg-label" id="degLabel">0°</span>
+              </div>
+            </div>
+          </div>
+
           <button class="btn btn-gold btn-block btn-lg" id="btnProcess" onclick="processBgRemoval()" style="margin-top:12px">
             ✨ ลบพื้นหลัง + ใส่พื้นขาว
           </button>
@@ -432,7 +463,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
     </div>
 
     <div class="app-footer">
-      Rattana Product Photos · <span class="ver">v2.4</span> · 2026-05-05
+      Rattana Product Photos · <span class="ver">v2.5</span> · 2026-05-05
     </div>
   </div>
 </div>
@@ -465,6 +496,10 @@ const CONFIG = {
   aiModel:           'small',
   preprocessMaxSize: 1024,    // resize input ก่อนส่ง AI (ลดเวลา ~30%) — set 0 ถ้าไม่ต้องการ
   prewarmAI:         true,    // โหลด AI ตั้งแต่เปิดแอป (ครั้งแรกไม่ต้องรอ)
+
+  // 6) Auto-straighten — หมุนรูปให้ตั้งตรงอัตโนมัติหลังลบพื้นหลัง
+  autoStraighten:    true,    // เปิด auto-straighten
+  straightenMaxDeg:  20,      // ถ้า detect แล้วเอียงเกินกว่านี้ ถือว่าผิดพลาด ไม่หมุน
 };
 
 // Auth (Rattana Users Sheet)
@@ -481,9 +516,13 @@ let products = [];
 let selectedProduct = null;
 let originalImageBlob = null;
 let originalImageDataUrl = null;
+let transparentBlob = null;        // result of bg removal (PNG with alpha) — kept for re-rendering on rotation
 let processedImageBlob = null;
 let processedImageDataUrl = null;
 let bgRemovalLib = null; // lazy-load
+let autoDetectedAngle = 0;         // angle detected by auto-straighten
+let userRotation = 0;              // user manual fine-tune (added on top of auto)
+let renderTimer = null;            // debounce slider
 
 // ═══════════════════════════════════════════════════════════════════
 // Helpers
@@ -693,6 +732,7 @@ function renderConfig() {
     ['AI Model', CONFIG.aiModel],
     ['Pre-process Resize', CONFIG.preprocessMaxSize > 0 ? CONFIG.preprocessMaxSize + ' px' : 'ปิด'],
     ['Pre-warm AI', CONFIG.prewarmAI ? 'เปิด' : 'ปิด'],
+    ['Auto-straighten', CONFIG.autoStraighten ? `เปิด (max ${CONFIG.straightenMaxDeg}°)` : 'ปิด'],
   ];
   $('cfgList').innerHTML = fields.map(([k, v]) => {
     const isUnset = String(v).startsWith('YOUR_');
@@ -854,9 +894,13 @@ window.handleFileSelect = async function(event) {
   }
 
   // Reset processed
+  transparentBlob = null;
   processedImageBlob = null;
   processedImageDataUrl = null;
+  autoDetectedAngle = 0;
+  userRotation = 0;
   $('saveCard').style.display = 'none';
+  $('rotateControls').style.display = 'none';
   $('resultZone').innerHTML = '<div class="placeholder-icon">⚙️</div><div>กดปุ่มเริ่มประมวลผล</div>';
 
   // Read & display original
@@ -928,6 +972,7 @@ window.processBgRemoval = async function() {
   $('progressText').style.display = 'block';
   $('progressBar').style.width = '0%';
   $('progressText').textContent = 'กำลังเริ่มต้น...';
+  $('rotateControls').style.display = 'none';
 
   const t0 = performance.now();
 
@@ -948,7 +993,6 @@ window.processBgRemoval = async function() {
       progress: (key, current, total) => {
         const pct = total ? Math.round(current / total * 100) : 0;
         $('progressBar').style.width = pct + '%';
-        // Friendlier labels
         const label = key.includes('download') ? 'ดาวน์โหลด AI' :
                       key.includes('compute') ? 'กำลังลบพื้นหลัง' : key;
         $('progressText').textContent = `${label}: ${pct}%`;
@@ -956,27 +1000,42 @@ window.processBgRemoval = async function() {
       output: { format: 'image/png', quality: 1.0 },
     };
 
-    const transparentBlob = await lib.removeBackground(inputBlob, config);
+    // Save transparent blob — used for re-rendering when user rotates
+    transparentBlob = await lib.removeBackground(inputBlob, config);
+
+    // Auto-detect angle from alpha mask
+    autoDetectedAngle = 0;
+    userRotation = 0;
+    if (CONFIG.autoStraighten) {
+      $('progressText').textContent = 'กำลังวิเคราะห์มุมเอียง...';
+      $('progressBar').style.width = '92%';
+      try {
+        const detected = await detectStraightenAngle(transparentBlob);
+        if (Math.abs(detected) <= (CONFIG.straightenMaxDeg || 20)) {
+          autoDetectedAngle = detected;
+        }
+      } catch (e) {
+        console.warn('Auto-straighten detect failed:', e);
+      }
+    }
 
     $('progressText').textContent = 'กำลังใส่พื้นขาว...';
-    $('progressBar').style.width = '95%';
+    $('progressBar').style.width = '96%';
 
-    // Composite onto white background, square crop, resize to output size
-    const finalBlob = await compositeOnWhite(transparentBlob, CONFIG.outputSize, CONFIG.outputQuality);
-    processedImageBlob = finalBlob;
-    processedImageDataUrl = await blobToDataUrl(finalBlob);
-
-    const zone = $('resultZone');
-    zone.classList.add('has-image');
-    zone.innerHTML = `<img src="${processedImageDataUrl}" alt="processed">`;
+    // Render final at autoDetectedAngle + userRotation (=0 first time)
+    await renderFinalImage();
 
     $('progressBar').style.width = '100%';
     const elapsed = ((performance.now() - t0) / 1000).toFixed(1);
-    $('progressText').textContent = `✓ เสร็จ (${elapsed} วิ)`;
+    const angleMsg = autoDetectedAngle !== 0 ? ` · หมุน ${autoDetectedAngle.toFixed(1)}°` : '';
+    $('progressText').textContent = `✓ เสร็จ (${elapsed} วิ)${angleMsg}`;
     setTimeout(() => {
       $('progressWrap').style.display = 'none';
       $('progressText').style.display = 'none';
-    }, 2000);
+    }, 2500);
+
+    // Show rotate controls
+    showRotateControls();
 
     $('saveCard').style.display = 'block';
     updateFilenamePreview();
@@ -990,6 +1049,71 @@ window.processBgRemoval = async function() {
   } finally {
     btn.disabled = false;
   }
+};
+
+// Re-render final image from transparent blob with current rotation
+async function renderFinalImage() {
+  if (!transparentBlob) return;
+  const totalAngle = autoDetectedAngle + userRotation;
+  const finalBlob = await compositeOnWhite(transparentBlob, CONFIG.outputSize, CONFIG.outputQuality, totalAngle);
+  processedImageBlob = finalBlob;
+  processedImageDataUrl = await blobToDataUrl(finalBlob);
+  const zone = $('resultZone');
+  zone.classList.add('has-image');
+  zone.innerHTML = `<img src="${processedImageDataUrl}" alt="processed">`;
+}
+
+function showRotateControls() {
+  $('rotateControls').style.display = 'block';
+  $('rotateSlider').value = 0;
+  $('degLabel').textContent = '0°';
+  updateRotInfo();
+}
+
+function updateRotInfo() {
+  const total = autoDetectedAngle + userRotation;
+  const auto = autoDetectedAngle;
+  let html = '';
+  if (Math.abs(auto) > 0.5) {
+    html = `<b>Auto:</b> ${auto.toFixed(1)}° · <b>รวม:</b> ${total.toFixed(1)}°`;
+  } else {
+    html = `หมุน <b>${total.toFixed(1)}°</b> (ปรับเอง)`;
+  }
+  $('rotInfo').innerHTML = html;
+}
+
+window.adjustRotation = async function(delta) {
+  userRotation = ((userRotation + delta) % 360 + 360) % 360;
+  if (userRotation > 180) userRotation -= 360;
+  $('rotateSlider').value = 0;
+  $('degLabel').textContent = '0°';
+  updateRotInfo();
+  await renderFinalImage();
+};
+
+window.resetRotation = async function() {
+  userRotation = 0;
+  $('rotateSlider').value = 0;
+  $('degLabel').textContent = '0°';
+  updateRotInfo();
+  await renderFinalImage();
+};
+
+window.onSliderChange = function(val) {
+  const fineDeg = parseFloat(val) || 0;
+  $('degLabel').textContent = (fineDeg >= 0 ? '+' : '') + fineDeg.toFixed(1) + '°';
+  // Debounce — slider drag fires many events
+  clearTimeout(renderTimer);
+  renderTimer = setTimeout(async () => {
+    // Replace slider portion of userRotation (slider is fine-tune ±15°)
+    // We keep coarse 90° rotations from buttons separate from slider:
+    // userRotation = (last coarse value) + slider fine
+    // Simpler: snap userRotation to nearest 90° multiple, then add fine
+    const coarse = Math.round(userRotation / 90) * 90;
+    userRotation = coarse + fineDeg;
+    updateRotInfo();
+    await renderFinalImage();
+  }, 80);
 };
 
 async function resizeIfTooLarge(blob, maxDim) {
@@ -1007,7 +1131,7 @@ async function resizeIfTooLarge(blob, maxDim) {
   return new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.92));
 }
 
-async function compositeOnWhite(transparentBlob, size, quality) {
+async function compositeOnWhite(transparentBlob, size, quality, rotationDeg) {
   const img = await blobToImage(transparentBlob);
   const canvas = document.createElement('canvas');
   canvas.width = size;
@@ -1018,18 +1142,120 @@ async function compositeOnWhite(transparentBlob, size, quality) {
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, size, size);
 
-  // Fit object inside with 5% padding, preserve aspect
+  // Calculate rotated bounding box to fit inside canvas
+  const rad = (rotationDeg || 0) * Math.PI / 180;
+  const cos = Math.abs(Math.cos(rad));
+  const sin = Math.abs(Math.sin(rad));
+  const rotW = img.width * cos + img.height * sin;
+  const rotH = img.width * sin + img.height * cos;
+
+  // Fit rotated object inside with 5% padding, preserve aspect
   const padding = size * 0.05;
   const maxW = size - padding * 2;
   const maxH = size - padding * 2;
-  const scale = Math.min(maxW / img.width, maxH / img.height);
+  const scale = Math.min(maxW / rotW, maxH / rotH);
   const drawW = img.width * scale;
   const drawH = img.height * scale;
-  const dx = (size - drawW) / 2;
-  const dy = (size - drawH) / 2;
-  ctx.drawImage(img, dx, dy, drawW, drawH);
+
+  // Rotate around canvas center, then draw
+  ctx.translate(size / 2, size / 2);
+  if (rotationDeg) ctx.rotate(rad);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
 
   return new Promise((res) => canvas.toBlob(res, 'image/jpeg', quality));
+}
+
+/**
+ * Detect dominant straighten angle from alpha mask of a transparent PNG.
+ * Strategy: PCA on alpha mask → principal axis → rotation needed to make it vertical.
+ * Returns degrees (positive = rotate clockwise).
+ */
+async function detectStraightenAngle(transparentBlob) {
+  const img = await blobToImage(transparentBlob);
+  const W = 200;
+  const scale = Math.min(1, W / Math.max(img.width, img.height));
+  const w = Math.max(1, Math.round(img.width * scale));
+  const h = Math.max(1, Math.round(img.height * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, w, h);
+  const data = ctx.getImageData(0, 0, w, h).data;
+
+  // Compute centroid (alpha-weighted)
+  let sumA = 0, sumX = 0, sumY = 0;
+  const ALPHA_THRESH = 32;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const a = data[(y * w + x) * 4 + 3];
+      if (a < ALPHA_THRESH) continue;
+      sumA += a;
+      sumX += x * a;
+      sumY += y * a;
+    }
+  }
+  if (sumA === 0) return 0;
+  const cx = sumX / sumA;
+  const cy = sumY / sumA;
+
+  // Compute covariance
+  let cxx = 0, cyy = 0, cxy = 0;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const a = data[(y * w + x) * 4 + 3];
+      if (a < ALPHA_THRESH) continue;
+      const dx = x - cx, dy = y - cy;
+      cxx += a * dx * dx;
+      cyy += a * dy * dy;
+      cxy += a * dx * dy;
+    }
+  }
+  cxx /= sumA; cyy /= sumA; cxy /= sumA;
+
+  // Eigenvalues
+  const tr = cxx + cyy;
+  const det = cxx * cyy - cxy * cxy;
+  const disc = Math.max(0, tr * tr / 4 - det);
+  const sqrtDisc = Math.sqrt(disc);
+  const lam1 = tr / 2 + sqrtDisc;  // larger
+  const lam2 = tr / 2 - sqrtDisc;  // smaller
+
+  // If shape is approximately circular (eigenvalues close), no clear axis → no rotation
+  if (lam1 < 1e-6 || (lam2 / lam1) > 0.85) return 0;
+
+  // Eigenvector for largest eigenvalue
+  let vx, vy;
+  if (Math.abs(cxy) > 1e-6) {
+    vx = cxy;
+    vy = lam1 - cxx;
+  } else {
+    vx = (cxx >= cyy) ? 1 : 0;
+    vy = (cxx >= cyy) ? 0 : 1;
+  }
+  const vlen = Math.hypot(vx, vy);
+  if (vlen < 1e-6) return 0;
+  vx /= vlen; vy /= vlen;
+
+  // Angle of principal axis from vertical (image y is downward, so up = -y)
+  let angleFromVertical = Math.atan2(vx, -vy) * 180 / Math.PI;
+
+  // Normalize to [-90, 90]
+  while (angleFromVertical > 90) angleFromVertical -= 180;
+  while (angleFromVertical < -90) angleFromVertical += 180;
+
+  // Decide target alignment based on which axis the principal direction is closer to
+  let targetAngle;
+  if (Math.abs(angleFromVertical) <= 45) {
+    // Object is mostly vertical → snap to vertical
+    targetAngle = -angleFromVertical;
+  } else {
+    // Object is mostly horizontal → snap to horizontal
+    targetAngle = angleFromVertical > 0 ? 90 - angleFromVertical : -90 - angleFromVertical;
+  }
+
+  return targetAngle;
 }
 
 function blobToImage(blob) {
@@ -1136,8 +1362,11 @@ function blobToBase64(blob) {
 window.resetAll = function() {
   originalImageBlob = null;
   originalImageDataUrl = null;
+  transparentBlob = null;
   processedImageBlob = null;
   processedImageDataUrl = null;
+  autoDetectedAngle = 0;
+  userRotation = 0;
   // Clear dimension inputs
   ['dimWeight','dimWidth','dimLength','dimHeight'].forEach(id => {
     const el = $(id); if (el) el.value = '';
@@ -1149,6 +1378,7 @@ window.resetAll = function() {
   $('saveCard').style.display = 'none';
   $('progressWrap').style.display = 'none';
   $('progressText').style.display = 'none';
+  $('rotateControls').style.display = 'none';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
