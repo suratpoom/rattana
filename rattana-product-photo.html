@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>Rattana Product Photos v2.1</title>
+<title>Rattana Product Photos v2.2</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -200,7 +200,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 <div id="loginScreen">
   <div class="login-card">
     <div class="logo-big">RATTANA <span>PRODUCT PHOTOS</span></div>
-    <div class="sub">รัตนไพบูลย์ · v2.1</div>
+    <div class="sub">รัตนไพบูลย์ · v2.2</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -213,7 +213,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 <!-- App Screen -->
 <div id="appScreen" class="page" style="display:none">
   <header>
-    <div class="logo-text">RATTANA <span>PRODUCT PHOTOS</span><span class="ver">v2.1 · 2026-05-05</span></div>
+    <div class="logo-text">RATTANA <span>PRODUCT PHOTOS</span><span class="ver">v2.2 · 2026-05-05</span></div>
     <button class="icon-btn" onclick="refreshAll()" title="รีเฟรช" id="btnRefresh">⟳</button>
     <button class="icon-btn" onclick="toggleDark()" title="โหมดมืด">🌓</button>
     <button class="icon-btn" onclick="logout()" title="ออก">⏻</button>
@@ -370,7 +370,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
     </div>
 
     <div class="app-footer">
-      Rattana Product Photos · <span class="ver">v2.1</span> · 2026-05-05
+      Rattana Product Photos · <span class="ver">v2.2</span> · 2026-05-05
     </div>
   </div>
 </div>
@@ -398,10 +398,9 @@ const CONFIG = {
   outputQuality:  0.85,    // 0.1-1.0
 
   // 5) AI Performance — ตัวเลือกความเร็ว vs คุณภาพ
-  // 'isnet'        = ดีสุด ช้าสุด (15-30 วิ)
-  // 'isnet_fp16'   = ดี เร็วปานกลาง (8-15 วิ)
-  // 'isnet_quint8' = ดีพอใช้ เร็วสุด (4-8 วิ) ⭐ default
-  aiModel:           'isnet_quint8',
+  // 'small'  = เร็วสุด (~4-8 วิ) ⭐ default
+  // 'medium' = ดีกว่า (~8-15 วิ)
+  aiModel:           'small',
   preprocessMaxSize: 1024,    // resize input ก่อนส่ง AI (ลดเวลา ~30%) — set 0 ถ้าไม่ต้องการ
   prewarmAI:         true,    // โหลด AI ตั้งแต่เปิดแอป (ครั้งแรกไม่ต้องรอ)
 };
@@ -873,7 +872,7 @@ window.processBgRemoval = async function() {
     }
 
     const config = {
-      model: CONFIG.aiModel || 'isnet_quint8',
+      model: CONFIG.aiModel || 'small',
       progress: (key, current, total) => {
         const pct = total ? Math.round(current / total * 100) : 0;
         $('progressBar').style.width = pct + '%';
