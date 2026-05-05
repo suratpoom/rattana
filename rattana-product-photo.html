@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>Rattana Product Photos v2.5</title>
+<title>Rattana Product Photos v2.6</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -158,6 +158,38 @@ body.dark .photo-zone.has-image{background:#fff}
 .rotate-slider input[type=range]::-moz-range-thumb{width:22px;height:22px;background:var(--gold);border-radius:50%;cursor:pointer;border:2px solid #fff}
 .rotate-slider .deg-label{font-family:'Courier New',monospace;font-size:13px;font-weight:600;color:var(--text);min-width:48px;text-align:right}
 
+/* Editor mode (crop / eraser overlay on image) */
+.editor-stage{position:relative;background:#fff;border-radius:var(--radius-md);overflow:hidden;border:2px solid var(--gold);user-select:none;-webkit-user-select:none;touch-action:none}
+.editor-stage img{display:block;width:100%;height:auto;pointer-events:none}
+.editor-canvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair;touch-action:none}
+.editor-canvas.eraser-cursor{cursor:none}
+
+/* Crop box */
+.crop-box{position:absolute;border:2px dashed var(--gold);box-shadow:0 0 0 9999px rgba(0,0,0,.45);pointer-events:none;box-sizing:border-box}
+.crop-handle{position:absolute;width:28px;height:28px;background:var(--gold);border:3px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.4);pointer-events:auto;touch-action:none;cursor:grab;z-index:10}
+.crop-handle:active{cursor:grabbing;transform:scale(1.15)}
+.crop-handle.h-tl{top:-14px;left:-14px}
+.crop-handle.h-tr{top:-14px;right:-14px}
+.crop-handle.h-bl{bottom:-14px;left:-14px}
+.crop-handle.h-br{bottom:-14px;right:-14px}
+
+/* Eraser preview circle */
+.eraser-cursor-dot{position:absolute;border:2px solid var(--danger);background:rgba(231,76,60,.15);border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);z-index:11;mix-blend-mode:multiply}
+
+/* Editor toolbar */
+.editor-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center;padding:10px;background:var(--row-alt);border-radius:8px}
+.editor-toolbar .ed-btn{flex:1;min-width:80px;padding:9px 10px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;font-family:inherit;min-height:42px;transition:all .15s}
+.editor-toolbar .ed-btn:hover{border-color:var(--gold)}
+.editor-toolbar .ed-btn.active{background:var(--gold);color:var(--navy);border-color:var(--gold);font-weight:700}
+.editor-toolbar .ed-btn.danger{color:var(--danger);border-color:rgba(231,76,60,.3)}
+.editor-toolbar .ed-btn.danger:hover{background:rgba(231,76,60,.08);border-color:var(--danger)}
+
+/* Brush size slider */
+.brush-row{display:flex;align-items:center;gap:8px;flex:1 1 100%;font-size:12px;color:var(--muted)}
+.brush-row input[type=range]{flex:1;-webkit-appearance:none;appearance:none;background:var(--border);height:4px;border-radius:2px;outline:none}
+.brush-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;background:var(--danger);border-radius:50%;cursor:pointer;border:2px solid #fff}
+.brush-row input[type=range]::-moz-range-thumb{width:20px;height:20px;background:var(--danger);border-radius:50%;cursor:pointer;border:2px solid #fff}
+
 /* Field */
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
 .field label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.3px;text-transform:uppercase}
@@ -218,7 +250,47 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 </head>
 <body>
 
-<!-- Spinner -->
+<!-- Editor Modal (crop / erase) -->
+<div id="editorModal" style="display:none;position:fixed;inset:0;background:rgba(13,27,62,.92);z-index:9000;flex-direction:column;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));backdrop-filter:blur(4px)">
+  <div style="display:flex;justify-content:space-between;align-items:center;color:#fff;margin-bottom:10px">
+    <h3 id="editorTitle" style="font-size:16px;font-weight:700;margin:0">แก้ไขรูป</h3>
+    <button onclick="cancelEdit()" class="icon-btn" style="border-color:rgba(255,255,255,.3)">✕</button>
+  </div>
+  <div id="editorBody" style="flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;min-height:0">
+    <div class="editor-stage" id="editorStage" style="max-width:100%;max-height:100%">
+      <img id="editorImg" alt="">
+      <canvas class="editor-canvas" id="editorCanvas"></canvas>
+      <div id="cropBox" class="crop-box" style="display:none">
+        <div class="crop-handle h-tl" data-corner="tl"></div>
+        <div class="crop-handle h-tr" data-corner="tr"></div>
+        <div class="crop-handle h-bl" data-corner="bl"></div>
+        <div class="crop-handle h-br" data-corner="br"></div>
+      </div>
+      <div id="eraserDot" class="eraser-cursor-dot" style="display:none;width:50px;height:50px"></div>
+    </div>
+  </div>
+
+  <!-- Crop toolbar -->
+  <div id="cropToolbar" class="editor-toolbar" style="display:none">
+    <button class="ed-btn" type="button" onclick="resetCropBox()">↻ รีเซ็ต</button>
+    <button class="ed-btn danger" type="button" onclick="cancelEdit()">ยกเลิก</button>
+    <button class="ed-btn active" type="button" onclick="applyCrop()" style="flex:2">✓ ตัด</button>
+  </div>
+
+  <!-- Erase toolbar -->
+  <div id="eraseToolbar" class="editor-toolbar" style="display:none">
+    <div class="brush-row">
+      <span>ขนาดแปรง</span>
+      <input type="range" id="brushSize" min="10" max="120" step="1" value="40" oninput="onBrushSizeChange(this.value)">
+      <span id="brushSizeLabel" style="min-width:40px;text-align:right">40px</span>
+    </div>
+    <button class="ed-btn" type="button" onclick="undoErase()" id="btnUndoErase">↶ Undo</button>
+    <button class="ed-btn danger" type="button" onclick="cancelEdit()">ยกเลิก</button>
+    <button class="ed-btn active" type="button" onclick="applyErase()" style="flex:2">✓ เสร็จ</button>
+  </div>
+</div>
+
+
 <div id="spinner">
   <div class="spin-box">
     <div class="spin-ring"></div>
@@ -230,7 +302,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 <div id="loginScreen">
   <div class="login-card">
     <div class="logo-big">RATTANA <span>PRODUCT PHOTOS</span></div>
-    <div class="sub">รัตนไพบูลย์ · v2.5</div>
+    <div class="sub">รัตนไพบูลย์ · v2.6</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -243,7 +315,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 <!-- App Screen -->
 <div id="appScreen" class="page" style="display:none">
   <header>
-    <div class="logo-text">RATTANA <span>PRODUCT PHOTOS</span><span class="ver">v2.5 · 2026-05-05</span></div>
+    <div class="logo-text">RATTANA <span>PRODUCT PHOTOS</span><span class="ver">v2.6 · 2026-05-05</span></div>
     <button class="icon-btn" onclick="refreshAll()" title="รีเฟรช" id="btnRefresh">⟳</button>
     <button class="icon-btn" onclick="toggleDark()" title="โหมดมืด">🌓</button>
     <button class="icon-btn" onclick="logout()" title="ออก">⏻</button>
@@ -315,10 +387,53 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
         </div>
       </div>
 
-      <!-- Step 3: Dimensions (optional) -->
+      <!-- Step 3: Process (now before dimensions) -->
+      <div class="card card-gold" id="processCard" style="display:none">
+        <div class="card-head"><span><span class="step">3</span>ลบพื้นหลัง → พื้นขาว</span></div>
+        <div class="card-body">
+          <div class="photo-zone has-image" id="resultZone">
+            <div class="placeholder-icon">⚙️</div>
+            <div>กดปุ่มเริ่มประมวลผล</div>
+          </div>
+          <div class="progress-wrap" id="progressWrap" style="display:none">
+            <div class="progress-bar" id="progressBar"></div>
+          </div>
+          <div class="progress-text" id="progressText" style="display:none"></div>
+
+          <!-- Rotate controls (visible after processing) -->
+          <div id="rotateControls" style="display:none">
+            <div class="rotate-bar">
+              <div class="rot-info" id="rotInfo">หมุนรูป (ถ้ายังเอียง)</div>
+              <button class="rot-btn" type="button" onclick="adjustRotation(-90)" title="หมุนซ้าย 90°" aria-label="หมุนซ้าย 90 องศา">↺</button>
+              <button class="rot-btn" type="button" onclick="adjustRotation(90)" title="หมุนขวา 90°" aria-label="หมุนขวา 90 องศา">↻</button>
+              <button class="rot-btn reset" type="button" onclick="resetRotation()" title="รีเซ็ต">↶ รีเซ็ต</button>
+              <div class="rotate-slider">
+                <span style="font-size:11px;color:var(--muted)">−15°</span>
+                <input type="range" id="rotateSlider" min="-15" max="15" step="0.5" value="0" oninput="onSliderChange(this.value)">
+                <span style="font-size:11px;color:var(--muted)">+15°</span>
+                <span class="deg-label" id="degLabel">0°</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Editor controls (visible after processing) -->
+          <div id="editorButtons" style="display:none;margin-top:10px">
+            <div class="editor-toolbar">
+              <button class="ed-btn" type="button" onclick="enterEditMode('crop')">✂️ ปรับ Crop</button>
+              <button class="ed-btn" type="button" onclick="enterEditMode('erase')">🧽 ลบจุด</button>
+            </div>
+          </div>
+
+          <button class="btn btn-gold btn-block btn-lg" id="btnProcess" onclick="processBgRemoval()" style="margin-top:12px">
+            ✨ ลบพื้นหลัง + ใส่พื้นขาว
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 4: Dimensions (optional) -->
       <div class="card card-gold">
         <div class="card-head">
-          <span><span class="step">3</span>ข้อมูลขนาดสินค้า</span>
+          <span><span class="step">4</span>ข้อมูลขนาดสินค้า</span>
           <span class="badge badge-info" style="font-size:10px">ไม่บังคับ</span>
         </div>
         <div class="card-body">
@@ -353,41 +468,6 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
             </div>
           </div>
           <div class="dim-helper">เว้นว่างได้ ถ้าไม่ต้องการบันทึก</div>
-        </div>
-      </div>
-
-      <!-- Step 4: Process -->
-      <div class="card card-gold" id="processCard" style="display:none">
-        <div class="card-head"><span><span class="step">4</span>ลบพื้นหลัง → พื้นขาว</span></div>
-        <div class="card-body">
-          <div class="photo-zone has-image" id="resultZone">
-            <div class="placeholder-icon">⚙️</div>
-            <div>กดปุ่มเริ่มประมวลผล</div>
-          </div>
-          <div class="progress-wrap" id="progressWrap" style="display:none">
-            <div class="progress-bar" id="progressBar"></div>
-          </div>
-          <div class="progress-text" id="progressText" style="display:none"></div>
-
-          <!-- Rotate controls (visible after processing) -->
-          <div id="rotateControls" style="display:none">
-            <div class="rotate-bar">
-              <div class="rot-info" id="rotInfo">หมุนรูป (ถ้ายังเอียง)</div>
-              <button class="rot-btn" type="button" onclick="adjustRotation(-90)" title="หมุนซ้าย 90°" aria-label="หมุนซ้าย 90 องศา">↺</button>
-              <button class="rot-btn" type="button" onclick="adjustRotation(90)" title="หมุนขวา 90°" aria-label="หมุนขวา 90 องศา">↻</button>
-              <button class="rot-btn reset" type="button" onclick="resetRotation()" title="รีเซ็ต">↶ รีเซ็ต</button>
-              <div class="rotate-slider">
-                <span style="font-size:11px;color:var(--muted)">−15°</span>
-                <input type="range" id="rotateSlider" min="-15" max="15" step="0.5" value="0" oninput="onSliderChange(this.value)">
-                <span style="font-size:11px;color:var(--muted)">+15°</span>
-                <span class="deg-label" id="degLabel">0°</span>
-              </div>
-            </div>
-          </div>
-
-          <button class="btn btn-gold btn-block btn-lg" id="btnProcess" onclick="processBgRemoval()" style="margin-top:12px">
-            ✨ ลบพื้นหลัง + ใส่พื้นขาว
-          </button>
         </div>
       </div>
 
@@ -463,7 +543,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
     </div>
 
     <div class="app-footer">
-      Rattana Product Photos · <span class="ver">v2.5</span> · 2026-05-05
+      Rattana Product Photos · <span class="ver">v2.6</span> · 2026-05-05
     </div>
   </div>
 </div>
@@ -523,6 +603,17 @@ let bgRemovalLib = null; // lazy-load
 let autoDetectedAngle = 0;         // angle detected by auto-straighten
 let userRotation = 0;              // user manual fine-tune (added on top of auto)
 let renderTimer = null;            // debounce slider
+
+// Editor state
+let editMode = null;               // 'crop' | 'erase' | null
+let editCanvas = null;             // working canvas (full-resolution)
+let editCtx = null;
+let editHistory = [];              // ImageData snapshots for undo
+let cropRect = null;               // {x,y,w,h} in image coords
+let dragState = null;              // crop drag info
+let brushSize = 40;
+let isErasing = false;
+let lastErasePos = null;
 
 // ═══════════════════════════════════════════════════════════════════
 // Helpers
@@ -901,6 +992,7 @@ window.handleFileSelect = async function(event) {
   userRotation = 0;
   $('saveCard').style.display = 'none';
   $('rotateControls').style.display = 'none';
+  $('editorButtons').style.display = 'none';
   $('resultZone').innerHTML = '<div class="placeholder-icon">⚙️</div><div>กดปุ่มเริ่มประมวลผล</div>';
 
   // Read & display original
@@ -1036,6 +1128,7 @@ window.processBgRemoval = async function() {
 
     // Show rotate controls
     showRotateControls();
+    $('editorButtons').style.display = 'block';
 
     $('saveCard').style.display = 'block';
     updateFilenamePreview();
@@ -1379,6 +1472,7 @@ window.resetAll = function() {
   $('progressWrap').style.display = 'none';
   $('progressText').style.display = 'none';
   $('rotateControls').style.display = 'none';
+  $('editorButtons').style.display = 'none';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
@@ -1443,9 +1537,360 @@ function formatThaiDate(input) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// Editor (Crop + Eraser)
+// ═══════════════════════════════════════════════════════════════════
+window.enterEditMode = async function(mode) {
+  if (!processedImageBlob) { showToast('ยังไม่มีรูปที่ประมวลผล', 'warning'); return; }
+  editMode = mode;
+
+  // Load current processed image into editing canvas
+  const img = await blobToImage(processedImageBlob);
+  editCanvas = document.createElement('canvas');
+  editCanvas.width = img.width;
+  editCanvas.height = img.height;
+  editCtx = editCanvas.getContext('2d');
+  editCtx.drawImage(img, 0, 0);
+
+  // Save initial state for undo
+  editHistory = [editCtx.getImageData(0, 0, editCanvas.width, editCanvas.height)];
+
+  // Show modal with current image
+  $('editorImg').src = processedImageDataUrl;
+  $('editorModal').style.display = 'flex';
+  $('editorModal').style.flexDirection = 'column';
+
+  $('cropToolbar').style.display = 'none';
+  $('eraseToolbar').style.display = 'none';
+  $('cropBox').style.display = 'none';
+  $('eraserDot').style.display = 'none';
+
+  if (mode === 'crop') {
+    $('editorTitle').textContent = '✂️ ปรับขนาด Crop';
+    $('cropToolbar').style.display = 'flex';
+    setupCropOverlay();
+  } else if (mode === 'erase') {
+    $('editorTitle').textContent = '🧽 ลบจุดที่ไม่ต้องการ';
+    $('eraseToolbar').style.display = 'flex';
+    setupEraseOverlay();
+  }
+};
+
+window.cancelEdit = function() {
+  $('editorModal').style.display = 'none';
+  editMode = null;
+  editCanvas = null;
+  editCtx = null;
+  editHistory = [];
+  cropRect = null;
+  dragState = null;
+  // Remove event listeners by replacing canvas
+  const c = $('editorCanvas');
+  if (c) {
+    const newC = c.cloneNode(false);
+    c.parentNode.replaceChild(newC, c);
+  }
+};
+
+// ─── CROP ──────────────────────────────────────────────────────────
+function setupCropOverlay() {
+  const stage = $('editorStage');
+  const img = $('editorImg');
+
+  // Wait for img to be loaded so we have actual dimensions
+  const init = () => {
+    const rect = img.getBoundingClientRect();
+    // Initial crop box = 80% centered
+    cropRect = {
+      x: editCanvas.width  * 0.10,
+      y: editCanvas.height * 0.10,
+      w: editCanvas.width  * 0.80,
+      h: editCanvas.height * 0.80,
+    };
+    drawCropBox();
+
+    // Set up drag handlers on handles
+    document.querySelectorAll('#cropBox .crop-handle').forEach(h => {
+      h.addEventListener('pointerdown', onCropHandleDown);
+    });
+  };
+
+  if (img.complete && img.naturalWidth > 0) {
+    init();
+  } else {
+    img.onload = init;
+  }
+}
+
+function imageScale() {
+  // Ratio: displayed pixels per image pixel
+  const img = $('editorImg');
+  const rect = img.getBoundingClientRect();
+  return rect.width / editCanvas.width;
+}
+
+function drawCropBox() {
+  if (!cropRect) return;
+  const scale = imageScale();
+  const stage = $('editorStage');
+  const img = $('editorImg');
+  const imgRect = img.getBoundingClientRect();
+  const stageRect = stage.getBoundingClientRect();
+  const offsetX = imgRect.left - stageRect.left;
+  const offsetY = imgRect.top  - stageRect.top;
+
+  const box = $('cropBox');
+  box.style.display = 'block';
+  box.style.left   = (offsetX + cropRect.x * scale) + 'px';
+  box.style.top    = (offsetY + cropRect.y * scale) + 'px';
+  box.style.width  = (cropRect.w * scale) + 'px';
+  box.style.height = (cropRect.h * scale) + 'px';
+}
+
+function onCropHandleDown(e) {
+  e.preventDefault();
+  const corner = e.target.dataset.corner;
+  const startRect = { ...cropRect };
+  const startPt   = { x: e.clientX, y: e.clientY };
+  const scale     = imageScale();
+  e.target.setPointerCapture(e.pointerId);
+
+  const onMove = (ev) => {
+    const dx = (ev.clientX - startPt.x) / scale;
+    const dy = (ev.clientY - startPt.y) / scale;
+    let { x, y, w, h } = startRect;
+    const minSize = 50;
+    if (corner === 'tl') {
+      const nx = Math.min(x + dx, x + w - minSize);
+      const ny = Math.min(y + dy, y + h - minSize);
+      w = w - (nx - x); h = h - (ny - y); x = nx; y = ny;
+    } else if (corner === 'tr') {
+      const nw = Math.max(minSize, w + dx);
+      const ny = Math.min(y + dy, y + h - minSize);
+      h = h - (ny - y); y = ny; w = nw;
+    } else if (corner === 'bl') {
+      const nx = Math.min(x + dx, x + w - minSize);
+      w = w - (nx - x); x = nx;
+      h = Math.max(minSize, h + dy);
+    } else if (corner === 'br') {
+      w = Math.max(minSize, w + dx);
+      h = Math.max(minSize, h + dy);
+    }
+    // Clamp to canvas
+    x = Math.max(0, Math.min(editCanvas.width  - minSize, x));
+    y = Math.max(0, Math.min(editCanvas.height - minSize, y));
+    w = Math.max(minSize, Math.min(editCanvas.width  - x, w));
+    h = Math.max(minSize, Math.min(editCanvas.height - y, h));
+    cropRect = { x, y, w, h };
+    drawCropBox();
+  };
+  const onUp = (ev) => {
+    e.target.removeEventListener('pointermove', onMove);
+    e.target.removeEventListener('pointerup', onUp);
+  };
+  e.target.addEventListener('pointermove', onMove);
+  e.target.addEventListener('pointerup', onUp);
+}
+
+window.resetCropBox = function() {
+  if (!editCanvas) return;
+  cropRect = {
+    x: editCanvas.width  * 0.10,
+    y: editCanvas.height * 0.10,
+    w: editCanvas.width  * 0.80,
+    h: editCanvas.height * 0.80,
+  };
+  drawCropBox();
+};
+
+window.applyCrop = async function() {
+  if (!cropRect || !editCanvas) return;
+  // Crop and re-composite onto white square
+  const croppedCanvas = document.createElement('canvas');
+  croppedCanvas.width = Math.round(cropRect.w);
+  croppedCanvas.height = Math.round(cropRect.h);
+  const cctx = croppedCanvas.getContext('2d');
+  cctx.fillStyle = '#FFFFFF';
+  cctx.fillRect(0, 0, croppedCanvas.width, croppedCanvas.height);
+  cctx.drawImage(editCanvas, cropRect.x, cropRect.y, cropRect.w, cropRect.h, 0, 0, cropRect.w, cropRect.h);
+
+  // Re-fit onto square output
+  const finalCanvas = document.createElement('canvas');
+  finalCanvas.width = CONFIG.outputSize;
+  finalCanvas.height = CONFIG.outputSize;
+  const fctx = finalCanvas.getContext('2d');
+  fctx.fillStyle = '#FFFFFF';
+  fctx.fillRect(0, 0, CONFIG.outputSize, CONFIG.outputSize);
+  const padding = CONFIG.outputSize * 0.05;
+  const maxW = CONFIG.outputSize - padding * 2;
+  const maxH = CONFIG.outputSize - padding * 2;
+  const scale = Math.min(maxW / croppedCanvas.width, maxH / croppedCanvas.height);
+  const drawW = croppedCanvas.width * scale;
+  const drawH = croppedCanvas.height * scale;
+  const dx = (CONFIG.outputSize - drawW) / 2;
+  const dy = (CONFIG.outputSize - drawH) / 2;
+  fctx.imageSmoothingEnabled = true;
+  fctx.imageSmoothingQuality = 'high';
+  fctx.drawImage(croppedCanvas, dx, dy, drawW, drawH);
+
+  const finalBlob = await new Promise(res => finalCanvas.toBlob(res, 'image/jpeg', CONFIG.outputQuality));
+  processedImageBlob = finalBlob;
+  processedImageDataUrl = await blobToDataUrl(finalBlob);
+  $('resultZone').innerHTML = `<img src="${processedImageDataUrl}" alt="processed">`;
+
+  cancelEdit();
+  showToast('ตัดรูปสำเร็จ ✓', 'success');
+};
+
+// ─── ERASER ────────────────────────────────────────────────────────
+function setupEraseOverlay() {
+  const canvas = $('editorCanvas');
+  const img = $('editorImg');
+  canvas.classList.add('eraser-cursor');
+
+  // Match canvas resolution to image
+  const init = () => {
+    canvas.width = editCanvas.width;
+    canvas.height = editCanvas.height;
+    canvas.getContext('2d').drawImage(editCanvas, 0, 0);
+
+    canvas.addEventListener('pointerdown', onErasePointerDown);
+    canvas.addEventListener('pointermove', onErasePointerMove);
+    canvas.addEventListener('pointerup', onErasePointerUp);
+    canvas.addEventListener('pointercancel', onErasePointerUp);
+    canvas.addEventListener('pointerleave', onErasePointerUp);
+  };
+  if (img.complete && img.naturalWidth > 0) init();
+  else img.onload = init;
+
+  // Hide the underlying img since we'll show canvas content instead
+  img.style.opacity = '0';
+}
+
+function getCanvasPos(e) {
+  const canvas = $('editorCanvas');
+  const rect = canvas.getBoundingClientRect();
+  const sx = canvas.width  / rect.width;
+  const sy = canvas.height / rect.height;
+  return {
+    x: (e.clientX - rect.left) * sx,
+    y: (e.clientY - rect.top)  * sy,
+    cx: e.clientX - rect.left,
+    cy: e.clientY - rect.top,
+  };
+}
+
+function onErasePointerDown(e) {
+  e.preventDefault();
+  const canvas = $('editorCanvas');
+  canvas.setPointerCapture(e.pointerId);
+  isErasing = true;
+  // Save undo state
+  editHistory.push(editCtx.getImageData(0, 0, editCanvas.width, editCanvas.height));
+  if (editHistory.length > 20) editHistory.shift();
+
+  const pos = getCanvasPos(e);
+  lastErasePos = pos;
+  eraseAt(pos);
+  showEraserDot(pos);
+}
+
+function onErasePointerMove(e) {
+  const pos = getCanvasPos(e);
+  showEraserDot(pos);
+  if (!isErasing) return;
+  // Draw line from last to current to avoid gaps when moving fast
+  if (lastErasePos) {
+    eraseLine(lastErasePos, pos);
+  } else {
+    eraseAt(pos);
+  }
+  lastErasePos = pos;
+}
+
+function onErasePointerUp(e) {
+  isErasing = false;
+  lastErasePos = null;
+}
+
+function showEraserDot(pos) {
+  const dot = $('eraserDot');
+  dot.style.display = 'block';
+  const scale = imageScale();
+  dot.style.width  = (brushSize * scale) + 'px';
+  dot.style.height = (brushSize * scale) + 'px';
+  dot.style.left   = pos.cx + 'px';
+  dot.style.top    = pos.cy + 'px';
+}
+
+function eraseAt(pos) {
+  const ctx = $('editorCanvas').getContext('2d');
+  const r = brushSize / 2;
+  ctx.fillStyle = '#FFFFFF';
+  ctx.beginPath();
+  ctx.arc(pos.x, pos.y, r, 0, Math.PI * 2);
+  ctx.fill();
+  // Mirror to working canvas
+  editCtx.fillStyle = '#FFFFFF';
+  editCtx.beginPath();
+  editCtx.arc(pos.x, pos.y, r, 0, Math.PI * 2);
+  editCtx.fill();
+}
+
+function eraseLine(from, to) {
+  const ctx = $('editorCanvas').getContext('2d');
+  const r = brushSize / 2;
+  // Draw a thick line
+  ctx.strokeStyle = '#FFFFFF';
+  ctx.lineWidth = brushSize;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(from.x, from.y);
+  ctx.lineTo(to.x, to.y);
+  ctx.stroke();
+  editCtx.strokeStyle = '#FFFFFF';
+  editCtx.lineWidth = brushSize;
+  editCtx.lineCap = 'round';
+  editCtx.beginPath();
+  editCtx.moveTo(from.x, from.y);
+  editCtx.lineTo(to.x, to.y);
+  editCtx.stroke();
+}
+
+window.onBrushSizeChange = function(val) {
+  brushSize = parseInt(val) || 40;
+  $('brushSizeLabel').textContent = brushSize + 'px';
+};
+
+window.undoErase = function() {
+  if (editHistory.length <= 1) {
+    showToast('ไม่มีอะไรให้ undo', 'info');
+    return;
+  }
+  // Pop most recent and use the one before
+  editHistory.pop();
+  const prev = editHistory[editHistory.length - 1];
+  editCtx.putImageData(prev, 0, 0);
+  const canvas = $('editorCanvas');
+  canvas.getContext('2d').putImageData(prev, 0, 0);
+};
+
+window.applyErase = async function() {
+  if (!editCanvas) return;
+  const finalBlob = await new Promise(res => editCanvas.toBlob(res, 'image/jpeg', CONFIG.outputQuality));
+  processedImageBlob = finalBlob;
+  processedImageDataUrl = await blobToDataUrl(finalBlob);
+  $('resultZone').innerHTML = `<img src="${processedImageDataUrl}" alt="processed">`;
+  $('editorImg').style.opacity = '';
+  cancelEdit();
+  showToast('ลบจุดเรียบร้อย ✓', 'success');
+};
+
+// ═══════════════════════════════════════════════════════════════════
 // Boot
 // ═══════════════════════════════════════════════════════════════════
 window.addEventListener('load', checkSession);
+
+
 </script>
 </body>
 </html>
