@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>Rattana Product Photo Studio v1.3</title>
+<title>Rattana Product Photos v2.0</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -136,7 +136,7 @@ body.dark .photo-zone.has-image{background:#fff}
 /* Login */
 #loginScreen{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,var(--navy) 0%,#1a2f5e 100%)}
 .login-card{background:#fff;border-radius:20px;padding:36px 28px;max-width:400px;width:100%;text-align:center;border-top:4px solid var(--gold);box-shadow:0 20px 60px rgba(0,0,0,.4)}
-.login-card .logo-big{font-size:24px;font-weight:700;color:var(--navy);letter-spacing:1px}
+.login-card .logo-big{font-size:22px;font-weight:700;color:var(--navy);letter-spacing:1px;line-height:1.2}
 .login-card .logo-big span{color:var(--gold)}
 .login-card .sub{color:var(--muted);font-size:13px;margin:8px 0 24px}
 .login-err{color:var(--danger);font-size:13px;margin-top:14px;min-height:18px}
@@ -198,8 +198,8 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 <!-- Login Screen -->
 <div id="loginScreen">
   <div class="login-card">
-    <div class="logo-big">RATTANA <span>PHOTO</span></div>
-    <div class="sub">Product Photo Studio · v1.3</div>
+    <div class="logo-big">RATTANA <span>PRODUCT PHOTOS</span></div>
+    <div class="sub">รัตนไพบูลย์ · v2.0</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -212,7 +212,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 <!-- App Screen -->
 <div id="appScreen" class="page" style="display:none">
   <header>
-    <div class="logo-text">RATTANA <span>PHOTO</span><span class="ver">v1.3 · 2026-05-05</span></div>
+    <div class="logo-text">RATTANA <span>PRODUCT PHOTOS</span><span class="ver">v2.0 · 2026-05-05</span></div>
     <button class="icon-btn" onclick="refreshAll()" title="รีเฟรช" id="btnRefresh">⟳</button>
     <button class="icon-btn" onclick="toggleDark()" title="โหมดมืด">🌓</button>
     <button class="icon-btn" onclick="logout()" title="ออก">⏻</button>
@@ -369,7 +369,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
     </div>
 
     <div class="app-footer">
-      Rattana Product Photo Studio · <span class="ver">v1.3</span> · 2026-05-05
+      Rattana Product Photos · <span class="ver">v2.0</span> · 2026-05-05
     </div>
   </div>
 </div>
@@ -672,6 +672,12 @@ async function loadProducts() {
   }
 }
 
+function escapeHtml(s) {
+  return String(s||'')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 function renderProducts() {
   $('productCount').textContent = products.length.toLocaleString();
   const ul = $('ddProductList');
@@ -680,15 +686,15 @@ function renderProducts() {
     return;
   }
   ul.innerHTML = products.map((p, i) =>
-    `<li data-idx="${i}" data-search="${(p.barcode + ' ' + p.name).toLowerCase()}">
-      <div>${p.name}</div>
-      <span class="bc">${p.barcode}</span>
+    `<li data-idx="${i}">
+      <div>${escapeHtml(p.name)}</div>
+      <span class="bc">${escapeHtml(p.barcode)}</span>
     </li>`
   ).join('');
   ul.querySelectorAll('li').forEach(li => {
     li.addEventListener('click', () => {
       const idx = parseInt(li.dataset.idx);
-      selectProduct(idx);
+      if (!isNaN(idx)) selectProduct(idx);
     });
   });
 }
@@ -709,11 +715,26 @@ window.filterProducts = function(inp) {
   const items = document.querySelectorAll('#ddProductList li');
   let visible = 0;
   items.forEach(li => {
+    if (li.classList.contains('no-result-msg')) { li.remove(); return; }
     if (li.classList.contains('no-result')) return;
-    const match = !q || li.dataset.search.includes(q);
+    const idx = parseInt(li.dataset.idx);
+    if (isNaN(idx) || !products[idx]) return;
+    const p = products[idx];
+    const haystack = (p.barcode + ' ' + p.name).toLowerCase();
+    const match = !q || haystack.includes(q);
     li.style.display = match ? '' : 'none';
     if (match) visible++;
   });
+  // Show "no results" hint if search active but nothing matches
+  const ul = $('ddProductList');
+  const existing = ul.querySelector('.no-result-msg');
+  if (existing) existing.remove();
+  if (q && visible === 0) {
+    const li = document.createElement('li');
+    li.className = 'no-result no-result-msg';
+    li.textContent = `ไม่พบสินค้าที่ตรงกับ "${q}"`;
+    ul.appendChild(li);
+  }
 };
 
 function selectProduct(idx) {
@@ -775,16 +796,37 @@ function blobToDataUrl(blob) {
 // ═══════════════════════════════════════════════════════════════════
 async function loadBgRemovalLib() {
   if (bgRemovalLib) return bgRemovalLib;
-  showSpinner('กำลังโหลด AI Model (~40MB ครั้งแรก)...');
+
   $('progressText').style.display = 'block';
-  $('progressText').textContent = 'กำลังโหลดไลบรารี...';
-  try {
-    const mod = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/browser.mjs');
-    bgRemovalLib = mod;
-    return mod;
-  } finally {
-    hideSpinner();
+  $('progressText').textContent = 'กำลังโหลดไลบรารี AI...';
+
+  // ลองหลาย CDN ตามลำดับ — esm.sh bundle จะดีที่สุดบน iOS Safari
+  // เพราะ inline dependencies ทั้งหมด ไม่มี nested dynamic import
+  const cdnUrls = [
+    'https://esm.sh/@imgly/background-removal@1.4.5?bundle&target=es2020',
+    'https://esm.sh/@imgly/background-removal@1.4.5',
+    'https://esm.run/@imgly/background-removal@1.4.5',
+    'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/browser.mjs',
+  ];
+
+  let lastError = null;
+  for (const url of cdnUrls) {
+    try {
+      $('progressText').textContent = `กำลังโหลดจาก ${new URL(url).hostname}...`;
+      const mod = await import(/* @vite-ignore */ url);
+      if (typeof mod.removeBackground !== 'function') {
+        throw new Error('removeBackground function not found in module');
+      }
+      bgRemovalLib = mod;
+      console.log('AI library loaded from:', url);
+      return mod;
+    } catch (e) {
+      console.warn(`โหลดจาก ${url} ไม่ได้:`, e);
+      lastError = e;
+    }
   }
+
+  throw new Error(`โหลด AI library ไม่ได้จากทุก CDN: ${lastError?.message || 'unknown'}`);
 }
 
 window.processBgRemoval = async function() {
@@ -792,12 +834,16 @@ window.processBgRemoval = async function() {
   const btn = $('btnProcess');
   btn.disabled = true;
 
+  // Show progress UI immediately
+  $('progressWrap').style.display = 'block';
+  $('progressText').style.display = 'block';
+  $('progressBar').style.width = '0%';
+  $('progressText').textContent = 'กำลังเริ่มต้น...';
+
   try {
     const lib = await loadBgRemovalLib();
 
-    $('progressWrap').style.display = 'block';
-    $('progressText').style.display = 'block';
-    $('progressBar').style.width = '0%';
+    $('progressBar').style.width = '5%';
     $('progressText').textContent = 'กำลังเตรียม...';
 
     const config = {
@@ -834,9 +880,11 @@ window.processBgRemoval = async function() {
     updateFilenamePreview();
     showToast('ลบพื้นหลังเรียบร้อย ✓', 'success');
   } catch (e) {
-    console.error(e);
-    showToast('ลบพื้นหลังไม่สำเร็จ: ' + e.message, 'error');
-    $('progressText').textContent = '❌ ' + e.message;
+    console.error('BG removal error:', e);
+    const msg = e?.message || String(e);
+    showToast('ลบพื้นหลังไม่สำเร็จ: ' + msg, 'error');
+    $('progressText').textContent = '❌ ' + msg;
+    $('progressBar').style.width = '0%';
   } finally {
     btn.disabled = false;
   }
