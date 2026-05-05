@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>Rattana Product Photos v2.6</title>
+<title>Rattana Product Photos v2.9</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -190,6 +190,19 @@ body.dark .photo-zone.has-image{background:#fff}
 .brush-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;background:var(--danger);border-radius:50%;cursor:pointer;border:2px solid #fff}
 .brush-row input[type=range]::-moz-range-thumb{width:20px;height:20px;background:var(--danger);border-radius:50%;cursor:pointer;border:2px solid #fff}
 
+/* Toggle switch */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--row-alt);padding:12px 14px;border-radius:10px;border:1px solid var(--border);margin-bottom:12px}
+.toggle-row .toggle-label{flex:1;min-width:0}
+.toggle-row .toggle-label .t-title{font-size:14px;font-weight:600;color:var(--text);display:block}
+.toggle-row .toggle-label .t-desc{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4}
+.toggle-switch{position:relative;width:52px;height:30px;flex-shrink:0;cursor:pointer}
+.toggle-switch input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;background:#bbb;border-radius:30px;transition:background .2s}
+.toggle-slider::before{content:'';position:absolute;width:22px;height:22px;left:4px;top:4px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 2px 4px rgba(0,0,0,.2)}
+.toggle-switch input:checked + .toggle-slider{background:var(--gold)}
+.toggle-switch input:checked + .toggle-slider::before{transform:translateX(22px)}
+body.dark .toggle-slider{background:#3a4561}
+
 /* Field */
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
 .field label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.3px;text-transform:uppercase}
@@ -302,7 +315,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 <div id="loginScreen">
   <div class="login-card">
     <div class="logo-big">RATTANA <span>PRODUCT PHOTOS</span></div>
-    <div class="sub">รัตนไพบูลย์ · v2.6</div>
+    <div class="sub">รัตนไพบูลย์ · v2.9</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -315,7 +328,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 <!-- App Screen -->
 <div id="appScreen" class="page" style="display:none">
   <header>
-    <div class="logo-text">RATTANA <span>PRODUCT PHOTOS</span><span class="ver">v2.6 · 2026-05-05</span></div>
+    <div class="logo-text">RATTANA <span>PRODUCT PHOTOS</span><span class="ver">v2.9 · 2026-05-05</span></div>
     <button class="icon-btn" onclick="refreshAll()" title="รีเฟรช" id="btnRefresh">⟳</button>
     <button class="icon-btn" onclick="toggleDark()" title="โหมดมืด">🌓</button>
     <button class="icon-btn" onclick="logout()" title="ออก">⏻</button>
@@ -371,8 +384,18 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 
       <!-- Step 2: Take photo -->
       <div class="card card-gold">
-        <div class="card-head"><span><span class="step">2</span>ถ่ายรูปสินค้า</span></div>
+        <div class="card-head"><span><span class="step">2</span>เลือก/ถ่ายรูปสินค้า</span></div>
         <div class="card-body">
+          <div class="toggle-row">
+            <label class="toggle-label" for="toggleRemoveBg" style="cursor:pointer">
+              <span class="t-title">✨ ลบพื้นหลังด้วย AI</span>
+              <span class="t-desc" id="toggleDesc">เปิด: รูปที่ถ่ายมาจะลบพื้นหลังให้พื้นขาว · ปิด: ใช้รูปต้นฉบับเลย (สำหรับรูปที่หาจากอินเทอร์เน็ต)</span>
+            </label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggleRemoveBg" checked onchange="onToggleRemoveBg(this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
           <div class="photo-zone" id="originalZone">
             <div class="placeholder-icon">📷</div>
             <div>ยังไม่มีรูป</div>
@@ -387,9 +410,9 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
         </div>
       </div>
 
-      <!-- Step 3: Process (now before dimensions) -->
+      <!-- Step 3: Process (or pass-through) -->
       <div class="card card-gold" id="processCard" style="display:none">
-        <div class="card-head"><span><span class="step">3</span>ลบพื้นหลัง → พื้นขาว</span></div>
+        <div class="card-head"><span><span class="step">3</span><span id="step3Title">ลบพื้นหลัง → พื้นขาว</span></span></div>
         <div class="card-body">
           <div class="photo-zone has-image" id="resultZone">
             <div class="placeholder-icon">⚙️</div>
@@ -425,7 +448,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
           </div>
 
           <button class="btn btn-gold btn-block btn-lg" id="btnProcess" onclick="processBgRemoval()" style="margin-top:12px">
-            ✨ ลบพื้นหลัง + ใส่พื้นขาว
+            <span id="btnProcessLabel">✨ ลบพื้นหลัง + ใส่พื้นขาว</span>
           </button>
         </div>
       </div>
@@ -543,7 +566,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
     </div>
 
     <div class="app-footer">
-      Rattana Product Photos · <span class="ver">v2.6</span> · 2026-05-05
+      Rattana Product Photos · <span class="ver">v2.9</span> · 2026-05-05
     </div>
   </div>
 </div>
@@ -567,8 +590,9 @@ const CONFIG = {
   gasUrl:         'https://script.google.com/macros/s/AKfycbzzMAWxy_ubWhgwKjBUkXP4NETmssGuqFlYfD40HHuXucjbqrgV2cPRYhdbT__EgTtYcw/exec',
 
   // 4) ขนาด output JPEG
-  outputSize:     1000,    // px (สี่เหลี่ยมจัตุรัส 1000x1000)
-  outputQuality:  0.85,    // 0.1-1.0
+  outputSize:           1000,    // px (สี่เหลี่ยมจัตุรัส 1000x1000)
+  outputQuality:        0.85,    // 0.1-1.0
+  productCoveragePct:   70,      // % ของรูปที่สินค้าจะกินพื้นที่ (default 70%)
 
   // 5) AI Performance — ตัวเลือกความเร็ว vs คุณภาพ
   // 'small'  = เร็วสุด (~4-8 วิ) ⭐ default
@@ -614,6 +638,9 @@ let dragState = null;              // crop drag info
 let brushSize = 40;
 let isErasing = false;
 let lastErasePos = null;
+
+// Remove BG toggle state
+let removeBgEnabled = true;        // default ON
 
 // ═══════════════════════════════════════════════════════════════════
 // Helpers
@@ -679,13 +706,15 @@ async function loadFromSheets(sheetId, tabName) {
   return parseCsv(text);
 }
 
-// Sanitize filename — keep Thai but strip Drive-unfriendly chars
+// Sanitize filename — keep spaces and Thai chars, only strip Drive-illegal chars
 function sanitizeFilename(s) {
   return String(s||'')
-    .replace(/[\\/:*?"<>|]/g, '')
-    .replace(/\s+/g, '_')
-    .replace(/_+/g, '_')
-    .substring(0, 100);
+    .replace(/[\\/:*?"<>|]/g, '')   // strip illegal filesystem chars
+    .replace(/\s+/g, ' ')           // collapse multiple spaces to single space
+    .replace(/\.+$/g, '')           // strip trailing dots (cause ".." artifacts)
+    .replace(/^\.+/g, '')           // strip leading dots
+    .trim()
+    .substring(0, 120);             // length cap (a bit more headroom)
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -820,6 +849,7 @@ function renderConfig() {
     ['Apps Script URL', CONFIG.gasUrl],
     ['Output Size (px)', CONFIG.outputSize + ' × ' + CONFIG.outputSize],
     ['JPEG Quality', Math.round(CONFIG.outputQuality * 100) + '%'],
+    ['Product Coverage', CONFIG.productCoveragePct + '% ของรูป'],
     ['AI Model', CONFIG.aiModel],
     ['Pre-process Resize', CONFIG.preprocessMaxSize > 0 ? CONFIG.preprocessMaxSize + ' px' : 'ปิด'],
     ['Pre-warm AI', CONFIG.prewarmAI ? 'เปิด' : 'ปิด'],
@@ -1054,6 +1084,29 @@ async function loadBgRemovalLib() {
   throw new Error(`โหลด AI library ไม่ได้จากทุก CDN: ${lastError?.message || 'unknown'}`);
 }
 
+window.onToggleRemoveBg = function(checked) {
+  removeBgEnabled = checked;
+  // Update button label + step 3 title
+  $('btnProcessLabel').textContent = checked
+    ? '✨ ลบพื้นหลัง + ใส่พื้นขาว'
+    : '✓ ใช้รูปนี้เลย (พื้นขาว)';
+  $('step3Title').textContent = checked
+    ? 'ลบพื้นหลัง → พื้นขาว'
+    : 'ตรวจสอบรูป';
+  // If user already processed something, reset that state since mode changed
+  if (processedImageBlob) {
+    transparentBlob = null;
+    processedImageBlob = null;
+    processedImageDataUrl = null;
+    autoDetectedAngle = 0;
+    userRotation = 0;
+    $('saveCard').style.display = 'none';
+    $('rotateControls').style.display = 'none';
+    $('editorButtons').style.display = 'none';
+    $('resultZone').innerHTML = '<div class="placeholder-icon">⚙️</div><div>กดปุ่มประมวลผล</div>';
+  }
+};
+
 window.processBgRemoval = async function() {
   if (!originalImageBlob) return;
   const btn = $('btnProcess');
@@ -1069,53 +1122,66 @@ window.processBgRemoval = async function() {
   const t0 = performance.now();
 
   try {
-    const lib = await loadBgRemovalLib();
+    if (removeBgEnabled) {
+      // ── BG Removal mode ──
+      const lib = await loadBgRemovalLib();
 
-    $('progressBar').style.width = '5%';
-    $('progressText').textContent = 'กำลังเตรียมรูป...';
+      $('progressBar').style.width = '5%';
+      $('progressText').textContent = 'กำลังเตรียมรูป...';
 
-    // Resize input ถ้าใหญ่เกิน — ลดเวลา AI processing
-    let inputBlob = originalImageBlob;
-    if (CONFIG.preprocessMaxSize > 0) {
-      inputBlob = await resizeIfTooLarge(originalImageBlob, CONFIG.preprocessMaxSize);
-    }
-
-    const config = {
-      model: CONFIG.aiModel || 'small',
-      progress: (key, current, total) => {
-        const pct = total ? Math.round(current / total * 100) : 0;
-        $('progressBar').style.width = pct + '%';
-        const label = key.includes('download') ? 'ดาวน์โหลด AI' :
-                      key.includes('compute') ? 'กำลังลบพื้นหลัง' : key;
-        $('progressText').textContent = `${label}: ${pct}%`;
-      },
-      output: { format: 'image/png', quality: 1.0 },
-    };
-
-    // Save transparent blob — used for re-rendering when user rotates
-    transparentBlob = await lib.removeBackground(inputBlob, config);
-
-    // Auto-detect angle from alpha mask
-    autoDetectedAngle = 0;
-    userRotation = 0;
-    if (CONFIG.autoStraighten) {
-      $('progressText').textContent = 'กำลังวิเคราะห์มุมเอียง...';
-      $('progressBar').style.width = '92%';
-      try {
-        const detected = await detectStraightenAngle(transparentBlob);
-        if (Math.abs(detected) <= (CONFIG.straightenMaxDeg || 20)) {
-          autoDetectedAngle = detected;
-        }
-      } catch (e) {
-        console.warn('Auto-straighten detect failed:', e);
+      let inputBlob = originalImageBlob;
+      if (CONFIG.preprocessMaxSize > 0) {
+        inputBlob = await resizeIfTooLarge(originalImageBlob, CONFIG.preprocessMaxSize);
       }
+
+      const config = {
+        model: CONFIG.aiModel || 'small',
+        progress: (key, current, total) => {
+          const pct = total ? Math.round(current / total * 100) : 0;
+          $('progressBar').style.width = pct + '%';
+          const label = key.includes('download') ? 'ดาวน์โหลด AI' :
+                        key.includes('compute') ? 'กำลังลบพื้นหลัง' : key;
+          $('progressText').textContent = `${label}: ${pct}%`;
+        },
+        output: { format: 'image/png', quality: 1.0 },
+      };
+
+      transparentBlob = await lib.removeBackground(inputBlob, config);
+
+      // Auto-straighten
+      autoDetectedAngle = 0;
+      userRotation = 0;
+      if (CONFIG.autoStraighten) {
+        $('progressText').textContent = 'กำลังวิเคราะห์มุมเอียง...';
+        $('progressBar').style.width = '92%';
+        try {
+          const detected = await detectStraightenAngle(transparentBlob);
+          if (Math.abs(detected) <= (CONFIG.straightenMaxDeg || 20)) {
+            autoDetectedAngle = detected;
+          }
+        } catch (e) {
+          console.warn('Auto-straighten detect failed:', e);
+        }
+      }
+
+      $('progressText').textContent = 'กำลังใส่พื้นขาว...';
+      $('progressBar').style.width = '96%';
+      await renderFinalImage();
+    } else {
+      // ── Pass-through mode (toggle off) ──
+      $('progressBar').style.width = '50%';
+      $('progressText').textContent = 'กำลังเตรียมรูป...';
+
+      // Just resize to square output with white background, no BG removal
+      transparentBlob = null;
+      autoDetectedAngle = 0;
+      userRotation = 0;
+      const finalBlob = await fitOnWhiteSquare(originalImageBlob, CONFIG.outputSize, CONFIG.outputQuality);
+      processedImageBlob = finalBlob;
+      processedImageDataUrl = await blobToDataUrl(finalBlob);
+      $('resultZone').innerHTML = `<img src="${processedImageDataUrl}" alt="processed">`;
+      $('progressBar').style.width = '100%';
     }
-
-    $('progressText').textContent = 'กำลังใส่พื้นขาว...';
-    $('progressBar').style.width = '96%';
-
-    // Render final at autoDetectedAngle + userRotation (=0 first time)
-    await renderFinalImage();
 
     $('progressBar').style.width = '100%';
     const elapsed = ((performance.now() - t0) / 1000).toFixed(1);
@@ -1126,23 +1192,48 @@ window.processBgRemoval = async function() {
       $('progressText').style.display = 'none';
     }, 2500);
 
-    // Show rotate controls
-    showRotateControls();
+    // Show controls — rotate only if BG removal was used (transparentBlob exists)
+    if (removeBgEnabled) {
+      showRotateControls();
+    }
     $('editorButtons').style.display = 'block';
 
     $('saveCard').style.display = 'block';
     updateFilenamePreview();
-    showToast(`ลบพื้นหลังเรียบร้อย ✓ (${elapsed} วิ)`, 'success');
+    showToast(`เรียบร้อย ✓ (${elapsed} วิ)`, 'success');
   } catch (e) {
-    console.error('BG removal error:', e);
+    console.error('Process error:', e);
     const msg = e?.message || String(e);
-    showToast('ลบพื้นหลังไม่สำเร็จ: ' + msg, 'error');
+    showToast('ประมวลผลไม่สำเร็จ: ' + msg, 'error');
     $('progressText').textContent = '❌ ' + msg;
     $('progressBar').style.width = '0%';
   } finally {
     btn.disabled = false;
   }
 };
+
+// Pass-through: fit any image onto white square (used when toggle off)
+async function fitOnWhiteSquare(blob, size, quality) {
+  const img = await blobToImage(blob);
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, size, size);
+  // Scale so longest side of source = coveragePct of canvas (centered)
+  const coverage = (CONFIG.productCoveragePct || 70) / 100;
+  const targetSize = size * coverage;
+  const scale = targetSize / Math.max(img.width, img.height);
+  const drawW = img.width * scale;
+  const drawH = img.height * scale;
+  const dx = (size - drawW) / 2;
+  const dy = (size - drawH) / 2;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(img, dx, dy, drawW, drawH);
+  return new Promise(res => canvas.toBlob(res, 'image/jpeg', quality));
+}
 
 // Re-render final image from transparent blob with current rotation
 async function renderFinalImage() {
@@ -1226,6 +1317,12 @@ async function resizeIfTooLarge(blob, maxDim) {
 
 async function compositeOnWhite(transparentBlob, size, quality, rotationDeg) {
   const img = await blobToImage(transparentBlob);
+
+  // Find tight bounding box of non-transparent pixels (the actual product)
+  // so we can scale exactly that to coveragePct of canvas.
+  const bbox = await findAlphaBoundingBox(img);
+  // bbox: {x, y, w, h} in source img coordinates; falls back to full image if none found
+
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
@@ -1235,29 +1332,83 @@ async function compositeOnWhite(transparentBlob, size, quality, rotationDeg) {
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, size, size);
 
-  // Calculate rotated bounding box to fit inside canvas
+  const coverage = (CONFIG.productCoveragePct || 70) / 100;
+  const targetSize = size * coverage;  // longest side of product after scaling
+
+  // For rotation, we need rotated bbox dimensions
   const rad = (rotationDeg || 0) * Math.PI / 180;
   const cos = Math.abs(Math.cos(rad));
   const sin = Math.abs(Math.sin(rad));
-  const rotW = img.width * cos + img.height * sin;
-  const rotH = img.width * sin + img.height * cos;
+  const rotW = bbox.w * cos + bbox.h * sin;
+  const rotH = bbox.w * sin + bbox.h * cos;
 
-  // Fit rotated object inside with 5% padding, preserve aspect
-  const padding = size * 0.05;
-  const maxW = size - padding * 2;
-  const maxH = size - padding * 2;
-  const scale = Math.min(maxW / rotW, maxH / rotH);
-  const drawW = img.width * scale;
-  const drawH = img.height * scale;
+  // Scale so the rotated bbox's longest side = targetSize
+  const scale = targetSize / Math.max(rotW, rotH);
 
-  // Rotate around canvas center, then draw
+  // Source crop dimensions (in original img coords)
+  const drawW = bbox.w * scale;
+  const drawH = bbox.h * scale;
+
+  // Draw centered on canvas, with rotation around the bbox center
   ctx.translate(size / 2, size / 2);
   if (rotationDeg) ctx.rotate(rad);
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+  // drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh) — crop bbox region from src
+  ctx.drawImage(
+    img,
+    bbox.x, bbox.y, bbox.w, bbox.h,
+    -drawW / 2, -drawH / 2, drawW, drawH
+  );
 
   return new Promise((res) => canvas.toBlob(res, 'image/jpeg', quality));
+}
+
+/**
+ * Find tight bounding box of non-transparent pixels in image.
+ * Returns {x, y, w, h} in image pixel coordinates.
+ * Uses downsample for speed; bbox in original coords.
+ */
+async function findAlphaBoundingBox(img) {
+  // Downsample to ~300px for fast scan
+  const MAX = 300;
+  const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+  const w = Math.max(1, Math.round(img.width * scale));
+  const h = Math.max(1, Math.round(img.height * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, w, h);
+  const data = ctx.getImageData(0, 0, w, h).data;
+
+  const ALPHA_THRESH = 16;
+  let minX = w, minY = h, maxX = -1, maxY = -1;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const a = data[(y * w + x) * 4 + 3];
+      if (a >= ALPHA_THRESH) {
+        if (x < minX) minX = x;
+        if (y < minY) minY = y;
+        if (x > maxX) maxX = x;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+
+  if (maxX < 0) {
+    // No non-transparent pixels found — return full image
+    return { x: 0, y: 0, w: img.width, h: img.height };
+  }
+
+  // Scale bbox back to original image coords (with small padding)
+  const inv = 1 / scale;
+  const padPx = 2;
+  return {
+    x: Math.max(0, (minX - padPx) * inv),
+    y: Math.max(0, (minY - padPx) * inv),
+    w: Math.min(img.width  - 0, (maxX - minX + 1 + padPx * 2) * inv),
+    h: Math.min(img.height - 0, (maxY - minY + 1 + padPx * 2) * inv),
+  };
 }
 
 /**
@@ -1713,17 +1864,16 @@ window.applyCrop = async function() {
   cctx.fillRect(0, 0, croppedCanvas.width, croppedCanvas.height);
   cctx.drawImage(editCanvas, cropRect.x, cropRect.y, cropRect.w, cropRect.h, 0, 0, cropRect.w, cropRect.h);
 
-  // Re-fit onto square output
+  // Re-fit onto square output with 70% coverage
   const finalCanvas = document.createElement('canvas');
   finalCanvas.width = CONFIG.outputSize;
   finalCanvas.height = CONFIG.outputSize;
   const fctx = finalCanvas.getContext('2d');
   fctx.fillStyle = '#FFFFFF';
   fctx.fillRect(0, 0, CONFIG.outputSize, CONFIG.outputSize);
-  const padding = CONFIG.outputSize * 0.05;
-  const maxW = CONFIG.outputSize - padding * 2;
-  const maxH = CONFIG.outputSize - padding * 2;
-  const scale = Math.min(maxW / croppedCanvas.width, maxH / croppedCanvas.height);
+  const coverage = (CONFIG.productCoveragePct || 70) / 100;
+  const targetSize = CONFIG.outputSize * coverage;
+  const scale = targetSize / Math.max(croppedCanvas.width, croppedCanvas.height);
   const drawW = croppedCanvas.width * scale;
   const drawH = croppedCanvas.height * scale;
   const dx = (CONFIG.outputSize - drawW) / 2;
