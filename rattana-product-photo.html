@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>Rattana Product Photos v2.2</title>
+<title>Rattana Product Photos v2.4</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -91,7 +91,12 @@ body.dark .badge-warn{background:#3a2e15;color:#e8c86a}
 .dd-trigger{width:100%;min-height:48px;padding:10px 14px;background:var(--card-bg);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:'Sarabun',sans-serif;font-size:15px;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .dd-trigger:hover{border-color:var(--gold)}
 .dd-panel{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--card-bg);border:1.5px solid var(--border);border-radius:10px;z-index:1000;box-shadow:0 12px 32px rgba(0,0,0,.25);max-height:320px;display:flex;flex-direction:column}
-.dd-search{padding:12px 14px;font-size:16px;border:none;border-bottom:1px solid var(--border);background:transparent;color:var(--text);outline:none;border-radius:10px 10px 0 0;font-family:'Sarabun',sans-serif}
+.dd-search-row{display:flex;align-items:center;border-bottom:1px solid var(--border);padding-right:6px}
+.dd-search{flex:1;min-width:0;padding:12px 14px;font-size:16px;border:none;background:transparent;color:var(--text);outline:none;border-radius:10px 0 0 0;font-family:'Sarabun',sans-serif}
+.dd-clear{display:none;background:transparent;border:none;color:var(--muted);width:34px;height:34px;border-radius:50%;font-size:13px;cursor:pointer;align-items:center;justify-content:center;font-family:inherit;flex-shrink:0}
+.dd-clear.show{display:flex}
+.dd-clear:hover{background:rgba(0,0,0,.06);color:var(--danger)}
+body.dark .dd-clear:hover{background:rgba(255,255,255,.08)}
 .dd-list{overflow-y:auto;flex:1;list-style:none;padding:4px 0;margin:0}
 .dd-list li{padding:10px 14px;cursor:pointer;font-size:14px;border-bottom:1px solid var(--border)}
 .dd-list li:last-child{border-bottom:none}
@@ -127,6 +132,17 @@ body.dark .photo-zone.has-image{background:#fff}
 .tbl td.code{font-family:'Courier New',monospace;font-size:12px;font-weight:600}
 .tbl .thumb{width:48px;height:48px;object-fit:contain;background:#fff;border-radius:6px;border:1px solid var(--border);cursor:pointer}
 .empty-row{text-align:center;color:var(--muted);padding:48px;font-size:14px}
+
+/* Dimension inputs — 2x2 grid */
+.dim-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dim-field{position:relative}
+.dim-field label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.3px;text-transform:uppercase;display:block;margin-bottom:4px}
+.dim-input-wrap{position:relative}
+.dim-input{height:46px;padding:0 44px 0 14px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--card-bg);color:var(--text);font-size:16px;font-family:inherit;outline:none;width:100%;transition:border-color .15s}
+.dim-input:focus{border-color:var(--gold)}
+.dim-unit{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted);font-weight:600;pointer-events:none}
+.dim-helper{font-size:11px;color:var(--muted);margin-top:6px}
+.dim-helper b{color:var(--text)}
 
 /* Field */
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
@@ -200,7 +216,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 <div id="loginScreen">
   <div class="login-card">
     <div class="logo-big">RATTANA <span>PRODUCT PHOTOS</span></div>
-    <div class="sub">รัตนไพบูลย์ · v2.2</div>
+    <div class="sub">รัตนไพบูลย์ · v2.4</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -213,7 +229,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 <!-- App Screen -->
 <div id="appScreen" class="page" style="display:none">
   <header>
-    <div class="logo-text">RATTANA <span>PRODUCT PHOTOS</span><span class="ver">v2.2 · 2026-05-05</span></div>
+    <div class="logo-text">RATTANA <span>PRODUCT PHOTOS</span><span class="ver">v2.4 · 2026-05-05</span></div>
     <button class="icon-btn" onclick="refreshAll()" title="รีเฟรช" id="btnRefresh">⟳</button>
     <button class="icon-btn" onclick="toggleDark()" title="โหมดมืด">🌓</button>
     <button class="icon-btn" onclick="logout()" title="ออก">⏻</button>
@@ -245,7 +261,10 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
               <span>▾</span>
             </button>
             <div class="dd-panel" id="ddProductPanel" style="display:none">
-              <input class="dd-search" type="text" placeholder="🔍 ค้นหาด้วย barcode หรือชื่อ..." oninput="filterProducts(this)" autocomplete="off" id="ddProductSearch">
+              <div class="dd-search-row">
+                <input class="dd-search" type="text" placeholder="🔍 ค้นหาด้วย barcode หรือชื่อ..." oninput="filterProducts(this)" autocomplete="off" id="ddProductSearch">
+                <button class="dd-clear" type="button" id="ddClearBtn" onclick="clearProductSearch()" title="ล้าง" aria-label="ล้างคำค้น">✕</button>
+              </div>
               <ul class="dd-list" id="ddProductList"></ul>
             </div>
           </div>
@@ -282,9 +301,50 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
         </div>
       </div>
 
-      <!-- Step 3: Process -->
+      <!-- Step 3: Dimensions (optional) -->
+      <div class="card card-gold">
+        <div class="card-head">
+          <span><span class="step">3</span>ข้อมูลขนาดสินค้า</span>
+          <span class="badge badge-info" style="font-size:10px">ไม่บังคับ</span>
+        </div>
+        <div class="card-body">
+          <div class="dim-grid">
+            <div class="dim-field">
+              <label>น้ำหนัก</label>
+              <div class="dim-input-wrap">
+                <input type="number" class="dim-input" id="dimWeight" inputmode="decimal" step="any" min="0" placeholder="0">
+                <span class="dim-unit">กรัม</span>
+              </div>
+            </div>
+            <div class="dim-field">
+              <label>กว้าง</label>
+              <div class="dim-input-wrap">
+                <input type="number" class="dim-input" id="dimWidth" inputmode="decimal" step="any" min="0" placeholder="0">
+                <span class="dim-unit">ซม.</span>
+              </div>
+            </div>
+            <div class="dim-field">
+              <label>ยาว</label>
+              <div class="dim-input-wrap">
+                <input type="number" class="dim-input" id="dimLength" inputmode="decimal" step="any" min="0" placeholder="0">
+                <span class="dim-unit">ซม.</span>
+              </div>
+            </div>
+            <div class="dim-field">
+              <label>สูง</label>
+              <div class="dim-input-wrap">
+                <input type="number" class="dim-input" id="dimHeight" inputmode="decimal" step="any" min="0" placeholder="0">
+                <span class="dim-unit">ซม.</span>
+              </div>
+            </div>
+          </div>
+          <div class="dim-helper">เว้นว่างได้ ถ้าไม่ต้องการบันทึก</div>
+        </div>
+      </div>
+
+      <!-- Step 4: Process -->
       <div class="card card-gold" id="processCard" style="display:none">
-        <div class="card-head"><span><span class="step">3</span>ลบพื้นหลัง → พื้นขาว</span></div>
+        <div class="card-head"><span><span class="step">4</span>ลบพื้นหลัง → พื้นขาว</span></div>
         <div class="card-body">
           <div class="photo-zone has-image" id="resultZone">
             <div class="placeholder-icon">⚙️</div>
@@ -300,9 +360,9 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
         </div>
       </div>
 
-      <!-- Step 4: Save -->
+      <!-- Step 5: Save -->
       <div class="card card-success" id="saveCard" style="display:none">
-        <div class="card-head"><span><span class="step">4</span>บันทึกเข้า Drive + Sheet</span></div>
+        <div class="card-head"><span><span class="step">5</span>บันทึกเข้า Drive + Sheet</span></div>
         <div class="card-body">
           <div class="field">
             <label>ชื่อไฟล์ที่จะบันทึก</label>
@@ -332,12 +392,14 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
                   <th>รูป</th>
                   <th>Barcode</th>
                   <th>ชื่อสินค้า</th>
+                  <th>น้ำหนัก</th>
+                  <th>ก × ย × ส</th>
                   <th>ลิงก์</th>
                   <th>โดย</th>
                 </tr>
               </thead>
               <tbody id="historyTbody">
-                <tr><td colspan="6" class="empty-row">ยังไม่มีข้อมูล</td></tr>
+                <tr><td colspan="8" class="empty-row">ยังไม่มีข้อมูล</td></tr>
               </tbody>
             </table>
           </div>
@@ -370,7 +432,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
     </div>
 
     <div class="app-footer">
-      Rattana Product Photos · <span class="ver">v2.2</span> · 2026-05-05
+      Rattana Product Photos · <span class="ver">v2.4</span> · 2026-05-05
     </div>
   </div>
 </div>
@@ -729,6 +791,9 @@ window.toggleProductDD = function() {
 
 window.filterProducts = function(inp) {
   const q = inp.value.toLowerCase().trim();
+  // Toggle clear button visibility
+  const clearBtn = $('ddClearBtn');
+  if (clearBtn) clearBtn.classList.toggle('show', inp.value.length > 0);
   const items = document.querySelectorAll('#ddProductList li');
   let visible = 0;
   items.forEach(li => {
@@ -752,6 +817,13 @@ window.filterProducts = function(inp) {
     li.textContent = `ไม่พบสินค้าที่ตรงกับ "${q}"`;
     ul.appendChild(li);
   }
+};
+
+window.clearProductSearch = function() {
+  const inp = $('ddProductSearch');
+  inp.value = '';
+  filterProducts(inp);
+  inp.focus();
 };
 
 function selectProduct(idx) {
@@ -1001,6 +1073,15 @@ window.saveToCloud = async function() {
   try {
     const base64 = await blobToBase64(processedImageBlob);
     const filename = buildFilename();
+
+    // Read dimension fields (empty → empty string, not 0)
+    const readNum = id => {
+      const v = ($(id).value || '').trim();
+      if (v === '') return '';
+      const n = parseFloat(v);
+      return isNaN(n) ? '' : n;
+    };
+
     const payload = {
       action: 'upload',
       base64,
@@ -1009,6 +1090,10 @@ window.saveToCloud = async function() {
       productName: selectedProduct.name,
       userEmail: currentUser.email,
       userName: currentUser.name || currentUser.nickname || '',
+      weightG:  readNum('dimWeight'),
+      widthCm:  readNum('dimWidth'),
+      lengthCm: readNum('dimLength'),
+      heightCm: readNum('dimHeight'),
     };
 
     // Apps Script doesn't need preflight if Content-Type is text/plain
@@ -1053,6 +1138,10 @@ window.resetAll = function() {
   originalImageDataUrl = null;
   processedImageBlob = null;
   processedImageDataUrl = null;
+  // Clear dimension inputs
+  ['dimWeight','dimWidth','dimLength','dimHeight'].forEach(id => {
+    const el = $(id); if (el) el.value = '';
+  });
   const oz = $('originalZone');
   oz.classList.remove('has-image');
   oz.innerHTML = '<div class="placeholder-icon">📷</div><div>ยังไม่มีรูป</div><div style="font-size:12px;margin-top:4px">ถ่ายรูป หรือเลือกจากเครื่อง</div>';
@@ -1069,14 +1158,14 @@ window.resetAll = function() {
 window.loadHistory = async function() {
   const tbody = $('historyTbody');
   if (CONFIG.logSheetId.startsWith('YOUR_')) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty-row">⚠️ ยังไม่ตั้งค่า Log Sheet</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="empty-row">⚠️ ยังไม่ตั้งค่า Log Sheet</td></tr>';
     return;
   }
-  tbody.innerHTML = '<tr><td colspan="6" class="empty-row">กำลังโหลด...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="8" class="empty-row">กำลังโหลด...</td></tr>';
   try {
     const data = await loadFromSheets(CONFIG.logSheetId, CONFIG.logTab);
     if (!data.length) {
-      tbody.innerHTML = '<tr><td colspan="6" class="empty-row">ยังไม่มีรายการ</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="empty-row">ยังไม่มีรายการ</td></tr>';
       return;
     }
     // Latest first
@@ -1088,18 +1177,26 @@ window.loadHistory = async function() {
       const url = row['fileUrl'] || row['url'] || '';
       const directUrl = row['directUrl'] || '';
       const by = row['userName'] || row['by'] || '';
+      const wG = row['weightG'] || '';
+      const w  = row['widthCm']  || '';
+      const l  = row['lengthCm'] || '';
+      const h  = row['heightCm'] || '';
+      const dims = (w || l || h) ? `${w||'-'} × ${l||'-'} × ${h||'-'}` : '-';
+      const weightTxt = wG ? `${wG} ก.` : '-';
       const thumb = directUrl ? `<img class="thumb" src="${directUrl}" loading="lazy" onclick="window.open('${url}','_blank')" onerror="this.style.display='none'">` : '-';
       return `<tr>
         <td>${formatThaiDate(ts)}</td>
         <td>${thumb}</td>
         <td class="code">${bc}</td>
         <td>${nm}</td>
+        <td>${weightTxt}</td>
+        <td>${dims}</td>
         <td>${url ? `<a href="${url}" target="_blank" class="badge badge-info">เปิด</a>` : '-'}</td>
         <td>${by}</td>
       </tr>`;
     }).join('');
   } catch (e) {
-    tbody.innerHTML = `<tr><td colspan="6" class="empty-row">โหลดไม่สำเร็จ: ${e.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-row">โหลดไม่สำเร็จ: ${e.message}</td></tr>`;
   }
 };
 
