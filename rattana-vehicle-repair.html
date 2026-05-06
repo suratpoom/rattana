@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Vehicle Repair v1.9</title>
+<title>Rattana Vehicle Repair v2.0</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
@@ -290,7 +290,7 @@ body.dark .vsum-stat.count .vs-value{color:#e8eaf0}
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
     <div class="login-logo">RATTANA<span> · </span>REPAIR</div>
-    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v1.9</div>
+    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v2.0</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -779,8 +779,10 @@ async function enterApp() {
   if (u.approvalStage === 1 || u.approvalStage === 2 || u.role >= 5) {
     $('tabApprove').classList.remove('hidden');
     $('approveTitle').textContent = u.approvalStage === 2
-      ? 'รายการรออนุมัติ (ขั้นที่ 2 — ผู้บริหาร)'
-      : (u.approvalStage === 1 ? 'รายการรออนุมัติ (ขั้นที่ 1 — หัวหน้า)' : 'รายการรออนุมัติทั้งหมด');
+      ? 'รายการรออนุมัติ — ขั้นที่ 2 (ผู้บริหาร)'
+      : (u.approvalStage === 1
+          ? 'รายการรออนุมัติ — ขั้นที่ 1 (หัวหน้า / ฝ่ายทรัพยากรบุคคล)'
+          : 'รายการรออนุมัติทั้งหมด');
   }
   if (u.role >= 7) $('tabAll').classList.remove('hidden');
   await loadAllData();
@@ -1109,7 +1111,7 @@ function updateApprovalHint() {
   if (amt <= 1000) {
     h.innerHTML = '<span style="color:var(--success)">✓ ยอดไม่เกิน 1,000 บาท — ผ่านอัตโนมัติ ไม่ต้องรออนุมัติ</span>';
   } else {
-    h.innerHTML = '<span style="color:var(--warning)">⚠ ยอดเกิน 1,000 บาท — ต้องผ่านการอนุมัติจากหัวหน้า → ผู้บริหาร</span>';
+    h.innerHTML = '<span style="color:var(--warning)">⚠ ยอดเกิน 1,000 บาท — ต้องผ่านการอนุมัติจาก หัวหน้า/ฝ่ายทรัพยากรบุคคล → ผู้บริหาร</span>';
   }
 }
 
@@ -1286,7 +1288,7 @@ async function submitRepair() {
     if (j.data.status === 'auto_approved') {
       showToast('ส่งคำขอสำเร็จ ✓ ยอดไม่เกิน 1,000 บาท — อนุมัติอัตโนมัติ', 'success');
     } else {
-      showToast('ส่งคำขอสำเร็จ ✓ รออนุมัติจากหัวหน้า', 'success');
+      showToast('ส่งคำขอสำเร็จ ✓ รออนุมัติจาก หัวหน้า/ฝ่ายทรัพยากรบุคคล', 'success');
     }
     resetForm();
     await loadRepairs();
@@ -1339,11 +1341,11 @@ function switchTab(name) {
 // ═════════════════════════════════════════════════════════════════════
 function statusBadge(s) {
   const map = {
-    auto_approved:      { txt: '✓ อนุมัติอัตโนมัติ', cls: 'badge-ok' },
-    approved:           { txt: '✓ อนุมัติแล้ว',     cls: 'badge-ok' },
-    pending_supervisor: { txt: '⏳ รอหัวหน้า',       cls: 'badge-warn' },
-    pending_executive:  { txt: '⏳ รอผู้บริหาร',     cls: 'badge-warn' },
-    rejected:           { txt: '✗ ปฏิเสธ',          cls: 'badge-danger' }
+    auto_approved:      { txt: '✓ อนุมัติอัตโนมัติ',   cls: 'badge-ok' },
+    approved:           { txt: '✓ อนุมัติแล้ว',        cls: 'badge-ok' },
+    pending_supervisor: { txt: '⏳ รอหัวหน้า/HR',       cls: 'badge-warn' },
+    pending_executive:  { txt: '⏳ รอผู้บริหาร',        cls: 'badge-warn' },
+    rejected:           { txt: '✗ ปฏิเสธ',             cls: 'badge-danger' }
   };
   const m = map[s] || { txt: s, cls: 'badge-info' };
   return `<span class="badge ${m.cls}">${m.txt}</span>`;
@@ -1699,10 +1701,10 @@ function openDetail(id) {
     if (r.supervisorEmail) {
       const isReject = r.status === 'rejected' && !r.executiveEmail;
       html += tlItem(isReject ? 'reject' : 'done',
-        (isReject ? 'ปฏิเสธโดยหัวหน้า' : 'อนุมัติโดยหัวหน้า') + ' · ' + (r.supervisorName||r.supervisorEmail),
+        (isReject ? 'ปฏิเสธโดยหัวหน้า/HR' : 'อนุมัติโดยหัวหน้า/HR') + ' · ' + (r.supervisorName||r.supervisorEmail),
         formatThaiDateTime(r.supervisorTs) + (r.supervisorNote ? ' · "' + r.supervisorNote + '"' : ''));
     } else if (r.status === 'pending_supervisor') {
-      html += tlItem('pending', 'รออนุมัติจากหัวหน้า', '');
+      html += tlItem('pending', 'รออนุมัติจาก หัวหน้า/ฝ่ายทรัพยากรบุคคล', '');
     }
     // Stage 2
     if (r.executiveEmail) {
@@ -1753,9 +1755,10 @@ function askNote(action, stage, id) {
   pendingApproveAction = action;
   pendingApproveId = id;
   $('noteText').value = '';
+  const stageLabel = stage === 1 ? 'ขั้นที่ 1 — หัวหน้า/HR' : 'ขั้นที่ 2 — ผู้บริหาร';
   $('noteTitle').textContent = action === 'approve'
-    ? `ยืนยันการอนุมัติ (ขั้นที่ ${stage})`
-    : `ปฏิเสธคำขอ (ขั้นที่ ${stage})`;
+    ? `ยืนยันการอนุมัติ (${stageLabel})`
+    : `ปฏิเสธคำขอ (${stageLabel})`;
   const btn = $('noteConfirmBtn');
   btn.className = 'btn ' + (action==='approve' ? 'btn-success' : 'btn-danger');
   btn.dataset.stage = stage;
