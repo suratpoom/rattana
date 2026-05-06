@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Vehicle Repair v1.0</title>
+<title>Rattana Vehicle Repair v1.2</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
@@ -226,7 +226,7 @@ body.dark .spinner-box{background:var(--card-bg)}
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
     <div class="login-logo">RATTANA<span> · </span>REPAIR</div>
-    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v1.0</div>
+    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v1.2</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -331,7 +331,7 @@ body.dark .spinner-box{background:var(--card-bg)}
     <!-- TAB: ทั้งหมด -->
     <div id="tab-all" class="tab-pane hidden">
       <div class="stat-grid" id="allStats"></div>
-      <div style="margin-bottom:12px"><input class="search-input" id="allSearch" placeholder="ค้นหา ทะเบียน, ผู้แจ้ง, อาการ..." oninput="renderAll()"></div>
+      <div style="margin-bottom:12px"><input class="search-input" id="allSearch" placeholder="ค้นหา ทะเบียน, ผู้แจ้ง, อาการ..." oninput="renderTabAll()"></div>
       <div class="filter-bar">
         <button class="filter-chip active" data-f="all" onclick="filterAll('all',this)">ทั้งหมด</button>
         <button class="filter-chip" data-f="pending" onclick="filterAll('pending',this)">รออนุมัติ</button>
@@ -592,7 +592,6 @@ async function loadAllData() {
   showSpinner('กำลังโหลดข้อมูล...');
   try {
     await Promise.all([loadVehicles(), loadRepairs()]);
-    renderAll();
     renderMine();
     renderApprove();
     renderTabAll();
