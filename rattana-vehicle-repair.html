@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Vehicle Repair v1.6</title>
+<title>Rattana Vehicle Repair v1.7</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
@@ -290,7 +290,7 @@ body.dark .vsum-stat.count .vs-value{color:#e8eaf0}
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
     <div class="login-logo">RATTANA<span> · </span>REPAIR</div>
-    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v1.6</div>
+    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v1.7</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -789,20 +789,33 @@ async function loadAllData() {
 }
 
 async function loadVehicles() {
-  const rows = await fetchSheetCsv(VEHICLE_SHEET_ID); // tab แรก
-  vehicles = rows
-    .filter(r => r['ทะเบียน Final'])
-    .map(r => ({
-      plate:       r['ทะเบียน Final'] || '',
-      warehouse:   r['คลัง    Final'] || r['คลัง Final'] || '',
-      model:       r['รุ่นรถ Final'] || '',
-      vehicleType: r['ประเภทรถ Fianl'] || r['ประเภทรถ Final'] || '',
-      year:        r['ปีรถ'] || '',
-      fuel:        r['เชื้อเพลิง'] || '',
-      driver:      r['ผู้ดูแล-ขับขี่'] || '',
-      vehicleDept: r['แผนก'] || '',
-      tankSize:    r['ขนาดน้ำมัน'] || ''
-    }));
+  try {
+    const rows = await fetchSheetCsv(VEHICLE_SHEET_ID); // tab แรก
+    console.log('[loadVehicles] rows fetched:', rows.length);
+    if (rows.length > 0) console.log('[loadVehicles] first row keys:', Object.keys(rows[0]));
+
+    vehicles = rows
+      .filter(r => r['ทะเบียน Final'])
+      .map(r => ({
+        plate:       r['ทะเบียน Final'] || '',
+        warehouse:   r['คลัง    Final'] || r['คลัง Final'] || r['คลัง'] || '',
+        model:       r['รุ่นรถ Final'] || r['รุ่นรถ'] || '',
+        vehicleType: r['ประเภทรถ Fianl'] || r['ประเภทรถ Final'] || r['ประเภทรถ'] || '',
+        year:        r['ปีรถ'] || '',
+        fuel:        r['เชื้อเพลิง'] || '',
+        driver:      r['ผู้ดูแล-ขับขี่'] || r['ผู้ดูแล/ขับขี่'] || r['คนขับ'] || '',
+        vehicleDept: r['แผนก'] || '',
+        tankSize:    r['ขนาดน้ำมัน'] || ''
+      }));
+    console.log('[loadVehicles] vehicles parsed:', vehicles.length, 'sample:', vehicles[0]);
+    if (vehicles.length === 0 && rows.length > 0) {
+      showToast('⚠ โหลด ' + rows.length + ' rows แต่ parse ไม่ได้ (column header เปลี่ยน?)', 'warning');
+    }
+  } catch (e) {
+    console.error('[loadVehicles] error:', e);
+    showToast('โหลดข้อมูลรถไม่สำเร็จ: ' + e.message, 'error');
+    vehicles = [];
+  }
   renderPlateList();
 }
 
@@ -873,17 +886,42 @@ function getAllowedVehicles() {
 
 function renderPlateList() {
   const ul = $('ddPlateList');
-  const allowed = getAllowedVehicles();
-  if (!allowed.length) {
-    ul.innerHTML = `<li class="no-result">ไม่พบรถใน${currentUser ? 'คลัง '+(currentUser.warehouse||'ของคุณ') : 'ระบบ'}</li>`;
+
+  // กรณีที่ 1: ยังไม่ได้โหลด vehicles เลย
+  if (!vehicles.length) {
+    ul.innerHTML = `<li class="no-result" style="font-size:12px;text-align:center;line-height:1.7;padding:18px">
+      ⚠ <strong>ไม่ได้โหลดข้อมูลรถ</strong><br>
+      <span style="color:var(--muted);font-size:11px">ลองกดปุ่ม ↻ รีเฟรชด้านบน<br>หรือเช็ค console (F12) ดู error</span>
+    </li>`;
     return;
   }
+
+  const allowed = getAllowedVehicles();
+
+  // กรณีที่ 2: vehicles มีข้อมูลแต่ filter ออกหมด → แสดง diagnostic
+  if (!allowed.length) {
+    const warehouses = [...new Set(vehicles.map(v => v.warehouse))].filter(Boolean);
+    const warehousesClean = [...new Set(vehicles.map(v => cleanCode(v.warehouse)))].filter(Boolean);
+    ul.innerHTML = `<li class="no-result" style="font-size:12px;text-align:left;line-height:1.8;padding:14px;font-style:normal">
+      <strong style="color:var(--danger)">⚠ ไม่พบรถ — Diagnostic info:</strong><br>
+      • User: ${currentUser?.email || '-'}<br>
+      • Warehouse: <code>"${currentUser?.warehouse}"</code> → cleaned: <code>"${cleanCode(currentUser?.warehouse)}"</code><br>
+      • Role: ${currentUser?.role || 0}<br>
+      • Admin? <strong style="color:${isAdminUser()?'var(--success)':'var(--danger)'}">${isAdminUser() ? 'YES' : 'NO'}</strong><br>
+      • รถทั้งหมดใน vehicles: <strong>${vehicles.length}</strong> คัน<br>
+      • Warehouses (raw): ${warehouses.length ? warehouses.map(w=>`<code>"${w}"</code>`).join(', ') : '<em>(ว่างเปล่า — column "คลัง" ไม่มีข้อมูล)</em>'}<br>
+      • Warehouses (cleaned): ${warehousesClean.join(', ') || '(ว่าง)'}
+    </li>`;
+    return;
+  }
+
+  // ปกติ
   ul.innerHTML = allowed.map(v => `
     <li onclick="selectPlate('${v.plate.replace(/'/g,"\\'")}')">
       <span><strong>${v.plate}</strong> <span class="li-meta">· ${v.warehouse||'-'} · ${v.vehicleType||v.model||'-'}</span></span>
       <span class="li-meta">${v.driver || ''}</span>
     </li>`).join('');
-  // เพิ่ม note ถ้ามีการกรอง
+
   if (!isAdminUser() && currentUser) {
     const note = `<li class="no-result" style="font-size:11px;color:var(--muted);font-style:normal;background:rgba(201,168,76,.06);border-top:1px solid var(--border)">📍 แสดงเฉพาะรถใน ${currentUser.warehouse} (${allowed.length} คัน)</li>`;
     ul.insertAdjacentHTML('beforeend', note);
