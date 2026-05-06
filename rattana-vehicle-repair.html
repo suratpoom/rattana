@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Vehicle Repair v1.3</title>
+<title>Rattana Vehicle Repair v1.4</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
@@ -218,6 +218,37 @@ body.dark .spinner-box{background:var(--card-bg)}
 /* Search input */
 .search-input{height:42px;padding:0 14px 0 38px;border-radius:21px;border:1.5px solid var(--border);background:var(--card-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7896' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E") no-repeat 12px center;color:var(--text);font-size:14px;outline:none;width:100%}
 .search-input:focus{border-color:var(--gold)}
+
+/* ───── Repair Item Picker ───── */
+.picker-wrap{border:1.5px solid var(--border);border-radius:var(--radius-md);background:var(--card-bg);overflow:hidden}
+.picker-search{padding:10px 12px;border-bottom:1px solid var(--border);background:rgba(13,27,62,.03)}
+.picker-search input{width:100%;height:38px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card-bg);color:var(--text);font-size:14px;outline:none}
+.picker-search input:focus{border-color:var(--gold)}
+body.dark .picker-search{background:rgba(255,255,255,.02)}
+.selected-bar{padding:10px 12px;background:rgba(201,168,76,.08);border-bottom:1px solid var(--border);min-height:46px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.selected-bar.empty{color:var(--muted);font-style:italic;font-size:12px;padding:14px 12px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 12px;background:var(--navy);color:#fff;border-radius:14px;font-size:12px;font-weight:500;animation:slideIn .15s ease}
+.chip .chip-x{cursor:pointer;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.18);display:inline-flex;align-items:center;justify-content:center;font-size:14px;line-height:1;transition:background .12s}
+.chip .chip-x:hover{background:rgba(255,255,255,.35)}
+.chip-clear-btn{margin-left:auto;font-size:11px;color:var(--danger);background:transparent;border:none;cursor:pointer;font-weight:600;padding:4px 8px}
+.cat-list{max-height:480px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.cat-block{border-bottom:1px solid var(--border)}
+.cat-block:last-child{border-bottom:none}
+.cat-head{padding:11px 14px;background:var(--card-bg);cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:13px;color:var(--text);user-select:none;transition:background .12s}
+.cat-head:hover{background:rgba(201,168,76,.06)}
+.cat-head .cat-count{font-size:11px;color:var(--muted);font-weight:500;background:rgba(13,27,62,.06);padding:2px 8px;border-radius:10px}
+body.dark .cat-head .cat-count{background:rgba(255,255,255,.08)}
+.cat-head.has-selected .cat-count{background:var(--gold);color:var(--navy);font-weight:700}
+.cat-head .arrow{transition:transform .2s;color:var(--muted);font-size:12px}
+.cat-block.open .cat-head .arrow{transform:rotate(90deg);color:var(--gold)}
+.cat-items{display:none;padding:6px 0 10px;background:var(--row-alt)}
+.cat-block.open .cat-items{display:block}
+.cat-items label{display:flex;align-items:flex-start;gap:10px;padding:8px 14px 8px 28px;cursor:pointer;font-size:13px;line-height:1.5;transition:background .12s}
+.cat-items label:hover{background:rgba(201,168,76,.08)}
+.cat-items label.selected{background:rgba(46,204,113,.08);font-weight:600}
+.cat-items input[type=checkbox]{margin-top:3px;width:16px;height:16px;cursor:pointer;accent-color:var(--gold);flex-shrink:0}
+.cat-items label.hidden-by-search{display:none}
+.cat-block.empty-search{display:none}
 </style>
 </head>
 <body>
@@ -226,7 +257,7 @@ body.dark .spinner-box{background:var(--card-bg)}
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
     <div class="login-logo">RATTANA<span> · </span>REPAIR</div>
-    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v1.3</div>
+    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v1.4</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -281,8 +312,19 @@ body.dark .spinner-box{background:var(--card-bg)}
           </div>
 
           <div class="field">
-            <label>รายละเอียดอาการ / สิ่งที่ต้องซ่อม <span class="req">*</span></label>
-            <textarea class="input" id="inIssue" rows="4" placeholder="เช่น เปลี่ยนถ่ายน้ำมันเครื่อง + กรองอากาศ, เบรกหน้ามีเสียง"></textarea>
+            <label>รายการที่ต้องซ่อม <span class="req">*</span></label>
+            <div class="picker-wrap">
+              <div class="picker-search">
+                <input id="repairSearch" type="text" placeholder="🔍 ค้นหารายการซ่อม เช่น น้ำมันเครื่อง, เบรก, ยาง..." oninput="filterRepairItems(this.value)">
+              </div>
+              <div class="selected-bar empty" id="selectedBar">— ยังไม่ได้เลือกรายการ —</div>
+              <div class="cat-list" id="catList"></div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>หมายเหตุเพิ่มเติม</label>
+            <textarea class="input" id="inIssueNote" rows="3" placeholder="รายละเอียดเพิ่มเติม เช่น เบรกมีเสียงดังเวลาเหยียบแรง, น้ำมันเครื่องรั่วเป็นบางช่วง"></textarea>
           </div>
 
           <div class="field">
@@ -393,6 +435,93 @@ const USERS_TAB        = 'Rattana Users for apps';
 const CORS_PROXY       = 'https://api.codetabs.com/v1/proxy?quest=';
 
 // ═════════════════════════════════════════════════════════════════════
+// REPAIR CATEGORIES — รายการซ่อมรถสำเร็จรูป (เพิ่ม/แก้ได้ตามต้องการ)
+// ═════════════════════════════════════════════════════════════════════
+const REPAIR_CATEGORIES = [
+  { name:'🔧 เครื่องยนต์', items:[
+    'เปลี่ยนถ่ายน้ำมันเครื่อง','เปลี่ยนกรองน้ำมันเครื่อง','เปลี่ยนกรองอากาศ',
+    'เปลี่ยนกรองโซล่า/ดีเซล','เปลี่ยนหัวเทียน','เปลี่ยนหัวฉีด/ทำความสะอาดหัวฉีด',
+    'ปรับตั้งวาล์ว','ซ่อม/เปลี่ยนเทอร์โบ','เปลี่ยนสายพานหน้าเครื่อง',
+    'เปลี่ยนสายพานราวลิ้น (Timing belt)','เปลี่ยนปะเก็นฝาสูบ','ปรับแต่งเครื่องยนต์',
+    'เครื่องสั่น/กระตุก/มีเสียงดัง','เครื่องสตาร์ทไม่ติด','เครื่องน็อก/ดับกลางคัน',
+    'น้ำมันเครื่องรั่ว','ตรวจเช็คเครื่องยนต์ทั่วไป'
+  ]},
+  { name:'🛑 ระบบเบรก', items:[
+    'เปลี่ยนผ้าเบรกหน้า','เปลี่ยนผ้าเบรกหลัง','เปลี่ยนน้ำมันเบรก',
+    'เปลี่ยนจานเบรก/เจียรจานเบรก','เปลี่ยนดรัมเบรก','ซ่อม/เปลี่ยนแม่ปั๊มเบรก',
+    'ซ่อม/เปลี่ยนลูกสูบเบรก (ปั๊มล่าง)','เปลี่ยนสายเบรก','ซ่อมระบบ ABS',
+    'ปรับเบรกมือ/เปลี่ยนสายเบรกมือ','เบรกมีเสียงดัง/เบรกฝืด','เบรกลื่น/ลึก/ไม่อยู่'
+  ]},
+  { name:'🛞 ยางและล้อ', items:[
+    'เปลี่ยนยางใหม่ทั้งคัน','เปลี่ยนยางใหม่บางเส้น','ปะยาง/ซ่อมยางรั่ว',
+    'ตั้งศูนย์ล้อ','ถ่วงล้อ','สลับยาง','เปลี่ยนกะทะล้อ',
+    'เปลี่ยนยางในและจุ๊บลม','เติมลม/วัดลมยาง'
+  ]},
+  { name:'🔩 ช่วงล่าง/บังคับเลี้ยว', items:[
+    'เปลี่ยนโช้คอัพหน้า','เปลี่ยนโช้คอัพหลัง','เปลี่ยนแหนบ',
+    'เปลี่ยนคันชัก-คันส่ง','เปลี่ยนลูกหมาก (บน/ล่าง)','เปลี่ยนปีกนก',
+    'เปลี่ยนยางกันโครง','ซ่อม/เปลี่ยนพวงมาลัยเพาเวอร์','เปลี่ยนน้ำมันพวงมาลัยเพาเวอร์',
+    'เปลี่ยนลูกปืนล้อ','ซ่อมระบบกันสะเทือน','พวงมาลัยฝืด/มีเสียง/สั่น'
+  ]},
+  { name:'⚡ ระบบไฟฟ้า', items:[
+    'เปลี่ยนแบตเตอรี่','ชาร์จแบตเตอรี่','เปลี่ยนไดสตาร์ท',
+    'เปลี่ยนไดชาร์จ/อัลเทอร์เนเตอร์','เปลี่ยนหลอดไฟหน้า','เปลี่ยนหลอดไฟท้าย',
+    'เปลี่ยนไฟเลี้ยว','เปลี่ยนไฟเบรก','เปลี่ยนไฟส่องป้ายทะเบียน',
+    'เปลี่ยนฟิวส์','ซ่อม/เปลี่ยนใบปัดน้ำฝน','ซ่อมมอเตอร์ปัดน้ำฝน',
+    'ซ่อม/เปลี่ยนแตร','ระบบไฟไม่ติด/ไฟหรี่','ตรวจเช็คระบบไฟทั้งคัน',
+    'ซ่อมกระจกไฟฟ้า','ซ่อม Central lock'
+  ]},
+  { name:'⚙️ ระบบส่งกำลัง/เกียร์', items:[
+    'เปลี่ยนน้ำมันเกียร์','เปลี่ยนผ้าคลัทช์','ซ่อมคลัทช์',
+    'เปลี่ยนน้ำมันคลัทช์','ซ่อมแม่ปั๊มคลัทช์','ซ่อมเกียร์',
+    'เปลี่ยนยางหนุนเครื่อง/เกียร์','ซ่อม/เปลี่ยนเพลากลาง','ซ่อม/เปลี่ยนเพลาขับ',
+    'เปลี่ยนน้ำมันเฟืองท้าย','ซ่อมเฟืองท้าย','คลัทช์ลื่น/เกียร์เข้ายาก'
+  ]},
+  { name:'💧 ระบบหล่อเย็น', items:[
+    'เปลี่ยนน้ำหล่อเย็น/น้ำยาหม้อน้ำ','เปลี่ยนหม้อน้ำ','ซ่อมหม้อน้ำ',
+    'เปลี่ยนปั๊มน้ำ','เปลี่ยนวาล์วน้ำ (Thermostat)','เปลี่ยนพัดลมหม้อน้ำ',
+    'เปลี่ยนสายยางหม้อน้ำ','เปลี่ยนฝาหม้อน้ำ','เครื่องร้อนผิดปกติ',
+    'น้ำหล่อเย็นรั่ว/พร่อง'
+  ]},
+  { name:'❄️ ระบบแอร์', items:[
+    'เติมน้ำยาแอร์','เปลี่ยนคอมเพรสเซอร์แอร์','ล้างแอร์/ล้างคอยล์',
+    'เปลี่ยนกรองแอร์','ซ่อม/เปลี่ยนพัดลมแอร์','เปลี่ยนตู้แอร์',
+    'เปลี่ยนแผงคอยล์ร้อน','เปลี่ยนสายพานแอร์','แอร์ไม่เย็น/เย็นน้อย',
+    'แอร์มีกลิ่น/มีน้ำหยด'
+  ]},
+  { name:'🚗 ตัวถัง/สี/กระจก', items:[
+    'ซ่อมตัวถังเสียหาย','เคาะ/พ่นสี','เปลี่ยนกระจกหน้า',
+    'เปลี่ยนกระจกข้าง','เปลี่ยนกระจกหลัง','เปลี่ยนกันชนหน้า',
+    'เปลี่ยนกันชนหลัง','ซ่อม/เปลี่ยนกระจกมองข้าง','ซ่อมประตู',
+    'เปลี่ยนยางขอบประตู','ซ่อมที่ล็อคประตู','ขัดเคลือบสี'
+  ]},
+  { name:'⛽ ระบบเชื้อเพลิง', items:[
+    'ทำความสะอาดถังน้ำมัน','เปลี่ยนปั๊มน้ำมันเชื้อเพลิง','ซ่อมระบบจ่ายน้ำมัน',
+    'เปลี่ยนสายน้ำมัน','เปลี่ยนฝาถังน้ำมัน','น้ำมันรั่ว/ซึม','กินน้ำมันผิดปกติ'
+  ]},
+  { name:'💨 ระบบไอเสีย', items:[
+    'เปลี่ยนท่อไอเสีย','ซ่อมท่อไอเสีย','เปลี่ยนหม้อพักไอเสีย',
+    'ซ่อมหม้อพัก','ไอเสียมีเสียงดังผิดปกติ','ควันดำ/ควันขาว'
+  ]},
+  { name:'🪑 ภายในและอุปกรณ์เสริม', items:[
+    'ซ่อม/เปลี่ยนเข็มขัดนิรภัย','เปลี่ยนพรมปูพื้น','ซ่อมเบาะนั่ง',
+    'ซ่อมเครื่องเสียง/วิทยุ','เปลี่ยน/ติดตั้ง GPS Tracker','ซ่อม/เปลี่ยนกล้องถอย',
+    'เปลี่ยนกระจกมองหลัง','ซ่อมเกจ์วัดต่างๆ','ซ่อมเครื่องปรับอากาศภายใน'
+  ]},
+  { name:'🚛 รถบรรทุก/ส่งสินค้า', items:[
+    'ซ่อมตู้บรรทุก/กระบะ','เปลี่ยนผ้าใบคลุมรถ','ซ่อมพื้นกระบะ',
+    'ซ่อมประตูท้าย/ท้ายเปิด','ซ่อมรอกบรรทุก','ซ่อม/เปลี่ยนระบบยกของ (Tail lift)',
+    'ตรวจระบบลม (รถบรรทุกใหญ่)','ซ่อมเบรกลม','เปลี่ยนผ้าเบรกลม',
+    'ซ่อมระบบทำความเย็นตู้แช่','ติดสติกเกอร์/โลโก้บริษัท'
+  ]},
+  { name:'🛠️ บำรุงรักษาทั่วไป', items:[
+    'บำรุงรักษาตามระยะ (เช็คระยะ)','ตรวจสภาพรถประจำเดือน','ตรวจสภาพรถประจำปี (ตรอ.)',
+    'ทำความสะอาดล้างใต้ท้องรถ','ล้างเครื่องยนต์','ฉีดพ่นกันสนิม',
+    'ขัดเคลือบสี/เคลือบกระจก','เปลี่ยนน้ำมันชุดเฟืองท้าย','PM ตามรอบ'
+  ]}
+];
+
+// ═════════════════════════════════════════════════════════════════════
 // STATE
 // ═════════════════════════════════════════════════════════════════════
 let currentUser = null;
@@ -400,6 +529,7 @@ let vehicles    = [];   // ข้อมูลรถจาก master sheet
 let repairs     = [];   // ใบแจ้งซ่อมทั้งหมด
 let selectedVehicle = null;
 let billPhotoData = null; // {base64, mime}
+let selectedRepairItems = new Set();  // เก็บรายการซ่อมที่เลือก
 let currentTab = 'report';
 let mineFilterState = 'all';
 let allFilterState  = 'all';
@@ -747,15 +877,136 @@ function updateApprovalHint() {
 }
 
 // ═════════════════════════════════════════════════════════════════════
+// REPAIR ITEM PICKER
+// ═════════════════════════════════════════════════════════════════════
+function renderRepairCategories() {
+  const container = $('catList');
+  container.innerHTML = REPAIR_CATEGORIES.map((cat, i) => `
+    <div class="cat-block" data-cat-idx="${i}">
+      <div class="cat-head" onclick="toggleCategory(${i})">
+        <span>${cat.name}</span>
+        <span style="display:flex;align-items:center;gap:8px">
+          <span class="cat-count" id="cnt-${i}">${cat.items.length}</span>
+          <span class="arrow">▶</span>
+        </span>
+      </div>
+      <div class="cat-items">
+        ${cat.items.map(item => `
+          <label data-item="${escapeAttr(item)}" onclick="toggleItem('${escapeAttr(item)}',event)">
+            <input type="checkbox">
+            <span>${item}</span>
+          </label>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function escapeAttr(s) { return String(s).replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+function escapeHtml(s) { return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function toggleCategory(idx) {
+  const block = document.querySelector(`.cat-block[data-cat-idx="${idx}"]`);
+  if (block) block.classList.toggle('open');
+}
+
+function toggleItem(item, ev) {
+  if (ev) ev.preventDefault();
+  if (selectedRepairItems.has(item)) {
+    selectedRepairItems.delete(item);
+  } else {
+    selectedRepairItems.add(item);
+  }
+  syncRepairUI();
+}
+
+function removeSelectedItem(item) {
+  selectedRepairItems.delete(item);
+  syncRepairUI();
+}
+
+function clearAllSelected() {
+  if (!selectedRepairItems.size) return;
+  if (!confirm('ล้างรายการที่เลือกทั้งหมด?')) return;
+  selectedRepairItems.clear();
+  syncRepairUI();
+}
+
+function syncRepairUI() {
+  // Sync checkboxes
+  document.querySelectorAll('.cat-items label').forEach(lbl => {
+    const item = lbl.dataset.item;
+    const cb = lbl.querySelector('input[type=checkbox]');
+    const checked = selectedRepairItems.has(item);
+    if (cb) cb.checked = checked;
+    lbl.classList.toggle('selected', checked);
+  });
+
+  // Sync category counts/highlight
+  REPAIR_CATEGORIES.forEach((cat, i) => {
+    const selectedInCat = cat.items.filter(it => selectedRepairItems.has(it)).length;
+    const cntEl = $('cnt-' + i);
+    const head = document.querySelector(`.cat-block[data-cat-idx="${i}"] .cat-head`);
+    if (cntEl) cntEl.textContent = selectedInCat > 0 ? `${selectedInCat} / ${cat.items.length}` : cat.items.length;
+    if (head) head.classList.toggle('has-selected', selectedInCat > 0);
+  });
+
+  // Sync selected bar
+  const bar = $('selectedBar');
+  if (!selectedRepairItems.size) {
+    bar.className = 'selected-bar empty';
+    bar.innerHTML = '— ยังไม่ได้เลือกรายการ —';
+    return;
+  }
+  bar.className = 'selected-bar';
+  bar.innerHTML = [...selectedRepairItems].map(item =>
+    `<span class="chip">${escapeHtml(item)}<span class="chip-x" onclick="removeSelectedItem('${escapeAttr(item)}')">×</span></span>`
+  ).join('') + `<button type="button" class="chip-clear-btn" onclick="clearAllSelected()">ล้างทั้งหมด</button>`;
+}
+
+function filterRepairItems(q) {
+  q = (q||'').trim().toLowerCase();
+  document.querySelectorAll('.cat-block').forEach(block => {
+    let visibleCount = 0;
+    block.querySelectorAll('.cat-items label').forEach(lbl => {
+      const text = lbl.textContent.toLowerCase();
+      const match = !q || text.includes(q);
+      lbl.classList.toggle('hidden-by-search', !match);
+      if (match) visibleCount++;
+    });
+    block.classList.toggle('empty-search', visibleCount === 0);
+    // เปิดอัตโนมัติถ้ามีคำค้น
+    if (q && visibleCount > 0) block.classList.add('open');
+    else if (!q) block.classList.remove('open');
+  });
+}
+
+function getIssueText() {
+  // รวมรายการที่เลือก + หมายเหตุ → string สำหรับเก็บใน issueDescription
+  const lines = [];
+  REPAIR_CATEGORIES.forEach(cat => {
+    const inCat = cat.items.filter(it => selectedRepairItems.has(it));
+    if (inCat.length) {
+      lines.push(`[${cat.name}] ${inCat.join(', ')}`);
+    }
+  });
+  const note = $('inIssueNote').value.trim();
+  if (note) lines.push('หมายเหตุ: ' + note);
+  return lines.join('\n');
+}
+
+// ═════════════════════════════════════════════════════════════════════
 // SUBMIT REPAIR
 // ═════════════════════════════════════════════════════════════════════
 async function submitRepair() {
   if (!selectedVehicle) { showToast('กรุณาเลือกทะเบียนรถ', 'warning'); return; }
   const mileage = $('inMileage').value.trim();
-  const issue = $('inIssue').value.trim();
+  const issue = getIssueText();
   const amount = parseFloat($('inAmount').value);
   if (!mileage) { showToast('กรุณากรอกเลขไมล์', 'warning'); return; }
-  if (!issue) { showToast('กรุณากรอกรายละเอียดอาการ', 'warning'); return; }
+  if (!selectedRepairItems.size && !$('inIssueNote').value.trim()) {
+    showToast('กรุณาเลือกรายการที่ต้องซ่อม (อย่างน้อย 1 รายการ) หรือกรอกหมายเหตุ', 'warning'); return;
+  }
   if (!amount || amount <= 0) { showToast('กรุณากรอกยอดเงิน', 'warning'); return; }
   if (!billPhotoData) { showToast('กรุณาแนบรูปใบเสนอราคา', 'warning'); return; }
   if (!GAS_URL || GAS_URL.includes('PASTE_YOUR')) {
@@ -812,10 +1063,11 @@ async function submitRepair() {
 function resetForm() {
   selectedVehicle = null;
   billPhotoData = null;
+  selectedRepairItems.clear();
   $('ddPlateLabel').textContent = '-- เลือกทะเบียนรถ --';
   $('vehicleAutoFill').classList.add('hidden');
   $('inMileage').value = '';
-  $('inIssue').value = '';
+  $('inIssueNote').value = '';
   $('inAmount').value = '';
   $('inBill').value = '';
   $('billPreview').classList.add('hidden');
@@ -823,6 +1075,9 @@ function resetForm() {
   $('uploadText').textContent = 'แตะเพื่อถ่ายรูป หรือเลือกรูปจากเครื่อง';
   $('uploadZone').classList.remove('has-file');
   $('approvalHint').textContent = '';
+  $('repairSearch').value = '';
+  filterRepairItems('');
+  syncRepairUI();
 }
 
 // ═════════════════════════════════════════════════════════════════════
@@ -1162,6 +1417,7 @@ function exportAllExcel() {
 // BOOT
 // ═════════════════════════════════════════════════════════════════════
 window.addEventListener('load', () => {
+  renderRepairCategories();
   if (checkSession()) enterApp();
 });
 </script>
