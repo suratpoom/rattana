@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Vehicle Repair v1.5</title>
+<title>Rattana Vehicle Repair v1.6</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
@@ -290,7 +290,7 @@ body.dark .vsum-stat.count .vs-value{color:#e8eaf0}
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
     <div class="login-logo">RATTANA<span> · </span>REPAIR</div>
-    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v1.5</div>
+    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v1.6</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -835,19 +835,40 @@ async function refreshAll() {
 // ═════════════════════════════════════════════════════════════════════
 // PLATE DROPDOWN
 // ═════════════════════════════════════════════════════════════════════
+// ทำความสะอาด warehouse code: ลบ zero-width chars, nbsp, ทุกชนิดของ space
+function cleanCode(s) {
+  return String(s||'').replace(/[\u200B\u200C\u200D\uFEFF\u00A0\s]/g, '').toUpperCase();
+}
+
 function isAdminUser() {
   if (!currentUser) return false;
-  const w = String(currentUser.warehouse||'').trim().toUpperCase();
-  return w === 'HQ' || w === '' || (currentUser.role||0) >= 7;
+  const w = cleanCode(currentUser.warehouse);
+  const role = parseInt(currentUser.role) || 0;
+  // admin conditions:
+  if (role >= 7) return true;
+  if (!w) return true; // ไม่ระบุคลัง = admin
+  // HQ variants: HQ, HEADQUARTER, OFFICE, ADMIN, MAIN
+  if (w === 'HQ' || w.includes('HQ') || w === 'HEADQUARTER' || w === 'OFFICE' || w === 'ADMIN' || w === 'MAIN') return true;
+  return false;
 }
 
 function getAllowedVehicles() {
   // HQ / admin / role >= 7 → เห็นทุกคลัง
   if (isAdminUser()) return vehicles;
-  const userW = String(currentUser.warehouse||'').trim().toUpperCase();
-  return vehicles.filter(v =>
-    String(v.warehouse||'').trim().toUpperCase().includes(userW)
-  );
+  const userW = cleanCode(currentUser.warehouse);
+  const filtered = vehicles.filter(v => {
+    const vw = cleanCode(v.warehouse);
+    if (!vw) return false;
+    return vw === userW || vw.includes(userW) || userW.includes(vw);
+  });
+  // fallback: ถ้าตั้งค่า warehouse ผิดจน filter ไม่เจออะไรเลย → debug log + แสดงทั้งหมด
+  if (filtered.length === 0 && vehicles.length > 0) {
+    console.warn('[getAllowedVehicles] No vehicles match warehouse:', currentUser.warehouse,
+      '→ falling back to all', vehicles.length, 'vehicles. Available warehouses:',
+      [...new Set(vehicles.map(v => v.warehouse))]);
+    return vehicles;
+  }
+  return filtered;
 }
 
 function renderPlateList() {
