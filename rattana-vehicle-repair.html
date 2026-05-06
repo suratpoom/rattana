@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Vehicle Repair v2.0</title>
+<title>Rattana Vehicle Repair v2.1</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
@@ -290,7 +290,7 @@ body.dark .vsum-stat.count .vs-value{color:#e8eaf0}
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
     <div class="login-logo">RATTANA<span> · </span>REPAIR</div>
-    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v2.0</div>
+    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v2.1</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -730,6 +730,18 @@ async function handleGoogleLogin(r) {
     if (String(user['Status']||'').trim().toLowerCase() !== 'active') {
       showLoginError('บัญชีของคุณถูกระงับ กรุณาติดต่อ Admin'); return;
     }
+
+    // Fuzzy find Approval Stage column (รองรับชื่อ "Approval Stage", "ApprovalStage", "approval_stage", etc.)
+    const userKeys = Object.keys(user);
+    const stageKey = userKeys.find(k =>
+      k && k.toLowerCase().replace(/[\s_-]/g,'') === 'approvalstage'
+    );
+    const rawStage = stageKey ? user[stageKey] : '';
+    const cleanStage = String(rawStage||'').replace(/[\u200B\u200C\u200D\uFEFF\u00A0\s]/g,'').trim();
+    const approvalStage = parseInt(cleanStage) || 0;
+
+    console.log('[login]', email, '→ stageKey:', stageKey, 'raw:', JSON.stringify(rawStage), 'parsed:', approvalStage);
+
     currentUser = {
       email: email,
       name: user['ชื่อ - สกุล'] || payload.name,
@@ -739,7 +751,7 @@ async function handleGoogleLogin(r) {
       company: user['บริษัท'] || '',
       warehouse: user['W'] || '',
       empId: String(user['รหัสพนักงาน'] || ''),
-      approvalStage: parseInt(user['Approval Stage']) || 0
+      approvalStage: approvalStage
     };
     localStorage.setItem('rattanaRepairUser', JSON.stringify({
       data: currentUser, exp: Date.now() + 30*24*60*60*1000
