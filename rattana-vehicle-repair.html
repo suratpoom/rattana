@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Vehicle Repair v1.8</title>
+<title>Rattana Vehicle Repair v1.9</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
@@ -290,7 +290,7 @@ body.dark .vsum-stat.count .vs-value{color:#e8eaf0}
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
     <div class="login-logo">RATTANA<span> · </span>REPAIR</div>
-    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v1.8</div>
+    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v1.9</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -343,6 +343,21 @@ body.dark .vsum-stat.count .vs-value{color:#e8eaf0}
           <div class="field">
             <label>เลขไมล์ปัจจุบัน (กม.) <span class="req">*</span></label>
             <input class="input" id="inMileage" type="number" inputmode="numeric" placeholder="เช่น 125000">
+          </div>
+
+          <div class="field">
+            <label>ศูนย์ซ่อม-เจ้าหนี้ <span class="req">*</span></label>
+            <div class="dd-wrap" id="ddVendor">
+              <button class="dd-trigger" onclick="toggleDD('ddVendor')" type="button">
+                <span id="ddVendorLabel">-- เลือกศูนย์ซ่อม-เจ้าหนี้ --</span>
+                <span style="color:var(--muted)">▾</span>
+              </button>
+              <div class="dd-panel" id="ddVendorPanel">
+                <input class="dd-search" type="text" placeholder="🔍 ค้นหาศูนย์ซ่อม / เจ้าหนี้..." oninput="filterVendors(this.value)">
+                <ul class="dd-list" id="ddVendorList"></ul>
+              </div>
+            </div>
+            <div id="vendorPhoneHint" style="font-size:12px;color:var(--muted);margin-top:4px"></div>
           </div>
 
           <div class="field">
@@ -579,8 +594,10 @@ const REPAIR_CATEGORIES = [
 // ═════════════════════════════════════════════════════════════════════
 let currentUser = null;
 let vehicles    = [];   // ข้อมูลรถจาก master sheet
+let vendors     = [];   // [{name, phone}] — extracted from vehicle data
 let repairs     = [];   // ใบแจ้งซ่อมทั้งหมด
 let selectedVehicle = null;
+let selectedVendor  = null; // {name, phone} | null
 let billPhotoData = null; // {base64, mime}
 let selectedRepairItems = new Set();  // เก็บรายการซ่อมที่เลือก
 let currentTab = 'report';
@@ -817,8 +834,10 @@ async function loadVehicles() {
     const keyDrv   = findKey(sample, ['ผู้ดูแล', 'ขับขี่', 'คนขับ', 'driver']);
     const keyDept  = findKey(sample, ['แผนก', 'department']);
     const keyTank  = findKey(sample, ['ขนาดน้ำมัน', 'ขนาดถัง', 'tank']);
+    const keyVendor = findKey(sample, ['ศูนย์ซ่อม', 'เจ้าหนี้', 'vendor', 'supplier']);
+    const keyVPhone = findKey(sample, ['เบอร์ติดต่อ', 'เบอร์โทร', 'phone', 'tel']);
 
-    console.log('[loadVehicles] mapped keys:', { keyPlate, keyWh, keyModel, keyType, keyYear, keyFuel, keyDrv, keyDept });
+    console.log('[loadVehicles] mapped keys:', { keyPlate, keyWh, keyModel, keyType, keyYear, keyFuel, keyDrv, keyDept, keyVendor, keyVPhone });
 
     if (!keyPlate) {
       showToast('⚠ หาคอลัมน์ทะเบียนไม่เจอ — เช็ค Sheet header', 'error');
@@ -839,6 +858,28 @@ async function loadVehicles() {
         tankSize:    keyTank  ? (r[keyTank]  || '') : ''
       }));
     console.log('[loadVehicles] vehicles parsed:', vehicles.length, 'sample:', vehicles[0]);
+
+    // Extract unique vendors (ศูนย์ซ่อม-เจ้าหนี้)
+    if (keyVendor) {
+      const vendorMap = new Map();
+      rows.forEach(r => {
+        const name = String(r[keyVendor]||'').trim();
+        if (!name) return;
+        if (!vendorMap.has(name)) {
+          vendorMap.set(name, {
+            name: name,
+            phone: keyVPhone ? String(r[keyVPhone]||'').trim() : ''
+          });
+        }
+      });
+      vendors = [...vendorMap.values()].sort((a,b) =>
+        a.name.localeCompare(b.name, 'th')
+      );
+      console.log('[loadVehicles] vendors parsed:', vendors.length);
+    } else {
+      vendors = [];
+    }
+    renderVendorList();
   } catch (e) {
     console.error('[loadVehicles] error:', e);
     showToast('โหลดข้อมูลรถไม่สำเร็จ: ' + e.message, 'error');
@@ -1001,6 +1042,39 @@ document.addEventListener('click', e => {
     document.querySelectorAll('.dd-panel').forEach(x => x.style.display = 'none');
   }
 });
+
+// ═════════════════════════════════════════════════════════════════════
+// VENDOR DROPDOWN (ศูนย์ซ่อม-เจ้าหนี้)
+// ═════════════════════════════════════════════════════════════════════
+function renderVendorList() {
+  const ul = $('ddVendorList');
+  if (!ul) return;
+  if (!vendors.length) {
+    ul.innerHTML = '<li class="no-result">ไม่พบข้อมูลศูนย์ซ่อม</li>';
+    return;
+  }
+  ul.innerHTML = vendors.map((v, idx) => `
+    <li onclick="selectVendor(${idx})">
+      <span><strong>${escapeHtml(v.name)}</strong></span>
+      <span class="li-meta">${v.phone || ''}</span>
+    </li>`).join('');
+}
+
+function filterVendors(q) {
+  q = (q||'').toLowerCase();
+  document.querySelectorAll('#ddVendorList li').forEach(li => {
+    li.style.display = li.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+function selectVendor(idx) {
+  const v = vendors[idx];
+  if (!v) return;
+  selectedVendor = v;
+  $('ddVendorLabel').textContent = v.name;
+  $('ddVendorPanel').style.display = 'none';
+  $('vendorPhoneHint').textContent = v.phone ? '📞 ' + v.phone : '';
+}
 
 // ═════════════════════════════════════════════════════════════════════
 // BILL UPLOAD
@@ -1167,6 +1241,7 @@ async function submitRepair() {
   const issue = getIssueText();
   const amount = parseFloat($('inAmount').value);
   if (!mileage) { showToast('กรุณากรอกเลขไมล์', 'warning'); return; }
+  if (!selectedVendor) { showToast('กรุณาเลือกศูนย์ซ่อม-เจ้าหนี้', 'warning'); return; }
   if (!selectedRepairItems.size && !$('inIssueNote').value.trim()) {
     showToast('กรุณาเลือกรายการที่ต้องซ่อม (อย่างน้อย 1 รายการ) หรือกรอกหมายเหตุ', 'warning'); return;
   }
@@ -1195,6 +1270,8 @@ async function submitRepair() {
       mileage:      mileage,
       issueDescription: issue,
       billAmount:   amount,
+      vendor:       selectedVendor.name,
+      vendorPhone:  selectedVendor.phone || '',
       billPhotoBase64: billPhotoData.base64,
       billPhotoMime:   billPhotoData.mime
     };
@@ -1225,9 +1302,12 @@ async function submitRepair() {
 
 function resetForm() {
   selectedVehicle = null;
+  selectedVendor = null;
   billPhotoData = null;
   selectedRepairItems.clear();
   $('ddPlateLabel').textContent = '-- เลือกทะเบียนรถ --';
+  $('ddVendorLabel').textContent = '-- เลือกศูนย์ซ่อม-เจ้าหนี้ --';
+  $('vendorPhoneHint').textContent = '';
   $('vehicleAutoFill').classList.add('hidden');
   $('inMileage').value = '';
   $('inIssueNote').value = '';
@@ -1590,6 +1670,7 @@ function openDetail(id) {
     ['เลขไมล์', r.mileage ? Number(r.mileage).toLocaleString() + ' กม.' : '-'],
     ['อาการ/รายละเอียด', `<div style="white-space:pre-wrap">${r.issueDescription||'-'}</div>`],
     ['ยอดเงิน', `<span class="amount">฿${fmtMoney(r.billAmount)}</span>`],
+    ['ศูนย์ซ่อม/เจ้าหนี้', r.vendor ? `${r.vendor}${r.vendorPhone?'<br><span style="color:var(--muted);font-size:11px">📞 '+r.vendorPhone+'</span>':''}` : '-'],
     ['ผู้แจ้ง', `${r.requesterName||'-'} <span style="color:var(--muted);font-size:11px">${r.requesterEmail||''}</span>`],
     ['แผนกผู้แจ้ง / คลัง', `${r.requesterDept||'-'} · ${r.requesterWarehouse||'-'}`],
     ['วันที่แจ้ง', formatThaiDateTime(r.timestamp)]
@@ -1724,6 +1805,7 @@ function exportAllExcel() {
     'ทะเบียน': r.plate, 'คลัง': r.warehouse, 'รุ่น': r.model, 'ประเภท': r.vehicleType, 'ปี': r.year,
     'คนขับ': r.driver, 'เลขไมล์': r.mileage,
     'อาการ': r.issueDescription, 'ยอดเงิน': r.billAmount,
+    'ศูนย์ซ่อม-เจ้าหนี้': r.vendor, 'เบอร์ติดต่อศูนย์ซ่อม': r.vendorPhone,
     'ผู้แจ้ง': r.requesterName, 'อีเมลผู้แจ้ง': r.requesterEmail,
     'แผนกผู้แจ้ง': r.requesterDept, 'คลังผู้แจ้ง': r.requesterWarehouse,
     'สถานะ': r.status,
