@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Vehicle Repair v1.7</title>
+<title>Rattana Vehicle Repair v1.8</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
@@ -290,7 +290,7 @@ body.dark .vsum-stat.count .vs-value{color:#e8eaf0}
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
     <div class="login-logo">RATTANA<span> · </span>REPAIR</div>
-    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v1.7</div>
+    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v1.8</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -792,25 +792,53 @@ async function loadVehicles() {
   try {
     const rows = await fetchSheetCsv(VEHICLE_SHEET_ID); // tab แรก
     console.log('[loadVehicles] rows fetched:', rows.length);
-    if (rows.length > 0) console.log('[loadVehicles] first row keys:', Object.keys(rows[0]));
+    if (rows.length > 0) console.log('[loadVehicles] available columns:', Object.keys(rows[0]));
+
+    // Fuzzy column finder — หา column ที่ key contains keyword (case-insensitive)
+    function findKey(row, keywords) {
+      const keys = Object.keys(row);
+      for (const kw of keywords) {
+        const k = keys.find(x => x && x.toLowerCase().includes(kw.toLowerCase()));
+        if (k) return k;
+      }
+      return null;
+    }
+
+    if (!rows.length) { vehicles = []; renderPlateList(); return; }
+
+    // หา key ที่ตรงกับแต่ละ field — รองรับการเปลี่ยนชื่อ column
+    const sample = rows[0];
+    const keyPlate = findKey(sample, ['ทะเบียน final', 'ทะเบียนfinal', 'ทะเบียนสุดท้าย', 'ทะเบียน']);
+    const keyWh    = findKey(sample, ['คลัง final', 'คลังfinal', 'คลังสุดท้าย', 'คลัง', 'warehouse']);
+    const keyModel = findKey(sample, ['รุ่นรถ final', 'รุ่นรถ', 'รุ่น', 'model']);
+    const keyType  = findKey(sample, ['ประเภทรถ', 'ประเภท', 'type']);
+    const keyYear  = findKey(sample, ['ปีรถ', 'ปี', 'year']);
+    const keyFuel  = findKey(sample, ['เชื้อเพลิง', 'น้ำมัน', 'fuel']);
+    const keyDrv   = findKey(sample, ['ผู้ดูแล', 'ขับขี่', 'คนขับ', 'driver']);
+    const keyDept  = findKey(sample, ['แผนก', 'department']);
+    const keyTank  = findKey(sample, ['ขนาดน้ำมัน', 'ขนาดถัง', 'tank']);
+
+    console.log('[loadVehicles] mapped keys:', { keyPlate, keyWh, keyModel, keyType, keyYear, keyFuel, keyDrv, keyDept });
+
+    if (!keyPlate) {
+      showToast('⚠ หาคอลัมน์ทะเบียนไม่เจอ — เช็ค Sheet header', 'error');
+      vehicles = []; renderPlateList(); return;
+    }
 
     vehicles = rows
-      .filter(r => r['ทะเบียน Final'])
+      .filter(r => r[keyPlate])
       .map(r => ({
-        plate:       r['ทะเบียน Final'] || '',
-        warehouse:   r['คลัง    Final'] || r['คลัง Final'] || r['คลัง'] || '',
-        model:       r['รุ่นรถ Final'] || r['รุ่นรถ'] || '',
-        vehicleType: r['ประเภทรถ Fianl'] || r['ประเภทรถ Final'] || r['ประเภทรถ'] || '',
-        year:        r['ปีรถ'] || '',
-        fuel:        r['เชื้อเพลิง'] || '',
-        driver:      r['ผู้ดูแล-ขับขี่'] || r['ผู้ดูแล/ขับขี่'] || r['คนขับ'] || '',
-        vehicleDept: r['แผนก'] || '',
-        tankSize:    r['ขนาดน้ำมัน'] || ''
+        plate:       r[keyPlate] || '',
+        warehouse:   keyWh    ? (r[keyWh]    || '') : '',
+        model:       keyModel ? (r[keyModel] || '') : '',
+        vehicleType: keyType  ? (r[keyType]  || '') : '',
+        year:        keyYear  ? (r[keyYear]  || '') : '',
+        fuel:        keyFuel  ? (r[keyFuel]  || '') : '',
+        driver:      keyDrv   ? (r[keyDrv]   || '') : '',
+        vehicleDept: keyDept  ? (r[keyDept]  || '') : '',
+        tankSize:    keyTank  ? (r[keyTank]  || '') : ''
       }));
     console.log('[loadVehicles] vehicles parsed:', vehicles.length, 'sample:', vehicles[0]);
-    if (vehicles.length === 0 && rows.length > 0) {
-      showToast('⚠ โหลด ' + rows.length + ' rows แต่ parse ไม่ได้ (column header เปลี่ยน?)', 'warning');
-    }
   } catch (e) {
     console.error('[loadVehicles] error:', e);
     showToast('โหลดข้อมูลรถไม่สำเร็จ: ' + e.message, 'error');
