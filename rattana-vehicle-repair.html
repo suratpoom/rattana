@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Vehicle Repair v1.4</title>
+<title>Rattana Vehicle Repair v1.5</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
@@ -249,6 +249,39 @@ body.dark .cat-head .cat-count{background:rgba(255,255,255,.08)}
 .cat-items input[type=checkbox]{margin-top:3px;width:16px;height:16px;cursor:pointer;accent-color:var(--gold);flex-shrink:0}
 .cat-items label.hidden-by-search{display:none}
 .cat-block.empty-search{display:none}
+
+/* ───── Vehicle Summary Card ───── */
+.vsum-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .15s,box-shadow .15s;border-left:4px solid var(--gold);display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center}
+.vsum-card:hover{border-color:var(--gold);box-shadow:var(--shadow-md)}
+.vsum-card.no-repair{border-left-color:var(--border);opacity:.65}
+.vsum-info{min-width:0}
+.vsum-plate{font-weight:700;font-size:16px;font-family:'Courier New',monospace;color:var(--navy);margin-bottom:3px}
+body.dark .vsum-plate{color:var(--gold)}
+.vsum-meta{font-size:11px;color:var(--muted);margin-bottom:6px}
+.vsum-last{font-size:12px;color:var(--text);display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.vsum-stats{display:flex;gap:18px;text-align:right;flex-shrink:0}
+.vsum-stat{display:flex;flex-direction:column}
+.vsum-stat .vs-label{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.vsum-stat .vs-value{font-weight:700;font-size:18px;color:var(--gold);font-variant-numeric:tabular-nums}
+.vsum-stat.count .vs-value{color:var(--navy);font-size:22px}
+body.dark .vsum-stat.count .vs-value{color:#e8eaf0}
+@media(max-width:520px){
+  .vsum-card{grid-template-columns:1fr;gap:10px}
+  .vsum-stats{justify-content:flex-end;border-top:1px dashed var(--border);padding-top:10px}
+}
+
+/* History modal */
+.hist-summary{background:rgba(201,168,76,.08);border-radius:var(--radius-sm);padding:12px;margin-bottom:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center}
+.hist-summary .hs-item{font-size:12px}
+.hist-summary .hs-label{color:var(--muted);font-size:10px;font-weight:600;text-transform:uppercase}
+.hist-summary .hs-value{font-weight:700;font-size:18px;color:var(--gold);font-variant-numeric:tabular-nums;margin-top:2px}
+.hist-list{display:flex;flex-direction:column;gap:8px}
+.hist-item{padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card-bg);cursor:pointer;transition:border-color .15s}
+.hist-item:hover{border-color:var(--gold)}
+.hist-item-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:10px}
+.hist-item-date{font-weight:600;font-size:12px;color:var(--text)}
+.hist-item-amount{font-weight:700;color:var(--gold);font-size:13px}
+.hist-item-issue{font-size:12px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 </style>
 </head>
 <body>
@@ -257,7 +290,7 @@ body.dark .cat-head .cat-count{background:rgba(255,255,255,.08)}
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
     <div class="login-logo">RATTANA<span> · </span>REPAIR</div>
-    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v1.4</div>
+    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v1.5</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -280,6 +313,7 @@ body.dark .cat-head .cat-count{background:rgba(255,255,255,.08)}
   <div class="tab-nav">
     <button class="tab-btn active" data-tab="report" onclick="switchTab('report')">📋 แจ้งซ่อม</button>
     <button class="tab-btn" data-tab="mine" onclick="switchTab('mine')">📁 รายการของฉัน</button>
+    <button class="tab-btn" data-tab="byvehicle" onclick="switchTab('byvehicle')">🚛 สรุปต่อรถ</button>
     <button class="tab-btn hidden" data-tab="approve" id="tabApprove" onclick="switchTab('approve')">✅ อนุมัติ <span class="tab-badge hidden" id="approveBadge">0</span></button>
     <button class="tab-btn hidden" data-tab="all" id="tabAll" onclick="switchTab('all')">📊 ทั้งหมด</button>
   </div>
@@ -358,6 +392,25 @@ body.dark .cat-head .cat-count{background:rgba(255,255,255,.08)}
         <button class="filter-chip" data-f="rejected" onclick="filterMine('rejected',this)">ปฏิเสธ</button>
       </div>
       <div id="mineList"></div>
+    </div>
+
+    <!-- TAB: สรุปต่อรถ -->
+    <div id="tab-byvehicle" class="tab-pane hidden">
+      <div class="stat-grid" id="byVehicleStats"></div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+        <input class="search-input" id="byVehicleSearch" style="flex:1;min-width:200px" placeholder="ค้นหา ทะเบียน, คนขับ, รุ่น..." oninput="renderByVehicle()">
+        <select class="input" id="byVehicleSort" style="height:42px;width:auto;min-width:170px" onchange="renderByVehicle()">
+          <option value="amount_desc">ยอดรวมสูงสุด</option>
+          <option value="count_desc">จำนวนครั้งเยอะสุด</option>
+          <option value="recent">ซ่อมล่าสุด</option>
+          <option value="plate">เรียงตามทะเบียน</option>
+        </select>
+      </div>
+      <div class="filter-bar" id="byVehicleFilter">
+        <button class="filter-chip active" data-f="repaired" onclick="filterByVehicle('repaired',this)">เฉพาะที่เคยซ่อม</button>
+        <button class="filter-chip" data-f="all" onclick="filterByVehicle('all',this)">ทั้งหมดในคลัง</button>
+      </div>
+      <div id="byVehicleList"></div>
     </div>
 
     <!-- TAB: อนุมัติ -->
@@ -533,6 +586,7 @@ let selectedRepairItems = new Set();  // เก็บรายการซ่อ
 let currentTab = 'report';
 let mineFilterState = 'all';
 let allFilterState  = 'all';
+let byVehicleFilterState = 'repaired';
 let pendingApproveAction = null;
 let pendingApproveId = null;
 
@@ -725,6 +779,7 @@ async function loadAllData() {
     renderMine();
     renderApprove();
     renderTabAll();
+    renderByVehicle();
   } catch (e) {
     console.error(e);
     showToast('โหลดข้อมูลไม่สำเร็จ: ' + e.message, 'error');
@@ -780,17 +835,38 @@ async function refreshAll() {
 // ═════════════════════════════════════════════════════════════════════
 // PLATE DROPDOWN
 // ═════════════════════════════════════════════════════════════════════
+function isAdminUser() {
+  if (!currentUser) return false;
+  const w = String(currentUser.warehouse||'').trim().toUpperCase();
+  return w === 'HQ' || w === '' || (currentUser.role||0) >= 7;
+}
+
+function getAllowedVehicles() {
+  // HQ / admin / role >= 7 → เห็นทุกคลัง
+  if (isAdminUser()) return vehicles;
+  const userW = String(currentUser.warehouse||'').trim().toUpperCase();
+  return vehicles.filter(v =>
+    String(v.warehouse||'').trim().toUpperCase().includes(userW)
+  );
+}
+
 function renderPlateList() {
   const ul = $('ddPlateList');
-  if (!vehicles.length) {
-    ul.innerHTML = '<li class="no-result">ไม่พบข้อมูลรถ</li>';
+  const allowed = getAllowedVehicles();
+  if (!allowed.length) {
+    ul.innerHTML = `<li class="no-result">ไม่พบรถใน${currentUser ? 'คลัง '+(currentUser.warehouse||'ของคุณ') : 'ระบบ'}</li>`;
     return;
   }
-  ul.innerHTML = vehicles.map(v => `
+  ul.innerHTML = allowed.map(v => `
     <li onclick="selectPlate('${v.plate.replace(/'/g,"\\'")}')">
       <span><strong>${v.plate}</strong> <span class="li-meta">· ${v.warehouse||'-'} · ${v.vehicleType||v.model||'-'}</span></span>
       <span class="li-meta">${v.driver || ''}</span>
     </li>`).join('');
+  // เพิ่ม note ถ้ามีการกรอง
+  if (!isAdminUser() && currentUser) {
+    const note = `<li class="no-result" style="font-size:11px;color:var(--muted);font-style:normal;background:rgba(201,168,76,.06);border-top:1px solid var(--border)">📍 แสดงเฉพาะรถใน ${currentUser.warehouse} (${allowed.length} คัน)</li>`;
+    ul.insertAdjacentHTML('beforeend', note);
+  }
 }
 
 function filterPlates(q) {
@@ -1050,7 +1126,7 @@ async function submitRepair() {
     }
     resetForm();
     await loadRepairs();
-    renderMine(); renderApprove(); renderTabAll();
+    renderMine(); renderApprove(); renderTabAll(); renderByVehicle();
     switchTab('mine');
   } catch (e) {
     console.error(e);
@@ -1229,6 +1305,167 @@ function renderTabAll() {
 }
 
 // ═════════════════════════════════════════════════════════════════════
+// BY VEHICLE (สรุปต่อรถ)
+// ═════════════════════════════════════════════════════════════════════
+function filterByVehicle(f, btn) {
+  byVehicleFilterState = f;
+  document.querySelectorAll('#byVehicleFilter .filter-chip').forEach(c => c.classList.toggle('active', c === btn));
+  renderByVehicle();
+}
+
+function buildVehicleSummaries() {
+  const allowed = getAllowedVehicles();
+  const allowedPlates = new Set(allowed.map(v => v.plate));
+
+  // group repairs by plate (เฉพาะที่อยู่ใน allowed warehouses)
+  const byPlate = {};
+  repairs.forEach(r => {
+    if (!allowedPlates.has(r.plate)) return;
+    if (!byPlate[r.plate]) byPlate[r.plate] = [];
+    byPlate[r.plate].push(r);
+  });
+
+  return allowed.map(v => {
+    const list = byPlate[v.plate] || [];
+    const approved = list.filter(r => r.status === 'approved' || r.status === 'auto_approved');
+    const pending  = list.filter(r => isPending(r.status));
+    const totalAmount = approved.reduce((s,r) => s + (parseFloat(r.billAmount)||0), 0);
+    const pendingAmount = pending.reduce((s,r) => s + (parseFloat(r.billAmount)||0), 0);
+    const lastRepair = list.length ? list.reduce((a,b) =>
+      new Date(a.timestamp) > new Date(b.timestamp) ? a : b
+    ) : null;
+    return {
+      vehicle: v,
+      totalCount: list.length,
+      approvedCount: approved.length,
+      pendingCount: pending.length,
+      rejectedCount: list.filter(r => r.status === 'rejected').length,
+      totalAmount: totalAmount,
+      pendingAmount: pendingAmount,
+      lastRepair: lastRepair,
+      repairs: list.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp))
+    };
+  });
+}
+
+function renderByVehicle() {
+  if (!currentUser) return;
+  const summaries = buildVehicleSummaries();
+
+  // overall stats
+  const repaired = summaries.filter(s => s.totalCount > 0);
+  const grandTotal = summaries.reduce((s,x) => s + x.totalAmount, 0);
+  const grandCount = summaries.reduce((s,x) => s + x.approvedCount + (x.totalCount - x.approvedCount - x.rejectedCount), 0);
+  const grandApprovedCount = summaries.reduce((s,x) => s + x.approvedCount, 0);
+  const avgPerVehicle = repaired.length ? grandTotal / repaired.length : 0;
+
+  const scopeLabel = isAdminUser() ? 'ทั้งหมด' : (currentUser.warehouse || '-');
+
+  $('byVehicleStats').innerHTML = [
+    { lbl:`รถใน${scopeLabel}`,    val:summaries.length, cls:'' },
+    { lbl:'รถที่เคยซ่อม',         val:repaired.length, cls:'' },
+    { lbl:'ใบที่อนุมัติแล้ว',     val:grandApprovedCount, cls:'success' },
+    { lbl:'ยอดรวม (บาท)',         val:fmtMoney(grandTotal), cls:'' }
+  ].map(s =>
+    `<div class="stat-card ${s.cls}"><div class="s-label">${s.lbl}</div><div class="s-value">${s.val}</div></div>`
+  ).join('');
+
+  // filter
+  let list = summaries;
+  if (byVehicleFilterState === 'repaired') list = list.filter(s => s.totalCount > 0);
+
+  // search
+  const q = ($('byVehicleSearch').value||'').toLowerCase();
+  if (q) list = list.filter(s =>
+    String(s.vehicle.plate||'').toLowerCase().includes(q) ||
+    String(s.vehicle.driver||'').toLowerCase().includes(q) ||
+    String(s.vehicle.model||'').toLowerCase().includes(q) ||
+    String(s.vehicle.vehicleType||'').toLowerCase().includes(q)
+  );
+
+  // sort
+  const sortBy = $('byVehicleSort').value;
+  if (sortBy === 'amount_desc')      list.sort((a,b) => b.totalAmount - a.totalAmount);
+  else if (sortBy === 'count_desc')  list.sort((a,b) => b.totalCount - a.totalCount);
+  else if (sortBy === 'recent')      list.sort((a,b) => {
+    const ta = a.lastRepair ? new Date(a.lastRepair.timestamp).getTime() : 0;
+    const tb = b.lastRepair ? new Date(b.lastRepair.timestamp).getTime() : 0;
+    return tb - ta;
+  });
+  else if (sortBy === 'plate')       list.sort((a,b) => String(a.vehicle.plate).localeCompare(String(b.vehicle.plate),'th'));
+
+  if (!list.length) {
+    $('byVehicleList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">ไม่พบรายการ</div>`;
+    return;
+  }
+
+  $('byVehicleList').innerHTML = list.map(s => {
+    const v = s.vehicle;
+    const lastTxt = s.lastRepair
+      ? `${formatThaiDate(s.lastRepair.timestamp)} · ${(s.lastRepair.issueDescription||'').replace(/\n/g,' ').substring(0,80)}`
+      : '<span style="color:var(--muted)">— ยังไม่มีประวัติซ่อม —</span>';
+    const noRepair = s.totalCount === 0 ? 'no-repair' : '';
+    const pendingBadge = s.pendingCount > 0
+      ? `<span class="badge badge-warn" style="margin-left:6px">⏳ ${s.pendingCount} รออนุมัติ</span>` : '';
+    return `
+      <div class="vsum-card ${noRepair}" onclick="openVehicleHistory('${v.plate.replace(/'/g,"\\'")}')">
+        <div class="vsum-info">
+          <div class="vsum-plate">${v.plate} ${pendingBadge}</div>
+          <div class="vsum-meta">${v.warehouse||'-'} · ${v.vehicleType||v.model||'-'} ${v.driver?'· '+v.driver:''}</div>
+          <div class="vsum-last">${lastTxt}</div>
+        </div>
+        <div class="vsum-stats">
+          <div class="vsum-stat count"><span class="vs-label">ครั้ง</span><span class="vs-value">${s.totalCount}</span></div>
+          <div class="vsum-stat"><span class="vs-label">ยอดรวม</span><span class="vs-value">฿${fmtMoney(s.totalAmount)}</span></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openVehicleHistory(plate) {
+  const summaries = buildVehicleSummaries();
+  const s = summaries.find(x => x.vehicle.plate === plate);
+  if (!s) return;
+  const v = s.vehicle;
+
+  $('detailTitle').innerHTML = `🚛 ${v.plate} <span style="font-size:11px;color:var(--muted);font-weight:400">${v.warehouse||''}</span>`;
+
+  let html = `
+    <div class="hist-summary">
+      <div class="hs-item"><div class="hs-label">ครั้งทั้งหมด</div><div class="hs-value">${s.totalCount}</div></div>
+      <div class="hs-item"><div class="hs-label">อนุมัติแล้ว</div><div class="hs-value">${s.approvedCount}</div></div>
+      <div class="hs-item"><div class="hs-label">ยอดรวม (฿)</div><div class="hs-value">${fmtMoney(s.totalAmount)}</div></div>
+    </div>
+    <div style="margin-bottom:14px">
+      <div class="det-row"><span class="det-label">รุ่น/ประเภท</span><span class="det-value">${v.model||'-'} · ${v.vehicleType||'-'}</span></div>
+      <div class="det-row"><span class="det-label">ปี · เชื้อเพลิง</span><span class="det-value">${v.year||'-'} · ${v.fuel||'-'}</span></div>
+      <div class="det-row"><span class="det-label">ผู้ดูแล/คนขับ</span><span class="det-value">${v.driver||'-'}</span></div>
+      <div class="det-row"><span class="det-label">แผนก</span><span class="det-value">${v.vehicleDept||'-'}</span></div>
+    </div>
+  `;
+
+  if (!s.repairs.length) {
+    html += `<div style="text-align:center;padding:30px;color:var(--muted)">ยังไม่มีประวัติการซ่อม</div>`;
+  } else {
+    html += `<div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:8px;letter-spacing:.4px">ประวัติการซ่อม (${s.repairs.length} ครั้ง)</div>`;
+    html += `<div class="hist-list">` + s.repairs.map(r => `
+      <div class="hist-item" onclick="event.stopPropagation();closeDetail();setTimeout(()=>openDetail('${r.id}'),200)">
+        <div class="hist-item-head">
+          <span class="hist-item-date">${formatThaiDateTime(r.timestamp)} ${statusBadge(r.status)}</span>
+          <span class="hist-item-amount">฿${fmtMoney(r.billAmount)}</span>
+        </div>
+        <div class="hist-item-issue">${(r.issueDescription||'').replace(/\n/g,' · ')}</div>
+      </div>
+    `).join('') + `</div>`;
+  }
+
+  $('detailBody').innerHTML = html;
+  $('detailFoot').innerHTML = '<button class="btn btn-outline" onclick="closeDetail()">ปิด</button>';
+  $('detailModal').classList.add('open');
+}
+
+// ═════════════════════════════════════════════════════════════════════
 // REPAIR CARD HTML
 // ═════════════════════════════════════════════════════════════════════
 function repairCardHtml(r) {
@@ -1381,7 +1618,7 @@ async function confirmNoteAction() {
     showToast(action==='approve' ? 'อนุมัติเรียบร้อย ✓' : 'ปฏิเสธเรียบร้อย', 'success');
     closeDetail();
     await loadRepairs();
-    renderMine(); renderApprove(); renderTabAll();
+    renderMine(); renderApprove(); renderTabAll(); renderByVehicle();
   } catch (e) {
     showToast('ไม่สำเร็จ: ' + e.message, 'error');
   } finally {
