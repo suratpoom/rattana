@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Sales — v1.7 Sheet-Powered Edition</title>
+<title>Rattana Sales — v1.9 Sheet-Powered Edition</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -339,9 +339,9 @@ body.dark .product-price { color: var(--gold-light); }
 .cart-go { background: var(--gold); color: var(--navy); padding: 8px 14px; border-radius: 10px; font-weight: 700; font-size: 13px; }
 
 /* ─── PRODUCT MODAL ─── */
-.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; display: none; align-items: flex-end; }
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; display: none; align-items: flex-end; overflow: hidden; }
 .modal-backdrop.active { display: flex; }
-.modal { background: var(--card-bg); width: 100%; max-width: 520px; margin: 0 auto; border-radius: 20px 20px 0 0; padding: 20px; max-height: 92dvh; overflow-y: auto; animation: slideUp .3s ease; }
+.modal { background: var(--card-bg); width: 100%; max-width: 520px; margin: 0 auto; border-radius: 20px 20px 0 0; padding: 20px; max-height: 92dvh; overflow-y: auto; overscroll-behavior: contain; animation: slideUp .3s ease; box-shadow: 0 -200px 0 0 var(--card-bg); }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 .modal-handle { width: 42px; height: 4px; background: var(--border); border-radius: 2px; margin: -10px auto 14px; }
 .modal-title { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
@@ -796,7 +796,7 @@ body.dark .text-gold { color: var(--gold-light); }
       <button onclick="loginDemo(3)" style="display:block;width:100%;background:rgba(201,168,76,.15);color:#fff;border:1px solid rgba(201,168,76,.35);padding:10px 12px;border-radius:8px;font-size:12px;font-weight:600;text-align:left;font-family:inherit;cursor:pointer">🛒 Role 3 — Sales W1 (PMW101)</button>
     </div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v1.7 · 2026-05-07</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v1.9 · 2026-05-07</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -807,7 +807,7 @@ body.dark .text-gold { color: var(--gold-light); }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v1.7</span>
+  <span class="demo-tag">v1.9</span>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
 </header>
 
@@ -848,10 +848,10 @@ body.dark .text-gold { color: var(--gold-light); }
 
   <div class="drawer-divider"></div>
 
-  <div class="drawer-section-title">ราคา</div>
+  <div class="drawer-section-title">สินค้า</div>
   <button class="drawer-item" onclick="closeDrawer();goProductInfo()">
     <span class="drawer-item-icon">💰</span>
-    <span class="drawer-item-label">ดูราคา</span>
+    <span class="drawer-item-label">สินค้า</span>
     <span class="drawer-item-arrow">›</span>
   </button>
 
@@ -877,7 +877,7 @@ body.dark .text-gold { color: var(--gold-light); }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v1.7<br>2026-05-07</div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v1.9<br>2026-05-07</div>
   </div>
 </aside>
 
@@ -981,9 +981,7 @@ body.dark .text-gold { color: var(--gold-light); }
 
   <div class="summary-card">
     <div class="summary-row"><span class="lbl">จำนวนรายการ</span><span class="val" id="sumCount">0</span></div>
-    <div class="summary-row"><span class="lbl">ยอดก่อน VAT</span><span class="val" id="sumSubtotal">฿ 0</span></div>
-    <div class="summary-row"><span class="lbl">VAT 7%</span><span class="val" id="sumVat">฿ 0</span></div>
-    <div class="summary-row total"><span class="lbl">ยอดรวม</span><span class="val" id="sumTotal">฿ 0</span></div>
+    <div class="summary-row total"><span class="lbl">ยอดรวม <span style="font-size:11px;color:var(--muted);font-weight:400">(รวม VAT)</span></span><span class="val" id="sumTotal">฿ 0</span></div>
   </div>
 
   <button class="btn btn-success btn-lg btn-block" onclick="confirmOrder()">✅ ยืนยันการสั่งซื้อ</button>
@@ -1238,7 +1236,7 @@ body.dark .text-gold { color: var(--gold-light); }
   <div class="page-bar" style="margin:-16px -16px 16px;top:60px">
     <button class="back-btn" onclick="goHome()">←</button>
     <div>
-      <div class="page-title">💰 ราคา</div>
+      <div class="page-title">📦 สินค้า</div>
       <div class="page-sub" id="productInfoSub">ค้นหาสินค้า + ดูราคา</div>
     </div>
   </div>
@@ -1284,14 +1282,14 @@ body.dark .text-gold { color: var(--gold-light); }
   <button class="bnav-item active" id="navHome" onclick="goHome()"><span class="ico">🏠</span>หน้าหลัก</button>
   <button class="bnav-item" id="navRoute" onclick="goRoute()"><span class="ico">📍</span>รูท</button>
   <button class="bnav-item" id="navOrders" onclick="goOrders()"><span class="ico">📋</span>ออเดอร์</button>
-  <button class="bnav-item" id="navPrice" onclick="goProductInfo()"><span class="ico">💰</span>ดูราคา</button>
+  <button class="bnav-item" id="navPrice" onclick="goProductInfo()"><span class="ico">📦</span>สินค้า</button>
 </nav>
 
 </div><!-- /.app-shell -->
 
 <script>
 // ═══════════════════════════════════════════════════════════
-// v1.7 — SHEET-POWERED EDITION · 2026-05-07
+// v1.9 — SHEET-POWERED EDITION · 2026-05-07
 // ═══════════════════════════════════════════════════════════
 
 const CONFIG = {
@@ -1419,7 +1417,7 @@ function showLoginError(msg) {
 }
 
 async function handleGoogleLogin(response) {
-  showSpinner('กำลังตรวจสอบสิทธิ์...');
+  showSpinner('กำลังโหลด...');
   try {
     console.log('[login] Google response received');
     const decoded = decodeJwtPayload(response.credential);
@@ -1535,7 +1533,7 @@ async function enterApp() {
   initAppUI();
 
   // Then load Sheet data in background (best-effort)
-  showSpinner('โหลดข้อมูล...');
+  showSpinner('กำลังโหลด...');
   try {
     await loadAllSheetData();
     console.log('[enterApp] Sheet data loaded — re-rendering UI');
@@ -1641,11 +1639,16 @@ async function loadAllSheetData() {
   ];
   await Promise.all(tasks);
 
-  // Product Detail (20K SKUs) — long cache
-  try {
-    showSpinner('โหลดสินค้า 20,000 รายการ...');
-    SHEET_DATA.products = await fetchWithCache('products', () => fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.productDetail), CONFIG.cacheTTLLong);
-  } catch (e) { console.warn('products:', e.message); SHEET_DATA.products = []; }
+  // Product Detail (12K SKUs) — long cache, load in BACKGROUND without blocking UI
+  // (UI shows immediately with shops/customer data; products fill in when ready)
+  fetchWithCache('products', () => fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.productDetail), CONFIG.cacheTTLLong)
+    .then(d => {
+      SHEET_DATA.products = d;
+      console.log('[Rattana Sales] products loaded in background:', d.length);
+      // Re-render Price tab if user is on it
+      if (typeof rerenderCurrentScreen === 'function') rerenderCurrentScreen();
+    })
+    .catch(e => { console.warn('products:', e.message); SHEET_DATA.products = []; });
 
   SHEET_DATA.loaded = true;
 
@@ -1721,7 +1724,7 @@ function parseDataCenter(rows) {
 }
 
 async function refreshAll() {
-  showSpinner('รีเฟรชข้อมูล...');
+  showSpinner('กำลังโหลด...');
   cacheClear();
   try {
     await loadAllSheetData();
@@ -1769,7 +1772,11 @@ function productUnits(p) {
   return units;
 }
 
-// Get S-tier prices, falling back to CC-tier if S-tier is empty
+// VAT rate (7% — Thai standard) — kept for backend compat only
+const VAT_RATE = 0.07;
+const withVat = (price) => price;  // No-op: prices in Product Detail Sheet already INCLUDE VAT
+
+// Get S-tier prices (already VAT-inclusive in Sheet) — falls back to CC-tier if S-tier is empty
 function productPrices(p, unitCode) {
   const sFallback = (s, c) => numv(p[`PRICE S${s} ${unitCode}`]) || numv(p[`PRICE CC${c} ${unitCode}`]);
   return {
@@ -2703,7 +2710,7 @@ function goShop(shopId) {
     const prevShop = SHOPS.find(s => s.id === currentShopId);
     const prevName = prevShop ? prevShop.name : 'ร้านเดิม';
     const itemCount = cart.length;
-    const total = cart.reduce((s, c) => s + c.qty * c.price, 0) * 1.07;
+    const total = cart.reduce((s, c) => s + c.qty * c.price, 0);
     showCartGuardModal(prevName, itemCount, total, shopId);
     return;  // Don't proceed yet — wait for user choice
   }
@@ -2782,6 +2789,7 @@ function goSummary() {
   document.getElementById('summaryShopName').textContent = shop ? shop.name : '';
   renderCart();
   showScreen('screenSummary');
+  updateCartBar();
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -3289,13 +3297,19 @@ function initMap() {
   if (!mapEl) return;
 
   if (!routeMap) {
-    routeMap = L.map('routeMapEl', { zoomControl: true, attributionControl: false }).setView([13.6, 99.95], 10);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/voyager/{z}/{x}/{y}.png', {
-      maxZoom: 19,
+    routeMap = L.map('routeMapEl', { zoomControl: true }).setView([13.6, 99.95], 10);
+    // CARTO Voyager tiles (matches route-optimizer pattern with attribution required by CARTO TOS)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
       subdomains: 'abcd',
+      maxZoom: 19,
     }).addTo(routeMap);
   }
-  routeMap.invalidateSize();
+
+  // Belt-and-suspenders: fix tile rendering bug when map is in a hidden tab
+  setTimeout(() => routeMap.invalidateSize(), 50);
+  setTimeout(() => routeMap.invalidateSize(), 250);
+  setTimeout(() => routeMap.invalidateSize(), 500);
 
   // clear old markers
   mapMarkers.forEach(m => m.remove());
@@ -3831,8 +3845,8 @@ function openProductModal(productId, editIdx = -1) {
     </button>`);
   }
 
-  // Default price for placeholder = the price of the initial unit (S03 equivalent)
-  const defaultPriceForInit = p.price[initialUnit];
+  // Default price for placeholder = the price of the initial unit (S03 equivalent, VAT-inclusive)
+  const defaultPriceForInit = withVat(p.price[initialUnit]);
 
   document.getElementById('modalContent').innerHTML = `
     <div class="modal-handle"></div>
@@ -3869,7 +3883,7 @@ function openProductModal(productId, editIdx = -1) {
     </div>
 
     <div class="modal-section">
-      <label class="modal-label">💰 ราคาต่อหน่วย <span style="font-weight:400;color:var(--muted)">(ปล่อยว่าง = ราคาปกติ)</span></label>
+      <label class="modal-label">💰 ราคาต่อหน่วย <span style="font-weight:400;color:var(--muted)">(รวม VAT · ปล่อยว่าง = ราคาปกติ)</span></label>
       <div class="price-input-wrap">
         <span class="price-prefix">฿</span>
         <input class="price-input" type="number" id="modalPrice" value="${initialPrice}" placeholder="${defaultPriceForInit}" step="0.5" oninput="updateModalTotal()">
@@ -3936,12 +3950,12 @@ function updateModalTotal() {
   const qty = qtyRaw === '' ? 1 : (parseInt(qtyRaw) || 1);
   const priceInput = document.getElementById('modalPrice');
   const priceRaw = priceInput.value.trim();
-  // If input is empty → use default S03 (placeholder); if user typed something → use that
-  const price = priceRaw === '' ? p.price[unit] : (parseFloat(priceRaw) || 0);
-  const minPrice = p.minPrice[unit];
+  // If input is empty → use default S03 VAT-inclusive; if user typed something → use that (already VAT-inclusive)
+  const price = priceRaw === '' ? withVat(p.price[unit]) : (parseFloat(priceRaw) || 0);
+  const minPrice = withVat(p.minPrice[unit]);
   const total = qty * price;
 
-  document.getElementById('modalTotal').textContent = `฿ ${total.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2})}`;
+  document.getElementById('modalTotal').textContent = `฿ ${total.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}`;
 
   // qty hint — total pieces
   let mult = 1;
@@ -3987,8 +4001,8 @@ function updateModalTotal() {
       </div>
     `;
   } else {
-    // Mock product — old UI
-    hintHTML = `<span class="text-muted">ราคาปกติ ฿${p.price[unit]}</span>`;
+    // Mock product — old UI (display VAT-inclusive)
+    hintHTML = `<span class="text-muted">ราคาปกติ ฿${withVat(p.price[unit])} (รวม VAT)</span>`;
   }
   hint.innerHTML = hintHTML;
   hint.classList.remove('error');
@@ -4116,13 +4130,13 @@ function addToCart() {
   const qtyRaw = document.getElementById('modalQty').value.trim();
   const qty = qtyRaw === '' ? 1 : (parseInt(qtyRaw) || 1);
   const priceRaw = document.getElementById('modalPrice').value.trim();
-  // If empty → use default S03 (price[unit]); else use what user typed
-  let price = priceRaw === '' ? p.price[unit] : (parseFloat(priceRaw) || 0);
-  // Business rule: if user keyed price below the floor (minPrice = S00) → silently use default S03
-  // (no warning to user, but submit S03 to Sheet)
-  const floor = p.minPrice ? p.minPrice[unit] : 0;
-  if (priceRaw !== '' && price > 0 && price < floor) {
-    price = p.price[unit];  // silent fallback to default
+  // If empty → use default S03 VAT-inclusive (withVat); else use what user typed (already VAT-inclusive)
+  const defaultVatPrice = withVat(p.price[unit]);
+  let price = priceRaw === '' ? defaultVatPrice : (parseFloat(priceRaw) || 0);
+  // Business rule: if user keyed price below the VAT-inclusive floor (S00 × 1.07) → silently use default S03 VAT
+  const floorVat = p.minPrice ? withVat(p.minPrice[unit]) : 0;
+  if (priceRaw !== '' && price > 0 && price < floorVat) {
+    price = defaultVatPrice;  // silent fallback to default
   }
   if (qty <= 0) return;
 
@@ -4199,19 +4213,18 @@ function renderCart() {
     `;
   }).join('');
 
-  const subtotal = cart.reduce((s, c) => s + c.qty * c.price, 0);
-  const vat = subtotal * 0.07;
-  const total = subtotal + vat;
+  // Prices in cart are VAT-inclusive — total is just the sum
+  const total = cart.reduce((s, c) => s + c.qty * c.price, 0);
   document.getElementById('sumCount').textContent = `${cart.length} รายการ`;
-  document.getElementById('sumSubtotal').textContent = `฿ ${subtotal.toLocaleString(undefined,{maximumFractionDigits:2})}`;
-  document.getElementById('sumVat').textContent = `฿ ${vat.toLocaleString(undefined,{maximumFractionDigits:2})}`;
-  document.getElementById('sumTotal').textContent = `฿ ${total.toLocaleString(undefined,{maximumFractionDigits:2})}`;
+  document.getElementById('sumTotal').textContent = `฿ ${total.toLocaleString(undefined,{maximumFractionDigits:0})}`;
 }
 
 function confirmOrder() {
-  const subtotal = cart.reduce((s, c) => s + c.qty * c.price, 0);
-  const vat = subtotal * 0.07;
-  const total = subtotal + vat;
+  // Prices already include VAT — total = sum
+  const total = cart.reduce((s, c) => s + c.qty * c.price, 0);
+  // For backward compat — derive subtotal/vat from VAT-inclusive total
+  const subtotal = total / (1 + VAT_RATE);
+  const vat = total - subtotal;
   const shop = SHOPS.find(s => s.id === currentShopId);
   if (shop) {
     shop.status = 'visited';
@@ -4403,11 +4416,9 @@ function buildOrderText(orderIdx) {
     lines.push(`   ${c.qty} ${unit} × ฿${c.price} = ฿${lineTotal.toLocaleString(undefined,{maximumFractionDigits:2})}`);
   });
   lines.push(``);
-  lines.push(`ยอดก่อน VAT: ฿${o.subtotal.toLocaleString(undefined,{maximumFractionDigits:2})}`);
-  lines.push(`VAT 7%: ฿${o.vat.toLocaleString(undefined,{maximumFractionDigits:2})}`);
-  lines.push(`💰 ยอดสุทธิ: ฿${o.total.toLocaleString(undefined,{maximumFractionDigits:2})}`);
+  lines.push(`💰 ยอดรวม (รวม VAT): ฿${o.total.toLocaleString(undefined,{maximumFractionDigits:0})}`);
   lines.push(``);
-  lines.push(`📞 ติดต่อ: ${SALESMAN.name}`);
+  lines.push(`ติดต่อ: ${SALESMAN.name}`);
   return lines.join('\n');
 }
 
