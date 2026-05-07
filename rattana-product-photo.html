@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>Rattana Product Photos v3.3</title>
+<title>Rattana Product Photos v3.4</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -359,7 +359,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 <div id="loginScreen">
   <div class="login-card">
     <div class="logo-big">RATTANA <span>PRODUCT PHOTOS</span></div>
-    <div class="sub">รัตนไพบูลย์ · v3.3</div>
+    <div class="sub">รัตนไพบูลย์ · v3.4</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -372,7 +372,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 <!-- App Screen -->
 <div id="appScreen" class="page" style="display:none">
   <header>
-    <div class="logo-text">RATTANA <span>PRODUCT PHOTOS</span><span class="ver">v3.3 · 2026-05-07</span></div>
+    <div class="logo-text">RATTANA <span>PRODUCT PHOTOS</span><span class="ver">v3.4 · 2026-05-07</span></div>
     <button class="icon-btn" onclick="refreshAll()" title="รีเฟรช" id="btnRefresh">⟳</button>
     <button class="icon-btn" onclick="toggleDark()" title="โหมดมืด">🌓</button>
     <button class="icon-btn" onclick="logout()" title="ออก">⏻</button>
@@ -449,7 +449,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
           <div class="toggle-row">
             <label class="toggle-label" for="toggleRemoveBg" style="cursor:pointer">
               <span class="t-title">✨ ลบพื้นหลังด้วย AI</span>
-              <span class="t-desc" id="toggleDesc">เปิด: รูปที่ถ่ายมาจะลบพื้นหลังให้พื้นขาว · ปิด: ใช้รูปต้นฉบับเลย (สำหรับรูปที่หาจากอินเทอร์เน็ต)</span>
+              <span class="t-desc" id="toggleDesc">เปิด: ใช้ AI ลบพื้นหลังแล้วใส่พื้นขาว · ปิด: ใช้รูปต้นฉบับเลย (เหมาะสำหรับรูปจากเน็ตที่พื้นขาวแล้ว)</span>
             </label>
             <label class="toggle-switch">
               <input type="checkbox" id="toggleRemoveBg" checked onchange="onToggleRemoveBg(this.checked)">
@@ -472,7 +472,10 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 
       <!-- Step 3: Process (or pass-through) -->
       <div class="card card-gold" id="processCard" style="display:none">
-        <div class="card-head"><span><span class="step">3</span><span id="step3Title">ลบพื้นหลัง → พื้นขาว</span></span></div>
+        <div class="card-head">
+          <span><span class="step">3</span><span id="step3Title">ปรับแต่งรูป</span></span>
+          <span class="badge badge-info" style="font-size:10px">ไม่บังคับ</span>
+        </div>
         <div class="card-body">
           <div class="photo-zone has-image" id="resultZone">
             <div class="placeholder-icon">⚙️</div>
@@ -627,7 +630,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
     </div>
 
     <div class="app-footer">
-      Rattana Product Photos · <span class="ver">v3.3</span> · 2026-05-07
+      Rattana Product Photos · <span class="ver">v3.4</span> · 2026-05-07
     </div>
   </div>
 </div>
@@ -1356,25 +1359,43 @@ window.handleFileSelect = async function(event) {
     return;
   }
 
+  // Reset BG-removal state (user may re-process)
   transparentBlob = null;
-  processedImageBlob = null;
-  processedImageDataUrl = null;
   autoDetectedAngle = 0;
   userRotation = 0;
-  $('saveCard').style.display = 'none';
   $('rotateControls').style.display = 'none';
-  $('editorButtons').style.display = 'none';
-  $('resultZone').innerHTML = '<div class="placeholder-icon">⚙️</div><div>กดปุ่มเริ่มประมวลผล</div>';
 
+  // Read & display original
   originalImageBlob = file;
   originalImageDataUrl = await blobToDataUrl(file);
   const zone = $('originalZone');
   zone.classList.add('has-image');
   zone.innerHTML = `<img src="${originalImageDataUrl}" alt="original">`;
+  event.target.value = ''; // reset so same file can be reselected
 
-  $('processCard').style.display = 'block';
-  $('btnProcess').disabled = false;
-  event.target.value = '';
+  // Auto-process: fit on white square 640x640 → ready to save immediately
+  // ผู้ใช้กด "ลบพื้นหลัง" เพิ่มได้ภายหลังถ้าต้องการ
+  try {
+    const finalBlob = await fitOnWhiteSquare(originalImageBlob, CONFIG.outputSize, CONFIG.outputQuality);
+    processedImageBlob = finalBlob;
+    processedImageDataUrl = await blobToDataUrl(finalBlob);
+
+    $('processCard').style.display = 'block';
+    $('btnProcess').disabled = false;
+    $('resultZone').innerHTML = `<img src="${processedImageDataUrl}" alt="processed">`;
+    $('editorButtons').style.display = 'block';
+
+    // Save card opens immediately — no need to wait for AI
+    $('saveCard').style.display = 'block';
+    updateFilenamePreview();
+  } catch (e) {
+    console.error('Auto-fit failed:', e);
+    showToast('เตรียมรูปไม่สำเร็จ: ' + e.message, 'error');
+    $('processCard').style.display = 'block';
+    $('btnProcess').disabled = false;
+    processedImageBlob = null;
+    processedImageDataUrl = null;
+  }
 };
 
 function blobToDataUrl(blob) {
@@ -1426,21 +1447,10 @@ window.onToggleRemoveBg = function(checked) {
   removeBgEnabled = checked;
   $('btnProcessLabel').textContent = checked
     ? '✨ ลบพื้นหลัง + ใส่พื้นขาว'
-    : '✓ ใช้รูปนี้เลย (พื้นขาว)';
+    : '↻ จัดวางใหม่บนพื้นขาว';
   $('step3Title').textContent = checked
-    ? 'ลบพื้นหลัง → พื้นขาว'
-    : 'ตรวจสอบรูป';
-  if (processedImageBlob) {
-    transparentBlob = null;
-    processedImageBlob = null;
-    processedImageDataUrl = null;
-    autoDetectedAngle = 0;
-    userRotation = 0;
-    $('saveCard').style.display = 'none';
-    $('rotateControls').style.display = 'none';
-    $('editorButtons').style.display = 'none';
-    $('resultZone').innerHTML = '<div class="placeholder-icon">⚙️</div><div>กดปุ่มประมวลผล</div>';
-  }
+    ? 'ปรับแต่งรูป — ลบพื้นหลัง'
+    : 'ปรับแต่งรูป';
 };
 
 window.processBgRemoval = async function() {
