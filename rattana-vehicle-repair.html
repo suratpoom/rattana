@@ -4,10 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Vehicle Repair v2.5</title>
+<title>Rattana Vehicle Repair v2.6</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root{
   --navy:#0d1b3e;--navy-mid:#1a2f5e;--navy-light:#243b73;
@@ -283,6 +284,32 @@ body.dark .vsum-stat.count .vs-value{color:#e8eaf0}
 .hist-item-date{font-weight:600;font-size:12px;color:var(--text)}
 .hist-item-amount{font-weight:700;color:var(--gold);font-size:13px}
 .hist-item-issue{font-size:12px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* ───── Damage photo thumbs ───── */
+.damage-thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.damage-thumb{position:relative;width:90px;height:90px;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border);background:#f5f5f5}
+.damage-thumb img{width:100%;height:100%;object-fit:cover}
+.damage-thumb .dt-x{position:absolute;top:2px;right:2px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;border:none;line-height:1}
+.damage-thumb .dt-x:hover{background:var(--danger)}
+.damage-add-btn{width:90px;height:90px;border:2px dashed var(--border);border-radius:var(--radius-sm);background:rgba(201,168,76,.04);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);font-size:11px;line-height:1.4;text-align:center;transition:border-color .15s,background .15s}
+.damage-add-btn:hover{border-color:var(--gold);background:rgba(201,168,76,.08)}
+.damage-add-btn .add-icon{font-size:22px;margin-bottom:2px}
+
+/* Damage gallery in detail */
+.damage-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:8px}
+.damage-gallery a{display:block;position:relative;height:140px;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border)}
+.damage-gallery img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* ───── Report Tab ───── */
+.report-controls{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.report-controls select{height:42px;min-width:140px}
+.chart-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px;margin-bottom:14px;border-top:3px solid var(--gold)}
+.chart-card h4{font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px}
+.chart-wrap{position:relative;height:300px}
+.chart-wrap.tall{height:380px}
+@media(max-width:520px){.chart-wrap{height:240px}.chart-wrap.tall{height:300px}}
+.report-grid{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:900px){.report-grid{grid-template-columns:1fr 1fr}.report-grid .full{grid-column:1 / -1}}
 </style>
 </head>
 <body>
@@ -291,7 +318,7 @@ body.dark .vsum-stat.count .vs-value{color:#e8eaf0}
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
     <div class="login-logo">RATTANA<span> · </span>REPAIR</div>
-    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v2.5</div>
+    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v2.6</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -316,8 +343,9 @@ body.dark .vsum-stat.count .vs-value{color:#e8eaf0}
       <button class="tab-btn active" data-tab="report" onclick="switchTab('report')">📋 แจ้งซ่อม</button>
       <button class="tab-btn" data-tab="mine" onclick="switchTab('mine')">📁 รายการของฉัน</button>
       <button class="tab-btn" data-tab="byvehicle" onclick="switchTab('byvehicle')">🚛 สรุปต่อรถ</button>
+      <button class="tab-btn" data-tab="dashboard" onclick="switchTab('dashboard')">📊 รายงาน</button>
       <button class="tab-btn hidden" data-tab="approve" id="tabApprove" onclick="switchTab('approve')">✅ อนุมัติ <span class="tab-badge hidden" id="approveBadge">0</span></button>
-      <button class="tab-btn hidden" data-tab="all" id="tabAll" onclick="switchTab('all')">📊 ทั้งหมด</button>
+      <button class="tab-btn hidden" data-tab="all" id="tabAll" onclick="switchTab('all')">📋 ทั้งหมด</button>
     </div>
   </div>
 
@@ -395,6 +423,17 @@ body.dark .vsum-stat.count .vs-value{color:#e8eaf0}
             </div>
           </div>
 
+          <div class="field">
+            <label>รูปความเสียหาย <span style="color:var(--muted);font-weight:400">(ถ้ามี — เช่น ยางบวม รอยบุบ น้ำมันรั่ว ฯลฯ สูงสุด 5 รูป)</span></label>
+            <div class="damage-thumbs" id="damageThumbs">
+              <button type="button" class="damage-add-btn" id="damageAddBtn" onclick="document.getElementById('inDamage').click()">
+                <span class="add-icon">+</span>
+                <span>เพิ่มรูป</span>
+              </button>
+            </div>
+            <input type="file" id="inDamage" accept="image/*" capture="environment" multiple style="display:none" onchange="handleDamageUpload(event)">
+          </div>
+
           <button class="btn btn-gold btn-lg btn-block" onclick="submitRepair()">📤 ส่งคำขอ</button>
         </div>
       </div>
@@ -429,6 +468,43 @@ body.dark .vsum-stat.count .vs-value{color:#e8eaf0}
         <button class="filter-chip" data-f="all" onclick="filterByVehicle('all',this)">ทั้งหมดในคลัง</button>
       </div>
       <div id="byVehicleList"></div>
+    </div>
+
+    <!-- TAB: รายงาน (Dashboard) -->
+    <div id="tab-dashboard" class="tab-pane hidden">
+      <div class="report-controls">
+        <select class="input" id="dashWarehouse" onchange="renderDashboard()">
+          <option value="all">ทุกคลัง</option>
+          <option value="W1">W1</option>
+          <option value="W2">W2</option>
+          <option value="W3">W3</option>
+          <option value="W4">W4</option>
+        </select>
+        <select class="input" id="dashYear" onchange="renderDashboard()"></select>
+        <select class="input" id="dashStatus" onchange="renderDashboard()">
+          <option value="approved">เฉพาะที่อนุมัติแล้ว</option>
+          <option value="all">รวมทุกสถานะ (ยกเว้นปฏิเสธ)</option>
+        </select>
+      </div>
+      <div class="stat-grid" id="dashStats"></div>
+      <div class="report-grid">
+        <div class="chart-card full">
+          <h4>📅 ยอดเงินซ่อมรายเดือน (บาท)</h4>
+          <div class="chart-wrap tall"><canvas id="chartMonthlyAmount"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h4>🔢 จำนวนใบแจ้งซ่อมรายเดือน</h4>
+          <div class="chart-wrap"><canvas id="chartMonthlyCount"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h4>🏭 ยอดรวมแต่ละคลัง</h4>
+          <div class="chart-wrap"><canvas id="chartByWarehouse"></canvas></div>
+        </div>
+        <div class="chart-card full">
+          <h4>🚛 Top 10 รถที่มียอดซ่อมสูงสุด</h4>
+          <div class="chart-wrap tall"><canvas id="chartTopVehicles"></canvas></div>
+        </div>
+      </div>
     </div>
 
     <!-- TAB: อนุมัติ -->
@@ -602,6 +678,7 @@ let repairs     = [];   // ใบแจ้งซ่อมทั้งหมด
 let selectedVehicle = null;
 let selectedVendor  = null; // {name, phone} | null
 let billPhotoData = null; // {base64, mime}
+let damagePhotosData = []; // [{base64, mime, dataUrl}]
 let selectedRepairItems = new Set();  // เก็บรายการซ่อมที่เลือก
 let currentTab = 'report';
 let mineFilterState = 'all';
@@ -1125,6 +1202,61 @@ function handleBillUpload(ev) {
   reader.readAsDataURL(file);
 }
 
+// ─── DAMAGE PHOTOS (multiple, optional) ───
+function handleDamageUpload(ev) {
+  const files = [...(ev.target.files || [])];
+  if (!files.length) return;
+  const remaining = 5 - damagePhotosData.length;
+  if (remaining <= 0) {
+    showToast('แนบรูปได้สูงสุด 5 รูป', 'warning');
+    ev.target.value = ''; return;
+  }
+  const accept = files.slice(0, remaining);
+  let processed = 0;
+  accept.forEach(file => {
+    if (file.size > 8 * 1024 * 1024) {
+      showToast('ข้าม "' + file.name + '" (เกิน 8 MB)', 'warning');
+      processed++;
+      if (processed === accept.length) renderDamageThumbs();
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      const dataUrl = e.target.result;
+      const m = /^data:([^;]+);base64,(.+)$/.exec(dataUrl);
+      if (m) damagePhotosData.push({ mime: m[1], base64: m[2], dataUrl: dataUrl, name: file.name });
+      processed++;
+      if (processed === accept.length) renderDamageThumbs();
+    };
+    reader.readAsDataURL(file);
+  });
+  ev.target.value = '';
+  if (files.length > remaining) showToast('แนบได้สูงสุด 5 รูป — ใช้เฉพาะ ' + remaining + ' รูปแรก', 'warning');
+}
+
+function renderDamageThumbs() {
+  const wrap = $('damageThumbs');
+  const thumbsHtml = damagePhotosData.map((p, idx) => `
+    <div class="damage-thumb">
+      <img src="${p.dataUrl}" alt="ความเสียหาย ${idx+1}">
+      <button type="button" class="dt-x" onclick="removeDamagePhoto(${idx})" title="ลบ">×</button>
+    </div>
+  `).join('');
+  const canAdd = damagePhotosData.length < 5;
+  const addBtn = canAdd ? `
+    <button type="button" class="damage-add-btn" id="damageAddBtn" onclick="document.getElementById('inDamage').click()">
+      <span class="add-icon">+</span>
+      <span>เพิ่มรูป</span>
+      <span style="font-size:10px;color:var(--gold)">${damagePhotosData.length}/5</span>
+    </button>` : '';
+  wrap.innerHTML = thumbsHtml + addBtn;
+}
+
+function removeDamagePhoto(idx) {
+  damagePhotosData.splice(idx, 1);
+  renderDamageThumbs();
+}
+
 function updateApprovalHint() {
   const amt = parseFloat($('inAmount').value) || 0;
   const h = $('approvalHint');
@@ -1296,7 +1428,8 @@ async function submitRepair() {
       vendor:       selectedVendor.name,
       vendorPhone:  selectedVendor.phone || '',
       billPhotoBase64: billPhotoData.base64,
-      billPhotoMime:   billPhotoData.mime
+      billPhotoMime:   billPhotoData.mime,
+      damagePhotos: damagePhotosData.map(p => ({ base64: p.base64, mime: p.mime }))
     };
     const r = await fetch(GAS_URL, {
       method: 'POST',
@@ -1327,6 +1460,7 @@ function resetForm() {
   selectedVehicle = null;
   selectedVendor = null;
   billPhotoData = null;
+  damagePhotosData = [];
   selectedRepairItems.clear();
   $('ddPlateLabel').textContent = '-- เลือกทะเบียนรถ --';
   $('ddVendorLabel').textContent = '-- เลือกศูนย์ซ่อม-เจ้าหนี้ --';
@@ -1344,6 +1478,7 @@ function resetForm() {
   $('repairSearch').value = '';
   filterRepairItems('');
   syncRepairUI();
+  renderDamageThumbs();
 }
 
 // ═════════════════════════════════════════════════════════════════════
@@ -1354,6 +1489,7 @@ function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
   $('tab-' + name).classList.remove('hidden');
+  if (name === 'dashboard') renderDashboard();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -1654,8 +1790,233 @@ function openVehicleHistory(plate) {
 }
 
 // ═════════════════════════════════════════════════════════════════════
-// REPAIR CARD HTML
+// DASHBOARD (รายงาน)
 // ═════════════════════════════════════════════════════════════════════
+const dashCharts = {}; // เก็บ Chart.js instances ไว้ destroy ก่อน re-render
+const THAI_MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+function renderDashboard() {
+  if (typeof Chart === 'undefined') {
+    showToast('Chart library โหลดไม่สำเร็จ', 'error');
+    return;
+  }
+
+  // เตรียม year dropdown ครั้งแรก
+  const ySel = $('dashYear');
+  if (!ySel.options.length) {
+    const years = [...new Set(repairs.map(r => {
+      const d = new Date(r.timestamp);
+      return isNaN(d) ? null : d.getFullYear();
+    }))].filter(Boolean).sort((a,b) => b - a);
+    if (!years.length) years.push(new Date().getFullYear());
+    years.forEach(y => {
+      const opt = document.createElement('option');
+      opt.value = y; opt.textContent = 'ปี ' + (y + 543);
+      ySel.appendChild(opt);
+    });
+    ySel.value = years[0];
+  }
+
+  const wh = $('dashWarehouse').value;
+  const yr = parseInt($('dashYear').value);
+  const statusFilter = $('dashStatus').value;
+
+  // กรองข้อมูล
+  let data = repairs.slice();
+  data = data.filter(r => r.status !== 'rejected'); // ตัด rejected ออกเสมอ
+  if (statusFilter === 'approved') {
+    data = data.filter(r => r.status === 'approved' || r.status === 'auto_approved');
+  }
+  if (wh !== 'all') {
+    data = data.filter(r => cleanCode(r.warehouse) === cleanCode(wh));
+  }
+  data = data.filter(r => {
+    const d = new Date(r.timestamp);
+    return !isNaN(d) && d.getFullYear() === yr;
+  });
+
+  // Stats
+  const totalAmount = data.reduce((s,r) => s + (parseFloat(r.billAmount)||0), 0);
+  const totalCount = data.length;
+  const uniqueVehicles = new Set(data.map(r => r.plate)).size;
+  const avgPerRepair = totalCount > 0 ? totalAmount / totalCount : 0;
+
+  $('dashStats').innerHTML = [
+    { lbl:'จำนวนใบ',     val:totalCount.toLocaleString(),                cls:'' },
+    { lbl:'ยอดรวม (฿)',  val:fmtMoney(totalAmount),                       cls:'success' },
+    { lbl:'จำนวนรถ',     val:uniqueVehicles.toLocaleString(),            cls:'' },
+    { lbl:'เฉลี่ย/ใบ (฿)', val:fmtMoney(avgPerRepair),                    cls:'' }
+  ].map(s => `<div class="stat-card ${s.cls}"><div class="s-label">${s.lbl}</div><div class="s-value">${s.val}</div></div>`).join('');
+
+  // ── Chart 1: ยอดเงินรายเดือน (bar) ──
+  const monthlyAmount = new Array(12).fill(0);
+  const monthlyCount  = new Array(12).fill(0);
+  data.forEach(r => {
+    const d = new Date(r.timestamp);
+    const m = d.getMonth();
+    monthlyAmount[m] += parseFloat(r.billAmount) || 0;
+    monthlyCount[m]++;
+  });
+
+  destroyChart('chartMonthlyAmount');
+  dashCharts.chartMonthlyAmount = new Chart($('chartMonthlyAmount'), {
+    type: 'bar',
+    data: {
+      labels: THAI_MONTHS,
+      datasets: [{
+        label: 'ยอดเงิน (บาท)',
+        data: monthlyAmount,
+        backgroundColor: '#c9a84c',
+        borderRadius: 6,
+        borderSkipped: false
+      }]
+    },
+    options: chartCommonOptions({ tooltipPrefix: '฿', yMoneyFormat: true })
+  });
+
+  // ── Chart 2: จำนวนใบรายเดือน (line) ──
+  destroyChart('chartMonthlyCount');
+  dashCharts.chartMonthlyCount = new Chart($('chartMonthlyCount'), {
+    type: 'line',
+    data: {
+      labels: THAI_MONTHS,
+      datasets: [{
+        label: 'จำนวนใบ',
+        data: monthlyCount,
+        borderColor: '#0d1b3e',
+        backgroundColor: 'rgba(13,27,62,.1)',
+        borderWidth: 3,
+        tension: 0.35,
+        pointRadius: 5,
+        pointBackgroundColor: '#c9a84c',
+        pointBorderColor: '#0d1b3e',
+        pointBorderWidth: 2,
+        fill: true
+      }]
+    },
+    options: chartCommonOptions({ tooltipSuffix: ' ใบ', integerY: true })
+  });
+
+  // ── Chart 3: ยอดรวมแต่ละคลัง (doughnut) ──
+  const byWh = {};
+  // ใช้ data ที่ไม่ filter warehouse → แสดงสัดส่วนทุกคลัง
+  let dataAllWh = repairs.filter(r => r.status !== 'rejected');
+  if (statusFilter === 'approved') dataAllWh = dataAllWh.filter(r => r.status === 'approved' || r.status === 'auto_approved');
+  dataAllWh = dataAllWh.filter(r => {
+    const d = new Date(r.timestamp);
+    return !isNaN(d) && d.getFullYear() === yr;
+  });
+  dataAllWh.forEach(r => {
+    const k = cleanCode(r.warehouse) || '-';
+    byWh[k] = (byWh[k] || 0) + (parseFloat(r.billAmount) || 0);
+  });
+  const whLabels = Object.keys(byWh).sort();
+  const whValues = whLabels.map(k => byWh[k]);
+  const whColors = ['#c9a84c','#0d1b3e','#3498db','#2ecc71','#e74c3c','#9b59b6','#f39c12'];
+
+  destroyChart('chartByWarehouse');
+  dashCharts.chartByWarehouse = new Chart($('chartByWarehouse'), {
+    type: 'doughnut',
+    data: {
+      labels: whLabels,
+      datasets: [{
+        data: whValues,
+        backgroundColor: whLabels.map((_,i) => whColors[i % whColors.length]),
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right', labels: { font: { family: 'Sarabun', size: 12 } } },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = ctx.parsed;
+              const total = ctx.dataset.data.reduce((a,b) => a+b, 0);
+              const pct = total > 0 ? (v / total * 100).toFixed(1) : 0;
+              return ctx.label + ': ฿' + fmtMoney(v) + ' (' + pct + '%)';
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // ── Chart 4: Top 10 รถ (horizontal bar) ──
+  const byPlate = {};
+  data.forEach(r => {
+    if (!r.plate) return;
+    byPlate[r.plate] = (byPlate[r.plate] || 0) + (parseFloat(r.billAmount) || 0);
+  });
+  const topVehicles = Object.entries(byPlate)
+    .sort((a,b) => b[1] - a[1])
+    .slice(0, 10);
+
+  destroyChart('chartTopVehicles');
+  dashCharts.chartTopVehicles = new Chart($('chartTopVehicles'), {
+    type: 'bar',
+    data: {
+      labels: topVehicles.map(([p]) => p),
+      datasets: [{
+        label: 'ยอดรวม (บาท)',
+        data: topVehicles.map(([,v]) => v),
+        backgroundColor: '#0d1b3e',
+        borderRadius: 6,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => '฿' + fmtMoney(ctx.parsed.x) } }
+      },
+      scales: {
+        x: { ticks: { callback: v => '฿' + fmtMoney(v), font: { family: 'Sarabun' } }, grid: { color: 'rgba(0,0,0,.05)' } },
+        y: { ticks: { font: { family: 'Sarabun' } }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+function destroyChart(id) {
+  if (dashCharts[id]) { dashCharts[id].destroy(); delete dashCharts[id]; }
+}
+
+function chartCommonOptions(opts) {
+  opts = opts || {};
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => (opts.tooltipPrefix||'') + (opts.yMoneyFormat ? fmtMoney(ctx.parsed.y) : ctx.parsed.y) + (opts.tooltipSuffix||'')
+        }
+      }
+    },
+    scales: {
+      x: { ticks: { font: { family: 'Sarabun' } }, grid: { display: false } },
+      y: {
+        beginAtZero: true,
+        ticks: {
+          font: { family: 'Sarabun' },
+          callback: v => opts.integerY ? v : (opts.yMoneyFormat ? '฿' + fmtMoney(v) : v),
+          stepSize: opts.integerY ? 1 : undefined
+        },
+        grid: { color: 'rgba(0,0,0,.05)' }
+      }
+    }
+  };
+}
+
+
 function repairCardHtml(r) {
   return `
     <div class="repair-card ${statusClass(r.status)}" onclick="openDetail('${r.id}')">
@@ -1724,6 +2085,23 @@ function openDetail(id) {
       html += `<div style="margin-top:14px;text-align:center">
         <img src="${directUrl}" style="max-width:100%;max-height:380px;border-radius:8px;border:1px solid var(--border)">
         <div style="font-size:11px;color:var(--muted);margin-top:6px"><a href="${r.billPhotoUrl}" target="_blank">เปิดดูใน Drive</a></div>
+      </div>`;
+    }
+  }
+
+  // รูปความเสียหาย (multiple)
+  if (r.damagePhotoUrls) {
+    const urls = String(r.damagePhotoUrls||'').split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+    if (urls.length) {
+      html += `<div style="margin-top:14px">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:6px;letter-spacing:.4px">รูปความเสียหาย (${urls.length} รูป)</div>
+        <div class="damage-gallery">
+          ${urls.map(u => {
+            const id = (u.match(/\/d\/([a-zA-Z0-9_-]+)/) || [])[1];
+            const thumb = id ? `https://drive.google.com/thumbnail?id=${id}&sz=w400` : u;
+            return `<a href="${u}" target="_blank"><img src="${thumb}" loading="lazy" onerror="this.style.opacity=0.3"></a>`;
+          }).join('')}
+        </div>
       </div>`;
     }
   }
