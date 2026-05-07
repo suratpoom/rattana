@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>Rattana Product Photos v3.0</title>
+<title>Rattana Product Photos v3.2</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -40,9 +40,9 @@ header{background:var(--navy);color:#fff;padding:12px 16px;position:sticky;top:0
 .icon-btn:hover{background:rgba(255,255,255,.12)}
 
 /* Tabs */
-.tab-nav{display:flex;background:var(--navy);border-bottom:3px solid var(--gold);padding:0 8px;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;position:sticky;top:62px;z-index:99}
+.tab-nav{display:flex;background:var(--navy);border-bottom:3px solid var(--gold);padding:0 8px;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;position:sticky;top:62px;z-index:200}
 .tab-nav::-webkit-scrollbar{display:none}
-.tab-btn{background:transparent;border:none;color:rgba(255,255,255,.6);padding:12px 18px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;flex-shrink:0;transition:all .18s;margin-bottom:-3px;border-radius:var(--radius-sm) var(--radius-sm) 0 0}
+.tab-btn{background:transparent;border:none;color:rgba(255,255,255,.6);padding:12px 18px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;flex-shrink:0;transition:all .18s;margin-bottom:-3px;border-radius:var(--radius-sm) var(--radius-sm) 0 0;min-height:44px;position:relative;z-index:1}
 .tab-btn:hover{color:#fff;background:rgba(255,255,255,.06)}
 .tab-btn.active{color:var(--navy);background:var(--gold);font-weight:700;box-shadow:0 -2px 8px rgba(201,168,76,.3)}
 
@@ -101,7 +101,7 @@ body.dark .unit-CS{background:#1a3a25;color:#7be0a3}
 .dd-wrap{position:relative;width:100%}
 .dd-trigger{width:100%;min-height:48px;padding:10px 14px;background:var(--card-bg);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:'Sarabun',sans-serif;font-size:15px;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .dd-trigger:hover{border-color:var(--gold)}
-.dd-panel{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--card-bg);border:1.5px solid var(--border);border-radius:10px;z-index:1000;box-shadow:0 12px 32px rgba(0,0,0,.25);max-height:380px;display:flex;flex-direction:column}
+.dd-panel{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--card-bg);border:1.5px solid var(--border);border-radius:10px;z-index:150;box-shadow:0 12px 32px rgba(0,0,0,.25);max-height:380px;display:flex;flex-direction:column}
 .dd-search-row{display:flex;align-items:center;border-bottom:1px solid var(--border);padding-right:6px}
 .dd-search{flex:1;min-width:0;padding:12px 14px;font-size:16px;border:none;background:transparent;color:var(--text);outline:none;border-radius:10px 0 0 0;font-family:'Sarabun',sans-serif}
 .dd-clear{display:none;background:transparent;border:none;color:var(--muted);width:34px;height:34px;border-radius:50%;font-size:13px;cursor:pointer;align-items:center;justify-content:center;font-family:inherit;flex-shrink:0}
@@ -269,6 +269,14 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 .selected-chip .bc{font-family:'Courier New',monospace;font-size:12px;color:var(--muted)}
 .selected-chip .pack{font-size:11px;color:var(--muted);font-style:italic;margin-top:2px}
 
+/* Chip action buttons (copy, search) */
+.chip-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.btn-copy{flex:1;min-width:90px;padding:8px 12px;font-size:12px;font-weight:600;background:var(--card-bg);border:1px solid var(--border);color:var(--text);border-radius:8px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:40px;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.btn-copy:hover{border-color:var(--gold);background:rgba(201,168,76,.06)}
+.btn-copy:active{transform:scale(.96)}
+.btn-copy.search-btn{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-mid) 100%);color:#fff;border-color:var(--navy)}
+.btn-copy.search-btn:hover{background:var(--navy-mid)}
+
 /* Settings */
 .cfg-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;gap:12px}
 .cfg-row:last-child{border-bottom:none}
@@ -331,11 +339,14 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
   </div>
 </div>
 
+<!-- Top loading bar -->
+<div id="loadingBar" style="position:fixed;top:0;left:0;right:0;height:3px;background:var(--gold);width:0;transition:width .4s;z-index:10000;box-shadow:0 0 8px rgba(201,168,76,.6);pointer-events:none"></div>
+
 <!-- Login Screen -->
 <div id="loginScreen">
   <div class="login-card">
     <div class="logo-big">RATTANA <span>PRODUCT PHOTOS</span></div>
-    <div class="sub">รัตนไพบูลย์ · v3.0</div>
+    <div class="sub">รัตนไพบูลย์ · v3.2</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -348,7 +359,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 <!-- App Screen -->
 <div id="appScreen" class="page" style="display:none">
   <header>
-    <div class="logo-text">RATTANA <span>PRODUCT PHOTOS</span><span class="ver">v3.0 · 2026-05-07</span></div>
+    <div class="logo-text">RATTANA <span>PRODUCT PHOTOS</span><span class="ver">v3.2 · 2026-05-07</span></div>
     <button class="icon-btn" onclick="refreshAll()" title="รีเฟรช" id="btnRefresh">⟳</button>
     <button class="icon-btn" onclick="toggleDark()" title="โหมดมืด">🌓</button>
     <button class="icon-btn" onclick="logout()" title="ออก">⏻</button>
@@ -398,6 +409,11 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
                 <div class="bc" id="chipBarcode"></div>
                 <div class="pack" id="chipPack"></div>
               </div>
+            </div>
+            <div class="chip-actions">
+              <button class="btn-copy" type="button" onclick="copyToClipboard('name')" title="คัดลอกชื่อสินค้า">📋 ชื่อ</button>
+              <button class="btn-copy" type="button" onclick="copyToClipboard('barcode')" title="คัดลอก barcode">📋 บาร์โค้ด</button>
+              <button class="btn-copy search-btn" type="button" onclick="searchOnline()" title="เปิด Google ค้นหาสินค้านี้">🌐 ค้น Google</button>
             </div>
           </div>
           <div style="margin-top:10px;font-size:12px;color:var(--muted)">
@@ -592,7 +608,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
     </div>
 
     <div class="app-footer">
-      Rattana Product Photos · <span class="ver">v3.0</span> · 2026-05-07
+      Rattana Product Photos · <span class="ver">v3.2</span> · 2026-05-07
     </div>
   </div>
 </div>
@@ -675,12 +691,18 @@ let lastErasePos = null;
 // Remove BG toggle state
 let removeBgEnabled = true;
 
+// Render performance — list virtualization
+let productsLoaded = false;
+const INITIAL_DISPLAY_LIMIT = 300;   // เมื่อยังไม่ค้นหา จะแสดงแค่ N ตัวแรก
+const SEARCH_DISPLAY_LIMIT  = 500;   // เมื่อค้นหา จะแสดงผลลัพธ์สูงสุดเท่านี้
+
 // ═══════════════════════════════════════════════════════════════════
 // Helpers
 // ═══════════════════════════════════════════════════════════════════
 const $  = id => document.getElementById(id);
 const showSpinner = (m='กำลังโหลด...') => { $('spinnerMsg').textContent = m; $('spinner').classList.add('show'); };
 const hideSpinner = () => $('spinner').classList.remove('show');
+const setLoading = on => { const el = $('loadingBar'); if (el) el.style.width = on ? '85%' : '0%'; };
 function showToast(msg, type='info') {
   const t = document.createElement('div');
   t.className = `toast toast-${type}`;
@@ -825,12 +847,59 @@ async function initApp() {
   initDarkMode();
   renderConfig();
   checkSetup();
-  await loadProducts();
+  attachDropdownDelegation();
+
+  // Show loading state immediately so user knows something is happening
+  setLoading(true);
+  setProductsLoading(true);
+
+  // Load products in background (don't block UI)
+  loadProducts()
+    .then(() => {
+      productsLoaded = true;
+      setLoading(false);
+      setProductsLoading(false);
+      renderProducts();
+      if (products.length > 0) {
+        showToast(`โหลดสินค้าเสร็จ ${products.length.toLocaleString()} รายการ`, 'success');
+      }
+    })
+    .catch(e => {
+      setLoading(false);
+      console.error('loadProducts failed:', e);
+      $('ddProductLabel').textContent = '— โหลดสินค้าไม่สำเร็จ —';
+      $('ddProductList').innerHTML = `<li class="no-result">❌ ${escapeHtml(e.message || 'Error')}</li>`;
+      showToast('โหลดสินค้าไม่สำเร็จ: ' + e.message, 'error');
+    });
+
   if (CONFIG.prewarmAI) {
     setTimeout(() => {
       loadBgRemovalLib().catch(e => console.warn('Pre-warm AI failed:', e));
     }, 500);
   }
+}
+
+function setProductsLoading(on) {
+  if (on) {
+    $('productCount').textContent = '...';
+    $('ddProductLabel').textContent = '⏳ กำลังโหลดสินค้า...';
+    $('ddProductList').innerHTML = '<li class="no-result">⏳ กำลังโหลด...</li>';
+    $('unitSummary').innerHTML = '';
+  } else {
+    if (!selectedProduct) $('ddProductLabel').textContent = '— เลือกสินค้า —';
+  }
+}
+
+// One-time event delegation on dropdown list (instead of N listeners per <li>)
+function attachDropdownDelegation() {
+  const ul = $('ddProductList');
+  if (!ul) return;
+  ul.addEventListener('click', e => {
+    const li = e.target.closest('li[data-idx]');
+    if (!li) return;
+    const idx = parseInt(li.dataset.idx);
+    if (!isNaN(idx)) selectProduct(idx);
+  });
 }
 
 function initTabs() {
@@ -857,10 +926,23 @@ function initDarkMode() {
 window.refreshAll = async function() {
   const b = $('btnRefresh');
   b.disabled = true; b.style.transform = 'rotate(360deg)'; b.style.transition = 'transform .6s';
-  await loadProducts();
-  if ($('tab-history').classList.contains('active')) await loadHistory();
-  b.disabled = false; setTimeout(() => { b.style.transform = ''; b.style.transition = ''; }, 600);
-  showToast('รีเฟรชเรียบร้อย', 'success');
+  setLoading(true);
+  setProductsLoading(true);
+  productsLoaded = false;
+  try {
+    await loadProducts();
+    productsLoaded = true;
+    renderProducts();
+    if ($('tab-history').classList.contains('active')) await loadHistory();
+    showToast(`รีเฟรชเสร็จ ${products.length.toLocaleString()} รายการ`, 'success');
+  } catch (e) {
+    showToast('รีเฟรชไม่สำเร็จ: ' + e.message, 'error');
+  } finally {
+    setLoading(false);
+    setProductsLoading(false);
+    b.disabled = false;
+    setTimeout(() => { b.style.transform = ''; b.style.transition = ''; }, 600);
+  }
 };
 
 function checkSetup() {
@@ -952,34 +1034,38 @@ function countByUnit(rawData) {
 async function loadProducts() {
   if (CONFIG.productSheetId.startsWith('YOUR_')) {
     products = [];
-    renderProducts();
     return;
   }
-  try {
-    const rawData = await loadFromSheets(CONFIG.productSheetId, CONFIG.productTab);
-    // Flatten: each row × each unit-with-barcode = 1 entry
-    products = [];
-    for (const row of rawData) {
-      const name = String(row[CONFIG.nameCol]||'').trim();
-      if (!name) continue;
-      for (const unit of CONFIG.units) {
-        const barcode = String(row[unit.codeCol]||'').trim();
-        if (!barcode) continue;
-        const pack = String(row[unit.packCol]||'').trim();
-        products.push({
-          barcode,
-          name,
-          unitCode: unit.code,
-          unitLabel: unit.label,
-          unitPack: pack,
-        });
-      }
+  const rawData = await loadFromSheets(CONFIG.productSheetId, CONFIG.productTab);
+  // Flatten: each row × each unit-with-barcode = 1 entry
+  products = [];
+  for (const row of rawData) {
+    const name = String(row[CONFIG.nameCol]||'').trim();
+    if (!name) continue;
+    for (const unit of CONFIG.units) {
+      const barcode = String(row[unit.codeCol]||'').trim();
+      if (!barcode) continue;
+      const pack = String(row[unit.packCol]||'').trim();
+      products.push({
+        barcode,
+        name,
+        unitCode: unit.code,
+        unitLabel: unit.label,
+        unitPack: pack,
+      });
     }
-    renderProducts();
-  } catch (e) {
-    console.error(e);
-    showToast('โหลดสินค้าไม่สำเร็จ: ' + e.message, 'error');
   }
+}
+
+function buildItemHtml(p, i) {
+  const packLine = p.unitPack ? `<span class="pack-info">${escapeHtml(p.unitPack)}</span>` : '';
+  return `<li data-idx="${i}">
+    <div class="name-line">
+      <span class="pname">${escapeHtml(p.name)}</span>
+      <span class="unit-pill unit-${p.unitCode}">${p.unitCode}</span>
+    </div>
+    <span class="bc">${escapeHtml(p.barcode)} ${packLine ? '· ' + packLine : ''}</span>
+  </li>`;
 }
 
 function renderProducts() {
@@ -998,22 +1084,18 @@ function renderProducts() {
     ul.innerHTML = '<li class="no-result">ไม่มีข้อมูลสินค้า</li>';
     return;
   }
-  ul.innerHTML = products.map((p, i) => {
-    const packLine = p.unitPack ? `<span class="pack-info">${escapeHtml(p.unitPack)}</span>` : '';
-    return `<li data-idx="${i}">
-      <div class="name-line">
-        <span class="pname">${escapeHtml(p.name)}</span>
-        <span class="unit-pill unit-${p.unitCode}">${p.unitCode}</span>
-      </div>
-      <span class="bc">${escapeHtml(p.barcode)} ${packLine ? '· ' + packLine : ''}</span>
-    </li>`;
-  }).join('');
-  ul.querySelectorAll('li').forEach(li => {
-    li.addEventListener('click', () => {
-      const idx = parseInt(li.dataset.idx);
-      if (!isNaN(idx)) selectProduct(idx);
-    });
-  });
+
+  // Show only first N items initially — rest visible after search
+  const limit = Math.min(products.length, INITIAL_DISPLAY_LIMIT);
+  let html = '';
+  for (let i = 0; i < limit; i++) {
+    html += buildItemHtml(products[i], i);
+  }
+  if (products.length > limit) {
+    const more = products.length - limit;
+    html += `<li class="no-result">+ อีก ${more.toLocaleString()} รายการ — พิมพ์ค้นหาเพื่อดูทั้งหมด</li>`;
+  }
+  ul.innerHTML = html;
 }
 
 window.toggleProductDD = function() {
@@ -1022,7 +1104,8 @@ window.toggleProductDD = function() {
   p.style.display = isOpen ? 'none' : 'flex';
   if (!isOpen) {
     $('ddProductSearch').value = '';
-    filterProducts($('ddProductSearch'));
+    $('ddClearBtn').classList.remove('show');
+    if (productsLoaded) renderProducts();
     $('ddProductSearch').focus();
   }
 };
@@ -1031,34 +1114,50 @@ window.filterProducts = function(inp) {
   const q = inp.value.toLowerCase().trim();
   const clearBtn = $('ddClearBtn');
   if (clearBtn) clearBtn.classList.toggle('show', inp.value.length > 0);
-  const items = document.querySelectorAll('#ddProductList li');
-  let visible = 0;
-  items.forEach(li => {
-    if (li.classList.contains('no-result-msg')) { li.remove(); return; }
-    if (li.classList.contains('no-result')) return;
-    const idx = parseInt(li.dataset.idx);
-    if (isNaN(idx) || !products[idx]) return;
-    const p = products[idx];
-    const haystack = (p.barcode + ' ' + p.name + ' ' + p.unitCode + ' ' + (p.unitPack||'')).toLowerCase();
-    const match = !q || haystack.includes(q);
-    li.style.display = match ? '' : 'none';
-    if (match) visible++;
-  });
+
+  if (!productsLoaded) return;
+
   const ul = $('ddProductList');
-  const existing = ul.querySelector('.no-result-msg');
-  if (existing) existing.remove();
-  if (q && visible === 0) {
-    const li = document.createElement('li');
-    li.className = 'no-result no-result-msg';
-    li.textContent = `ไม่พบสินค้าที่ตรงกับ "${q}"`;
-    ul.appendChild(li);
+
+  // No query → reset to limited initial render
+  if (!q) {
+    renderProducts();
+    return;
   }
+
+  // Search through full list, but only render up to SEARCH_DISPLAY_LIMIT matches
+  const matches = [];
+  for (let i = 0; i < products.length; i++) {
+    const p = products[i];
+    const haystack = (p.barcode + ' ' + p.name + ' ' + p.unitCode + ' ' + (p.unitPack||'')).toLowerCase();
+    if (haystack.includes(q)) {
+      matches.push(i);
+      if (matches.length > SEARCH_DISPLAY_LIMIT) break; // stop early — we'll show "+more" hint
+    }
+  }
+
+  if (matches.length === 0) {
+    ul.innerHTML = `<li class="no-result no-result-msg">ไม่พบสินค้าที่ตรงกับ "${escapeHtml(q)}"</li>`;
+    return;
+  }
+
+  let html = '';
+  const showCount = Math.min(matches.length, SEARCH_DISPLAY_LIMIT);
+  for (let k = 0; k < showCount; k++) {
+    const i = matches[k];
+    html += buildItemHtml(products[i], i);
+  }
+  if (matches.length > SEARCH_DISPLAY_LIMIT) {
+    html += `<li class="no-result">+ มีผลลัพธ์มากกว่า ${SEARCH_DISPLAY_LIMIT} รายการ — พิมพ์ละเอียดขึ้น</li>`;
+  }
+  ul.innerHTML = html;
 };
 
 window.clearProductSearch = function() {
   const inp = $('ddProductSearch');
   inp.value = '';
-  filterProducts(inp);
+  $('ddClearBtn').classList.remove('show');
+  if (productsLoaded) renderProducts();
   inp.focus();
 };
 
@@ -1081,6 +1180,50 @@ document.addEventListener('click', e => {
     document.querySelectorAll('.dd-panel').forEach(x => x.style.display = 'none');
   }
 });
+
+// ═══════════════════════════════════════════════════════════════════
+// Copy to clipboard / Search online
+// ═══════════════════════════════════════════════════════════════════
+window.copyToClipboard = async function(type) {
+  if (!selectedProduct) {
+    showToast('ยังไม่ได้เลือกสินค้า', 'warning');
+    return;
+  }
+  let text = '', label = '';
+  if (type === 'name')         { text = selectedProduct.name;    label = 'ชื่อสินค้า'; }
+  else if (type === 'barcode') { text = selectedProduct.barcode; label = 'บาร์โค้ด'; }
+  else if (type === 'both')    { text = `${selectedProduct.barcode} ${selectedProduct.name}`; label = 'ชื่อ+บาร์โค้ด'; }
+
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      // Fallback for older browsers
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    showToast(`คัดลอก ${label} แล้ว ✓`, 'success');
+  } catch (e) {
+    console.error('Copy failed:', e);
+    showToast('คัดลอกไม่สำเร็จ: ' + e.message, 'error');
+  }
+};
+
+window.searchOnline = function() {
+  if (!selectedProduct) {
+    showToast('ยังไม่ได้เลือกสินค้า', 'warning');
+    return;
+  }
+  const q = encodeURIComponent(`${selectedProduct.barcode} ${selectedProduct.name}`);
+  const url = `https://www.google.com/search?q=${q}`;
+  window.open(url, '_blank', 'noopener,noreferrer');
+};
 
 // ═══════════════════════════════════════════════════════════════════
 // Photo capture
