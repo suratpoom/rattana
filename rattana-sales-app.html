@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Sales — v2.0 Sheet-Powered Edition</title>
+<title>Rattana Sales — v2.1 Sheet-Powered Edition</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -796,7 +796,7 @@ body.dark .text-gold { color: var(--gold-light); }
       <button onclick="loginDemo(3)" style="display:block;width:100%;background:rgba(201,168,76,.15);color:#fff;border:1px solid rgba(201,168,76,.35);padding:10px 12px;border-radius:8px;font-size:12px;font-weight:600;text-align:left;font-family:inherit;cursor:pointer">🛒 Role 3 — Sales W1 (PMW101)</button>
     </div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v2.0 · 2026-05-07</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v2.1 · 2026-05-07</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -807,7 +807,7 @@ body.dark .text-gold { color: var(--gold-light); }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v2.0</span>
+  <span class="demo-tag">v2.1</span>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
 </header>
 
@@ -877,7 +877,7 @@ body.dark .text-gold { color: var(--gold-light); }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v2.0<br>2026-05-07</div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v2.1<br>2026-05-07</div>
   </div>
 </aside>
 
@@ -1289,7 +1289,7 @@ body.dark .text-gold { color: var(--gold-light); }
 
 <script>
 // ═══════════════════════════════════════════════════════════
-// v2.0 — SHEET-POWERED EDITION · 2026-05-07
+// v2.1 — SHEET-POWERED EDITION · 2026-05-07
 // ═══════════════════════════════════════════════════════════
 
 const CONFIG = {
@@ -1365,10 +1365,37 @@ function parseCsv(text) {
 }
 
 async function fetchSheet(sheetId, sheetName) {
-  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+  // Use JSON endpoint (Rattana Mart pattern) — faster + handles dates/numbers natively
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Fetch ${sheetName}: ${res.status}`);
-  return parseCsv(await res.text());
+  const text = await res.text();
+  // Strip JSONP wrapper: google.visualization.Query.setResponse({...});
+  const json = JSON.parse(text.replace(/^[^(]+\(/, '').replace(/\);?\s*$/, ''));
+  if (!json.table || !json.table.cols) return [];
+  const cols = json.table.cols.map(c => c.label || c.id || '');
+  return (json.table.rows || []).map(row => {
+    const o = {};
+    cols.forEach((h, i) => {
+      if (!h) return;
+      const cell = row.c && row.c[i];
+      if (!cell || (cell.v === null && !cell.f)) { o[h] = ''; return; }
+      // Prefer formatted value (handles dates / numbers nicely)
+      if (cell.f !== undefined && cell.f !== null && cell.f !== '') { o[h] = String(cell.f).trim(); return; }
+      const v = cell.v;
+      // Handle Date(...) string format
+      if (typeof v === 'string' && /^Date\(/.test(v)) {
+        const m = v.match(/Date\((-?\d+),(\d+),(\d+)/);
+        if (m) {
+          const Y = +m[1], M = +m[2], D = +m[3];
+          o[h] = String(D).padStart(2,'0') + '/' + String(M+1).padStart(2,'0') + '/' + Y;
+          return;
+        }
+      }
+      o[h] = (v !== null && v !== undefined) ? String(v).trim() : '';
+    });
+    return o;
+  });
 }
 
 // Cache layer — uses IndexedDB for large keys (products, customers), localStorage for small keys
@@ -1610,15 +1637,15 @@ async function enterApp() {
   // Render UI immediately with mock/empty data so user sees something
   initAppUI();
 
-  // Then load Sheet data in background (best-effort)
-  showSpinner('กำลังโหลด...');
+  // Then load Sheet data (blocks until products ready)
+  showSpinner('กำลังโหลดข้อมูลร้านค้า...');
   try {
     await loadAllSheetData();
     console.log('[enterApp] Sheet data loaded — re-rendering UI');
     // Re-render whichever screen the user is on now (data may have changed)
     rerenderCurrentScreen();
   } catch (e) {
-    console.warn('Sheet load error (continuing with mock):', e);
+    console.warn('Sheet load error:', e);
   } finally {
     hideSpinner();
   }
@@ -1632,6 +1659,13 @@ function rerenderCurrentScreen() {
     if (id === 'screenHome' && typeof renderHomeDashboard === 'function') renderHomeDashboard();
     else if (id === 'screenRoute' && typeof renderShopList === 'function') renderShopList();
     else if (id === 'screenOrders' && typeof renderOrdersList === 'function') renderOrdersList();
+    else if (id === 'screenOrder' && typeof renderProductList === 'function') {
+      // Order screen — re-render product list with fresh Sheet products
+      renderProductList();
+    }
+    else if (id === 'screenShopDetail' && typeof renderShopDetail === 'function' && currentShopId) {
+      renderShopDetail(currentShopId);
+    }
     else if (id === 'screenProductInfo' && typeof renderPriceList === 'function') {
       // Update subtitle to reflect new SKU count
       const subEl = document.getElementById('productInfoSub');
@@ -1723,21 +1757,26 @@ async function loadAllSheetData() {
   ];
   await Promise.all(tasks);
 
-  // Product Detail (12K SKUs) — long cache, load in BACKGROUND without blocking UI
-  // (UI shows immediately with shops/customer data; products fill in when ready)
-  fetchWithCache('products', () => fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.productDetail), CONFIG.cacheTTLLong)
-    .then(d => {
-      SHEET_DATA.products = d;
-      console.log('[Rattana Sales] products loaded in background:', d.length);
-      // Re-render Price tab if user is on it
-      if (typeof rerenderCurrentScreen === 'function') rerenderCurrentScreen();
-    })
-    .catch(e => { console.warn('products:', e.message); SHEET_DATA.products = []; });
+  // Product Detail (12K SKUs) — load AFTER customer/orders so login is fast
+  // BUT block before Order/Shop screens render (otherwise shows mock products)
+  console.log('[Rattana Sales] Loading 12K products...');
+  if (typeof showSpinner === 'function') showSpinner('กำลังโหลด 12,304 SKU...');
+  try {
+    const d = await fetchWithCache('products', () => fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.productDetail), CONFIG.cacheTTLLong);
+    SHEET_DATA.products = d;
+    console.log('[Rattana Sales] products loaded:', d.length);
+  } catch (e) {
+    console.warn('products load failed:', e.message);
+    SHEET_DATA.products = [];
+  }
 
   SHEET_DATA.loaded = true;
 
   // Hydrate SHOPS from Sheet customers (filtered by visibility for current user)
   hydrateShopsFromSheet();
+
+  // Re-render any screen that's currently showing
+  if (typeof rerenderCurrentScreen === 'function') rerenderCurrentScreen();
 
   console.log('[Rattana Sales] Sheet data loaded:', {
     users: SHEET_DATA.users.length,
