@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Vehicle Repair v2.6</title>
+<title>Rattana Vehicle Repair v2.7</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
@@ -318,7 +318,7 @@ body.dark .vsum-stat.count .vs-value{color:#e8eaf0}
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
     <div class="login-logo">RATTANA<span> · </span>REPAIR</div>
-    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v2.6</div>
+    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v2.7</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -424,7 +424,7 @@ body.dark .vsum-stat.count .vs-value{color:#e8eaf0}
           </div>
 
           <div class="field">
-            <label>รูปความเสียหาย <span style="color:var(--muted);font-weight:400">(ถ้ามี — เช่น ยางบวม รอยบุบ น้ำมันรั่ว ฯลฯ สูงสุด 5 รูป)</span></label>
+            <label>รูปความเสียหาย <span class="req">*</span> <span style="color:var(--muted);font-weight:400">(เช่น ยางบวม รอยบุบ น้ำมันรั่ว ฯลฯ สูงสุด 5 รูป)</span></label>
             <div class="damage-thumbs" id="damageThumbs">
               <button type="button" class="damage-add-btn" id="damageAddBtn" onclick="document.getElementById('inDamage').click()">
                 <span class="add-icon">+</span>
@@ -1402,6 +1402,7 @@ async function submitRepair() {
   }
   if (!amount || amount <= 0) { showToast('กรุณากรอกยอดเงิน', 'warning'); return; }
   if (!billPhotoData) { showToast('กรุณาแนบรูปใบเสนอราคา', 'warning'); return; }
+  if (!damagePhotosData.length) { showToast('กรุณาแนบรูปความเสียหาย (อย่างน้อย 1 รูป)', 'warning'); return; }
   if (!GAS_URL || GAS_URL.includes('PASTE_YOUR')) {
     showToast('ยังไม่ได้ตั้งค่า GAS_URL กรุณาแจ้งผู้ดูแลระบบ', 'error'); return;
   }
@@ -2095,13 +2096,19 @@ function openDetail(id) {
     if (urls.length) {
       html += `<div style="margin-top:14px">
         <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:6px;letter-spacing:.4px">รูปความเสียหาย (${urls.length} รูป)</div>
-        <div class="damage-gallery">
-          ${urls.map(u => {
-            const id = (u.match(/\/d\/([a-zA-Z0-9_-]+)/) || [])[1];
-            const thumb = id ? `https://drive.google.com/thumbnail?id=${id}&sz=w400` : u;
-            return `<a href="${u}" target="_blank"><img src="${thumb}" loading="lazy" onerror="this.style.opacity=0.3"></a>`;
-          }).join('')}
-        </div>
+        ${urls.map((u, i) => {
+          const id = (u.match(/\/d\/([a-zA-Z0-9_-]+)/) || [])[1];
+          if (id) {
+            return `<div style="margin-bottom:8px;background:#f0f0f0;border-radius:8px;overflow:hidden;border:1px solid var(--border)">
+              <iframe src="https://drive.google.com/file/d/${id}/preview"
+                      style="width:100%;height:380px;border:0;display:block" loading="lazy" allowfullscreen></iframe>
+              <div style="text-align:center;padding:6px;background:var(--card-bg)">
+                <a href="${u}" target="_blank" style="font-size:11px;color:var(--info);text-decoration:none">🔗 รูปที่ ${i+1} — เปิดเต็มหน้าจอ</a>
+              </div>
+            </div>`;
+          }
+          return `<div><a href="${u}" target="_blank">เปิดรูปที่ ${i+1}</a></div>`;
+        }).join('')}
       </div>`;
     }
   }
