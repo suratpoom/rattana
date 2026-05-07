@@ -1,14 +1,15 @@
 <!DOCTYPE html>
+
 <html lang="th">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Sales — v2.1 Sheet-Powered Edition</title>
+<title>Rattana Sales — v2.4 Fix Visibility Edition</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
 :root {
   --navy: #0d1b3e;
@@ -42,50 +43,50 @@ body.dark {
 
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  font-family: 'Sarabun', sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100dvh;
-  overflow-x: hidden;
-  -webkit-tap-highlight-color: transparent;
-  transition: background .25s, color .25s;
+font-family: ‘Sarabun’, sans-serif;
+font-size: 14px;
+line-height: 1.5;
+background: var(–bg);
+color: var(–text);
+min-height: 100dvh;
+overflow-x: hidden;
+-webkit-tap-highlight-color: transparent;
+transition: background .25s, color .25s;
 }
 .app-shell {
-  min-height: 100dvh;
-  padding-bottom: 76px;
-  position: relative;
+min-height: 100dvh;
+padding-bottom: 76px;
+position: relative;
 }
 button { font-family: inherit; cursor: pointer; border: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 input, select, textarea { font-family: inherit; font-size: 16px; }
 
 /* ─── HEADER ─── */
 header {
-  background: var(--navy);
-  color: #fff;
-  padding: 12px 16px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border-bottom: 3px solid var(--gold);
-  padding-top: max(12px, env(safe-area-inset-top));
-  box-shadow: var(--shadow-md);
+background: var(–navy);
+color: #fff;
+padding: 12px 16px;
+position: sticky;
+top: 0;
+z-index: 100;
+display: flex;
+align-items: center;
+gap: 12px;
+border-bottom: 3px solid var(–gold);
+padding-top: max(12px, env(safe-area-inset-top));
+box-shadow: var(–shadow-md);
 }
 .logo-text { font-weight: 800; letter-spacing: 1px; font-size: 16px; flex: 1; }
-.logo-text span { color: var(--gold); }
-.demo-tag { background: var(--gold); color: var(--navy); font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px; letter-spacing: .5px; }
+.logo-text span { color: var(–gold); }
+.demo-tag { background: var(–gold); color: var(–navy); font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px; letter-spacing: .5px; }
 .icon-btn { background: rgba(255,255,255,.08); color: #fff; border: 1px solid rgba(255,255,255,.15); width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
 .icon-btn:active { background: rgba(255,255,255,.2); }
 
 /* ─── PAGE TITLE BAR ─── */
-.page-bar { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--card-bg); border-bottom: 1px solid var(--border); position: sticky; top: 60px; z-index: 50; }
-.back-btn { width: 36px; height: 36px; border-radius: 8px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--text); }
+.page-bar { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(–card-bg); border-bottom: 1px solid var(–border); position: sticky; top: 60px; z-index: 50; }
+.back-btn { width: 36px; height: 36px; border-radius: 8px; background: var(–bg); display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(–text); }
 .page-title { font-size: 16px; font-weight: 700; flex: 1; }
-.page-sub { font-size: 12px; color: var(--muted); }
+.page-sub { font-size: 12px; color: var(–muted); }
 
 /* ─── SCREENS ─── */
 .screen { display: none; padding: 16px; }
@@ -93,20 +94,20 @@ header {
 @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
 /* ─── CARDS ─── */
-.card { background: var(--card-bg); border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); padding: 16px; margin-bottom: 12px; }
-.card-gold { border-top: 3px solid var(--gold); }
-.card-danger { border-top: 3px solid var(--danger); }
-.card-success { border-top: 3px solid var(--success); }
-.card-warning { border-top: 3px solid var(--warning); }
+.card { background: var(–card-bg); border-radius: 14px; border: 1px solid var(–border); box-shadow: var(–shadow-sm); padding: 16px; margin-bottom: 12px; }
+.card-gold { border-top: 3px solid var(–gold); }
+.card-danger { border-top: 3px solid var(–danger); }
+.card-success { border-top: 3px solid var(–success); }
+.card-warning { border-top: 3px solid var(–warning); }
 
 /* ─── BUTTONS ─── */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; min-height: 44px; transition: opacity .15s, transform .1s; }
 .btn:active { transform: scale(.97); }
-.btn-primary { background: var(--navy); color: #fff; }
-.btn-gold { background: var(--gold); color: var(--navy); font-weight: 700; }
-.btn-success { background: var(--success); color: #fff; }
-.btn-danger { background: var(--danger); color: #fff; }
-.btn-outline { background: transparent; color: var(--text); border: 1.5px solid var(--border); }
+.btn-primary { background: var(–navy); color: #fff; }
+.btn-gold { background: var(–gold); color: var(–navy); font-weight: 700; }
+.btn-success { background: var(–success); color: #fff; }
+.btn-danger { background: var(–danger); color: #fff; }
+.btn-outline { background: transparent; color: var(–text); border: 1.5px solid var(–border); }
 .btn-block { width: 100%; }
 .btn-lg { padding: 14px 20px; font-size: 15px; min-height: 52px; }
 .btn-sm { padding: 6px 12px; font-size: 12px; min-height: 32px; }
@@ -118,173 +119,173 @@ header {
 .badge-warn { background: #fef3d7; color: #a87800; }
 .badge-danger { background: #ffd5d0; color: #c0392b; }
 .badge-info { background: #e3f0fd; color: #1a6fb8; }
-.badge-gold { background: rgba(201,168,76,.18); color: var(--navy); border: 1px solid rgba(201,168,76,.4); }
+.badge-gold { background: rgba(201,168,76,.18); color: var(–navy); border: 1px solid rgba(201,168,76,.4); }
 body.dark .badge-ok { background: #1a3a25; color: #7be0a3; }
 body.dark .badge-warn { background: #3a2e15; color: #e8c86a; }
 body.dark .badge-danger { background: #3a1a17; color: #ff8a7e; }
 body.dark .badge-info { background: #15304a; color: #7fc1f3; }
-body.dark .badge-gold { background: #2a2415; color: var(--gold-light); }
+body.dark .badge-gold { background: #2a2415; color: var(–gold-light); }
 
 /* ─── HOME / DASHBOARD ─── */
-.greeting { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%); color: #fff; padding: 20px 18px; border-radius: 16px; margin-bottom: 16px; position: relative; overflow: hidden; }
-.greeting::after { content: ''; position: absolute; right: -30px; bottom: -30px; width: 130px; height: 130px; border-radius: 50%; background: radial-gradient(circle, rgba(201,168,76,.25), transparent 70%); }
+.greeting { background: linear-gradient(135deg, var(–navy) 0%, var(–navy-mid) 100%); color: #fff; padding: 20px 18px; border-radius: 16px; margin-bottom: 16px; position: relative; overflow: hidden; }
+.greeting::after { content: ‘’; position: absolute; right: -30px; bottom: -30px; width: 130px; height: 130px; border-radius: 50%; background: radial-gradient(circle, rgba(201,168,76,.25), transparent 70%); }
 .greeting-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
 .greeting-sub { font-size: 13px; opacity: .85; display: flex; align-items: center; gap: 8px; }
-.warehouse-pill { display: inline-flex; align-items: center; gap: 4px; background: rgba(201,168,76,.2); border: 1px solid rgba(201,168,76,.4); padding: 3px 10px; border-radius: 10px; font-size: 11px; color: var(--gold-light); font-weight: 600; }
+.warehouse-pill { display: inline-flex; align-items: center; gap: 4px; background: rgba(201,168,76,.2); border: 1px solid rgba(201,168,76,.4); padding: 3px 10px; border-radius: 10px; font-size: 11px; color: var(–gold-light); font-weight: 600; }
 .greeting-date { font-size: 11px; opacity: .7; margin-top: 8px; }
 
 /* KPI Big card */
-.kpi-hero { background: var(--card-bg); border-radius: 16px; padding: 18px; margin-bottom: 12px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); position: relative; overflow: hidden; border-left: 4px solid var(--gold); }
-.kpi-hero-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
-.kpi-hero-value { font-size: 28px; font-weight: 800; color: var(--text); margin-bottom: 4px; letter-spacing: -.5px; }
-.kpi-hero-sub { font-size: 12px; color: var(--muted); }
-.kpi-hero-target { font-weight: 600; color: var(--navy); }
-body.dark .kpi-hero-target { color: var(--gold-light); }
+.kpi-hero { background: var(–card-bg); border-radius: 16px; padding: 18px; margin-bottom: 12px; border: 1px solid var(–border); box-shadow: var(–shadow-sm); position: relative; overflow: hidden; border-left: 4px solid var(–gold); }
+.kpi-hero-label { font-size: 12px; color: var(–muted); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+.kpi-hero-value { font-size: 28px; font-weight: 800; color: var(–text); margin-bottom: 4px; letter-spacing: -.5px; }
+.kpi-hero-sub { font-size: 12px; color: var(–muted); }
+.kpi-hero-target { font-weight: 600; color: var(–navy); }
+body.dark .kpi-hero-target { color: var(–gold-light); }
 
-.progress-bar { height: 8px; background: var(--border); border-radius: 10px; overflow: hidden; margin: 10px 0 4px; }
-.progress-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-light)); border-radius: 10px; transition: width .6s ease; }
-.progress-fill.danger { background: linear-gradient(90deg, var(--danger), #ff6b6b); }
-.progress-fill.success { background: linear-gradient(90deg, var(--success), #5dd99a); }
-.progress-fill.warning { background: linear-gradient(90deg, var(--warning), #ffc55a); }
+.progress-bar { height: 8px; background: var(–border); border-radius: 10px; overflow: hidden; margin: 10px 0 4px; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(–gold), var(–gold-light)); border-radius: 10px; transition: width .6s ease; }
+.progress-fill.danger { background: linear-gradient(90deg, var(–danger), #ff6b6b); }
+.progress-fill.success { background: linear-gradient(90deg, var(–success), #5dd99a); }
+.progress-fill.warning { background: linear-gradient(90deg, var(–warning), #ffc55a); }
 
 /* KPI grid */
 .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
-.kpi-mini { background: var(--card-bg); border-radius: 12px; padding: 12px 14px; border: 1px solid var(--border); }
-.kpi-mini-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
-.kpi-mini-value { font-size: 20px; font-weight: 700; color: var(--text); }
-.kpi-mini-unit { font-size: 12px; color: var(--muted); font-weight: 400; }
-.kpi-mini.accent-gold { border-left: 3px solid var(--gold); }
-.kpi-mini.accent-success { border-left: 3px solid var(--success); }
-.kpi-mini.accent-info { border-left: 3px solid var(--info); }
-.kpi-mini.accent-warn { border-left: 3px solid var(--warning); }
+.kpi-mini { background: var(–card-bg); border-radius: 12px; padding: 12px 14px; border: 1px solid var(–border); }
+.kpi-mini-label { font-size: 11px; color: var(–muted); margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
+.kpi-mini-value { font-size: 20px; font-weight: 700; color: var(–text); }
+.kpi-mini-unit { font-size: 12px; color: var(–muted); font-weight: 400; }
+.kpi-mini.accent-gold { border-left: 3px solid var(–gold); }
+.kpi-mini.accent-success { border-left: 3px solid var(–success); }
+.kpi-mini.accent-info { border-left: 3px solid var(–info); }
+.kpi-mini.accent-warn { border-left: 3px solid var(–warning); }
 
 /* Section title */
 .sec-title { font-size: 14px; font-weight: 700; margin: 16px 0 10px; display: flex; align-items: center; gap: 6px; }
 .sec-title-icon { font-size: 16px; }
-.sec-title-link { margin-left: auto; font-size: 12px; color: var(--info); font-weight: 500; cursor: pointer; }
+.sec-title-link { margin-left: auto; font-size: 12px; color: var(–info); font-weight: 500; cursor: pointer; }
 
 /* ─── ROUTE TABS ─── */
-.route-tabs { display: flex; gap: 6px; padding: 4px; background: var(--card-bg); border-radius: 12px; margin-bottom: 14px; border: 1px solid var(--border); }
-.route-tab { flex: 1; padding: 10px; border-radius: 8px; background: transparent; color: var(--muted); font-size: 13px; font-weight: 600; transition: all .15s; }
-.route-tab.active { background: var(--navy); color: var(--gold); }
+.route-tabs { display: flex; gap: 6px; padding: 4px; background: var(–card-bg); border-radius: 12px; margin-bottom: 14px; border: 1px solid var(–border); }
+.route-tab { flex: 1; padding: 10px; border-radius: 8px; background: transparent; color: var(–muted); font-size: 13px; font-weight: 600; transition: all .15s; }
+.route-tab.active { background: var(–navy); color: var(–gold); }
 .route-tab .count { font-size: 11px; opacity: .8; margin-left: 4px; }
 
 /* ─── VIEW TOGGLE (List/Map) ─── */
-.view-toggle { display: flex; gap: 6px; padding: 4px; background: var(--card-bg); border-radius: 12px; margin-bottom: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
-.view-toggle-btn { flex: 1; padding: 10px; border-radius: 8px; background: transparent; color: var(--muted); font-size: 13px; font-weight: 600; transition: all .15s; }
-.view-toggle-btn.active { background: var(--gold); color: var(--navy); font-weight: 700; box-shadow: var(--shadow-sm); }
+.view-toggle { display: flex; gap: 6px; padding: 4px; background: var(–card-bg); border-radius: 12px; margin-bottom: 14px; border: 1px solid var(–border); box-shadow: var(–shadow-sm); }
+.view-toggle-btn { flex: 1; padding: 10px; border-radius: 8px; background: transparent; color: var(–muted); font-size: 13px; font-weight: 600; transition: all .15s; }
+.view-toggle-btn.active { background: var(–gold); color: var(–navy); font-weight: 700; box-shadow: var(–shadow-sm); }
 
 /* ─── MAP LEGEND ─── */
-.map-legend { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; padding: 10px; margin-top: 8px; font-size: 11px; color: var(--muted); }
+.map-legend { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; padding: 10px; margin-top: 8px; font-size: 11px; color: var(–muted); }
 .map-legend-item { display: inline-flex; align-items: center; gap: 4px; }
 .map-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-.leaflet-popup-content { font-family: 'Sarabun', sans-serif; font-size: 13px; line-height: 1.5; margin: 8px 12px !important; }
+.leaflet-popup-content { font-family: ‘Sarabun’, sans-serif; font-size: 13px; line-height: 1.5; margin: 8px 12px !important; }
 .leaflet-popup-content b { font-size: 14px; }
 .leaflet-popup-content small { color: #666; font-size: 11px; }
 
 /* Shop list item */
-.shop-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: transform .12s, box-shadow .15s; }
+.shop-item { background: var(–card-bg); border: 1px solid var(–border); border-radius: 12px; padding: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: transform .12s, box-shadow .15s; }
 .shop-item:active { transform: scale(.99); }
-.shop-item.visited { border-left: 4px solid var(--success); }
-.shop-item.refused { border-left: 4px solid var(--danger); opacity: .75; }
-.shop-item.pending { border-left: 4px solid var(--warning); }
-.shop-icon { width: 44px; height: 44px; border-radius: 10px; background: linear-gradient(135deg, var(--gold), var(--gold-light)); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+.shop-item.visited { border-left: 4px solid var(–success); }
+.shop-item.refused { border-left: 4px solid var(–danger); opacity: .75; }
+.shop-item.pending { border-left: 4px solid var(–warning); }
+.shop-icon { width: 44px; height: 44px; border-radius: 10px; background: linear-gradient(135deg, var(–gold), var(–gold-light)); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
 .shop-info { flex: 1; min-width: 0; }
 .shop-name { font-size: 14px; font-weight: 700; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.shop-meta { font-size: 11px; color: var(--muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.shop-amount { font-size: 14px; font-weight: 700; color: var(--success); text-align: right; flex-shrink: 0; }
-.shop-amount.empty { color: var(--muted); font-size: 11px; font-weight: 500; }
+.shop-meta { font-size: 11px; color: var(–muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.shop-amount { font-size: 14px; font-weight: 700; color: var(–success); text-align: right; flex-shrink: 0; }
+.shop-amount.empty { color: var(–muted); font-size: 11px; font-weight: 500; }
 
 /* Add off-route button */
-.add-off-route { width: 100%; padding: 14px; background: transparent; border: 2px dashed var(--gold); border-radius: 12px; color: var(--navy); font-size: 14px; font-weight: 600; margin-top: 8px; }
-body.dark .add-off-route { color: var(--gold-light); }
+.add-off-route { width: 100%; padding: 14px; background: transparent; border: 2px dashed var(–gold); border-radius: 12px; color: var(–navy); font-size: 14px; font-weight: 600; margin-top: 8px; }
+body.dark .add-off-route { color: var(–gold-light); }
 
 /* ─── SHOP DETAIL ─── */
-.shop-hero { background: linear-gradient(135deg, var(--navy), var(--navy-mid)); color: #fff; padding: 18px; border-radius: 16px; margin-bottom: 14px; position: relative; }
+.shop-hero { background: linear-gradient(135deg, var(–navy), var(–navy-mid)); color: #fff; padding: 18px; border-radius: 16px; margin-bottom: 14px; position: relative; }
 .shop-hero-name { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
 .shop-hero-addr { font-size: 13px; opacity: .85; margin-bottom: 8px; }
 .shop-hero-tags { display: flex; gap: 6px; flex-wrap: wrap; }
 .shop-hero-tag { background: rgba(255,255,255,.15); padding: 3px 10px; border-radius: 10px; font-size: 11px; }
-.shop-hero-tag.gold { background: rgba(201,168,76,.25); color: var(--gold-light); border: 1px solid rgba(201,168,76,.4); }
+.shop-hero-tag.gold { background: rgba(201,168,76,.25); color: var(–gold-light); border: 1px solid rgba(201,168,76,.4); }
 
 /* Shop photo card (hero with image) */
 .shop-photo-card {
-  position: relative; width: 100%; height: 180px; border-radius: 16px; overflow: hidden;
-  margin-bottom: 12px; background: linear-gradient(135deg, var(--navy), var(--navy-mid));
-  box-shadow: var(--shadow-sm);
+position: relative; width: 100%; height: 180px; border-radius: 16px; overflow: hidden;
+margin-bottom: 12px; background: linear-gradient(135deg, var(–navy), var(–navy-mid));
+box-shadow: var(–shadow-sm);
 }
 .shop-photo {
-  width: 100%; height: 100%; object-fit: cover; display: block;
+width: 100%; height: 100%; object-fit: cover; display: block;
 }
 .shop-photo-fallback {
-  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  font-size: 80px; opacity: .3; background: linear-gradient(135deg, var(--navy), var(--navy-mid)); color: var(--gold-light);
+position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+font-size: 80px; opacity: .3; background: linear-gradient(135deg, var(–navy), var(–navy-mid)); color: var(–gold-light);
 }
 .shop-photo-overlay {
-  position: absolute; left: 0; right: 0; bottom: 0; padding: 16px;
-  background: linear-gradient(to top, rgba(13,27,62,0.95), rgba(13,27,62,0.6) 60%, transparent);
-  color: #fff;
+position: absolute; left: 0; right: 0; bottom: 0; padding: 16px;
+background: linear-gradient(to top, rgba(13,27,62,0.95), rgba(13,27,62,0.6) 60%, transparent);
+color: #fff;
 }
 .shop-photo-name { font-size: 20px; font-weight: 800; margin-bottom: 2px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
 .shop-photo-addr { font-size: 12px; opacity: .9; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
 .shop-tags-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
-body.dark .shop-tags-row .shop-hero-tag { background: var(--row-alt); color: var(--text); }
-body.dark .shop-tags-row .shop-hero-tag.gold { background: rgba(201,168,76,.18); color: var(--gold-light); border-color: rgba(201,168,76,.4); }
+body.dark .shop-tags-row .shop-hero-tag { background: var(–row-alt); color: var(–text); }
+body.dark .shop-tags-row .shop-hero-tag.gold { background: rgba(201,168,76,.18); color: var(–gold-light); border-color: rgba(201,168,76,.4); }
 
-/* Today's orders for this shop (in detail page) */
+/* Today’s orders for this shop (in detail page) */
 .today-orders-card {
-  background: linear-gradient(135deg, rgba(46,204,113,.06), rgba(46,204,113,.02));
-  border: 1px solid rgba(46,204,113,.3); border-radius: 12px; padding: 14px;
-  margin-top: 12px; margin-bottom: 4px;
+background: linear-gradient(135deg, rgba(46,204,113,.06), rgba(46,204,113,.02));
+border: 1px solid rgba(46,204,113,.3); border-radius: 12px; padding: 14px;
+margin-top: 12px; margin-bottom: 4px;
 }
 .today-order-row {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 8px 10px; background: var(--card-bg); border-radius: 8px; margin-bottom: 6px;
-  border: 1px solid var(--border);
+display: flex; justify-content: space-between; align-items: center;
+padding: 8px 10px; background: var(–card-bg); border-radius: 8px; margin-bottom: 6px;
+border: 1px solid var(–border);
 }
 .today-order-row:last-child { margin-bottom: 0; }
 
 /* Push banner (top of order screen) */
 .push-banner {
-  background: linear-gradient(135deg, rgba(201,168,76,.08), rgba(201,168,76,.02));
-  border: 1.5px solid rgba(201,168,76,.4); border-radius: 14px; padding: 14px;
-  margin-bottom: 14px;
+background: linear-gradient(135deg, rgba(201,168,76,.08), rgba(201,168,76,.02));
+border: 1.5px solid rgba(201,168,76,.4); border-radius: 14px; padding: 14px;
+margin-bottom: 14px;
 }
 .push-banner-head { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
-.push-banner-sub { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+.push-banner-sub { font-size: 11px; color: var(–muted); margin-bottom: 10px; }
 .push-products { display: flex; flex-direction: column; gap: 8px; }
 .push-product-chip {
-  background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px;
-  padding: 10px 12px; display: flex; align-items: center; gap: 10px; cursor: pointer;
-  transition: transform .12s;
+background: var(–card-bg); border: 1px solid var(–border); border-radius: 10px;
+padding: 10px 12px; display: flex; align-items: center; gap: 10px; cursor: pointer;
+transition: transform .12s;
 }
 .push-product-chip:active { transform: scale(.99); }
-.push-product-chip.in-cart { border: 2px solid var(--gold); background: rgba(201,168,76,.08); }
+.push-product-chip.in-cart { border: 2px solid var(–gold); background: rgba(201,168,76,.08); }
 .push-product-emoji { font-size: 24px; flex-shrink: 0; }
 .push-product-info { flex: 1; min-width: 0; }
 .push-product-name { font-size: 13px; font-weight: 700; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .push-product-meta { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
-.stock-pill { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 6px; background: var(--success); color: #fff; }
-.stock-pill.low { background: var(--warning); color: var(--navy); }
-.stock-pill.out { background: var(--danger); color: #fff; }
+.stock-pill { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 6px; background: var(–success); color: #fff; }
+.stock-pill.low { background: var(–warning); color: var(–navy); }
+.stock-pill.out { background: var(–danger); color: #fff; }
 .push-product-add {
-  width: 32px; height: 32px; border-radius: 8px; background: var(--gold); color: var(--navy);
-  font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
+width: 32px; height: 32px; border-radius: 8px; background: var(–gold); color: var(–navy);
+font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: center;
+flex-shrink: 0;
 }
 
 /* GPS Check-in */
-.checkin-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; }
-.checkin-icon { width: 44px; height: 44px; border-radius: 50%; background: var(--info); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
-.checkin-icon.checked { background: var(--success); }
+.checkin-card { background: var(–card-bg); border: 1px solid var(–border); border-radius: 12px; padding: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; }
+.checkin-icon { width: 44px; height: 44px; border-radius: 50%; background: var(–info); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.checkin-icon.checked { background: var(–success); }
 .checkin-info { flex: 1; }
 .checkin-status { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
-.checkin-distance { font-size: 11px; color: var(--muted); }
+.checkin-distance { font-size: 11px; color: var(–muted); }
 
 /* Target box */
 .target-box { background: linear-gradient(135deg, rgba(201,168,76,.08), rgba(201,168,76,.02)); border: 1px solid rgba(201,168,76,.3); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
 .target-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
-.target-label { font-size: 12px; color: var(--muted); font-weight: 600; }
+.target-label { font-size: 12px; color: var(–muted); font-weight: 600; }
 .target-value { font-size: 14px; font-weight: 700; }
 
 /* Debt warning */
@@ -292,16 +293,16 @@ body.dark .shop-tags-row .shop-hero-tag.gold { background: rgba(201,168,76,.18);
 body.dark .debt-warn { background: #2a1816; border-color: #5a2a26; }
 .debt-icon { font-size: 22px; }
 .debt-text { flex: 1; font-size: 13px; }
-.debt-amount { font-size: 16px; font-weight: 800; color: var(--danger); }
+.debt-amount { font-size: 16px; font-weight: 800; color: var(–danger); }
 
 /* Push list */
-.push-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
-.push-item:active { background: var(--row-alt); }
+.push-item { background: var(–card-bg); border: 1px solid var(–border); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.push-item:active { background: var(–row-alt); }
 .push-emoji { font-size: 24px; }
 .push-info { flex: 1; }
 .push-name { font-size: 13px; font-weight: 600; }
-.push-tag { font-size: 11px; color: var(--muted); margin-top: 2px; }
-.push-add { width: 32px; height: 32px; border-radius: 8px; background: var(--gold); color: var(--navy); font-size: 18px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.push-tag { font-size: 11px; color: var(–muted); margin-top: 2px; }
+.push-add { width: 32px; height: 32px; border-radius: 8px; background: var(–gold); color: var(–navy); font-size: 18px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
 /* Action grid */
 .action-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 14px; }
@@ -309,147 +310,147 @@ body.dark .debt-warn { background: #2a1816; border-color: #5a2a26; }
 .action-btn .ico { font-size: 22px; }
 
 /* ─── ORDER SCREEN ─── */
-.search-bar { width: 100%; padding: 12px 16px; padding-left: 40px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--card-bg); color: var(--text); font-size: 15px; outline: none; }
+.search-bar { width: 100%; padding: 12px 16px; padding-left: 40px; border-radius: 12px; border: 1.5px solid var(–border); background: var(–card-bg); color: var(–text); font-size: 15px; outline: none; }
 .search-wrap { position: relative; margin-bottom: 12px; }
-.search-wrap::before { content: '🔍'; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; }
+.search-wrap::before { content: ‘🔍’; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; }
 
-.product-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; gap: 12px; align-items: flex-start; }
-.product-emoji { width: 48px; height: 48px; border-radius: 10px; background: var(--row-alt); display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
+.product-card { background: var(–card-bg); border: 1px solid var(–border); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; gap: 12px; align-items: flex-start; }
+.product-emoji { width: 48px; height: 48px; border-radius: 10px; background: var(–row-alt); display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
 .product-info { flex: 1; min-width: 0; }
 .product-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
-.product-cat { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+.product-cat { font-size: 11px; color: var(–muted); margin-bottom: 6px; }
 .product-stock-row { display: flex; align-items: center; gap: 6px; font-size: 11px; flex-wrap: wrap; margin-bottom: 4px; }
-.stock-own { background: var(--success); color: #fff; padding: 2px 8px; border-radius: 6px; font-weight: 700; }
-.stock-own.low { background: var(--warning); color: var(--navy); }
-.stock-own.out { background: var(--danger); }
-.stock-other { color: var(--muted); font-size: 10px; }
-.product-price { font-size: 13px; font-weight: 700; color: var(--gold); }
-body.dark .product-price { color: var(--gold-light); }
-.product-price-sub { font-size: 10px; color: var(--muted); font-weight: 400; }
-.product-add { width: 38px; height: 38px; border-radius: 10px; background: var(--gold); color: var(--navy); font-size: 20px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.product-card.in-cart { border: 2px solid var(--gold); background: rgba(201,168,76,.05); }
+.stock-own { background: var(–success); color: #fff; padding: 2px 8px; border-radius: 6px; font-weight: 700; }
+.stock-own.low { background: var(–warning); color: var(–navy); }
+.stock-own.out { background: var(–danger); }
+.stock-other { color: var(–muted); font-size: 10px; }
+.product-price { font-size: 13px; font-weight: 700; color: var(–gold); }
+body.dark .product-price { color: var(–gold-light); }
+.product-price-sub { font-size: 10px; color: var(–muted); font-weight: 400; }
+.product-add { width: 38px; height: 38px; border-radius: 10px; background: var(–gold); color: var(–navy); font-size: 20px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.product-card.in-cart { border: 2px solid var(–gold); background: rgba(201,168,76,.05); }
 
 /* Cart bar */
-.cart-bar { position: fixed; bottom: 76px; left: 12px; right: 12px; background: var(--navy); color: #fff; border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 -4px 16px rgba(0,0,0,.15); z-index: 80; border: 1px solid var(--gold); }
+.cart-bar { position: fixed; bottom: 76px; left: 12px; right: 12px; background: var(–navy); color: #fff; border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 -4px 16px rgba(0,0,0,.15); z-index: 80; border: 1px solid var(–gold); }
 .cart-bar.hide { display: none; }
-.cart-count { background: var(--gold); color: var(--navy); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; flex-shrink: 0; }
+.cart-count { background: var(–gold); color: var(–navy); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; flex-shrink: 0; }
 .cart-info { flex: 1; }
 .cart-info-label { font-size: 11px; opacity: .8; }
-.cart-info-value { font-size: 16px; font-weight: 800; color: var(--gold); }
-.cart-go { background: var(--gold); color: var(--navy); padding: 8px 14px; border-radius: 10px; font-weight: 700; font-size: 13px; }
+.cart-info-value { font-size: 16px; font-weight: 800; color: var(–gold); }
+.cart-go { background: var(–gold); color: var(–navy); padding: 8px 14px; border-radius: 10px; font-weight: 700; font-size: 13px; }
 
 /* ─── PRODUCT MODAL ─── */
 .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; display: none; align-items: flex-end; overflow: hidden; }
 .modal-backdrop.active { display: flex; }
-.modal { background: var(--card-bg); width: 100%; max-width: 520px; margin: 0 auto; border-radius: 20px 20px 0 0; padding: 20px; max-height: 92dvh; overflow-y: auto; overscroll-behavior: contain; animation: slideUp .3s ease; box-shadow: 0 -200px 0 0 var(--card-bg); }
+.modal { background: var(–card-bg); width: 100%; max-width: 520px; margin: 0 auto; border-radius: 20px 20px 0 0; padding: 20px; max-height: 92dvh; overflow-y: auto; overscroll-behavior: contain; animation: slideUp .3s ease; box-shadow: 0 -200px 0 0 var(–card-bg); }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-.modal-handle { width: 42px; height: 4px; background: var(--border); border-radius: 2px; margin: -10px auto 14px; }
+.modal-handle { width: 42px; height: 4px; background: var(–border); border-radius: 2px; margin: -10px auto 14px; }
 .modal-title { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
-.modal-sub { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+.modal-sub { font-size: 12px; color: var(–muted); margin-bottom: 14px; }
 .modal-section { margin-bottom: 14px; }
-.modal-label { font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 6px; display: block; }
+.modal-label { font-size: 12px; color: var(–muted); font-weight: 600; margin-bottom: 6px; display: block; }
 
 /* Unit selector */
-.unit-tabs { display: flex; gap: 6px; background: var(--row-alt); padding: 4px; border-radius: 10px; }
-.unit-tab { flex: 1; padding: 10px 6px; border-radius: 8px; background: transparent; color: var(--muted); font-size: 13px; font-weight: 600; }
-.unit-tab.active { background: var(--gold); color: var(--navy); font-weight: 700; box-shadow: var(--shadow-sm); }
+.unit-tabs { display: flex; gap: 6px; background: var(–row-alt); padding: 4px; border-radius: 10px; }
+.unit-tab { flex: 1; padding: 10px 6px; border-radius: 8px; background: transparent; color: var(–muted); font-size: 13px; font-weight: 600; }
+.unit-tab.active { background: var(–gold); color: var(–navy); font-weight: 700; box-shadow: var(–shadow-sm); }
 .unit-tab .unit-stock { display: block; font-size: 10px; opacity: .85; margin-top: 1px; font-weight: 500; }
 
 /* Qty stepper */
 .qty-row { display: flex; align-items: center; gap: 12px; }
-.qty-btn { width: 44px; height: 44px; border-radius: 10px; background: var(--bg); border: 1.5px solid var(--border); color: var(--text); font-size: 22px; font-weight: 700; }
-.qty-btn:active { background: var(--gold); color: var(--navy); }
-.qty-input { flex: 1; text-align: center; font-size: 22px; font-weight: 700; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--card-bg); color: var(--text); -moz-appearance: textfield; }
+.qty-btn { width: 44px; height: 44px; border-radius: 10px; background: var(–bg); border: 1.5px solid var(–border); color: var(–text); font-size: 22px; font-weight: 700; }
+.qty-btn:active { background: var(–gold); color: var(–navy); }
+.qty-input { flex: 1; text-align: center; font-size: 22px; font-weight: 700; padding: 10px; border-radius: 10px; border: 1.5px solid var(–border); background: var(–card-bg); color: var(–text); -moz-appearance: textfield; }
 .qty-input::-webkit-outer-spin-button, .qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.qty-input::placeholder { color: var(--muted); opacity: .55; font-weight: 600; }
+.qty-input::placeholder { color: var(–muted); opacity: .55; font-weight: 600; }
 
 /* Price input */
 .price-input-wrap { position: relative; }
-.price-prefix { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 700; color: var(--muted); font-size: 16px; }
-.price-input { width: 100%; padding: 12px 14px 12px 36px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--card-bg); color: var(--text); font-size: 18px; font-weight: 700; }
-.price-input:focus { outline: none; border-color: var(--gold); }
-.price-input.error { border-color: var(--danger); background: #fff5f3; }
-.price-input::placeholder { color: var(--muted); opacity: .55; font-weight: 600; }
-.price-hint { font-size: 11px; color: var(--muted); margin-top: 4px; display: flex; justify-content: space-between; }
-.price-hint.error { color: var(--danger); }
+.price-prefix { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 700; color: var(–muted); font-size: 16px; }
+.price-input { width: 100%; padding: 12px 14px 12px 36px; border-radius: 10px; border: 1.5px solid var(–border); background: var(–card-bg); color: var(–text); font-size: 18px; font-weight: 700; }
+.price-input:focus { outline: none; border-color: var(–gold); }
+.price-input.error { border-color: var(–danger); background: #fff5f3; }
+.price-input::placeholder { color: var(–muted); opacity: .55; font-weight: 600; }
+.price-hint { font-size: 11px; color: var(–muted); margin-top: 4px; display: flex; justify-content: space-between; }
+.price-hint.error { color: var(–danger); }
 
 /* Total row in modal */
-.total-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-top: 2px dashed var(--border); margin-top: 14px; }
-.total-label { font-size: 13px; color: var(--muted); }
-.total-value { font-size: 22px; font-weight: 800; color: var(--gold); }
-body.dark .total-value { color: var(--gold-light); }
+.total-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-top: 2px dashed var(–border); margin-top: 14px; }
+.total-label { font-size: 13px; color: var(–muted); }
+.total-value { font-size: 22px; font-weight: 800; color: var(–gold); }
+body.dark .total-value { color: var(–gold-light); }
 
 /* ─── CART/SUMMARY ─── */
-.cart-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 8px; display: flex; gap: 10px; align-items: center; }
+.cart-item { background: var(–card-bg); border: 1px solid var(–border); border-radius: 12px; padding: 12px; margin-bottom: 8px; display: flex; gap: 10px; align-items: center; }
 .cart-item-emoji { font-size: 28px; }
 .cart-item-info { flex: 1; min-width: 0; }
 .cart-item-name { font-size: 13px; font-weight: 700; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cart-item-meta { font-size: 11px; color: var(--muted); }
-.cart-item-price { font-size: 14px; font-weight: 700; color: var(--gold); flex-shrink: 0; }
-body.dark .cart-item-price { color: var(--gold-light); }
-.cart-item-edit { padding: 6px 10px; background: var(--bg); border-radius: 6px; font-size: 11px; color: var(--muted); margin-left: 6px; }
+.cart-item-meta { font-size: 11px; color: var(–muted); }
+.cart-item-price { font-size: 14px; font-weight: 700; color: var(–gold); flex-shrink: 0; }
+body.dark .cart-item-price { color: var(–gold-light); }
+.cart-item-edit { padding: 6px 10px; background: var(–bg); border-radius: 6px; font-size: 11px; color: var(–muted); margin-left: 6px; }
 
-.summary-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 12px; }
+.summary-card { background: var(–card-bg); border: 1px solid var(–border); border-radius: 14px; padding: 18px; margin-bottom: 12px; }
 .summary-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }
-.summary-row.total { border-top: 2px solid var(--border); margin-top: 8px; padding-top: 14px; font-weight: 800; font-size: 18px; }
-.summary-row .lbl { color: var(--muted); }
-.summary-row.total .lbl { color: var(--text); }
-.summary-row.total .val { color: var(--gold); font-size: 22px; }
-body.dark .summary-row.total .val { color: var(--gold-light); }
+.summary-row.total { border-top: 2px solid var(–border); margin-top: 8px; padding-top: 14px; font-weight: 800; font-size: 18px; }
+.summary-row .lbl { color: var(–muted); }
+.summary-row.total .lbl { color: var(–text); }
+.summary-row.total .val { color: var(–gold); font-size: 22px; }
+body.dark .summary-row.total .val { color: var(–gold-light); }
 
 /* ─── REASON CHIPS ─── */
 .chip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.chip { padding: 12px 8px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--card-bg); color: var(--text); font-size: 13px; font-weight: 600; text-align: center; min-height: 50px; }
-.chip:active, .chip.selected { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+.chip { padding: 12px 8px; border: 1.5px solid var(–border); border-radius: 10px; background: var(–card-bg); color: var(–text); font-size: 13px; font-weight: 600; text-align: center; min-height: 50px; }
+.chip:active, .chip.selected { background: var(–gold); color: var(–navy); border-color: var(–gold); }
 
 /* ─── BOTTOM NAV ─── */
-.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); border-top: 1px solid var(--border); padding: 8px 8px 12px; display: flex; z-index: 90; box-shadow: 0 -2px 10px rgba(0,0,0,.05); padding-bottom: max(12px, env(safe-area-inset-bottom)); }
-.bnav-item { flex: 1; padding: 6px; background: transparent; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 10px; font-weight: 600; }
-.bnav-item.active { color: var(--gold); }
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(–card-bg); border-top: 1px solid var(–border); padding: 8px 8px 12px; display: flex; z-index: 90; box-shadow: 0 -2px 10px rgba(0,0,0,.05); padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+.bnav-item { flex: 1; padding: 6px; background: transparent; color: var(–muted); display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 10px; font-weight: 600; }
+.bnav-item.active { color: var(–gold); }
 .bnav-item .ico { font-size: 22px; }
-body.dark .bnav-item.active { color: var(--gold-light); }
+body.dark .bnav-item.active { color: var(–gold-light); }
 
 /* ─── TOAST ─── */
-.toast { position: fixed; top: 80px; left: 12px; right: 12px; padding: 12px 16px; border-radius: 10px; color: #fff; z-index: 9999; font-size: 13px; font-weight: 600; animation: toastIn .3s ease; box-shadow: var(--shadow-lg); }
-.toast-success { background: var(--success); }
-.toast-error { background: var(--danger); }
-.toast-warning { background: var(--warning); color: var(--navy); }
-.toast-info { background: var(--info); }
+.toast { position: fixed; top: 80px; left: 12px; right: 12px; padding: 12px 16px; border-radius: 10px; color: #fff; z-index: 9999; font-size: 13px; font-weight: 600; animation: toastIn .3s ease; box-shadow: var(–shadow-lg); }
+.toast-success { background: var(–success); }
+.toast-error { background: var(–danger); }
+.toast-warning { background: var(–warning); color: var(–navy); }
+.toast-info { background: var(–info); }
 @keyframes toastIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
 /* ─── PROMO RIBBON ─── */
 .promo-ribbon { position: absolute; top: 8px; right: 8px; background: linear-gradient(135deg, #e74c3c, #ff6b6b); color: #fff; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px; box-shadow: 0 2px 4px rgba(231,76,60,.3); z-index: 1; letter-spacing: .3px; }
-.promo-ribbon.gold { background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: var(--navy); }
+.promo-ribbon.gold { background: linear-gradient(135deg, var(–gold), var(–gold-light)); color: var(–navy); }
 .product-card { position: relative; }
 .tag-pill { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 6px; margin-left: 4px; vertical-align: middle; }
 .tag-promo { background: linear-gradient(135deg, #e74c3c, #ff6b6b); color: #fff; }
 .tag-hot { background: linear-gradient(135deg, #ff6b35, #ffaa5a); color: #fff; }
-.tag-new { background: linear-gradient(135deg, var(--info), #5dade2); color: #fff; }
-.tag-warn { background: linear-gradient(135deg, var(--warning), #ffcc66); color: var(--navy); }
-.tag-low { background: linear-gradient(135deg, #f5b041, #f8c471); color: var(--navy); }
+.tag-new { background: linear-gradient(135deg, var(–info), #5dade2); color: #fff; }
+.tag-warn { background: linear-gradient(135deg, var(–warning), #ffcc66); color: var(–navy); }
+.tag-low { background: linear-gradient(135deg, #f5b041, #f8c471); color: var(–navy); }
 
 /* Stock over warning (modal) */
-.stock-over-warn { background: linear-gradient(135deg, #fff5e6, #fff0d6); border: 1.5px solid var(--warning); border-radius: 10px; padding: 10px 12px; margin-top: 10px; display: flex; align-items: center; gap: 10px; font-size: 12px; color: #8a6500; font-weight: 600; }
-body.dark .stock-over-warn { background: #3a2e15; color: var(--gold-light); }
+.stock-over-warn { background: linear-gradient(135deg, #fff5e6, #fff0d6); border: 1.5px solid var(–warning); border-radius: 10px; padding: 10px 12px; margin-top: 10px; display: flex; align-items: center; gap: 10px; font-size: 12px; color: #8a6500; font-weight: 600; }
+body.dark .stock-over-warn { background: #3a2e15; color: var(–gold-light); }
 .stock-over-warn-icon { font-size: 20px; flex-shrink: 0; }
 
-/* Today's orders */
-.order-summary-bar { background: linear-gradient(135deg, var(--navy), var(--navy-mid)); color: #fff; border-radius: 14px; padding: 16px; margin-bottom: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+/* Today’s orders */
+.order-summary-bar { background: linear-gradient(135deg, var(–navy), var(–navy-mid)); color: #fff; border-radius: 14px; padding: 16px; margin-bottom: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .osb-item { text-align: center; }
 .osb-label { font-size: 11px; opacity: .8; margin-bottom: 4px; }
-.osb-value { font-size: 22px; font-weight: 800; color: var(--gold); }
-.order-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 12px; border-left: 4px solid var(--success); }
+.osb-value { font-size: 22px; font-weight: 800; color: var(–gold); }
+.order-card { background: var(–card-bg); border: 1px solid var(–border); border-radius: 14px; padding: 14px; margin-bottom: 12px; border-left: 4px solid var(–success); }
 .order-card-head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
-.order-card-icon { width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, var(--gold), var(--gold-light)); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.order-card-icon { width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, var(–gold), var(–gold-light)); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
 .order-card-info { flex: 1; min-width: 0; }
 .order-card-shop { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
-.order-card-time { font-size: 11px; color: var(--muted); }
-.order-card-amount { font-size: 16px; font-weight: 800; color: var(--gold); }
-body.dark .order-card-amount { color: var(--gold-light); }
-.order-card-items { background: var(--row-alt); border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; font-size: 12px; line-height: 1.7; }
+.order-card-time { font-size: 11px; color: var(–muted); }
+.order-card-amount { font-size: 16px; font-weight: 800; color: var(–gold); }
+body.dark .order-card-amount { color: var(–gold-light); }
+.order-card-items { background: var(–row-alt); border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; font-size: 12px; line-height: 1.7; }
 .order-card-items .oitem { display: flex; justify-content: space-between; gap: 8px; }
-.order-card-items .oitem-name { color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.order-card-items .oitem-qty { color: var(--muted); flex-shrink: 0; font-size: 11px; }
+.order-card-items .oitem-name { color: var(–text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.order-card-items .oitem-qty { color: var(–muted); flex-shrink: 0; font-size: 11px; }
 .order-card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .btn-line { background: #06c755; color: #fff; }
 .btn-line:active { background: #05a647; }
@@ -459,40 +460,40 @@ body.dark .order-card-amount { color: var(--gold-light); }
 .contact-btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25); border-radius: 8px; font-size: 11px; font-weight: 600; color: #fff; text-decoration: none; transition: background .15s; }
 .contact-btn:active { background: rgba(255,255,255,.3); }
 .contact-btn.green { background: #06c755; border-color: #06c755; }
-.contact-btn.gold { background: var(--gold); color: var(--navy); border-color: var(--gold); }
-.contact-btn.info { background: var(--info); border-color: var(--info); }
+.contact-btn.gold { background: var(–gold); color: var(–navy); border-color: var(–gold); }
+.contact-btn.info { background: var(–info); border-color: var(–info); }
 
 /* Visit info pill */
-.visit-info { background: var(--row-alt); border-radius: 8px; padding: 8px 10px; font-size: 11px; line-height: 1.5; margin-top: 8px; }
+.visit-info { background: var(–row-alt); border-radius: 8px; padding: 8px 10px; font-size: 11px; line-height: 1.5; margin-top: 8px; }
 .visit-info-row { display: flex; justify-content: space-between; gap: 8px; }
 .visit-info-row strong { font-weight: 700; }
 
 /* Out of range modal alert */
-.range-confirm { background: linear-gradient(135deg,#fff5e6,#fff0d6); border: 2px solid var(--warning); border-radius: 12px; padding: 14px; margin: 12px 0; }
+.range-confirm { background: linear-gradient(135deg,#fff5e6,#fff0d6); border: 2px solid var(–warning); border-radius: 12px; padding: 14px; margin: 12px 0; }
 body.dark .range-confirm { background: #3a2e15; }
 
 /* JSON preview */
-.json-preview { background: #1a1d2e; color: #c9a84c; font-family: 'Courier New', monospace; font-size: 11px; padding: 12px; border-radius: 8px; max-height: 300px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+.json-preview { background: #1a1d2e; color: #c9a84c; font-family: ‘Courier New’, monospace; font-size: 11px; padding: 12px; border-radius: 8px; max-height: 300px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
 
 /* ─── ROLE TABS (manager view) ─── */
-.role-tabs { display: flex; gap: 6px; padding: 4px; background: var(--card-bg); border-radius: 12px; margin-bottom: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
-.role-tab { flex: 1; padding: 10px 4px; border-radius: 8px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; transition: all .15s; }
-.role-tab.active { background: var(--navy); color: var(--gold); }
+.role-tabs { display: flex; gap: 6px; padding: 4px; background: var(–card-bg); border-radius: 12px; margin-bottom: 14px; border: 1px solid var(–border); box-shadow: var(–shadow-sm); }
+.role-tab { flex: 1; padding: 10px 4px; border-radius: 8px; background: transparent; color: var(–muted); font-size: 12px; font-weight: 600; transition: all .15s; }
+.role-tab.active { background: var(–navy); color: var(–gold); }
 .role-tab .lock { opacity: .5; font-size: 10px; }
 
 /* ─── FOCUS PRODUCTS (company-pushed) ─── */
 .focus-card {
-  background: linear-gradient(135deg, var(--navy), var(--navy-mid));
-  color: #fff; padding: 14px; border-radius: 14px; margin-bottom: 12px;
-  border: 2px solid var(--gold); box-shadow: 0 4px 16px rgba(201,168,76,.2);
+background: linear-gradient(135deg, var(–navy), var(–navy-mid));
+color: #fff; padding: 14px; border-radius: 14px; margin-bottom: 12px;
+border: 2px solid var(–gold); box-shadow: 0 4px 16px rgba(201,168,76,.2);
 }
 .focus-card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-.focus-card-title { font-size: 14px; font-weight: 800; flex: 1; color: var(--gold-light); }
+.focus-card-title { font-size: 14px; font-weight: 800; flex: 1; color: var(–gold-light); }
 .focus-card-sub { font-size: 11px; opacity: .8; margin-bottom: 12px; }
 .focus-item {
-  background: rgba(255,255,255,.08); border-radius: 10px; padding: 10px 12px;
-  display: flex; align-items: center; gap: 10px; margin-bottom: 6px;
-  border-left: 3px solid var(--gold);
+background: rgba(255,255,255,.08); border-radius: 10px; padding: 10px 12px;
+display: flex; align-items: center; gap: 10px; margin-bottom: 6px;
+border-left: 3px solid var(–gold);
 }
 .focus-item:last-child { margin-bottom: 0; }
 .focus-item-emoji { font-size: 26px; flex-shrink: 0; }
@@ -500,28 +501,28 @@ body.dark .range-confirm { background: #3a2e15; }
 .focus-item-name { font-size: 13px; font-weight: 700; }
 .focus-item-reason { font-size: 11px; opacity: .85; margin-top: 2px; }
 .focus-item-priority {
-  background: var(--gold); color: var(--navy); width: 24px; height: 24px;
-  border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  font-weight: 800; font-size: 12px; flex-shrink: 0;
+background: var(–gold); color: var(–navy); width: 24px; height: 24px;
+border-radius: 50%; display: flex; align-items: center; justify-content: center;
+font-weight: 800; font-size: 12px; flex-shrink: 0;
 }
 
 /* ─── EXPIRY ALERT ─── */
 .expiry-card {
-  background: linear-gradient(135deg, #fef3d7, #fff8e6);
-  border: 1.5px solid var(--warning); border-radius: 14px; padding: 14px;
-  margin-bottom: 12px; color: #6b4f00;
+background: linear-gradient(135deg, #fef3d7, #fff8e6);
+border: 1.5px solid var(–warning); border-radius: 14px; padding: 14px;
+margin-bottom: 12px; color: #6b4f00;
 }
-body.dark .expiry-card { background: linear-gradient(135deg, #3a2e15, #2a2010); color: var(--gold-light); border-color: var(--warning); }
+body.dark .expiry-card { background: linear-gradient(135deg, #3a2e15, #2a2010); color: var(–gold-light); border-color: var(–warning); }
 .expiry-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .expiry-title { font-size: 14px; font-weight: 800; flex: 1; color: #8a6500; }
-body.dark .expiry-title { color: var(--gold-light); }
+body.dark .expiry-title { color: var(–gold-light); }
 .expiry-count {
-  background: var(--danger); color: #fff; padding: 2px 9px; border-radius: 10px;
-  font-size: 11px; font-weight: 700;
+background: var(–danger); color: #fff; padding: 2px 9px; border-radius: 10px;
+font-size: 11px; font-weight: 700;
 }
 .expiry-row {
-  display: flex; align-items: center; gap: 10px; padding: 8px 0;
-  border-top: 1px dashed rgba(243,156,18,.4);
+display: flex; align-items: center; gap: 10px; padding: 8px 0;
+border-top: 1px dashed rgba(243,156,18,.4);
 }
 .expiry-row:first-of-type { border-top: none; padding-top: 4px; }
 .expiry-emoji { font-size: 24px; }
@@ -529,238 +530,240 @@ body.dark .expiry-title { color: var(--gold-light); }
 .expiry-name { font-size: 13px; font-weight: 700; }
 .expiry-meta { font-size: 11px; opacity: .85; margin-top: 1px; }
 .expiry-days {
-  background: rgba(231,76,60,.15); color: var(--danger); padding: 4px 9px;
-  border-radius: 8px; font-size: 11px; font-weight: 800; flex-shrink: 0;
+background: rgba(231,76,60,.15); color: var(–danger); padding: 4px 9px;
+border-radius: 8px; font-size: 11px; font-weight: 800; flex-shrink: 0;
 }
-.expiry-days.danger { background: var(--danger); color: #fff; }
+.expiry-days.danger { background: var(–danger); color: #fff; }
 
 /* ─── CATEGORY BREAKDOWN ─── */
 .cat-breakdown-card {
-  background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px;
-  padding: 14px; margin-bottom: 12px; box-shadow: var(--shadow-sm);
+background: var(–card-bg); border: 1px solid var(–border); border-radius: 14px;
+padding: 14px; margin-bottom: 12px; box-shadow: var(–shadow-sm);
 }
 .cat-breakdown-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
 .cat-breakdown-title { font-size: 14px; font-weight: 800; flex: 1; }
-.cat-breakdown-sub { font-size: 11px; color: var(--muted); margin-bottom: 12px; }
-.cat-row { padding: 8px 0; border-top: 1px solid var(--border); }
+.cat-breakdown-sub { font-size: 11px; color: var(–muted); margin-bottom: 12px; }
+.cat-row { padding: 8px 0; border-top: 1px solid var(–border); }
 .cat-row:first-of-type { border-top: none; padding-top: 0; }
 .cat-row-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
 .cat-row-emoji { font-size: 18px; }
 .cat-row-name { flex: 1; font-size: 13px; font-weight: 700; }
 .cat-row-pct { font-size: 12px; font-weight: 700; }
-.cat-row-pct.green { color: var(--success); }
-.cat-row-pct.warn { color: var(--warning); }
-.cat-row-pct.danger { color: var(--danger); }
-.cat-row-amounts { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 4px; }
+.cat-row-pct.green { color: var(–success); }
+.cat-row-pct.warn { color: var(–warning); }
+.cat-row-pct.danger { color: var(–danger); }
+.cat-row-amounts { display: flex; justify-content: space-between; font-size: 11px; color: var(–muted); margin-top: 4px; }
 
 /* ─── WAREHOUSE TEAM (level 5+) ─── */
 .team-card {
-  background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px;
-  padding: 14px; margin-bottom: 12px; box-shadow: var(--shadow-sm);
+background: var(–card-bg); border: 1px solid var(–border); border-radius: 14px;
+padding: 14px; margin-bottom: 12px; box-shadow: var(–shadow-sm);
 }
 .team-row {
-  display: flex; align-items: center; gap: 10px; padding: 10px 0;
-  border-top: 1px solid var(--border);
+display: flex; align-items: center; gap: 10px; padding: 10px 0;
+border-top: 1px solid var(–border);
 }
 .team-row:first-of-type { border-top: none; padding-top: 4px; }
 .team-rank {
-  width: 28px; height: 28px; border-radius: 50%; background: var(--row-alt);
-  color: var(--muted); display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 800; flex-shrink: 0;
+width: 28px; height: 28px; border-radius: 50%; background: var(–row-alt);
+color: var(–muted); display: flex; align-items: center; justify-content: center;
+font-size: 12px; font-weight: 800; flex-shrink: 0;
 }
-.team-rank.first { background: var(--gold); color: var(--navy); }
+.team-rank.first { background: var(–gold); color: var(–navy); }
 .team-rank.second { background: #c0c0c0; color: #fff; }
 .team-rank.third { background: #cd7f32; color: #fff; }
 .team-info { flex: 1; min-width: 0; }
 .team-name { font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.team-meta { font-size: 11px; color: var(--muted); }
+.team-meta { font-size: 11px; color: var(–muted); }
 .team-amount { font-size: 13px; font-weight: 700; text-align: right; flex-shrink: 0; }
 .team-pct { font-size: 11px; font-weight: 600; flex-shrink: 0; padding: 3px 8px; border-radius: 8px; }
-.team-pct.green { background: rgba(46,204,113,.15); color: var(--success); }
-.team-pct.warn { background: rgba(243,156,18,.15); color: var(--warning); }
-.team-pct.danger { background: rgba(231,76,60,.15); color: var(--danger); }
+.team-pct.green { background: rgba(46,204,113,.15); color: var(–success); }
+.team-pct.warn { background: rgba(243,156,18,.15); color: var(–warning); }
+.team-pct.danger { background: rgba(231,76,60,.15); color: var(–danger); }
 
 /* ─── PRODUCT GROUPS — ULTRA COMPACT ─── */
 .groups-card {
-  background: var(--card-bg); border: 1px solid var(--border);
-  border-radius: 12px; padding: 12px 14px; margin-bottom: 12px;
-  box-shadow: var(--shadow-sm); border-left: 3px solid var(--gold);
+background: var(–card-bg); border: 1px solid var(–border);
+border-radius: 12px; padding: 12px 14px; margin-bottom: 12px;
+box-shadow: var(–shadow-sm); border-left: 3px solid var(–gold);
 }
 .groups-card-head {
-  display: flex; align-items: center; gap: 6px; margin-bottom: 10px;
+display: flex; align-items: center; gap: 6px; margin-bottom: 10px;
 }
 .groups-card-title { font-size: 13px; font-weight: 700; flex: 1; }
-.groups-card-sub { font-size: 10px; color: var(--muted); font-weight: 500; }
+.groups-card-sub { font-size: 10px; color: var(–muted); font-weight: 500; }
 .group-row {
-  display: flex; align-items: center; gap: 8px; padding: 6px 0;
+display: flex; align-items: center; gap: 8px; padding: 6px 0;
 }
 .group-row + .group-row {
-  border-top: 1px dashed var(--border);
+border-top: 1px dashed var(–border);
 }
 .group-row-emoji { font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
 .group-row-name {
-  font-weight: 700; font-size: 11px;
-  width: 76px; flex-shrink: 0;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+font-weight: 700; font-size: 11px;
+width: 76px; flex-shrink: 0;
+overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .group-row-bar {
-  flex: 1; height: 6px; background: var(--border); border-radius: 3px;
-  position: relative; overflow: hidden; min-width: 30px;
+flex: 1; height: 6px; background: var(–border); border-radius: 3px;
+position: relative; overflow: hidden; min-width: 30px;
 }
 .group-row-bar-fill {
-  height: 100%; border-radius: 3px; transition: width .6s;
+height: 100%; border-radius: 3px; transition: width .6s;
 }
 .group-row-today {
-  font-weight: 800; font-size: 12px; min-width: 56px; text-align: right;
-  flex-shrink: 0;
+font-weight: 800; font-size: 12px; min-width: 56px; text-align: right;
+flex-shrink: 0;
 }
 .group-row-pct {
-  font-size: 10px; font-weight: 700; min-width: 30px; text-align: right;
-  flex-shrink: 0; padding: 1px 5px; border-radius: 5px;
+font-size: 10px; font-weight: 700; min-width: 30px; text-align: right;
+flex-shrink: 0; padding: 1px 5px; border-radius: 5px;
 }
-.group-row-pct.green { background: rgba(46,204,113,.15); color: var(--success); }
-.group-row-pct.warn { background: rgba(243,156,18,.15); color: var(--warning); }
-.group-row-pct.danger { background: rgba(231,76,60,.15); color: var(--danger); }
+.group-row-pct.green { background: rgba(46,204,113,.15); color: var(–success); }
+.group-row-pct.warn { background: rgba(243,156,18,.15); color: var(–warning); }
+.group-row-pct.danger { background: rgba(231,76,60,.15); color: var(–danger); }
 
 /* ─── HAMBURGER DRAWER ─── */
 .drawer-backdrop {
-  position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 250;
-  opacity: 0; pointer-events: none; transition: opacity .25s;
+position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 250;
+opacity: 0; pointer-events: none; transition: opacity .25s;
 }
 .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
 .drawer {
-  position: fixed; top: 0; left: 0; bottom: 0;
-  width: 86%; max-width: 320px;
-  background: var(--card-bg); z-index: 260;
-  transform: translateX(-100%); transition: transform .28s cubic-bezier(.4,0,.2,1);
-  box-shadow: 4px 0 24px rgba(0,0,0,.15);
-  display: flex; flex-direction: column;
-  overflow-y: auto;
-  padding-top: env(safe-area-inset-top);
+position: fixed; top: 0; left: 0; bottom: 0;
+width: 86%; max-width: 320px;
+background: var(–card-bg); z-index: 260;
+transform: translateX(-100%); transition: transform .28s cubic-bezier(.4,0,.2,1);
+box-shadow: 4px 0 24px rgba(0,0,0,.15);
+display: flex; flex-direction: column;
+overflow-y: auto;
+padding-top: env(safe-area-inset-top);
 }
 .drawer.open { transform: translateX(0); }
 .drawer-header {
-  display: flex; align-items: center; gap: 10px;
-  padding: 18px 16px; background: var(--navy); color: #fff;
-  border-bottom: 3px solid var(--gold);
+display: flex; align-items: center; gap: 10px;
+padding: 18px 16px; background: var(–navy); color: #fff;
+border-bottom: 3px solid var(–gold);
 }
 .drawer-avatar {
-  width: 44px; height: 44px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--gold), var(--gold-light));
-  color: var(--navy); display: flex; align-items: center; justify-content: center;
-  font-size: 20px; flex-shrink: 0;
+width: 44px; height: 44px; border-radius: 50%;
+background: linear-gradient(135deg, var(–gold), var(–gold-light));
+color: var(–navy); display: flex; align-items: center; justify-content: center;
+font-size: 20px; flex-shrink: 0;
 }
 .drawer-user { flex: 1; min-width: 0; }
 .drawer-name { font-size: 15px; font-weight: 800; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.drawer-meta { font-size: 11px; opacity: .8; color: var(--gold-light); }
+.drawer-meta { font-size: 11px; opacity: .8; color: var(–gold-light); }
 .drawer-section-title {
-  font-size: 11px; font-weight: 700; color: var(--muted);
-  padding: 14px 16px 6px; letter-spacing: .5px; text-transform: uppercase;
+font-size: 11px; font-weight: 700; color: var(–muted);
+padding: 14px 16px 6px; letter-spacing: .5px; text-transform: uppercase;
 }
 .drawer-item {
-  display: flex; align-items: center; gap: 12px;
-  width: 100%; padding: 13px 16px; background: transparent;
-  border: none; color: var(--text); font-size: 14px; font-weight: 500;
-  text-align: left; cursor: pointer; transition: background .15s;
+display: flex; align-items: center; gap: 12px;
+width: 100%; padding: 13px 16px; background: transparent;
+border: none; color: var(–text); font-size: 14px; font-weight: 500;
+text-align: left; cursor: pointer; transition: background .15s;
 }
-.drawer-item:active { background: var(--row-alt); }
+.drawer-item:active { background: var(–row-alt); }
 .drawer-item-icon { font-size: 20px; width: 24px; flex-shrink: 0; text-align: center; }
 .drawer-item-label { flex: 1; }
-.drawer-item-arrow { color: var(--muted); font-size: 18px; }
-.drawer-divider { height: 1px; background: var(--border); margin: 8px 16px; }
+.drawer-item-arrow { color: var(–muted); font-size: 18px; }
+.drawer-divider { height: 1px; background: var(–border); margin: 8px 16px; }
 .drawer-footer { margin-top: auto; padding: 16px; }
 
 /* ─── NEW SHOP FORM ─── */
 .form-group { margin-bottom: 14px; }
 .form-label {
-  font-size: 12px; font-weight: 600; color: var(--muted);
-  margin-bottom: 6px; display: block;
+font-size: 12px; font-weight: 600; color: var(–muted);
+margin-bottom: 6px; display: block;
 }
-.form-label .req { color: var(--danger); }
+.form-label .req { color: var(–danger); }
 .form-input {
-  width: 100%; padding: 12px 14px; border-radius: 10px;
-  border: 1.5px solid var(--border); background: var(--card-bg); color: var(--text);
-  font-size: 15px; font-family: inherit; outline: none;
-  transition: border-color .15s;
+width: 100%; padding: 12px 14px; border-radius: 10px;
+border: 1.5px solid var(–border); background: var(–card-bg); color: var(–text);
+font-size: 15px; font-family: inherit; outline: none;
+transition: border-color .15s;
 }
-.form-input:focus { border-color: var(--gold); }
+.form-input:focus { border-color: var(–gold); }
 .form-textarea { resize: vertical; min-height: 70px; }
-.form-helper { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.form-helper { font-size: 11px; color: var(–muted); margin-top: 4px; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .form-section-title {
-  font-size: 13px; font-weight: 700; color: var(--text);
-  margin: 18px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; gap: 6px;
+font-size: 13px; font-weight: 700; color: var(–text);
+margin: 18px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(–border);
+display: flex; align-items: center; gap: 6px;
 }
 
 /* GPS capture card */
 .gps-capture {
-  background: linear-gradient(135deg, rgba(52,152,219,.08), rgba(52,152,219,.02));
-  border: 1.5px solid var(--info); border-radius: 12px; padding: 14px;
-  display: flex; align-items: center; gap: 12px; margin-bottom: 10px;
+background: linear-gradient(135deg, rgba(52,152,219,.08), rgba(52,152,219,.02));
+border: 1.5px solid var(–info); border-radius: 12px; padding: 14px;
+display: flex; align-items: center; gap: 12px; margin-bottom: 10px;
 }
 .gps-capture.captured {
-  background: linear-gradient(135deg, rgba(46,204,113,.08), rgba(46,204,113,.02));
-  border-color: var(--success);
+background: linear-gradient(135deg, rgba(46,204,113,.08), rgba(46,204,113,.02));
+border-color: var(–success);
 }
 .gps-capture-icon {
-  width: 42px; height: 42px; border-radius: 50%; background: var(--info);
-  color: #fff; display: flex; align-items: center; justify-content: center;
-  font-size: 20px; flex-shrink: 0;
+width: 42px; height: 42px; border-radius: 50%; background: var(–info);
+color: #fff; display: flex; align-items: center; justify-content: center;
+font-size: 20px; flex-shrink: 0;
 }
-.gps-capture.captured .gps-capture-icon { background: var(--success); }
+.gps-capture.captured .gps-capture-icon { background: var(–success); }
 .gps-capture-info { flex: 1; min-width: 0; }
 .gps-capture-status { font-size: 13px; font-weight: 700; }
-.gps-capture-coords { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: monospace; }
+.gps-capture-coords { font-size: 11px; color: var(–muted); margin-top: 2px; font-family: monospace; }
 
 /* Photo upload */
 .photo-upload {
-  border: 2px dashed var(--border); border-radius: 12px;
-  padding: 24px 16px; text-align: center; cursor: pointer;
-  transition: border-color .15s, background .15s;
+border: 2px dashed var(–border); border-radius: 12px;
+padding: 24px 16px; text-align: center; cursor: pointer;
+transition: border-color .15s, background .15s;
 }
-.photo-upload:hover { border-color: var(--gold); background: rgba(201,168,76,.04); }
+.photo-upload:hover { border-color: var(–gold); background: rgba(201,168,76,.04); }
 .photo-upload.has-photo { border-style: solid; padding: 0; overflow: hidden; }
 .photo-upload-preview { width: 100%; height: 160px; object-fit: cover; display: block; }
 .photo-upload-icon { font-size: 32px; margin-bottom: 6px; }
-.photo-upload-label { font-size: 13px; font-weight: 600; color: var(--text); }
-.photo-upload-hint { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.photo-upload-label { font-size: 13px; font-weight: 600; color: var(–text); }
+.photo-upload-hint { font-size: 11px; color: var(–muted); margin-top: 2px; }
 
 /* utils */
 .hide { display: none !important; }
-.divider { height: 1px; background: var(--border); margin: 12px 0; }
+.divider { height: 1px; background: var(–border); margin: 12px 0; }
 .mb-0 { margin-bottom: 0 !important; }
-.text-muted { color: var(--muted); }
-.text-success { color: var(--success); }
-.text-danger { color: var(--danger); }
-.text-gold { color: var(--gold); }
-body.dark .text-gold { color: var(--gold-light); }
+.text-muted { color: var(–muted); }
+.text-success { color: var(–success); }
+.text-danger { color: var(–danger); }
+.text-gold { color: var(–gold); }
+body.dark .text-gold { color: var(–gold-light); }
 .text-center { text-align: center; }
 .flex-row { display: flex; align-items: center; gap: 8px; }
 .flex-between { display: flex; justify-content: space-between; align-items: center; }
 
 /* ─── DESKTOP LAYOUT (PC viewing) ─── */
 @media (min-width: 768px) {
-  body {
-    background: var(--bg);
-    min-height: 100vh;
-  }
-  .app-shell {
-    max-width: 880px;
-    margin: 0 auto;
-    padding: 0 24px 76px;
-    min-height: 100dvh;
-  }
-  .kpi-grid {
-    grid-template-columns: repeat(4, 1fr) !important;
-  }
-  .modal { max-width: 480px !important; }
+body {
+background: var(–bg);
+min-height: 100vh;
+}
+.app-shell {
+max-width: 880px;
+margin: 0 auto;
+padding: 0 24px 76px;
+min-height: 100dvh;
+}
+.kpi-grid {
+grid-template-columns: repeat(4, 1fr) !important;
+}
+.modal { max-width: 480px !important; }
 }
 </style>
+
 </head>
 <body>
 
 <!-- ════════════════ SPINNER ════════════════ -->
+
 <div class="spinner-overlay" id="spinner" style="display:none;position:fixed;inset:0;background:rgba(13,27,62,.55);align-items:center;justify-content:center;z-index:99999;backdrop-filter:blur(3px)">
   <div style="background:#fff;border-radius:16px;padding:30px 36px;text-align:center;border-top:4px solid var(--gold);min-width:220px">
     <div style="width:44px;height:44px;border:5px solid #dde3f0;border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px"></div>
@@ -769,49 +772,46 @@ body.dark .text-gold { color: var(--gold-light); }
 </div>
 
 <!-- ════════════════ LOGIN SCREEN ════════════════ -->
+
 <div id="loginScreen" style="display:none;min-height:100dvh;background:linear-gradient(135deg,#0d1b3e,#1a2f5e);color:#fff;padding:32px 20px;flex-direction:column;align-items:center;justify-content:center">
   <div style="font-size:28px;font-weight:800;margin-bottom:6px;letter-spacing:2px">RATTANA <span style="color:#c9a84c">SALES</span></div>
   <div style="font-size:12px;opacity:.85;margin-bottom:24px;text-align:center">บริษัท รัตนไพบูลย์ สมุทรสงคราม 2555 จำกัด</div>
 
-  <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:22px;width:100%;max-width:340px;backdrop-filter:blur(10px);text-align:center">
-    <div style="font-size:16px;font-weight:700;margin-bottom:6px;color:#e8c86a">🔐 เข้าสู่ระบบ</div>
-    <div style="font-size:11px;opacity:.75;margin-bottom:16px">ใช้ Gmail ที่ลงทะเบียนกับบริษัท</div>
+  <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:22px;width:100%;max-width:380px;backdrop-filter:blur(10px)">
+    <div style="font-size:16px;font-weight:700;margin-bottom:6px;color:#e8c86a;text-align:center">🔐 เลือกผู้ใช้งาน</div>
+    <div style="font-size:11px;opacity:.75;margin-bottom:16px;text-align:center" id="loginSubtitle">กำลังโหลดรายชื่อ...</div>
 
-    <div id="g_id_onload" data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com" data-callback="handleGoogleLogin" data-auto_prompt="false"></div>
-    <div class="g_id_signin" data-type="standard" data-size="large" data-theme="filled_blue" data-text="sign_in_with" data-shape="pill"></div>
+```
+<select id="userPicker" style="width:100%;padding:14px;border-radius:10px;border:1px solid rgba(201,168,76,.35);background:rgba(255,255,255,.08);color:#fff;font-size:14px;font-family:inherit;font-weight:600;outline:none;margin-bottom:12px" onchange="onUserPicked()">
+  <option value="">— กรุณาเลือก —</option>
+</select>
 
-    <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:12px;font-size:12px;display:none"></div>
+<button id="loginBtn" onclick="loginWithPicker()" disabled style="width:100%;padding:14px;border-radius:10px;border:none;background:#c9a84c;color:#0d1b3e;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;opacity:.5">เข้าสู่ระบบ →</button>
 
-    <div style="display:flex;align-items:center;gap:10px;margin:16px 0;color:rgba(255,255,255,.4);font-size:11px">
-      <div style="flex:1;height:1px;background:rgba(255,255,255,.15)"></div>
-      หรือ
-      <div style="flex:1;height:1px;background:rgba(255,255,255,.15)"></div>
-    </div>
+<div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:12px;font-size:12px;display:none"></div>
+```
 
-    <div style="background:rgba(201,168,76,.08);border:1px dashed rgba(201,168,76,.35);border-radius:12px;padding:12px">
-      <div style="font-size:11px;color:#c9a84c;font-weight:700;margin-bottom:8px">🎭 DEMO MODE — ทดสอบใน Claude</div>
-      <button onclick="loginDemo(7)" style="display:block;width:100%;background:rgba(201,168,76,.15);color:#fff;border:1px solid rgba(201,168,76,.35);padding:10px 12px;border-radius:8px;margin-bottom:5px;font-size:12px;font-weight:600;text-align:left;font-family:inherit;cursor:pointer">👑 Role 7 — Executive (เห็นทุกอย่าง)</button>
-      <button onclick="loginDemo(6)" style="display:block;width:100%;background:rgba(201,168,76,.15);color:#fff;border:1px solid rgba(201,168,76,.35);padding:10px 12px;border-radius:8px;margin-bottom:5px;font-size:12px;font-weight:600;text-align:left;font-family:inherit;cursor:pointer">📊 Role 6 — Manager คลัง W1</button>
-      <button onclick="loginDemo(5)" style="display:block;width:100%;background:rgba(201,168,76,.15);color:#fff;border:1px solid rgba(201,168,76,.35);padding:10px 12px;border-radius:8px;margin-bottom:5px;font-size:12px;font-weight:600;text-align:left;font-family:inherit;cursor:pointer">📈 Role 5 — Supervisor (เห็น S00)</button>
-      <button onclick="loginDemo(3)" style="display:block;width:100%;background:rgba(201,168,76,.15);color:#fff;border:1px solid rgba(201,168,76,.35);padding:10px 12px;border-radius:8px;font-size:12px;font-weight:600;text-align:left;font-family:inherit;cursor:pointer">🛒 Role 3 — Sales W1 (PMW101)</button>
-    </div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v2.1 · 2026-05-07</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v2.4 · 2026-05-07</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
+
 <div id="appScreen" style="display:none">
 <div class="app-shell">
 
 <!-- ═══════════════════════ HEADER ═══════════════════════ -->
+
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v2.1</span>
+  <span class="demo-tag">v2.4</span>
+  <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="โหลดข้อมูลใหม่">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
 </header>
 
 <!-- ═══════════════════════ HAMBURGER DRAWER ═══════════════════════ -->
+
 <div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer()"></div>
 <aside class="drawer" id="drawer">
   <div class="drawer-header">
@@ -877,20 +877,23 @@ body.dark .text-gold { color: var(--gold-light); }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v2.1<br>2026-05-07</div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v2.4<br>2026-05-07</div>
   </div>
 </aside>
 
 <!-- ═══════════════════════ HOME SCREEN ═══════════════════════ -->
+
 <section class="screen active" id="screenHome">
   <!-- Role tabs (only shown for level >= 5) -->
   <div id="roleTabs"></div>
 
   <!-- Dashboard content (rendered by renderHomeDashboard) -->
+
   <div id="dashboardContent"></div>
 </section>
 
 <!-- ═══════════════════════ ROUTE SCREEN ═══════════════════════ -->
+
 <section class="screen" id="screenRoute">
   <div class="page-bar" style="margin:-16px -16px 16px;top:60px">
     <button class="back-btn" onclick="goHome()">←</button>
@@ -901,26 +904,32 @@ body.dark .text-gold { color: var(--gold-light); }
   </div>
 
   <!-- View toggle: List / Map -->
+
   <div class="view-toggle">
     <button class="view-toggle-btn active" id="viewListBtn" onclick="setRouteView('list')">📋 รายการ</button>
     <button class="view-toggle-btn" id="viewMapBtn" onclick="setRouteView('map')">🗺️ แผนที่</button>
   </div>
 
   <!-- LIST VIEW -->
+
   <div id="routeListView">
     <div class="route-tabs">
       <button class="route-tab active" id="tabIn" onclick="switchRouteTab('in')">📋 ในรูท<span class="count">(<span id="inCount">5</span>)</span></button>
       <button class="route-tab" id="tabOff" onclick="switchRouteTab('off')">➕ นอกรูท<span class="count">(<span id="offCount">0</span>)</span></button>
     </div>
 
-    <div id="shopList"></div>
+```
+<div id="shopList"></div>
 
-    <button class="add-off-route" onclick="addOffRoute()" id="addOffBtn">
-      ➕ เพิ่มร้านนอกรูท
-    </button>
+<button class="add-off-route" onclick="addOffRoute()" id="addOffBtn">
+  ➕ เพิ่มร้านนอกรูท
+</button>
+```
+
   </div>
 
   <!-- MAP VIEW -->
+
   <div id="routeMapView" style="display:none">
     <div id="routeMapEl" style="height:480px;border-radius:14px;overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow-sm)"></div>
     <div class="map-legend">
@@ -934,6 +943,7 @@ body.dark .text-gold { color: var(--gold-light); }
 </section>
 
 <!-- ═══════════════════════ SHOP DETAIL SCREEN ═══════════════════════ -->
+
 <section class="screen" id="screenShop">
   <div class="page-bar" style="margin:-16px -16px 16px;top:60px">
     <button class="back-btn" onclick="goRoute()">←</button>
@@ -947,6 +957,7 @@ body.dark .text-gold { color: var(--gold-light); }
 </section>
 
 <!-- ═══════════════════════ ORDER SCREEN ═══════════════════════ -->
+
 <section class="screen" id="screenOrder">
   <div class="page-bar" style="margin:-16px -16px 16px;top:60px">
     <button class="back-btn" onclick="backToShop()">←</button>
@@ -957,10 +968,12 @@ body.dark .text-gold { color: var(--gold-light); }
   </div>
 
   <!-- Push list — สินค้าที่ต้องดันสำหรับร้านนี้ -->
+
   <div id="pushSection"></div>
 
-  <div class="search-wrap">
-    <input class="search-bar" type="text" placeholder="ค้นหาสินค้า..." oninput="filterProducts(this.value)" id="productSearch">
+  <div class="search-wrap" style="display:flex;gap:8px;align-items:center">
+    <input class="search-bar" type="text" placeholder="ค้นหาสินค้า / barcode..." oninput="filterProducts(this.value)" id="productSearch" style="flex:1">
+    <button onclick="openBarcodeScanner('order')" title="สแกนบาร์โค้ด" style="flex-shrink:0;width:42px;height:42px;border-radius:21px;border:1.5px solid var(--border);background:var(--card-bg);font-size:18px;cursor:pointer;font-family:inherit">📷</button>
   </div>
 
   <div class="sec-title" id="productListTitle"><span class="sec-title-icon">📦</span>สินค้าทั้งหมด<span class="sec-title-link" onclick="showAllProducts()" id="toggleAllLink"></span></div>
@@ -968,6 +981,7 @@ body.dark .text-gold { color: var(--gold-light); }
 </section>
 
 <!-- ═══════════════════════ CART/SUMMARY SCREEN ═══════════════════════ -->
+
 <section class="screen" id="screenSummary">
   <div class="page-bar" style="margin:-16px -16px 16px;top:60px">
     <button class="back-btn" onclick="goOrder()">←</button>
@@ -984,11 +998,13 @@ body.dark .text-gold { color: var(--gold-light); }
     <div class="summary-row total"><span class="lbl">ยอดรวม <span style="font-size:11px;color:var(--muted);font-weight:400">(รวม VAT)</span></span><span class="val" id="sumTotal">฿ 0</span></div>
   </div>
 
-  <button class="btn btn-success btn-lg btn-block" onclick="confirmOrder()">✅ ยืนยันการสั่งซื้อ</button>
-  <button class="btn btn-outline btn-block" style="margin-top:8px" onclick="goOrder()">+ เพิ่มสินค้า</button>
+<button class="btn btn-success btn-lg btn-block" onclick="confirmOrder()">✅ ยืนยันการสั่งซื้อ</button>
+<button class="btn btn-outline btn-block" style="margin-top:8px" onclick="goOrder()">+ เพิ่มสินค้า</button>
+
 </section>
 
 <!-- ═══════════════════════ RETURN SCREEN ═══════════════════════ -->
+
 <section class="screen" id="screenReturn">
   <div class="page-bar" style="margin:-16px -16px 16px;top:60px">
     <button class="back-btn" onclick="backToShop()">←</button>
@@ -1021,11 +1037,13 @@ body.dark .text-gold { color: var(--gold-light); }
     <button class="chip" onclick="selectChip(this,'#returnReasonGrid .chip')">ส่งผิด</button>
   </div>
 
-  <button class="btn btn-outline btn-block" style="margin-top:14px">📷 ถ่ายรูปประกอบ</button>
-  <button class="btn btn-warning btn-lg btn-block" style="margin-top:10px;background:var(--warning);color:var(--navy)" onclick="confirmReturn()">📤 ส่งคำขอคืน</button>
+<button class="btn btn-outline btn-block" style="margin-top:14px">📷 ถ่ายรูปประกอบ</button>
+<button class="btn btn-warning btn-lg btn-block" style="margin-top:10px;background:var(--warning);color:var(--navy)" onclick="confirmReturn()">📤 ส่งคำขอคืน</button>
+
 </section>
 
 <!-- ═══════════════════════ NO SALE SCREEN ═══════════════════════ -->
+
 <section class="screen" id="screenNoSale">
   <div class="page-bar" style="margin:-16px -16px 16px;top:60px">
     <button class="back-btn" onclick="backToShop()">←</button>
@@ -1047,10 +1065,12 @@ body.dark .text-gold { color: var(--gold-light); }
     </div>
   </div>
 
-  <button class="btn btn-danger btn-lg btn-block" onclick="confirmNoSale()">❌ บันทึกไม่ซื้อ</button>
+<button class="btn btn-danger btn-lg btn-block" onclick="confirmNoSale()">❌ บันทึกไม่ซื้อ</button>
+
 </section>
 
 <!-- ═══════════════════════ TODAY'S ORDERS SCREEN ═══════════════════════ -->
+
 <section class="screen" id="screenOrders">
   <div class="page-bar" style="margin:-16px -16px 16px;top:60px">
     <button class="back-btn" onclick="goHome()">←</button>
@@ -1079,6 +1099,7 @@ body.dark .text-gold { color: var(--gold-light); }
 </section>
 
 <!-- ═══════════════════════ NEW SHOP SCREEN ═══════════════════════ -->
+
 <section class="screen" id="screenNewShop">
   <div class="page-bar" style="margin:-16px -16px 16px;top:60px">
     <button class="back-btn" onclick="goHome()">←</button>
@@ -1102,6 +1123,7 @@ body.dark .text-gold { color: var(--gold-light); }
   </div>
 
   <!-- ─── ชื่อร้าน ─── -->
+
   <div class="form-section-title">🏪 ข้อมูลร้าน</div>
 
   <div class="form-group">
@@ -1124,6 +1146,7 @@ body.dark .text-gold { color: var(--gold-light); }
   </div>
 
   <!-- ─── ที่อยู่ (แยก 5 ช่องตาม Sheet) ─── -->
+
   <div class="form-section-title">📮 ที่อยู่</div>
 
   <div class="form-row">
@@ -1149,6 +1172,7 @@ body.dark .text-gold { color: var(--gold-light); }
   </div>
 
   <!-- ─── ติดต่อ ─── -->
+
   <div class="form-section-title">📞 ติดต่อ</div>
 
   <div class="form-group">
@@ -1164,6 +1188,7 @@ body.dark .text-gold { color: var(--gold-light); }
   </div>
 
   <!-- ─── GPS Location ─── -->
+
   <div class="form-section-title">📍 พิกัด GPS <span class="req">*</span></div>
 
   <div class="gps-capture" id="gpsCaptureCard">
@@ -1177,6 +1202,7 @@ body.dark .text-gold { color: var(--gold-light); }
   <div class="form-helper">⚠️ ควรกดขณะอยู่ที่ร้านเพื่อความแม่นยำ — ใช้เป็นจุดเช็คอินครั้งต่อไป</div>
 
   <!-- ─── รูปร้าน ─── -->
+
   <div class="form-section-title">📷 รูปหน้าร้าน</div>
   <div class="photo-upload" id="newShopPhotoUpload" onclick="document.getElementById('newShopPhotoInput').click()">
     <div class="photo-upload-icon">📷</div>
@@ -1186,6 +1212,7 @@ body.dark .text-gold { color: var(--gold-light); }
   <input type="file" id="newShopPhotoInput" accept="image/*" capture="environment" style="display:none" onchange="onNewShopPhotoSelected(event)">
 
   <!-- ─── เครดิต/ธง (เพิ่มตามที่บอก) ─── -->
+
   <div class="form-section-title">💳 เครดิต / ธง</div>
 
   <div class="form-row">
@@ -1206,12 +1233,14 @@ body.dark .text-gold { color: var(--gold-light); }
   </div>
 
   <!-- ─── หมายเหตุ ─── -->
+
   <div class="form-section-title">📝 หมายเหตุ</div>
   <div class="form-group">
     <textarea class="form-input form-textarea" id="newShopNotes" placeholder="เช่น ปิดทุกพุธ, ลูกค้าเก่าของร้านลุงทอง"></textarea>
   </div>
 
   <!-- ─── Auto-filled fields preview ─── -->
+
   <div class="card" style="background:var(--row-alt);border:1px dashed var(--border);font-size:11px;color:var(--muted);margin-top:14px">
     <div style="font-weight:700;margin-bottom:6px;color:var(--text)">🤖 ระบบจะกรอกให้อัตโนมัติ</div>
     <div>• <strong>WH:</strong> <span id="autoWh"></span> (จากเซลล์ผู้ส่ง)</div>
@@ -1221,6 +1250,7 @@ body.dark .text-gold { color: var(--gold-light); }
   </div>
 
   <!-- ─── Submit ─── -->
+
   <button class="btn btn-success btn-lg btn-block" style="margin-top:18px" onclick="submitNewShop()">
     ✅ ส่งคำขอเปิดร้านใหม่
   </button>
@@ -1232,6 +1262,7 @@ body.dark .text-gold { color: var(--gold-light); }
 </section>
 
 <!-- ═══════════════════════ PRICE TAB SCREEN ═══════════════════════ -->
+
 <section class="screen" id="screenProductInfo">
   <div class="page-bar" style="margin:-16px -16px 16px;top:60px">
     <button class="back-btn" onclick="goHome()">←</button>
@@ -1242,6 +1273,7 @@ body.dark .text-gold { color: var(--gold-light); }
   </div>
 
   <!-- Sync timestamp banner -->
+
   <div id="priceSyncBanner" style="display:none;background:linear-gradient(135deg,#fef9e7,#ffe9b8);border:1px solid #f0d878;border-radius:8px;padding:6px 12px;margin-bottom:8px;display:flex;align-items:center;gap:8px;font-size:11px;color:#6b4f00;cursor:pointer" onclick="refreshPriceTab()" title="กดเพื่อโหลดข้อมูลใหม่">
     <span style="font-size:14px">🔄</span>
     <span style="flex:1" id="priceSyncText">อัพเดทล่าสุด...</span>
@@ -1249,9 +1281,11 @@ body.dark .text-gold { color: var(--gold-light); }
   </div>
 
   <!-- Search -->
+
   <div style="background:var(--card-bg);padding:10px 12px;border-radius:12px;margin:0 -2px 8px;border:1px solid var(--border)">
-    <div style="position:relative">
-      <input type="text" id="productInfoSearch" placeholder="🔍 ค้นหา ชื่อ / barcode / brand (เว้นวรรคได้)" oninput="onProductInfoSearch(this.value)" style="width:100%;height:42px;padding:0 14px;border-radius:21px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;outline:none;box-sizing:border-box">
+    <div style="position:relative;display:flex;gap:8px;align-items:center">
+      <input type="text" id="productInfoSearch" placeholder="🔍 ค้นหา ชื่อ / barcode / brand (เว้นวรรคได้)" oninput="onProductInfoSearch(this.value)" style="flex:1;height:42px;padding:0 14px;border-radius:21px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;outline:none;box-sizing:border-box">
+      <button onclick="openBarcodeScanner('price')" title="สแกนบาร์โค้ด" style="flex-shrink:0;width:42px;height:42px;border-radius:21px;border:1.5px solid var(--border);background:var(--bg);font-size:18px;cursor:pointer;font-family:inherit">📷</button>
     </div>
     <!-- Filter chips -->
     <div id="priceFilterChips" style="display:flex;gap:6px;margin-top:8px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch">
@@ -1263,6 +1297,7 @@ body.dark .text-gold { color: var(--gold-light); }
 </section>
 
 <!-- ═══════════════════════ CART BAR ═══════════════════════ -->
+
 <div class="cart-bar hide" id="cartBar" onclick="goSummary()">
   <div class="cart-count" id="cartCount">0</div>
   <div class="cart-info">
@@ -1273,11 +1308,13 @@ body.dark .text-gold { color: var(--gold-light); }
 </div>
 
 <!-- ═══════════════════════ PRODUCT MODAL ═══════════════════════ -->
+
 <div class="modal-backdrop" id="productModal" onclick="if(event.target===this)closeModal()">
   <div class="modal" id="modalContent"></div>
 </div>
 
 <!-- ═══════════════════════ BOTTOM NAV ═══════════════════════ -->
+
 <nav class="bottom-nav">
   <button class="bnav-item active" id="navHome" onclick="goHome()"><span class="ico">🏠</span>หน้าหลัก</button>
   <button class="bnav-item" id="navRoute" onclick="goRoute()"><span class="ico">📍</span>รูท</button>
@@ -1289,7 +1326,7 @@ body.dark .text-gold { color: var(--gold-light); }
 
 <script>
 // ═══════════════════════════════════════════════════════════
-// v2.1 — SHEET-POWERED EDITION · 2026-05-07
+// v2.4 — FIX VISIBILITY EDITION · 2026-05-07
 // ═══════════════════════════════════════════════════════════
 
 const CONFIG = {
@@ -1514,77 +1551,75 @@ function decodeJwtPayload(token) {
 function showLoginError(msg) {
   const el = document.getElementById('loginError');
   if (!el) return;
-  // Convert \n to <br> for multi-line errors
   el.innerHTML = String(msg).replace(/\n/g, '<br>');
   el.style.display = 'block';
-  el.classList.add('show');
-  // Don't auto-hide — user needs to read it
 }
 
-async function handleGoogleLogin(response) {
-  showSpinner('กำลังโหลด...');
+// User picker — fetches User Sheet on showLogin(), populates dropdown
+let _allUsers = [];
+async function populateUserPicker() {
+  const sub = document.getElementById('loginSubtitle');
+  const sel = document.getElementById('userPicker');
+  if (sub) sub.textContent = 'กำลังโหลดรายชื่อ...';
   try {
-    console.log('[login] Google response received');
-    const decoded = decodeJwtPayload(response.credential);
-    const email = normalizeEmail(decoded.email);
-    console.log('[login] decoded email:', email);
+    _allUsers = await fetchSheet(CONFIG.usersSheetId, CONFIG.usersSheetTab);
+    console.log('[login] User Sheet loaded:', _allUsers.length, 'rows');
 
-    if (!email) {
-      throw new Error('ไม่ได้รับ email จาก Google');
+    // Filter Active + role >= 3, sort by warehouse then name
+    const active = _allUsers
+      .filter(u => String(u['Status']||'').trim().toLowerCase() === 'active')
+      .filter(u => (parseInt(u['User Role'])||0) >= 3)
+      .sort((a,b) => {
+        const wa = String(a['W']||'').localeCompare(String(b['W']||''));
+        if (wa !== 0) return wa;
+        return String(a['ชื่อ - สกุล']||'').localeCompare(String(b['ชื่อ - สกุล']||''));
+      });
+
+    if (sel) {
+      sel.innerHTML = '<option value="">— กรุณาเลือก —</option>' +
+        active.map((u,i) => {
+          const name = u['ชื่อ - สกุล'] || u['ชื่อเล่น'] || u['E-mail'] || '?';
+          const wh = u['W'] || '?';
+          const role = parseInt(u['User Role'])||0;
+          const roleLabel = role >= 7 ? '👑' : role >= 6 ? '📊' : role >= 5 ? '📈' : '🛒';
+          return `<option value="${i}">${roleLabel} ${name} · ${wh} · Role ${role}</option>`;
+        }).join('');
+      // Store filtered list for picker
+      sel._activeUsers = active;
     }
-
-    console.log('[login] fetching User Sheet...', CONFIG.usersSheetId, CONFIG.usersSheetTab);
-    let users;
-    try {
-      users = await fetchSheet(CONFIG.usersSheetId, CONFIG.usersSheetTab);
-    } catch (fetchErr) {
-      throw new Error('โหลด User Sheet ไม่ได้ (ตรวจ permission "Anyone with link")\n' + fetchErr.message);
-    }
-    console.log('[login] User Sheet loaded:', users.length, 'rows');
-
-    if (!users.length) {
-      throw new Error('User Sheet ว่างเปล่า — ตรวจชื่อ tab "Sheet1"');
-    }
-
-    // Show available columns for diagnostic
-    console.log('[login] Sheet columns:', Object.keys(users[0] || {}));
-
-    const user = users.find(u => normalizeEmail(u['E-mail'] || u['Email'] || u['email']) === email);
-    if (!user) {
-      // Show first 3 emails so user can see what's in the sheet
-      const sampleEmails = users.slice(0, 5).map(u => normalizeEmail(u['E-mail']||u['Email']||u['email']||'')).filter(Boolean);
-      console.warn('[login] email not found. Sheet has:', sampleEmails);
-      showLoginError(`ไม่พบ email "${email}" ใน User Sheet\n(มี ${users.length} accounts ใน sheet)`);
-      hideSpinner();
-      return;
-    }
-
-    console.log('[login] user found:', user);
-
-    const status = String(user['Status']||'').trim().toLowerCase();
-    if (status !== 'active') {
-      showLoginError(`บัญชีไม่ได้เปิดใช้งาน (Status="${user['Status']}", ต้องเป็น "Active")`);
-      hideSpinner();
-      return;
-    }
-
-    const role = parseInt(user['User Role']) || 0;
-    if (role < 3) {
-      showLoginError(`สิทธิ์ไม่เพียงพอ (Role=${role}, ต้อง Role 3+)`);
-      hideSpinner();
-      return;
-    }
-
-    console.log('[login] login successful, role=', role);
-    currentUser = buildUserFromRow(user, email, role);
-    localStorage.setItem('rattanaSalesUser', JSON.stringify({ data: currentUser, exp: Date.now() + 30*24*60*60*1000 }));
-    await enterApp();
+    if (sub) sub.textContent = `${active.length} ผู้ใช้ใน Sheet — เลือกเพื่อทดสอบ`;
   } catch (e) {
-    console.error('[login] error:', e);
-    showLoginError('เกิดข้อผิดพลาด:\n' + e.message);
-  } finally {
-    hideSpinner();
+    console.error('[login] User Sheet fetch failed:', e);
+    if (sub) sub.textContent = '❌ โหลด User Sheet ไม่ได้';
+    showLoginError('โหลด User Sheet ไม่ได้: ' + e.message + '\nตรวจ Sheet permission "Anyone with link"');
   }
+}
+
+function onUserPicked() {
+  const sel = document.getElementById('userPicker');
+  const btn = document.getElementById('loginBtn');
+  const has = sel && sel.value !== '';
+  if (btn) {
+    btn.disabled = !has;
+    btn.style.opacity = has ? '1' : '0.5';
+  }
+}
+
+async function loginWithPicker() {
+  const sel = document.getElementById('userPicker');
+  if (!sel || sel.value === '') return;
+  const idx = parseInt(sel.value);
+  const user = (sel._activeUsers || [])[idx];
+  if (!user) return;
+
+  console.log('[login] picked:', user);
+
+  const email = normalizeEmail(user['E-mail'] || user['Email'] || user['email']) || ('user'+idx+'@rattana.local');
+  const role = parseInt(user['User Role']) || 3;
+
+  currentUser = buildUserFromRow(user, email, role);
+  localStorage.setItem('rattanaSalesUser', JSON.stringify({ data: currentUser, exp: Date.now() + 30*24*60*60*1000 }));
+  await enterApp();
 }
 
 function buildUserFromRow(user, email, role) {
@@ -1600,20 +1635,6 @@ function buildUserFromRow(user, email, role) {
     bplusCode:   user['รหัสขาย Bplus'] || '',
     salesmanCode:user['รหัสเซล'] || '',
   };
-}
-
-// Demo mode — instant login bypass for testing in Claude
-function loginDemo(role) {
-  isDemoMode = true;
-  const presets = {
-    7: { name:'สุรัตน์ รัตนไพบูลย์', nickname:'คุณภูมิ', warehouse:'HQ', salesmanCode:'',       email:'demo7@rattana.com', empId:'DEMO7' },
-    6: { name:'สุภาพร รอดสังวาลย์',  nickname:'เกด',     warehouse:'W1', salesmanCode:'SW108',  email:'demo6@rattana.com', empId:'DEMO6' },
-    5: { name:'ดวงเดือน ทำไว้',      nickname:'แต้ว',    warehouse:'W1', salesmanCode:'',       email:'demo5@rattana.com', empId:'DEMO5' },
-    3: { name:'ชัยสิทธิ์ มีศิริ',      nickname:'ชัย',     warehouse:'W1', salesmanCode:'PMW101', email:'demo3@rattana.com', empId:'DEMO3' },
-  };
-  const p = presets[role] || presets[3];
-  currentUser = { ...p, role, dept:'ขาย', company:'รัตนไพบูลย์', bplusCode:'' };
-  enterApp();
 }
 
 async function enterApp() {
@@ -1634,15 +1655,12 @@ async function enterApp() {
 
   console.log('[enterApp] user hydrated:', SALESMAN.name, 'role=', SALESMAN.level);
 
-  // Render UI immediately with mock/empty data so user sees something
   initAppUI();
 
-  // Then load Sheet data (blocks until products ready)
   showSpinner('กำลังโหลดข้อมูลร้านค้า...');
   try {
     await loadAllSheetData();
     console.log('[enterApp] Sheet data loaded — re-rendering UI');
-    // Re-render whichever screen the user is on now (data may have changed)
     rerenderCurrentScreen();
   } catch (e) {
     console.warn('Sheet load error:', e);
@@ -1684,24 +1702,27 @@ function rerenderCurrentScreen() {
 }
 
 function checkSession() {
-  try {
-    const raw = localStorage.getItem('rattanaSalesUser');
-    if (!raw) { showLogin(); return; }
-    const { data, exp } = JSON.parse(raw);
-    if (Date.now() > exp) { localStorage.removeItem('rattanaSalesUser'); showLogin(); return; }
-    currentUser = data;
-    enterApp();
-  } catch { showLogin(); }
+  // BYPASS LOGIN — auto-enter as Role 7 HQ (testing mode)
+  // Role 7 = sees all customers + sees all products (no warehouse filter)
+  // TODO: re-enable login later via showLogin()
+  currentUser = {
+    email: 'surat.rat@rattanaphaiboon.com',
+    name: 'สุรัตน์ รัตนไพบูลย์',
+    nickname: 'ภูมิ',
+    role: 7,
+    dept: 'IT',
+    company: 'รัตนไพบูลย์',
+    warehouse: 'HQ',
+    empId: 'AUTO',
+    bplusCode: '',
+    salesmanCode: '',
+  };
+  enterApp();
 }
 
 function showLogin() {
-  const appEl = document.getElementById('appScreen');
-  const loginEl = document.getElementById('loginScreen');
-  if (appEl) appEl.style.display = 'none';
-  if (loginEl) {
-    loginEl.style.display = 'flex';
-    loginEl.classList.add('show');
-  }
+  // Disabled in testing mode — redirect to auto-login
+  checkSession();
 }
 
 function showProfile() {
@@ -2272,9 +2293,11 @@ function searchSheetProducts(query, limit=50) {
 function visibleSheetCustomers() {
   if (!currentUser) return [];
   const list = SHEET_DATA.customers || [];
-  if (currentUser.role >= 7) return list;
+  // Role 6+ = Manager/Executive: see ALL customers
+  if (currentUser.role >= 6) return list;
+  // Role 5 = Supervisor: see own warehouse
   if (currentUser.role >= 5) return list.filter(c => c['WH'] === currentUser.warehouse);
-  // Role 3: own customers only
+  // Role 3-4: own customers only
   const myName = (currentUser.name || '').toLowerCase();
   return list.filter(c => String(c['เซลล์ผู้ดูแล']||'').toLowerCase().includes(myName));
 }
@@ -2566,75 +2589,8 @@ const GROUP_TARGETS = {
   ],
 };
 
-// Products: piece (ชิ้น) → pack (แพ็ค) → case (ลัง)
-// Each product has multiple category columns: brand, cat, segment
-const PRODUCTS = [
-  {
-    id:'P001', name:'น้ำดื่มสิงห์ 1.5L', emoji:'💧',
-    brand:'สิงห์', cat:'เครื่องดื่ม', segment:'mass',
-    packSize:6, caseSize:4,
-    price:{piece:15, pack:85, case:330}, minPrice:{piece:13, pack:80, case:315},
-    stock:{W1:240, W2:520, W3:180, W4:90},
-    tag:{type:'hot', text:'🔥 ขายดี'}
-  },
-  {
-    id:'P002', name:'มาม่า รสหมูสับ 60g', emoji:'🍜',
-    brand:'มาม่า', cat:'อาหารแห้ง', segment:'mass',
-    packSize:30, caseSize:6,
-    price:{piece:7, pack:200, case:1180}, minPrice:{piece:6.5, pack:195, case:1150},
-    stock:{W1:80, W2:140, W3:200, W4:120},
-    tag:{type:'hot', text:'🔥 ขายดี'},
-    promo:{text:'ซื้อ 5 ลัง แถม 1 แพ็ค'}
-  },
-  {
-    id:'P003', name:'เลย์ รสโนริสาหร่าย 75g', emoji:'🥔',
-    brand:'เลย์', cat:'ขนม', segment:'premium',
-    packSize:12, caseSize:6,
-    price:{piece:25, pack:288, case:1700}, minPrice:{piece:23, pack:280, case:1650},
-    stock:{W1:18, W2:65, W3:120, W4:42},
-    tag:{type:'warn', text:'⏰ ใกล้หมดอายุ'},
-    promo:{text:'ลด 10% ทั้ง lot'}
-  },
-  {
-    id:'P004', name:'โออิชิ ชาเขียว 500ml', emoji:'🍵',
-    brand:'โออิชิ', cat:'เครื่องดื่ม', segment:'mass',
-    packSize:24, caseSize:1,
-    price:{piece:20, pack:460, case:460}, minPrice:{piece:18, pack:440, case:440},
-    stock:{W1:60, W2:200, W3:35, W4:0},
-    tag:{type:'new', text:'🆕 สินค้าใหม่'}
-  },
-  {
-    id:'P005', name:'ผงซักฟอกบรีส 800g', emoji:'🧴',
-    brand:'บรีส', cat:'ของใช้ในบ้าน', segment:'mass',
-    packSize:1, caseSize:12,
-    price:{piece:75, pack:75, case:870}, minPrice:{piece:72, pack:72, case:850},
-    stock:{W1:45, W2:80, W3:30, W4:55},
-  },
-  {
-    id:'P006', name:'น้ำยาล้างจาน ซันไลต์ 500ml', emoji:'🧽',
-    brand:'ซันไลต์', cat:'ของใช้ในบ้าน', segment:'mass',
-    packSize:1, caseSize:24,
-    price:{piece:35, pack:35, case:790}, minPrice:{piece:33, pack:33, case:770},
-    stock:{W1:120, W2:60, W3:90, W4:35},
-    promo:{text:'ลด 5% ตลอดเดือน'}
-  },
-  {
-    id:'P007', name:'ไข่ไก่เบอร์ 2 (10 ฟอง)', emoji:'🥚',
-    brand:'ฟาร์มไทย', cat:'อาหารสด', segment:'mass',
-    packSize:1, caseSize:30,
-    price:{piece:48, pack:48, case:1380}, minPrice:{piece:45, pack:45, case:1350},
-    stock:{W1:32, W2:50, W3:40, W4:28},
-    promo:{text:'🎁 ซื้อ 10 แถม 1'}
-  },
-  {
-    id:'P008', name:'ผ้าอ้อมเด็กแพมเพอร์ส M-30', emoji:'👶',
-    brand:'แพมเพอร์ส', cat:'แม่และเด็ก', segment:'premium',
-    packSize:1, caseSize:6,
-    price:{piece:295, pack:295, case:1720}, minPrice:{piece:285, pack:285, case:1700},
-    stock:{W1:8, W2:25, W3:15, W4:12},
-    tag:{type:'low', text:'⚠️ สต็อกน้อย'}
-  },
-];
+// Products: now loaded EXCLUSIVELY from Sheet (no mock fallback)
+const PRODUCTS = [];
 
 // ─── CATEGORIES & TARGETS ───
 // Each category type can measure differently (amount or qty)
@@ -2671,68 +2627,8 @@ const NEAR_EXPIRY = [
   { productId:'P002', warehouseId:'W1', lotNo:'L2601', expiryDate:'2026-06-08', qty:15, daysLeft:35 },
 ];
 
-// Shops on today's route — ALL coordinates are real Thailand locations
-// Phone numbers are STRING (not number — preserve leading zero)
-let SHOPS = [
-  {
-    id:'SH001', name:'ร้านสมชาย มินิมาร์ท', addr:'อ.บ้านโป่ง ราชบุรี',
-    phone:'081-234-5678', priceLevel:'ส่ง',
-    lat:13.8194, lng:99.8722,
-    photo:'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=600&h=400&fit=crop',
-    monthTarget:25000, monthSales:8200, debt:3200,
-    lastVisit:'5 วันก่อน', status:'pending', inRoute:true,
-    pushList:['P001','P003','P005'],
-    suggested:[{id:'P002',qty:5,unit:'pack'},{id:'P006',qty:3,unit:'case'}],
-    distance:18,
-  },
-  {
-    id:'SH002', name:'ร้านป้านิด', addr:'อ.โพธาราม ราชบุรี',
-    phone:'089-123-4567', priceLevel:'ส่ง',
-    lat:13.6892, lng:99.8536,
-    photo:'https://images.unsplash.com/photo-1601599561213-832382fd07ba?w=600&h=400&fit=crop',
-    monthTarget:18000, monthSales:14500, debt:0,
-    lastVisit:'3 วันก่อน', status:'visited', inRoute:true,
-    pushList:['P002','P004'],
-    suggested:[{id:'P001',qty:8,unit:'pack'},{id:'P002',qty:3,unit:'case'}],
-    distance:0,
-    visitedAmount:12500,
-  },
-  {
-    id:'SH003', name:'ร้านน้องกอล์ฟ', addr:'อ.ดำเนินสะดวก ราชบุรี',
-    phone:'062-345-6789', priceLevel:'ปลีก',
-    lat:13.5189, lng:99.9533,
-    photo:'https://images.unsplash.com/photo-1628439742140-fa3a5057a23d?w=600&h=400&fit=crop',
-    monthTarget:12000, monthSales:3500, debt:1800,
-    lastVisit:'8 วันก่อน', status:'pending', inRoute:true,
-    pushList:['P001','P002','P007'],
-    suggested:[{id:'P003',qty:2,unit:'pack'}],
-    distance:42,
-  },
-  {
-    id:'SH004', name:'ร้านลุงทอง', addr:'อ.บางคนที สมุทรสงคราม',
-    phone:'084-567-8901', priceLevel:'ส่ง',
-    lat:13.4625, lng:100.0123,
-    photo:'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=600&h=400&fit=crop&sat=-50',
-    monthTarget:30000, monthSales:22000, debt:0,
-    lastVisit:'2 วันก่อน', status:'visited', inRoute:true,
-    pushList:['P005','P008'],
-    suggested:[],
-    distance:0,
-    visitedAmount:8500,
-  },
-  {
-    id:'SH005', name:'ร้านเจ๊แอน', addr:'อ.อัมพวา สมุทรสงคราม',
-    phone:'-', priceLevel:'ปลีก',
-    lat:13.4253, lng:99.9558,
-    photo:'',  // No photo — fallback to icon
-    monthTarget:8000, monthSales:0, debt:0,
-    lastVisit:'15 วันก่อน', status:'refused', inRoute:true,
-    pushList:[],
-    suggested:[],
-    distance:0,
-    refuseReason:'ปิดร้าน',
-  },
-];
+// Shops: loaded EXCLUSIVELY from Customer tab in Sheet (no mock)
+let SHOPS = [];
 
 // ═══════════════════════════════════════════════════════════
 // STATE
@@ -3775,57 +3671,86 @@ function showAllProducts() {
 function renderProductList(filterText = '') {
   const list = document.getElementById('productList');
   const titleEl = document.getElementById('productListTitle');
-  let products = PRODUCTS;
 
-  // Search filter
-  if (filterText) {
-    const q = filterText.toLowerCase();
-    products = PRODUCTS.filter(p =>
-      p.name.toLowerCase().includes(q) || p.cat.toLowerCase().includes(q)
-    );
+  // Use Sheet products (Top 200 by 30D avg in user's warehouse)
+  let products = getDefaultProductList();
+
+  // Search filter (across name, brand, group, codes)
+  if (filterText && filterText.trim()) {
+    const q = filterText.trim().toLowerCase();
+    products = SHEET_DATA.products.filter(p => {
+      const name = String(p['PRODUCT NAME']||'').toLowerCase();
+      const desc = String(p['DESCRIPTION']||'').toLowerCase();
+      const brand = String(p['CAT BRAND']||'').toLowerCase();
+      const grp = String(p['CAT GROUP']||'').toLowerCase();
+      const codeEA = String(p['CODE EA']||'');
+      const codeCS = String(p['CODE CS']||'');
+      return name.includes(q) || desc.includes(q) || brand.includes(q) || grp.includes(q)
+          || codeEA.includes(q) || codeCS.includes(q);
+    }).slice(0, 200);
     if (titleEl) titleEl.innerHTML = `<span class="sec-title-icon">🔍</span>ผลการค้นหา (${products.length})`;
   } else {
-    if (titleEl) titleEl.innerHTML = `<span class="sec-title-icon">📦</span>สินค้าทั้งหมด <span class="badge badge-gold" style="margin-left:6px">${products.length}</span>`;
+    if (titleEl) titleEl.innerHTML = `<span class="sec-title-icon">📦</span>สินค้าขายดี <span class="badge badge-gold" style="margin-left:6px">${products.length}</span>`;
   }
 
-  if (products.length === 0) {
-    list.innerHTML = '<div class="card text-center text-muted" style="padding:30px">ไม่พบสินค้า</div>';
+  if (!products.length) {
+    list.innerHTML = '<div class="card text-center text-muted" style="padding:30px">' +
+      (SHEET_DATA.products.length === 0
+        ? '⚠️ ยังไม่ได้โหลดสินค้า — กดปุ่ม 🔄 ด้านบนเพื่อโหลดใหม่<br><small>ตรวจ Sheet permission "Anyone with link can view"</small>'
+        : 'ไม่พบสินค้า') +
+      '</div>';
     return;
   }
 
+  // Render Sheet-shaped products (uses CODE EA as id, PRODUCT NAME, prices, stock by warehouse)
+  const wh = SALESMAN.warehouseId || 'W1';
   list.innerHTML = products.map(p => {
-    const ownStock = p.stock[SALESMAN.warehouseId] || 0;
-    const reserved = getReservedQty(p.id);
-    const available = ownStock - reserved;
+    const id = p['CODE EA'] || p['CODE CS'] || p['PRODUCT NAME'];
+    const name = p['PRODUCT NAME'] || '—';
+    const cat = [p['CAT BRAND'], p['CAT GROUP']].filter(Boolean).join(' · ') || '';
+    const ownStock = numv(p[`STOCK ${wh}`]);
+    const reserved = getReservedQty(id);
+    const available = Math.max(0, ownStock - reserved);
     const stockClass = available <= 0 ? 'out' : available < 20 ? 'low' : '';
-    const stockLabel = available <= 0 ? 'หมด' : `${available} ชิ้น`;
+    const stockLabel = available <= 0 ? 'หมด' : `${available} ลัง`;
 
-    const otherStock = WAREHOUSES.filter(w => w.id !== SALESMAN.warehouseId)
-      .map(w => `${w.name.substring(0,3)}:${p.stock[w.id]||0}`).join(' • ');
+    const otherStock = ['W1','W2','W3','W4','C4'].filter(w => w !== wh)
+      .map(w => `${w}:${numv(p[`STOCK ${w}`])}`).join(' • ');
 
-    const inCart = cart.some(c => c.productId === p.id);
-    const tagPill = p.tag ? `<span class="tag-pill tag-${p.tag.type}">${p.tag.text}</span>` : '';
-    const promoRibbon = p.promo ? `<div class="promo-ribbon">🎉 PROMO</div>` : '';
-    const promoLine = p.promo ? `<div style="font-size:11px;color:var(--danger);font-weight:700;margin-top:2px">🎉 ${p.promo.text}</div>` : '';
+    const inCart = cart.some(c => c.productId === id);
+    const priceEA = numv(p['PRICE S03 EA']) || numv(p['PRICE CC03 EA']);
+    const pricePA = numv(p['PRICE S03 PA']) || numv(p['PRICE CC03 PA']);
+    const priceCS = numv(p['PRICE S03 CS']) || numv(p['PRICE CC03 CS']);
+
+    const photoUrl = p['PHOTO_SQL'] || p['PHOTO'] || '';
+    const photoHtml = photoUrl
+      ? `<img src="${normalizePhotoThumb(photoUrl)}" style="width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0" loading="lazy" onerror="this.outerHTML='<div class=&quot;product-emoji&quot;>📦</div>'">`
+      : `<div class="product-emoji">📦</div>`;
 
     return `
-      <div class="product-card ${inCart ? 'in-cart' : ''}" onclick="openProductSmart('${p.id}')">
-        ${promoRibbon}
-        <div class="product-emoji">${p.emoji}</div>
+      <div class="product-card ${inCart ? 'in-cart' : ''}" onclick="openProductSmart('${id}')">
+        ${photoHtml}
         <div class="product-info">
-          <div class="product-name">${p.name}${tagPill}</div>
-          <div class="product-cat">${p.cat}</div>
-          ${promoLine}
+          <div class="product-name">${name}</div>
+          <div class="product-cat">${cat}</div>
           <div class="product-stock-row" style="margin-top:4px">
-            <span class="stock-own ${stockClass}">📦 คลังเรา: ${stockLabel}</span>
+            <span class="stock-own ${stockClass}">📦 ${SALESMAN.warehouse}: ${stockLabel}</span>
           </div>
-          <div class="stock-other">คลังอื่น: ${otherStock}</div>
-          <div class="product-price" style="margin-top:4px">฿ ${p.price.piece}/ชิ้น <span class="product-price-sub">• แพ็ค ฿${p.price.pack} • ลัง ฿${p.price.case}</span></div>
+          <div class="stock-other" style="font-size:10px;color:var(--muted)">${otherStock}</div>
+          <div class="product-price" style="margin-top:4px">฿ ${priceEA||'—'}/ชิ้น <span class="product-price-sub">• แพ็ค ฿${pricePA||'—'} • ลัง ฿${priceCS||'—'}</span></div>
         </div>
         <button class="product-add">${inCart ? '✓' : '+'}</button>
       </div>
     `;
   }).join('');
+}
+
+// Drive thumbnail helper
+function normalizePhotoThumb(url) {
+  if (!url) return '';
+  const m = String(url).match(/\/d\/([a-zA-Z0-9_-]{20,})/) || String(url).match(/[?&]id=([a-zA-Z0-9_-]{20,})/);
+  if (m) return `https://drive.google.com/thumbnail?id=${m[1]}&sz=w200`;
+  return url;
 }
 
 function filterProducts(text) {
@@ -4852,61 +4777,75 @@ function applyPriceFilter(products) {
 function renderPriceList() {
   const el = document.getElementById('productInfoResults');
   if (!el) return;
+
+  const totalLoaded = (SHEET_DATA.products || []).length;
   let list = getDefaultProductList();
   list = applyPriceFilter(list);
+
   if (list.length === 0) {
     el.innerHTML = `<div style="padding:48px 20px;text-align:center;color:var(--muted)">
       <div style="font-size:48px;margin-bottom:8px;opacity:.5">📦</div>
-      <div style="font-size:13px">ไม่พบสินค้าตรงตามกรอง</div>
+      <div style="font-size:13px;margin-bottom:8px">${
+        totalLoaded === 0
+          ? '⚠️ ยังไม่ได้โหลดสินค้าจาก Sheet'
+          : `โหลดได้ ${totalLoaded.toLocaleString()} SKU แต่ไม่ผ่านตัวกรอง`
+      }</div>
+      ${totalLoaded === 0
+        ? '<div style="font-size:11px">กดปุ่ม 🔄 ด้านบนเพื่อลองใหม่<br>ตรวจ Sheet permission "Anyone with link can view"</div>'
+        : '<div style="font-size:11px">ลองเปลี่ยนตัวกรองด้านบน หรือพิมพ์ค้นหา</div>'}
     </div>`;
     return;
   }
+
   // Cap to 60 in default view (no search)
   const capped = list.slice(0, 60);
   el.innerHTML = `
-    <div style="font-size:11px;color:var(--muted);margin:8px 0">${list.length > 60 ? 'แสดง 60 จาก '+list.length+' รายการ — พิมพ์ค้นหาเพื่อกรองเพิ่ม' : list.length+' รายการ'}</div>
+    <div style="font-size:11px;color:var(--muted);margin:8px 0">📦 รวม ${totalLoaded.toLocaleString()} SKU · แสดง ${capped.length} จาก ${list.length} หลังกรอง</div>
     ${capped.map((p, idx) => renderProductInfoCard(p, idx)).join('')}
   `;
 }
 
 function getDefaultProductList() {
-  if (SHEET_DATA.products.length > 0) {
-    // Top 60 by 30-day average sales of current warehouse
-    const wh = SALESMAN.warehouseId || 'W1';
-    return [...SHEET_DATA.products]
-      .filter(p => numv(p[`STOCK ${wh}`]) > 0)
-      .sort((a,b) => numv(b[`AVERAGE 30D_${wh}`]) - numv(a[`AVERAGE 30D_${wh}`]))
+  const all = SHEET_DATA.products || [];
+  if (all.length === 0) return [];
+
+  const wh = SALESMAN.warehouseId || 'W1';
+  const role = currentUser?.role || 3;
+
+  // Diagnostic: log column names once
+  if (!window._loggedProductCols) {
+    console.log('[products] sample columns:', Object.keys(all[0] || {}).slice(0, 30));
+    console.log('[products] sample row STOCK W1:', all[0]?.['STOCK W1'], 'AVG 30D:', all[0]?.['AVERAGE 30D_W1'], 'or:', all[0]?.['AVERAGE 30D W1']);
+    window._loggedProductCols = true;
+  }
+
+  // Helper: get 30D avg with column-name fallback (underscore vs space)
+  const get30D = (p, w) => numv(p[`AVERAGE 30D_${w}`]) || numv(p[`AVERAGE 30D ${w}`]) || numv(p[`AVG 30D ${w}`]);
+  const getStock = (p, w) => numv(p[`STOCK ${w}`]);
+
+  // Role 6+ (HQ/Manager): see ALL products, sorted by total 30D avg across all warehouses
+  if (role >= 6) {
+    return [...all]
+      .map(p => ({ p, score: ['W1','W2','W3','W4','C4'].reduce((s,w) => s + get30D(p, w), 0) }))
+      .sort((a,b) => b.score - a.score)
+      .slice(0, 200)
+      .map(x => x.p);
+  }
+
+  // Role 3-5: filter by own warehouse stock, sort by 30D avg
+  let list = all
+    .filter(p => getStock(p, wh) > 0)
+    .sort((a,b) => get30D(b, wh) - get30D(a, wh))
+    .slice(0, 200);
+
+  // Fallback: if warehouse filter is too aggressive, drop it
+  if (list.length === 0) {
+    console.warn(`[products] no stock in ${wh} — falling back to all`);
+    list = [...all]
+      .sort((a,b) => get30D(b, wh) - get30D(a, wh))
       .slice(0, 200);
   }
-  // Fall back to mock PRODUCTS shaped to look like Sheet rows
-  return PRODUCTS.slice(0, 30).map(p => ({
-    'PRODUCT NAME':  p.name,
-    'CAT BRAND':     p.brand,
-    'CAT GROUP':     p.cat,
-    'CAT BU':        p.cat,
-    'CODE EA':       p.id+'-EA',
-    'CODE PA':       p.packSize > 1 ? p.id+'-PA' : '',
-    'CODE BP':       '',
-    'CODE CS':       p.caseSize > 1 ? p.id+'-CS' : '',
-    'UNIT EA':       'ชิ้น',
-    'UNIT PA':       'แพ็ค',
-    'UNIT CS':       'ลัง',
-    'QTY EA':        '1',
-    'QTY PA':        String(p.packSize),
-    'QTY CS':        String(p.packSize * p.caseSize),
-    'PRICE S03 EA':  String(p.price.piece || 0),
-    'PRICE S03 PA':  String(p.price.pack || 0),
-    'PRICE S03 CS':  String(p.price.case || 0),
-    'PRICE S00 EA':  String(p.minPrice.piece || 0),
-    'PRICE S00 PA':  String(p.minPrice.pack || 0),
-    'PRICE S00 CS':  String(p.minPrice.case || 0),
-    'STOCK W1':      String(p.stock.W1 || 0),
-    'STOCK W2':      String(p.stock.W2 || 0),
-    'STOCK W3':      String(p.stock.W3 || 0),
-    'STOCK W4':      String(p.stock.W4 || 0),
-    'PHOTO':         '',
-    '_emoji':        p.emoji || '📦',
-  }));
+  return list;
 }
 
 let productInfoTimer = null;
@@ -5360,6 +5299,185 @@ function toggleDark() {
 
 // ═══════════════════════════════════════════════════════════
 // INIT
+// ═══════════════════════════════════════════════════════════
+// REFRESH + BARCODE SCANNER
+// ═══════════════════════════════════════════════════════════
+
+// Manual refresh: clear cache + re-fetch all data
+async function globalRefresh() {
+  const btn = document.getElementById('refreshBtn');
+  if (btn) btn.style.transform = 'rotate(360deg)';
+  showSpinner('กำลังโหลดข้อมูลใหม่...');
+  try {
+    await cacheClear();
+    await loadAllSheetData();
+    rerenderCurrentScreen();
+    console.log('[refresh] complete — products:', SHEET_DATA.products.length);
+  } catch (e) {
+    console.error('[refresh] error:', e);
+  } finally {
+    hideSpinner();
+    setTimeout(() => { if (btn) btn.style.transform = ''; }, 600);
+  }
+}
+window.globalRefresh = globalRefresh;
+
+// Auto-refresh products when app comes back to foreground (visibility change)
+// — gives Rattana Mart-like "real time" feel without polling
+let _lastRefreshAt = Date.now();
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && currentUser) {
+    const minutesSince = (Date.now() - _lastRefreshAt) / 60000;
+    if (minutesSince >= 1) {
+      // App was hidden 1+ min — silently refresh products
+      console.log('[visibility] refreshing after', minutesSince.toFixed(1), 'min hidden');
+      _lastRefreshAt = Date.now();
+      fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.productDetail)
+        .then(d => {
+          SHEET_DATA.products = d;
+          cacheSet('products', d);
+          console.log('[visibility] products refreshed:', d.length);
+          rerenderCurrentScreen();
+        })
+        .catch(e => console.warn('[visibility] refresh failed:', e.message));
+    }
+  }
+});
+
+// ═══ Barcode scanner (Html5Qrcode pattern) ═══
+let _qrScanner = null;
+let _scanContext = null;  // 'order' | 'price'
+
+function openBarcodeScanner(context) {
+  _scanContext = context || 'order';
+  // Build modal scanner UI
+  const modal = document.getElementById('productModal');
+  const content = document.getElementById('modalContent');
+  if (!modal || !content) return;
+  content.innerHTML = `
+    <div class="modal-handle"></div>
+    <div style="font-size:18px;font-weight:800;margin-bottom:6px;text-align:center">📷 สแกนบาร์โค้ด</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px;text-align:center">วางบาร์โค้ดในกรอบ — หากเบลอให้ถอยห่าง</div>
+    <div id="qrReader" style="width:100%;border-radius:12px;overflow:hidden;background:#000;min-height:280px"></div>
+    <div id="scanStatus" style="text-align:center;padding:12px;font-size:13px;color:var(--muted)">กำลังเปิดกล้อง...</div>
+    <div style="display:grid;gap:8px">
+      <input type="text" id="manualBarcode" placeholder="หรือพิมพ์บาร์โค้ดที่นี่"
+        style="width:100%;padding:12px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;font-family:inherit"
+        inputmode="numeric" autocomplete="off">
+      <button class="btn btn-primary btn-block" onclick="onManualBarcode()">ค้นหา</button>
+      <button class="btn btn-outline btn-block" onclick="closeBarcodeScanner()">ยกเลิก</button>
+    </div>
+  `;
+  modal.classList.add('active');
+
+  // Start scanner
+  if (typeof Html5Qrcode === 'undefined') {
+    document.getElementById('scanStatus').textContent = '⚠️ ไลบรารีสแกนยังโหลดไม่เสร็จ';
+    return;
+  }
+  setTimeout(() => startQrScanner(), 200);
+  // Bind enter on manual input
+  document.getElementById('manualBarcode').addEventListener('keydown', e => {
+    if (e.key === 'Enter') onManualBarcode();
+  });
+}
+window.openBarcodeScanner = openBarcodeScanner;
+
+async function startQrScanner() {
+  try {
+    if (_qrScanner) { try { await _qrScanner.stop(); } catch {} _qrScanner = null; }
+    _qrScanner = new Html5Qrcode('qrReader', { verbose:false, experimentalFeatures:{useBarCodeDetectorIfSupported:true} });
+    const config = {
+      fps: 25,
+      qrbox: { width: 280, height: 160 },
+      aspectRatio: 1.7777,
+      videoConstraints: { facingMode: { ideal: 'environment' } },
+      formatsToSupport: [
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.UPC_A,
+        Html5QrcodeSupportedFormats.UPC_E,
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.ITF,
+      ]
+    };
+    await _qrScanner.start({ facingMode: 'environment' }, config, (decoded) => onBarcodeFound(decoded), () => {});
+    document.getElementById('scanStatus').textContent = 'พร้อมสแกน — วางบาร์โค้ดในกรอบ';
+    document.getElementById('scanStatus').style.color = 'var(--success)';
+  } catch (e) {
+    console.error('[scan] error:', e);
+    document.getElementById('scanStatus').textContent = '⚠️ เปิดกล้องไม่ได้ — พิมพ์บาร์โค้ดด้านล่างแทน';
+    document.getElementById('scanStatus').style.color = 'var(--danger)';
+  }
+}
+
+function onManualBarcode() {
+  const v = document.getElementById('manualBarcode').value.trim();
+  if (v) onBarcodeFound(v);
+}
+window.onManualBarcode = onManualBarcode;
+
+async function closeBarcodeScanner() {
+  if (_qrScanner) {
+    try { await _qrScanner.stop(); } catch {}
+    try { _qrScanner.clear(); } catch {}
+    _qrScanner = null;
+  }
+  closeModal();
+}
+window.closeBarcodeScanner = closeBarcodeScanner;
+
+function onBarcodeFound(code) {
+  console.log('[scan] found:', code);
+  if (navigator.vibrate) navigator.vibrate(60);
+
+  // Find product by ANY barcode column (CODE EA/PA/BP/CS or RATTANA UNIT *)
+  const trimmed = String(code).trim();
+  const product = SHEET_DATA.products.find(p =>
+    String(p['CODE EA']||'').trim() === trimmed ||
+    String(p['CODE PA']||'').trim() === trimmed ||
+    String(p['CODE BP']||'').trim() === trimmed ||
+    String(p['CODE CS']||'').trim() === trimmed
+  );
+
+  closeBarcodeScanner();
+
+  if (!product) {
+    showToast(`ไม่พบบาร์โค้ด ${trimmed}`, 'error');
+    return;
+  }
+
+  // Detect which unit barcode matched (so modal pre-selects it)
+  let unit = 'EA';
+  if (String(product['CODE CS']||'').trim() === trimmed) unit = 'CS';
+  else if (String(product['CODE BP']||'').trim() === trimmed) unit = 'BP';
+  else if (String(product['CODE PA']||'').trim() === trimmed) unit = 'PA';
+
+  const id = product['CODE EA'] || product['CODE CS'] || product['PRODUCT NAME'];
+  console.log('[scan] matched:', product['PRODUCT NAME'], 'unit:', unit);
+
+  if (_scanContext === 'price') {
+    // Price tab — open detail modal
+    if (typeof openPriceDetail === 'function') openPriceDetail(id);
+    else if (typeof openProductSmart === 'function') openProductSmart(id);
+  } else {
+    // Order context — open product modal
+    if (typeof openProductSmart === 'function') openProductSmart(id);
+  }
+}
+
+// Simple toast (if not already defined)
+if (typeof showToast !== 'function') {
+  window.showToast = function(msg, type) {
+    const t = document.createElement('div');
+    t.style.cssText = `position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:${type==='error'?'#e74c3c':'#27ae60'};color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;z-index:99999;box-shadow:0 4px 16px rgba(0,0,0,.3)`;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+  };
+}
+
 // ═══════════════════════════════════════════════════════════
 window.addEventListener('load', () => {
   if (localStorage.getItem('rattanaDark') === 'true') {
