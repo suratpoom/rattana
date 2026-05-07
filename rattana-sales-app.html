@@ -4,10 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Sales — v1.5 Sheet-Powered Edition</title>
+<title>Rattana Sales — v1.6 Sheet-Powered Edition</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root {
   --navy: #0d1b3e;
@@ -738,61 +739,22 @@ body.dark .text-gold { color: var(--gold-light); }
 .flex-row { display: flex; align-items: center; gap: 8px; }
 .flex-between { display: flex; justify-content: space-between; align-items: center; }
 
-/* ─── DESKTOP PHONE FRAME (PC viewing mobile) ─── */
-@media (min-width: 600px) {
+/* ─── DESKTOP LAYOUT (PC viewing) ─── */
+@media (min-width: 768px) {
   body {
-    background: #0a0e1a;
-    background-image:
-      radial-gradient(circle at 25% 20%, rgba(201,168,76,0.08), transparent 45%),
-      radial-gradient(circle at 75% 75%, rgba(36,59,115,0.4), transparent 55%);
+    background: var(--bg);
     min-height: 100vh;
   }
   .app-shell {
-    max-width: 414px;
-    margin: 24px auto;
-    height: calc(100vh - 48px);
-    min-height: auto;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    background: var(--bg);
-    box-shadow:
-      0 0 0 10px #1a1d2e,
-      0 0 0 12px #0a0e1a,
-      0 30px 80px rgba(0,0,0,0.6),
-      0 0 60px rgba(201,168,76,0.05);
-    border-radius: 38px;
-    /* transform creates a containing block — position:fixed children become relative to .app-shell */
-    transform: translateZ(0);
-    /* Belt-and-suspenders clipping for stubborn browsers */
-    contain: paint;
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 24px 76px;
+    min-height: 100dvh;
   }
-  body.dark .app-shell {
-    box-shadow:
-      0 0 0 10px #2a2d3e,
-      0 0 0 12px #0a0e1a,
-      0 30px 80px rgba(0,0,0,0.7),
-      0 0 80px rgba(201,168,76,0.08);
+  .kpi-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
   }
-  /* slim scrollbar for the phone frame */
-  .app-shell::-webkit-scrollbar { width: 6px; }
-  .app-shell::-webkit-scrollbar-track { background: transparent; }
-  .app-shell::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
-  body.dark .app-shell::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); }
-  /* Mobile preview hint label */
-  body::before {
-    content: "📱 Mobile Preview (414px) — scroll inside the frame";
-    position: fixed;
-    top: 16px;
-    left: 16px;
-    color: rgba(255,255,255,.4);
-    font-family: 'Sarabun', sans-serif;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: .5px;
-    z-index: 1;
-    pointer-events: none;
-  }
+  .modal { max-width: 480px !important; }
 }
 </style>
 </head>
@@ -834,7 +796,7 @@ body.dark .text-gold { color: var(--gold-light); }
       <button onclick="loginDemo(3)" style="display:block;width:100%;background:rgba(201,168,76,.15);color:#fff;border:1px solid rgba(201,168,76,.35);padding:10px 12px;border-radius:8px;font-size:12px;font-weight:600;text-align:left;font-family:inherit;cursor:pointer">🛒 Role 3 — Sales W1 (PMW101)</button>
     </div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v1.5 · 2026-05-07</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v1.6 · 2026-05-07</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -845,7 +807,7 @@ body.dark .text-gold { color: var(--gold-light); }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v1.5</span>
+  <span class="demo-tag">v1.6</span>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
 </header>
 
@@ -896,6 +858,11 @@ body.dark .text-gold { color: var(--gold-light); }
   <div class="drawer-divider"></div>
 
   <div class="drawer-section-title">อื่นๆ</div>
+  <button class="drawer-item" onclick="closeDrawer();showProfile()">
+    <span class="drawer-item-icon">👤</span>
+    <span class="drawer-item-label">โปรไฟล์ของฉัน</span>
+    <span class="drawer-item-arrow">›</span>
+  </button>
   <button class="drawer-item" onclick="closeDrawer();refreshAll()">
     <span class="drawer-item-icon">🔄</span>
     <span class="drawer-item-label">โหลดข้อมูลใหม่</span>
@@ -910,7 +877,7 @@ body.dark .text-gold { color: var(--gold-light); }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v1.5<br>2026-05-07</div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v1.6<br>2026-05-07</div>
   </div>
 </aside>
 
@@ -1316,15 +1283,15 @@ body.dark .text-gold { color: var(--gold-light); }
 <nav class="bottom-nav">
   <button class="bnav-item active" id="navHome" onclick="goHome()"><span class="ico">🏠</span>หน้าหลัก</button>
   <button class="bnav-item" id="navRoute" onclick="goRoute()"><span class="ico">📍</span>รูท</button>
-  <button class="bnav-item" id="navOrders" onclick="goOrders()"><span class="ico">📋</span>ออเดอร์วันนี้</button>
-  <button class="bnav-item" id="navProfile" onclick="showToast('โปรไฟล์ — จะเพิ่มภายหลัง','info')"><span class="ico">👤</span>โปรไฟล์</button>
+  <button class="bnav-item" id="navOrders" onclick="goOrders()"><span class="ico">📋</span>ออเดอร์</button>
+  <button class="bnav-item" id="navPrice" onclick="goProductInfo()"><span class="ico">💰</span>ดูราคา</button>
 </nav>
 
 </div><!-- /.app-shell -->
 
 <script>
 // ═══════════════════════════════════════════════════════════
-// v1.5 — SHEET-POWERED EDITION · 2026-05-07
+// v1.6 — SHEET-POWERED EDITION · 2026-05-07
 // ═══════════════════════════════════════════════════════════
 
 const CONFIG = {
@@ -1575,6 +1542,34 @@ function showLogin() {
     loginEl.style.display = 'flex';
     loginEl.classList.add('show');
   }
+}
+
+function showProfile() {
+  const u = currentUser || {};
+  const html = `
+    <div class="modal-handle"></div>
+    <div style="text-align:center;padding:8px 0 14px">
+      <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#c89942);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:32px;color:#fff;font-weight:700">${(u.nickname||u.name||'?').charAt(0)}</div>
+      <div style="font-size:18px;font-weight:800">${u.name || '—'}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px">${u.nickname ? 'คุณ'+u.nickname : ''}</div>
+    </div>
+
+    <div style="background:var(--row-alt);border-radius:10px;padding:12px;margin-bottom:12px;font-size:12px;line-height:2">
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">📧 Email</span><strong>${u.email || '—'}</strong></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">🏷️ รหัสเซลล์</span><strong>${u.salesmanCode || u.empId || '—'}</strong></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">🏭 คลัง</span><strong>${SALESMAN.warehouse || u.warehouse || '—'}</strong></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">📊 Role</span><strong>${u.role || '—'}</strong></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">🏢 บริษัท</span><strong>${u.company || 'รัตนไพบูลย์'}</strong></div>
+      ${u.dept ? `<div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">🗂️ แผนก</span><strong>${u.dept}</strong></div>` : ''}
+    </div>
+
+    <div style="display:grid;gap:8px">
+      <button class="btn btn-outline btn-block" onclick="closeModal();logout()" style="color:var(--danger);border-color:var(--danger)">🚪 ออกจากระบบ</button>
+      <button class="btn btn-outline btn-block" onclick="closeModal()">ปิด</button>
+    </div>
+  `;
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('productModal').classList.add('active');
 }
 
 function logout() {
@@ -2650,6 +2645,7 @@ function showScreen(id) {
   if (id === 'screenHome') document.getElementById('navHome').classList.add('active');
   else if (id === 'screenRoute') document.getElementById('navRoute').classList.add('active');
   else if (id === 'screenOrders') document.getElementById('navOrders').classList.add('active');
+  else if (id === 'screenProductInfo') { const el = document.getElementById('navPrice'); if (el) el.classList.add('active'); }
 }
 
 function goHome() { renderHomeDashboard(); showScreen('screenHome'); updateCartBar(); }
