@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>Rattana Product Photos v3.2</title>
+<title>Rattana Product Photos v3.3</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -287,6 +287,19 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 /* Unit count summary */
 .unit-summary{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .unit-summary .uc{font-size:11px;padding:2px 8px;border-radius:8px;font-weight:600}
+
+/* Include-photographed toggle row */
+.incl-photo-row{display:none;align-items:center;gap:10px;margin-top:10px;padding:9px 12px;background:var(--row-alt);border-radius:8px;font-size:13px;color:var(--text);cursor:pointer;border:1px solid var(--border);user-select:none;-webkit-tap-highlight-color:transparent}
+.incl-photo-row.show{display:flex}
+.incl-photo-row:hover{border-color:var(--gold)}
+.incl-photo-row input[type=checkbox]{cursor:pointer;width:18px;height:18px;accent-color:var(--gold);flex-shrink:0;margin:0}
+.incl-photo-row .label{flex:1}
+.incl-photo-row .count-badge{font-size:11px;color:var(--muted);font-weight:600}
+
+/* Photographed item style (when toggle on, show with muted look) */
+.dd-list li.photographed{opacity:.55;background:var(--row-alt)}
+.dd-list li.photographed .pname{color:var(--muted)}
+.photo-flag{margin-left:auto;font-size:13px;flex-shrink:0;padding-left:6px}
 </style>
 </head>
 <body>
@@ -346,7 +359,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 <div id="loginScreen">
   <div class="login-card">
     <div class="logo-big">RATTANA <span>PRODUCT PHOTOS</span></div>
-    <div class="sub">รัตนไพบูลย์ · v3.2</div>
+    <div class="sub">รัตนไพบูลย์ · v3.3</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -359,7 +372,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 <!-- App Screen -->
 <div id="appScreen" class="page" style="display:none">
   <header>
-    <div class="logo-text">RATTANA <span>PRODUCT PHOTOS</span><span class="ver">v3.2 · 2026-05-07</span></div>
+    <div class="logo-text">RATTANA <span>PRODUCT PHOTOS</span><span class="ver">v3.3 · 2026-05-07</span></div>
     <button class="icon-btn" onclick="refreshAll()" title="รีเฟรช" id="btnRefresh">⟳</button>
     <button class="icon-btn" onclick="toggleDark()" title="โหมดมืด">🌓</button>
     <button class="icon-btn" onclick="logout()" title="ออก">⏻</button>
@@ -417,9 +430,15 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
             </div>
           </div>
           <div style="margin-top:10px;font-size:12px;color:var(--muted)">
-            รวม <b id="productCount">0</b> รายการ (สินค้า × หน่วย)
+            พร้อมถ่าย <b id="productCount">0</b> รายการ
+            <span id="photographedHint" style="display:none"> · ถ่ายแล้ว <b id="photographedHintCount">0</b></span>
             <div class="unit-summary" id="unitSummary"></div>
           </div>
+          <label class="incl-photo-row" id="toggleInclPhotoWrap">
+            <input type="checkbox" id="toggleInclPhoto" onchange="onToggleInclPhoto(this.checked)">
+            <span class="label">📸 แสดงสินค้าที่ถ่ายแล้วด้วย</span>
+            <span class="count-badge">(<span id="photoCount">0</span> รายการ)</span>
+          </label>
         </div>
       </div>
 
@@ -608,7 +627,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
     </div>
 
     <div class="app-footer">
-      Rattana Product Photos · <span class="ver">v3.2</span> · 2026-05-07
+      Rattana Product Photos · <span class="ver">v3.3</span> · 2026-05-07
     </div>
   </div>
 </div>
@@ -695,6 +714,11 @@ let removeBgEnabled = true;
 let productsLoaded = false;
 const INITIAL_DISPLAY_LIMIT = 300;   // เมื่อยังไม่ค้นหา จะแสดงแค่ N ตัวแรก
 const SEARCH_DISPLAY_LIMIT  = 500;   // เมื่อค้นหา จะแสดงผลลัพธ์สูงสุดเท่านี้
+
+// Photographed tracking — ซ่อนสินค้าที่มีรูปใน PhotoLog แล้ว
+let photographedNames = new Set();   // normalized product names that already have photos
+let includePhotographed = false;     // toggle: false = ซ่อน, true = แสดงทั้งหมด
+const normName = s => String(s||'').replace(/\s+/g,' ').trim().toLowerCase();
 
 // ═══════════════════════════════════════════════════════════════════
 // Helpers
@@ -855,13 +879,25 @@ async function initApp() {
 
   // Load products in background (don't block UI)
   loadProducts()
-    .then(() => {
+    .then(async () => {
       productsLoaded = true;
+      renderProducts();  // initial render with all products
+      // Load photographed list (background) → re-render to hide already-shot products
+      try {
+        await loadPhotographedSet();
+      } catch (e) {
+        console.warn('loadPhotographedSet failed:', e);
+      }
+      renderProducts();  // re-render with hidden filter applied
       setLoading(false);
       setProductsLoading(false);
-      renderProducts();
       if (products.length > 0) {
-        showToast(`โหลดสินค้าเสร็จ ${products.length.toLocaleString()} รายการ`, 'success');
+        const hidden = countHiddenEntries();
+        const visible = products.length - hidden;
+        const msg = hidden > 0
+          ? `พร้อมถ่าย ${visible.toLocaleString()} · ถ่ายแล้ว ${hidden.toLocaleString()}`
+          : `โหลดสินค้าเสร็จ ${products.length.toLocaleString()} รายการ`;
+        showToast(msg, 'success');
       }
     })
     .catch(e => {
@@ -931,10 +967,13 @@ window.refreshAll = async function() {
   productsLoaded = false;
   try {
     await loadProducts();
+    await loadPhotographedSet();
     productsLoaded = true;
     renderProducts();
     if ($('tab-history').classList.contains('active')) await loadHistory();
-    showToast(`รีเฟรชเสร็จ ${products.length.toLocaleString()} รายการ`, 'success');
+    const hidden = countHiddenEntries();
+    const visible = products.length - hidden;
+    showToast(`รีเฟรช ✓ พร้อมถ่าย ${visible.toLocaleString()} · ถ่ายแล้ว ${hidden.toLocaleString()}`, 'success');
   } catch (e) {
     showToast('รีเฟรชไม่สำเร็จ: ' + e.message, 'error');
   } finally {
@@ -1029,6 +1068,52 @@ function countByUnit(rawData) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// Photographed set — โหลดชื่อสินค้าที่มีรูปแล้วจาก PhotoLog เพื่อซ่อนใน dropdown
+// ═══════════════════════════════════════════════════════════════════
+async function loadPhotographedSet() {
+  photographedNames.clear();
+  if (CONFIG.logSheetId.startsWith('YOUR_')) return;
+  try {
+    const data = await loadFromSheets(CONFIG.logSheetId, CONFIG.logTab);
+    for (const row of data) {
+      const name = row['productName'] || row['name'] || '';
+      if (name) photographedNames.add(normName(name));
+    }
+  } catch (e) {
+    console.warn('Load PhotoLog set failed:', e);
+    // Don't throw — non-critical
+  }
+}
+
+// ค่าจริง = ถูกซ่อนเมื่อไม่ติ๊ก toggle "รวมสินค้าที่ถ่ายแล้ว"
+function isHidden(p) {
+  return !includePhotographed && photographedNames.has(normName(p.name));
+}
+
+function isPhotographedEntry(p) {
+  return photographedNames.has(normName(p.name));
+}
+
+function countHiddenEntries() {
+  let n = 0;
+  for (const p of products) {
+    if (photographedNames.has(normName(p.name))) n++;
+  }
+  return n;
+}
+
+window.onToggleInclPhoto = function(checked) {
+  includePhotographed = checked;
+  // Re-apply current view: if searching → re-filter, else → re-render
+  const searchVal = ($('ddProductSearch').value || '').trim();
+  if (searchVal) {
+    filterProducts($('ddProductSearch'));
+  } else {
+    renderProducts();
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════
 // Products dropdown — multi-barcode v3.0
 // ═══════════════════════════════════════════════════════════════════
 async function loadProducts() {
@@ -1057,22 +1142,45 @@ async function loadProducts() {
   }
 }
 
-function buildItemHtml(p, i) {
+function buildItemHtml(p, i, isPhotographed) {
   const packLine = p.unitPack ? `<span class="pack-info">${escapeHtml(p.unitPack)}</span>` : '';
-  return `<li data-idx="${i}">
+  const photoFlag = isPhotographed ? `<span class="photo-flag" title="ถ่ายรูปแล้ว">📸</span>` : '';
+  const cls = isPhotographed ? ' class="photographed"' : '';
+  return `<li data-idx="${i}"${cls}>
     <div class="name-line">
       <span class="pname">${escapeHtml(p.name)}</span>
       <span class="unit-pill unit-${p.unitCode}">${p.unitCode}</span>
+      ${photoFlag}
     </div>
     <span class="bc">${escapeHtml(p.barcode)} ${packLine ? '· ' + packLine : ''}</span>
   </li>`;
 }
 
 function renderProducts() {
-  $('productCount').textContent = products.length.toLocaleString();
-  // Unit summary
+  // Count visible/hidden + unit summary (use only visible items for unit count)
+  let visibleCount = 0;
+  let hiddenCount = 0;
   const byUnit = {};
-  for (const p of products) byUnit[p.unitCode] = (byUnit[p.unitCode]||0) + 1;
+  for (const p of products) {
+    const hidden = isHidden(p);
+    if (hidden) {
+      hiddenCount++;
+    } else {
+      visibleCount++;
+      byUnit[p.unitCode] = (byUnit[p.unitCode]||0) + 1;
+    }
+  }
+
+  $('productCount').textContent = visibleCount.toLocaleString();
+
+  // Photographed-related counters: count of all entries that match a photographed name
+  const totalPhotographed = countHiddenEntries();
+  const showHint = totalPhotographed > 0;
+  $('photographedHint').style.display = showHint ? 'inline' : 'none';
+  $('photographedHintCount').textContent = totalPhotographed.toLocaleString();
+  $('photoCount').textContent = totalPhotographed.toLocaleString();
+  $('toggleInclPhotoWrap').classList.toggle('show', showHint);
+
   $('unitSummary').innerHTML = CONFIG.units.map(u => {
     const n = byUnit[u.code] || 0;
     if (n === 0) return '';
@@ -1084,15 +1192,22 @@ function renderProducts() {
     ul.innerHTML = '<li class="no-result">ไม่มีข้อมูลสินค้า</li>';
     return;
   }
-
-  // Show only first N items initially — rest visible after search
-  const limit = Math.min(products.length, INITIAL_DISPLAY_LIMIT);
-  let html = '';
-  for (let i = 0; i < limit; i++) {
-    html += buildItemHtml(products[i], i);
+  if (visibleCount === 0) {
+    ul.innerHTML = '<li class="no-result">✓ ถ่ายรูปครบทุกตัวแล้ว — ติ๊ก "📸 แสดงสินค้าที่ถ่ายแล้วด้วย" เพื่อถ่ายซ้ำ</li>';
+    return;
   }
-  if (products.length > limit) {
-    const more = products.length - limit;
+
+  // Show only first N visible items initially
+  let html = '';
+  let shown = 0;
+  for (let i = 0; i < products.length && shown < INITIAL_DISPLAY_LIMIT; i++) {
+    const p = products[i];
+    if (isHidden(p)) continue;
+    html += buildItemHtml(p, i, isPhotographedEntry(p));
+    shown++;
+  }
+  if (visibleCount > shown) {
+    const more = visibleCount - shown;
     html += `<li class="no-result">+ อีก ${more.toLocaleString()} รายการ — พิมพ์ค้นหาเพื่อดูทั้งหมด</li>`;
   }
   ul.innerHTML = html;
@@ -1129,6 +1244,7 @@ window.filterProducts = function(inp) {
   const matches = [];
   for (let i = 0; i < products.length; i++) {
     const p = products[i];
+    if (isHidden(p)) continue;  // skip photographed when toggle off
     const haystack = (p.barcode + ' ' + p.name + ' ' + p.unitCode + ' ' + (p.unitPack||'')).toLowerCase();
     if (haystack.includes(q)) {
       matches.push(i);
@@ -1137,7 +1253,10 @@ window.filterProducts = function(inp) {
   }
 
   if (matches.length === 0) {
-    ul.innerHTML = `<li class="no-result no-result-msg">ไม่พบสินค้าที่ตรงกับ "${escapeHtml(q)}"</li>`;
+    const hint = (!includePhotographed && photographedNames.size > 0)
+      ? `ไม่พบสินค้าที่ตรงกับ "${escapeHtml(q)}" — อาจถ่ายแล้ว ลองติ๊ก "📸 แสดงสินค้าที่ถ่ายแล้วด้วย"`
+      : `ไม่พบสินค้าที่ตรงกับ "${escapeHtml(q)}"`;
+    ul.innerHTML = `<li class="no-result no-result-msg">${hint}</li>`;
     return;
   }
 
@@ -1145,7 +1264,8 @@ window.filterProducts = function(inp) {
   const showCount = Math.min(matches.length, SEARCH_DISPLAY_LIMIT);
   for (let k = 0; k < showCount; k++) {
     const i = matches[k];
-    html += buildItemHtml(products[i], i);
+    const p = products[i];
+    html += buildItemHtml(p, i, isPhotographedEntry(p));
   }
   if (matches.length > SEARCH_DISPLAY_LIMIT) {
     html += `<li class="no-result">+ มีผลลัพธ์มากกว่า ${SEARCH_DISPLAY_LIMIT} รายการ — พิมพ์ละเอียดขึ้น</li>`;
@@ -1744,6 +1864,9 @@ window.saveToCloud = async function() {
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || 'Upload failed');
 
+    // Mark as photographed immediately (don't wait for next refresh)
+    photographedNames.add(normName(selectedProduct.name));
+
     showToast(`บันทึกสำเร็จ ✓ ${filename}`, 'success');
     setTimeout(() => resetAll(), 600);
   } catch (e) {
@@ -1769,6 +1892,7 @@ function blobToBase64(blob) {
 }
 
 window.resetAll = function() {
+  // Photo state
   originalImageBlob = null;
   originalImageDataUrl = null;
   transparentBlob = null;
@@ -1776,9 +1900,22 @@ window.resetAll = function() {
   processedImageDataUrl = null;
   autoDetectedAngle = 0;
   userRotation = 0;
+
+  // Selected product + search box
+  selectedProduct = null;
+  $('ddProductLabel').textContent = '— เลือกสินค้า —';
+  $('selectedChip').style.display = 'none';
+  $('ddProductSearch').value = '';
+  $('ddClearBtn').classList.remove('show');
+  $('ddProductPanel').style.display = 'none';
+  if (productsLoaded) renderProducts();  // re-render so just-photographed item is hidden
+
+  // Dimension fields
   ['dimWeight','dimWidth','dimLength','dimHeight'].forEach(id => {
     const el = $(id); if (el) el.value = '';
   });
+
+  // Photo zones
   const oz = $('originalZone');
   oz.classList.remove('has-image');
   oz.innerHTML = '<div class="placeholder-icon">📷</div><div>ยังไม่มีรูป</div><div style="font-size:12px;margin-top:4px">ถ่ายรูป หรือเลือกจากเครื่อง</div>';
@@ -1788,6 +1925,10 @@ window.resetAll = function() {
   $('progressText').style.display = 'none';
   $('rotateControls').style.display = 'none';
   $('editorButtons').style.display = 'none';
+
+  // Filename preview
+  $('filenamePreview').textContent = 'ยังไม่ได้เลือกสินค้า';
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
