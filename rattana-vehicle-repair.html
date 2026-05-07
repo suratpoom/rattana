@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Vehicle Repair v2.3</title>
+<title>Rattana Vehicle Repair v2.4</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
@@ -290,7 +290,7 @@ body.dark .vsum-stat.count .vs-value{color:#e8eaf0}
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
     <div class="login-logo">RATTANA<span> · </span>REPAIR</div>
-    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v2.3</div>
+    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v2.4</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -732,13 +732,15 @@ async function handleGoogleLogin(r) {
     }
 
     // Map User Role → approvalStage
-    // MGT  = stage 1 (หัวหน้า/HR)
-    // All  = stage 2 (ผู้บริหาร)
-    // อื่นๆ = 0 (ไม่อนุมัติ)
+    // รองรับทั้ง string label และเลข:
+    //   MGT, 5, 6  → stage 1 (หัวหน้า/HR)
+    //   All, 7     → stage 2 (ผู้บริหาร)
+    //   อื่นๆ       → 0 (ไม่อนุมัติ)
     const roleRaw = String(user['User Role']||'').replace(/[\u200B\u200C\u200D\uFEFF\u00A0\s]/g,'').trim().toUpperCase();
+    const roleNum = parseInt(roleRaw);
     let approvalStage = 0;
-    if (roleRaw === 'MGT')      approvalStage = 1;
-    else if (roleRaw === 'ALL') approvalStage = 2;
+    if (roleRaw === 'MGT' || roleNum === 5 || roleNum === 6)      approvalStage = 1;
+    else if (roleRaw === 'ALL' || roleNum === 7)                  approvalStage = 2;
 
     console.log('[login]', email, '→ User Role:', JSON.stringify(user['User Role']),
                 '→ cleaned:', roleRaw, '→ approvalStage:', approvalStage);
@@ -798,8 +800,8 @@ async function enterApp() {
           ? 'รายการรออนุมัติ — ขั้นที่ 1 (หัวหน้า / ฝ่ายทรัพยากรบุคคล)'
           : 'รายการรออนุมัติทั้งหมด');
   }
-  // Tab ทั้งหมด: ผู้บริหาร (All) เท่านั้น
-  if (u.role === 'ALL') $('tabAll').classList.remove('hidden');
+  // Tab ทั้งหมด: ผู้บริหาร (All / role 7) เท่านั้น
+  if (u.role === 'ALL' || u.role === '7' || parseInt(u.role) === 7) $('tabAll').classList.remove('hidden');
   await loadAllData();
 }
 
@@ -943,8 +945,9 @@ function isAdminUser() {
   if (!currentUser) return false;
   const w = cleanCode(currentUser.warehouse);
   const role = String(currentUser.role||'').toUpperCase();
+  const roleNum = parseInt(role);
   // admin conditions:
-  if (role === 'ALL') return true;          // ผู้บริหาร = admin (เห็นทุกคลัง)
+  if (role === 'ALL' || roleNum === 7) return true;   // ผู้บริหาร = admin (เห็นทุกคลัง)
   if (!w) return true; // ไม่ระบุคลัง = admin
   // HQ variants: HQ, HEADQUARTER, OFFICE, ADMIN, MAIN
   if (w === 'HQ' || w.includes('HQ') || w === 'HEADQUARTER' || w === 'OFFICE' || w === 'ADMIN' || w === 'MAIN') return true;
