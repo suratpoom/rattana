@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Sales — v1.9 Sheet-Powered Edition</title>
+<title>Rattana Sales — v2.0 Sheet-Powered Edition</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -796,7 +796,7 @@ body.dark .text-gold { color: var(--gold-light); }
       <button onclick="loginDemo(3)" style="display:block;width:100%;background:rgba(201,168,76,.15);color:#fff;border:1px solid rgba(201,168,76,.35);padding:10px 12px;border-radius:8px;font-size:12px;font-weight:600;text-align:left;font-family:inherit;cursor:pointer">🛒 Role 3 — Sales W1 (PMW101)</button>
     </div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v1.9 · 2026-05-07</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v2.0 · 2026-05-07</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -807,7 +807,7 @@ body.dark .text-gold { color: var(--gold-light); }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v1.9</span>
+  <span class="demo-tag">v2.0</span>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
 </header>
 
@@ -877,7 +877,7 @@ body.dark .text-gold { color: var(--gold-light); }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v1.9<br>2026-05-07</div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v2.0<br>2026-05-07</div>
   </div>
 </aside>
 
@@ -1289,7 +1289,7 @@ body.dark .text-gold { color: var(--gold-light); }
 
 <script>
 // ═══════════════════════════════════════════════════════════
-// v1.9 — SHEET-POWERED EDITION · 2026-05-07
+// v2.0 — SHEET-POWERED EDITION · 2026-05-07
 // ═══════════════════════════════════════════════════════════
 
 const CONFIG = {
@@ -1371,21 +1371,99 @@ async function fetchSheet(sheetId, sheetName) {
   return parseCsv(await res.text());
 }
 
-const cacheGet = (key, ttl) => {
+// Cache layer — uses IndexedDB for large keys (products, customers), localStorage for small keys
+const LARGE_KEYS = new Set(['products', 'customers']);  // > 5MB → use IndexedDB
+
+let _idbPromise = null;
+function getIdb() {
+  if (_idbPromise) return _idbPromise;
+  _idbPromise = new Promise((resolve, reject) => {
+    if (!window.indexedDB) return resolve(null);
+    const req = indexedDB.open('rsa_cache', 1);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('cache')) db.createObjectStore('cache');
+    };
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror = () => resolve(null);  // fall back gracefully
+  });
+  return _idbPromise;
+}
+
+async function idbGet(key) {
+  const db = await getIdb();
+  if (!db) return null;
+  return new Promise(resolve => {
+    try {
+      const tx = db.transaction('cache', 'readonly');
+      const req = tx.objectStore('cache').get(key);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => resolve(null);
+    } catch { resolve(null); }
+  });
+}
+
+async function idbSet(key, value) {
+  const db = await getIdb();
+  if (!db) return false;
+  return new Promise(resolve => {
+    try {
+      const tx = db.transaction('cache', 'readwrite');
+      tx.objectStore('cache').put(value, key);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => resolve(false);
+    } catch { resolve(false); }
+  });
+}
+
+async function idbClear() {
+  const db = await getIdb();
+  if (!db) return;
+  return new Promise(resolve => {
+    try {
+      const tx = db.transaction('cache', 'readwrite');
+      tx.objectStore('cache').clear();
+      tx.oncomplete = () => resolve();
+    } catch { resolve(); }
+  });
+}
+
+async function cacheGet(key, ttl) {
+  // Try IndexedDB for large keys
+  if (LARGE_KEYS.has(key)) {
+    const item = await idbGet('rsa_'+key);
+    if (item && (Date.now() - item.ts) < ttl) return item.data;
+    return null;
+  }
+  // localStorage for small keys
   try { const i = JSON.parse(localStorage.getItem('rsa_'+key)); if (i && (Date.now()-i.ts) < ttl) return i.data; } catch {}
   return null;
+}
+
+async function cacheSet(key, data) {
+  const item = { ts: Date.now(), data };
+  if (LARGE_KEYS.has(key)) {
+    return idbSet('rsa_'+key, item);
+  }
+  try {
+    localStorage.setItem('rsa_'+key, JSON.stringify(item));
+    return true;
+  } catch (e) {
+    console.warn('Cache write failed for', key, '— trying IndexedDB instead');
+    return idbSet('rsa_'+key, item);
+  }
+}
+
+const cacheClear = async () => {
+  Object.keys(localStorage).filter(k=>k.startsWith('rsa_')).forEach(k=>localStorage.removeItem(k));
+  await idbClear();
 };
-const cacheSet = (key, data) => {
-  try { localStorage.setItem('rsa_'+key, JSON.stringify({ts:Date.now(), data})); }
-  catch (e) { console.warn('Cache write failed:', e); }
-};
-const cacheClear = () => Object.keys(localStorage).filter(k=>k.startsWith('rsa_')).forEach(k=>localStorage.removeItem(k));
 
 async function fetchWithCache(key, fetcher, ttl) {
-  const cached = cacheGet(key, ttl);
+  const cached = await cacheGet(key, ttl);
   if (cached) return cached;
   const fresh = await fetcher();
-  cacheSet(key, fresh);
+  await cacheSet(key, fresh);
   return fresh;
 }
 
@@ -1555,6 +1633,12 @@ function rerenderCurrentScreen() {
     else if (id === 'screenRoute' && typeof renderShopList === 'function') renderShopList();
     else if (id === 'screenOrders' && typeof renderOrdersList === 'function') renderOrdersList();
     else if (id === 'screenProductInfo' && typeof renderPriceList === 'function') {
+      // Update subtitle to reflect new SKU count
+      const subEl = document.getElementById('productInfoSub');
+      if (subEl) {
+        const totalSku = (SHEET_DATA.products || []).length;
+        subEl.textContent = totalSku > 0 ? `${totalSku.toLocaleString()} SKU พร้อมใช้งาน` : 'ใช้ mock data (Sheet ยังไม่โหลด)';
+      }
       renderPriceSyncBanner();
       renderPriceFilterChips();
       const q = (document.getElementById('productInfoSearch')||{}).value || '';
@@ -2361,9 +2445,10 @@ async function postToAppsScript(payload) {
     console.log('[AppsScript STUB]', payload);
     return { ok:true, demo:true };
   }
+  // Use text/plain to avoid CORS preflight (Apps Script doesn't support OPTIONS)
   const res = await fetch(CONFIG.appsScriptUrl, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error('Apps Script: ' + res.status);
@@ -3298,10 +3383,9 @@ function initMap() {
 
   if (!routeMap) {
     routeMap = L.map('routeMapEl', { zoomControl: true }).setView([13.6, 99.95], 10);
-    // CARTO Voyager tiles (matches route-optimizer pattern with attribution required by CARTO TOS)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: 'abcd',
+    // OpenStreetMap standard tiles (universally accessible, no CDN issues)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       maxZoom: 19,
     }).addTo(routeMap);
   }
