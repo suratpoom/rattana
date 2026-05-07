@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Vehicle Repair v2.1</title>
+<title>Rattana Vehicle Repair v2.3</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
@@ -290,7 +290,7 @@ body.dark .vsum-stat.count .vs-value{color:#e8eaf0}
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
     <div class="login-logo">RATTANA<span> · </span>REPAIR</div>
-    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v2.1</div>
+    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v2.3</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -731,22 +731,23 @@ async function handleGoogleLogin(r) {
       showLoginError('บัญชีของคุณถูกระงับ กรุณาติดต่อ Admin'); return;
     }
 
-    // Fuzzy find Approval Stage column (รองรับชื่อ "Approval Stage", "ApprovalStage", "approval_stage", etc.)
-    const userKeys = Object.keys(user);
-    const stageKey = userKeys.find(k =>
-      k && k.toLowerCase().replace(/[\s_-]/g,'') === 'approvalstage'
-    );
-    const rawStage = stageKey ? user[stageKey] : '';
-    const cleanStage = String(rawStage||'').replace(/[\u200B\u200C\u200D\uFEFF\u00A0\s]/g,'').trim();
-    const approvalStage = parseInt(cleanStage) || 0;
+    // Map User Role → approvalStage
+    // MGT  = stage 1 (หัวหน้า/HR)
+    // All  = stage 2 (ผู้บริหาร)
+    // อื่นๆ = 0 (ไม่อนุมัติ)
+    const roleRaw = String(user['User Role']||'').replace(/[\u200B\u200C\u200D\uFEFF\u00A0\s]/g,'').trim().toUpperCase();
+    let approvalStage = 0;
+    if (roleRaw === 'MGT')      approvalStage = 1;
+    else if (roleRaw === 'ALL') approvalStage = 2;
 
-    console.log('[login]', email, '→ stageKey:', stageKey, 'raw:', JSON.stringify(rawStage), 'parsed:', approvalStage);
+    console.log('[login]', email, '→ User Role:', JSON.stringify(user['User Role']),
+                '→ cleaned:', roleRaw, '→ approvalStage:', approvalStage);
 
     currentUser = {
       email: email,
       name: user['ชื่อ - สกุล'] || payload.name,
       nickname: user['ชื่อเล่น'] || '',
-      role: parseInt(user['User Role']) || 1,
+      role: roleRaw,                    // เก็บเป็น string ('MGT', 'ALL', etc.)
       dept: user['แผนก'] || '',
       company: user['บริษัท'] || '',
       warehouse: user['W'] || '',
@@ -788,7 +789,8 @@ async function enterApp() {
   const u = currentUser;
   $('userPill').textContent = (u.nickname || u.name || u.email) + (u.warehouse ? ' · ' + u.warehouse : '');
   // แสดง tab อนุมัติ ถ้า approvalStage > 0 หรือ role >= 5
-  if (u.approvalStage === 1 || u.approvalStage === 2 || u.role >= 5) {
+  // Show tab อนุมัติ ถ้า approvalStage > 0
+  if (u.approvalStage === 1 || u.approvalStage === 2) {
     $('tabApprove').classList.remove('hidden');
     $('approveTitle').textContent = u.approvalStage === 2
       ? 'รายการรออนุมัติ — ขั้นที่ 2 (ผู้บริหาร)'
@@ -796,7 +798,8 @@ async function enterApp() {
           ? 'รายการรออนุมัติ — ขั้นที่ 1 (หัวหน้า / ฝ่ายทรัพยากรบุคคล)'
           : 'รายการรออนุมัติทั้งหมด');
   }
-  if (u.role >= 7) $('tabAll').classList.remove('hidden');
+  // Tab ทั้งหมด: ผู้บริหาร (All) เท่านั้น
+  if (u.role === 'ALL') $('tabAll').classList.remove('hidden');
   await loadAllData();
 }
 
@@ -939,9 +942,9 @@ function cleanCode(s) {
 function isAdminUser() {
   if (!currentUser) return false;
   const w = cleanCode(currentUser.warehouse);
-  const role = parseInt(currentUser.role) || 0;
+  const role = String(currentUser.role||'').toUpperCase();
   // admin conditions:
-  if (role >= 7) return true;
+  if (role === 'ALL') return true;          // ผู้บริหาร = admin (เห็นทุกคลัง)
   if (!w) return true; // ไม่ระบุคลัง = admin
   // HQ variants: HQ, HEADQUARTER, OFFICE, ADMIN, MAIN
   if (w === 'HQ' || w.includes('HQ') || w === 'HEADQUARTER' || w === 'OFFICE' || w === 'ADMIN' || w === 'MAIN') return true;
@@ -1422,12 +1425,10 @@ function approvableRepairs() {
   // คืนใบที่ user คนนี้อนุมัติได้
   if (!currentUser) return [];
   const stage = currentUser.approvalStage;
-  // approvalStage 1 → ดู pending_supervisor
-  // approvalStage 2 → ดู pending_executive
-  // role >= 7 (super user/admin) → ดูทั้งหมดที่ pending
+  // approvalStage 1 (MGT) → ดู pending_supervisor (ขั้นที่ 1 เท่านั้น)
+  // approvalStage 2 (All) → ดู pending_executive (ขั้นที่ 2 เท่านั้น)
   if (stage === 1) return repairs.filter(r => r.status === 'pending_supervisor');
   if (stage === 2) return repairs.filter(r => r.status === 'pending_executive');
-  if (currentUser.role >= 7) return repairs.filter(r => isPending(r.status));
   return [];
 }
 
@@ -1736,8 +1737,10 @@ function openDetail(id) {
   const foot = $('detailFoot');
   foot.innerHTML = '<button class="btn btn-outline" onclick="closeDetail()">ปิด</button>';
   const myStage = currentUser.approvalStage;
-  const canApproveStage1 = (r.status === 'pending_supervisor') && (myStage === 1 || currentUser.role >= 7);
-  const canApproveStage2 = (r.status === 'pending_executive')  && (myStage === 2 || currentUser.role >= 7);
+  // Stage 1 — เฉพาะ MGT (approvalStage === 1) เท่านั้น
+  // Stage 2 — เฉพาะ All / ผู้บริหาร (approvalStage === 2) เท่านั้น
+  const canApproveStage1 = (r.status === 'pending_supervisor') && (myStage === 1);
+  const canApproveStage2 = (r.status === 'pending_executive')  && (myStage === 2);
   if (canApproveStage1 || canApproveStage2) {
     const stage = canApproveStage1 ? 1 : 2;
     foot.innerHTML +=
