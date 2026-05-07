@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Sales — v1.6 Sheet-Powered Edition</title>
+<title>Rattana Sales — v1.7 Sheet-Powered Edition</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -796,7 +796,7 @@ body.dark .text-gold { color: var(--gold-light); }
       <button onclick="loginDemo(3)" style="display:block;width:100%;background:rgba(201,168,76,.15);color:#fff;border:1px solid rgba(201,168,76,.35);padding:10px 12px;border-radius:8px;font-size:12px;font-weight:600;text-align:left;font-family:inherit;cursor:pointer">🛒 Role 3 — Sales W1 (PMW101)</button>
     </div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v1.6 · 2026-05-07</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v1.7 · 2026-05-07</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -807,7 +807,7 @@ body.dark .text-gold { color: var(--gold-light); }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v1.6</span>
+  <span class="demo-tag">v1.7</span>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
 </header>
 
@@ -877,7 +877,7 @@ body.dark .text-gold { color: var(--gold-light); }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v1.6<br>2026-05-07</div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v1.7<br>2026-05-07</div>
   </div>
 </aside>
 
@@ -1291,7 +1291,7 @@ body.dark .text-gold { color: var(--gold-light); }
 
 <script>
 // ═══════════════════════════════════════════════════════════
-// v1.6 — SHEET-POWERED EDITION · 2026-05-07
+// v1.7 — SHEET-POWERED EDITION · 2026-05-07
 // ═══════════════════════════════════════════════════════════
 
 const CONFIG = {
@@ -1411,30 +1411,74 @@ function decodeJwtPayload(token) {
 function showLoginError(msg) {
   const el = document.getElementById('loginError');
   if (!el) return;
-  el.textContent = msg;
+  // Convert \n to <br> for multi-line errors
+  el.innerHTML = String(msg).replace(/\n/g, '<br>');
+  el.style.display = 'block';
   el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 5000);
+  // Don't auto-hide — user needs to read it
 }
 
 async function handleGoogleLogin(response) {
   showSpinner('กำลังตรวจสอบสิทธิ์...');
   try {
-    const email = normalizeEmail(decodeJwtPayload(response.credential).email);
-    const users = await fetchSheet(CONFIG.usersSheetId, CONFIG.usersSheetTab);
-    const user = users.find(u => normalizeEmail(u['E-mail']) === email);
-    if (!user) { showLoginError('ไม่พบบัญชีนี้ในระบบ ติดต่อ admin'); hideSpinner(); return; }
-    if (String(user['Status']||'').trim().toLowerCase() !== 'active') {
-      showLoginError('บัญชีไม่ได้เปิดใช้งาน'); hideSpinner(); return;
-    }
-    const role = parseInt(user['User Role']) || 0;
-    if (role < 3) { showLoginError('สิทธิ์ไม่เพียงพอ (ต้อง Role 3+)'); hideSpinner(); return; }
+    console.log('[login] Google response received');
+    const decoded = decodeJwtPayload(response.credential);
+    const email = normalizeEmail(decoded.email);
+    console.log('[login] decoded email:', email);
 
+    if (!email) {
+      throw new Error('ไม่ได้รับ email จาก Google');
+    }
+
+    console.log('[login] fetching User Sheet...', CONFIG.usersSheetId, CONFIG.usersSheetTab);
+    let users;
+    try {
+      users = await fetchSheet(CONFIG.usersSheetId, CONFIG.usersSheetTab);
+    } catch (fetchErr) {
+      throw new Error('โหลด User Sheet ไม่ได้ (ตรวจ permission "Anyone with link")\n' + fetchErr.message);
+    }
+    console.log('[login] User Sheet loaded:', users.length, 'rows');
+
+    if (!users.length) {
+      throw new Error('User Sheet ว่างเปล่า — ตรวจชื่อ tab "Sheet1"');
+    }
+
+    // Show available columns for diagnostic
+    console.log('[login] Sheet columns:', Object.keys(users[0] || {}));
+
+    const user = users.find(u => normalizeEmail(u['E-mail'] || u['Email'] || u['email']) === email);
+    if (!user) {
+      // Show first 3 emails so user can see what's in the sheet
+      const sampleEmails = users.slice(0, 5).map(u => normalizeEmail(u['E-mail']||u['Email']||u['email']||'')).filter(Boolean);
+      console.warn('[login] email not found. Sheet has:', sampleEmails);
+      showLoginError(`ไม่พบ email "${email}" ใน User Sheet\n(มี ${users.length} accounts ใน sheet)`);
+      hideSpinner();
+      return;
+    }
+
+    console.log('[login] user found:', user);
+
+    const status = String(user['Status']||'').trim().toLowerCase();
+    if (status !== 'active') {
+      showLoginError(`บัญชีไม่ได้เปิดใช้งาน (Status="${user['Status']}", ต้องเป็น "Active")`);
+      hideSpinner();
+      return;
+    }
+
+    const role = parseInt(user['User Role']) || 0;
+    if (role < 3) {
+      showLoginError(`สิทธิ์ไม่เพียงพอ (Role=${role}, ต้อง Role 3+)`);
+      hideSpinner();
+      return;
+    }
+
+    console.log('[login] login successful, role=', role);
     currentUser = buildUserFromRow(user, email, role);
     localStorage.setItem('rattanaSalesUser', JSON.stringify({ data: currentUser, exp: Date.now() + 30*24*60*60*1000 }));
     await enterApp();
   } catch (e) {
-    console.error(e);
-    showLoginError('เกิดข้อผิดพลาด: ' + e.message);
+    console.error('[login] error:', e);
+    showLoginError('เกิดข้อผิดพลาด:\n' + e.message);
   } finally {
     hideSpinner();
   }
@@ -5153,6 +5197,18 @@ function submitNewShop() {
 function selectChip(el, selector) {
   document.querySelectorAll(selector).forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
+}
+
+function showSpinner(msg = 'กำลังโหลด...') {
+  const el = document.getElementById('spinner');
+  const msgEl = document.getElementById('spinnerMsg');
+  if (msgEl) msgEl.textContent = msg;
+  if (el) el.style.display = 'flex';
+}
+
+function hideSpinner() {
+  const el = document.getElementById('spinner');
+  if (el) el.style.display = 'none';
 }
 
 function showToast(msg, type = 'info') {
