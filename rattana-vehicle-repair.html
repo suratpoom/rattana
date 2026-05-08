@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Vehicle Repair v2.7</title>
+<title>Rattana Vehicle Repair v2.8</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
@@ -318,7 +318,7 @@ body.dark .vsum-stat.count .vs-value{color:#e8eaf0}
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
     <div class="login-logo">RATTANA<span> · </span>REPAIR</div>
-    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v2.7</div>
+    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v2.8</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -389,6 +389,10 @@ body.dark .vsum-stat.count .vs-value{color:#e8eaf0}
               </div>
             </div>
             <div id="vendorPhoneHint" style="font-size:12px;color:var(--muted);margin-top:4px"></div>
+            <div id="customVendorWrap" class="hidden" style="margin-top:8px">
+              <input class="input" id="inCustomVendor" type="text" placeholder="✏️ พิมพ์ชื่อศูนย์ซ่อม / เจ้าหนี้ที่ติดต่อ">
+              <input class="input" id="inCustomVendorPhone" type="tel" placeholder="📞 เบอร์ติดต่อ (ถ้ามี)" style="margin-top:6px">
+            </div>
           </div>
 
           <div class="field">
@@ -503,6 +507,13 @@ body.dark .vsum-stat.count .vs-value{color:#e8eaf0}
         <div class="chart-card full">
           <h4>🚛 Top 10 รถที่มียอดซ่อมสูงสุด</h4>
           <div class="chart-wrap tall"><canvas id="chartTopVehicles"></canvas></div>
+        </div>
+        <div class="chart-card full">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+            <h4 style="margin:0">📋 รายการที่อนุมัติแล้ว <span id="approvedListCount" style="color:var(--muted);font-weight:400;font-size:12px"></span></h4>
+            <input class="search-input" id="approvedListSearch" style="max-width:280px" placeholder="ค้นหา ทะเบียน, อาการ, ผู้แจ้ง..." oninput="renderApprovedList()">
+          </div>
+          <div id="approvedListBody"></div>
         </div>
       </div>
     </div>
@@ -1149,11 +1160,16 @@ document.addEventListener('click', e => {
 function renderVendorList() {
   const ul = $('ddVendorList');
   if (!ul) return;
+  // option "อื่นๆ" อยู่บนสุด
+  const otherOption = `<li onclick="selectVendor('__other__')" style="background:rgba(201,168,76,.06);border-bottom:1px solid var(--border)">
+    <span><strong style="color:var(--gold)">✏️ อื่นๆ (พิมพ์ชื่อเอง)</strong></span>
+    <span class="li-meta">ไม่มีในรายการ</span>
+  </li>`;
   if (!vendors.length) {
-    ul.innerHTML = '<li class="no-result">ไม่พบข้อมูลศูนย์ซ่อม</li>';
+    ul.innerHTML = otherOption;
     return;
   }
-  ul.innerHTML = vendors.map((v, idx) => `
+  ul.innerHTML = otherOption + vendors.map((v, idx) => `
     <li onclick="selectVendor(${idx})">
       <span><strong>${escapeHtml(v.name)}</strong></span>
       <span class="li-meta">${v.phone || ''}</span>
@@ -1168,12 +1184,23 @@ function filterVendors(q) {
 }
 
 function selectVendor(idx) {
+  $('ddVendorPanel').style.display = 'none';
+  if (idx === '__other__') {
+    selectedVendor = { __other: true };
+    $('ddVendorLabel').textContent = '✏️ อื่นๆ (พิมพ์เอง)';
+    $('vendorPhoneHint').textContent = '';
+    $('customVendorWrap').classList.remove('hidden');
+    setTimeout(() => $('inCustomVendor').focus(), 100);
+    return;
+  }
   const v = vendors[idx];
   if (!v) return;
   selectedVendor = v;
   $('ddVendorLabel').textContent = v.name;
-  $('ddVendorPanel').style.display = 'none';
   $('vendorPhoneHint').textContent = v.phone ? '📞 ' + v.phone : '';
+  $('customVendorWrap').classList.add('hidden');
+  $('inCustomVendor').value = '';
+  $('inCustomVendorPhone').value = '';
 }
 
 // ═════════════════════════════════════════════════════════════════════
@@ -1397,6 +1424,14 @@ async function submitRepair() {
   const amount = parseFloat($('inAmount').value);
   if (!mileage) { showToast('กรุณากรอกเลขไมล์', 'warning'); return; }
   if (!selectedVendor) { showToast('กรุณาเลือกศูนย์ซ่อม-เจ้าหนี้', 'warning'); return; }
+  // กรณีเลือก "อื่นๆ" — ต้องพิมพ์ชื่อเอง
+  let vendorName = selectedVendor.name || '';
+  let vendorPhone = selectedVendor.phone || '';
+  if (selectedVendor.__other) {
+    vendorName = $('inCustomVendor').value.trim();
+    vendorPhone = $('inCustomVendorPhone').value.trim();
+    if (!vendorName) { showToast('กรุณาพิมพ์ชื่อศูนย์ซ่อม-เจ้าหนี้', 'warning'); return; }
+  }
   if (!selectedRepairItems.size && !$('inIssueNote').value.trim()) {
     showToast('กรุณาเลือกรายการที่ต้องซ่อม (อย่างน้อย 1 รายการ) หรือกรอกหมายเหตุ', 'warning'); return;
   }
@@ -1426,8 +1461,8 @@ async function submitRepair() {
       mileage:      mileage,
       issueDescription: issue,
       billAmount:   amount,
-      vendor:       selectedVendor.name,
-      vendorPhone:  selectedVendor.phone || '',
+      vendor:       vendorName,
+      vendorPhone:  vendorPhone,
       billPhotoBase64: billPhotoData.base64,
       billPhotoMime:   billPhotoData.mime,
       damagePhotos: damagePhotosData.map(p => ({ base64: p.base64, mime: p.mime }))
@@ -1466,6 +1501,9 @@ function resetForm() {
   $('ddPlateLabel').textContent = '-- เลือกทะเบียนรถ --';
   $('ddVendorLabel').textContent = '-- เลือกศูนย์ซ่อม-เจ้าหนี้ --';
   $('vendorPhoneHint').textContent = '';
+  $('customVendorWrap').classList.add('hidden');
+  $('inCustomVendor').value = '';
+  $('inCustomVendorPhone').value = '';
   $('vehicleAutoFill').classList.add('hidden');
   $('inMileage').value = '';
   $('inIssueNote').value = '';
@@ -1983,6 +2021,69 @@ function renderDashboard() {
       }
     }
   });
+
+  // ── รายการที่อนุมัติแล้ว (ภายใต้ filter เดียวกัน) ──
+  renderApprovedList();
+}
+
+function renderApprovedList() {
+  const wh = $('dashWarehouse').value;
+  const yr = parseInt($('dashYear').value);
+  const q = ($('approvedListSearch').value||'').toLowerCase().trim();
+
+  // ใช้ filter เดียวกับ dashboard แต่บังคับเฉพาะที่อนุมัติแล้วเสมอ
+  let list = repairs.filter(r => r.status === 'approved' || r.status === 'auto_approved');
+  if (wh !== 'all') list = list.filter(r => cleanCode(r.warehouse) === cleanCode(wh));
+  list = list.filter(r => {
+    const d = new Date(r.timestamp);
+    return !isNaN(d) && d.getFullYear() === yr;
+  });
+  if (q) list = list.filter(r =>
+    String(r.plate||'').toLowerCase().includes(q) ||
+    String(r.issueDescription||'').toLowerCase().includes(q) ||
+    String(r.requesterName||'').toLowerCase().includes(q) ||
+    String(r.vendor||'').toLowerCase().includes(q)
+  );
+
+  // เรียงล่าสุดก่อน
+  list.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+  $('approvedListCount').textContent = `(${list.length} รายการ · รวม ฿${fmtMoney(list.reduce((s,r) => s + (parseFloat(r.billAmount)||0), 0))})`;
+
+  if (!list.length) {
+    $('approvedListBody').innerHTML = `<div style="text-align:center;padding:30px;color:var(--muted);font-size:13px">ไม่พบรายการ</div>`;
+    return;
+  }
+
+  $('approvedListBody').innerHTML = `
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>วันที่</th>
+            <th>ทะเบียน</th>
+            <th>คลัง</th>
+            <th>อาการ/รายการซ่อม</th>
+            <th>ศูนย์ซ่อม</th>
+            <th class="num">ยอดเงิน</th>
+            <th>สถานะ</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(r => `
+            <tr onclick="openDetail('${r.id}')">
+              <td style="white-space:nowrap;font-size:12px">${formatThaiDate(r.timestamp)}</td>
+              <td class="code">${escapeHtml(r.plate||'-')}</td>
+              <td style="font-size:12px">${escapeHtml(r.warehouse||'-')}</td>
+              <td style="font-size:12px;max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${escapeHtml((r.issueDescription||'').replace(/\n/g,' · '))}">${escapeHtml((r.issueDescription||'').replace(/\n/g,' · ').substring(0,80))}</td>
+              <td style="font-size:12px;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(r.vendor||'-')}</td>
+              <td class="num">฿${fmtMoney(r.billAmount)}</td>
+              <td>${statusBadge(r.status)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>`;
 }
 
 function destroyChart(id) {
