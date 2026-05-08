@@ -122,18 +122,19 @@ body.dark .tag.active{background:var(--gold);color:var(--navy);border-color:var(
 .fav-strip{background:var(--fav-strip-bg);border:1.5px solid var(--fav-strip-border);border-radius:var(--radius-lg);padding:14px;margin-bottom:8px}
 .fav-strip .section-head{margin:0 0 10px;border:none;padding:0}
 
-/* Grid — tiles on mobile, wider cards on desktop */
+/* ═══ Grid + Card — Glassy iOS on ALL viewports (Option 2 balanced) ═══ */
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-@media(min-width:560px){.grid{grid-template-columns:repeat(2,1fr);gap:12px}}
-@media(min-width:768px){.grid{grid-template-columns:repeat(3,1fr)}}
-@media(min-width:1100px){.grid{grid-template-columns:repeat(4,1fr)}}
-@media(min-width:1400px){.grid{grid-template-columns:repeat(5,1fr)}}
+@media(min-width:560px){.grid{grid-template-columns:repeat(3,1fr);gap:12px}}
+@media(min-width:768px){.grid{grid-template-columns:repeat(4,1fr);gap:14px}}
+@media(min-width:1100px){.grid{grid-template-columns:repeat(5,1fr)}}
+@media(min-width:1400px){.grid{grid-template-columns:repeat(6,1fr)}}
 
-/* === MOBILE TILE (Style A — Glassy iOS) === */
-/* Each section gets a navy backdrop so the glass card effect reads */
-.section .grid{position:relative}
 .section{padding:8px 12px 20px}
-.glass-section{background:linear-gradient(180deg,#0d1b3e 0%,#1a2f5e 100%);border-radius:24px;padding:18px 14px;margin:0 4px 12px;box-shadow:0 6px 24px rgba(13,27,62,.18)}
+@media(min-width:768px){.section{padding:10px 16px 24px}}
+
+/* Each section gets a navy backdrop with the glass card effect */
+.glass-section{background:linear-gradient(180deg,#0d1b3e 0%,#1a2f5e 100%);border-radius:24px;padding:18px 14px;margin:0 4px 14px;box-shadow:0 6px 24px rgba(13,27,62,.18)}
+@media(min-width:768px){.glass-section{padding:22px 20px;margin:0 0 18px;border-radius:26px}}
 .glass-section.fav-glass{background:linear-gradient(180deg,#1a2f5e 0%,#2d2a4a 100%);border:1px solid rgba(201,168,76,.4)}
 body.dark .glass-section{background:linear-gradient(180deg,#0d1b3e 0%,#162b56 100%);box-shadow:0 6px 24px rgba(0,0,0,.5)}
 body.dark .glass-section.fav-glass{background:linear-gradient(180deg,#1a2f5e 0%,#2d2547 100%);border-color:rgba(201,168,76,.55)}
@@ -142,7 +143,9 @@ body.dark .glass-section.fav-glass{background:linear-gradient(180deg,#1a2f5e 0%,
 .glass-section .section-head .icon{filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
 .glass-section .section-head .count{background:rgba(255,255,255,.12);color:#e8c86a;border-color:rgba(255,255,255,.15)}
 
-.app-card{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.16);border-radius:20px;padding:14px 10px 12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;transition:transform .15s,background .15s,border-color .15s;position:relative;overflow:hidden;color:#fff;text-align:center;min-height:170px;justify-content:flex-start;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+/* App card — Option 2 Balanced: icon + title + 1-line desc */
+.app-card{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.16);border-radius:16px;padding:14px 10px 12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;transition:transform .15s,background .15s,border-color .15s;position:relative;overflow:hidden;color:#fff;text-align:center;min-height:160px;justify-content:flex-start;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+@media(min-width:768px){.app-card{min-height:180px;padding:18px 12px 14px;border-radius:18px;gap:8px}}
 .app-card:hover{transform:translateY(-2px);background:rgba(255,255,255,.16);border-color:rgba(201,168,76,.5)}
 .app-card:active{transform:scale(.96)}
 .app-card.color-red{--accent:#ff6b5e}
@@ -153,10 +156,13 @@ body.dark .glass-section.fav-glass{background:linear-gradient(180deg,#1a2f5e 0%,
 .app-card.color-orange{--accent:#f5b347}
 .app-card.color-teal{--accent:#4fd9bd}
 
-.card-top{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%}
-.card-icon{font-size:34px;line-height:1;flex-shrink:0;width:54px;height:54px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.14);border-radius:14px;border:1px solid rgba(255,255,255,.1)}
-.card-title{font-size:12px;font-weight:600;line-height:1.2;color:#fff;padding:0 8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;letter-spacing:.2px}
-.card-desc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:10px;color:rgba(255,255,255,.65);line-height:1.25;text-align:center;padding:0 2px;letter-spacing:.1px}
+.card-top{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%}
+.card-icon{font-size:34px;line-height:1;flex-shrink:0;width:auto;height:auto;background:none;border:none;margin-top:2px}
+@media(min-width:768px){.card-icon{font-size:40px}}
+.card-title{font-size:12px;font-weight:600;line-height:1.2;color:#fff;padding:0 8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;letter-spacing:.2px;width:100%}
+@media(min-width:768px){.card-title{font-size:13px;padding:0 12px}}
+.card-desc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:10px;color:rgba(255,255,255,.6);line-height:1.3;text-align:center;padding:0 4px;letter-spacing:.1px}
+@media(min-width:768px){.card-desc{font-size:11px;-webkit-line-clamp:2}}
 .card-bottom{display:none}
 .work-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:8px;background:rgba(255,255,255,.12);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.15)}
 .soon-badge{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:600;padding:2px 7px;border-radius:6px;background:rgba(255,255,255,.18);color:rgba(255,255,255,.9);letter-spacing:.3px;white-space:nowrap}
@@ -164,46 +170,18 @@ body.dark .glass-section.fav-glass{background:linear-gradient(180deg,#1a2f5e 0%,
 .app-card-disabled{opacity:.5;cursor:default}
 .app-card-disabled:hover{transform:none;background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.16)}
 
-.card-actions{position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:6px;z-index:2;opacity:0;transition:opacity .2s}
-.app-card:hover .card-actions,.app-card:focus-within .card-actions,.card-actions.always-show{opacity:1}
-@media(hover:none){.card-actions{opacity:1}} /* mobile = always show */
-.card-btn{width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;transition:all .15s;color:#fff;padding:0;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-.card-btn:hover{background:rgba(0,0,0,.5);border-color:#e8c86a;transform:scale(1.1)}
+/* Action buttons — small, top-right, always visible on mobile, fade-in on hover (desktop) */
+.card-actions{position:absolute;top:6px;right:6px;display:flex;flex-direction:column;gap:4px;z-index:2;opacity:1;transition:opacity .2s}
+@media(hover:hover) and (min-width:768px){
+  .card-actions{opacity:0}
+  .app-card:hover .card-actions,.app-card:focus-within .card-actions{opacity:1}
+}
+.card-btn{width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;transition:all .15s;color:#fff;padding:0;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+@media(min-width:768px){.card-btn{width:28px;height:28px;font-size:13px;gap:5px}}
+.card-btn:hover{background:rgba(0,0,0,.6);border-color:#e8c86a;transform:scale(1.1)}
 .star-btn.starred{background:#c9a84c;border-color:#e8c86a;color:#fff}
 .copy-btn.copied,.share-btn.sent{background:#2ecc71;border-color:#2ecc71;color:#fff}
 
-/* === DESKTOP / TABLET (≥768px) — clean cards, no navy backdrop === */
-@media(min-width:768px){
-  .glass-section,.glass-section.fav-glass{background:transparent;padding:0;margin:0;box-shadow:none;border:none}
-  .glass-section .section-head{margin:18px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
-  .glass-section .section-head h2{color:var(--text)}
-  .glass-section .section-head .count{background:var(--row-alt);color:var(--muted);border-color:var(--border)}
-
-  .app-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 14px 12px;aspect-ratio:auto;align-items:flex-start;text-align:left;min-height:140px;justify-content:flex-start;color:var(--text);-webkit-backdrop-filter:none;backdrop-filter:none}
-  .app-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;height:auto;background:var(--accent,var(--gold));opacity:.85}
-  .app-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--gold);background:var(--card-bg)}
-  .app-card.color-red{--accent:#e74c3c}
-  .app-card.color-blue{--accent:#3498db}
-  .app-card.color-green{--accent:#2ecc71}
-  .app-card.color-gold{--accent:#c9a84c}
-  .app-card.color-purple{--accent:#9b59b6}
-  .app-card.color-orange{--accent:#f39c12}
-  .app-card.color-teal{--accent:#16a085}
-
-  .card-top{flex-direction:row;align-items:flex-start;gap:10px}
-  .card-icon{font-size:30px;width:46px;height:46px;border-radius:10px;background:var(--card-icon-bg);border:none}
-  .card-title{font-size:15px;text-align:left;padding-right:42px;-webkit-line-clamp:unset;display:block;color:var(--text)}
-  .card-desc{display:block;font-size:12px;color:var(--muted);line-height:1.4;flex:1}
-  .card-bottom{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:auto}
-  .work-badge{background:var(--row-alt);color:var(--muted);border:1px solid var(--border)}
-  .soon-badge{position:static;transform:none;background:var(--muted);color:var(--card-bg)}
-
-  .card-actions{position:absolute;top:10px;right:10px;flex-direction:column;gap:6px;opacity:1}
-  .card-btn{width:32px;height:32px;font-size:16px;background:var(--card-bg);border:1px solid var(--border);color:var(--muted);-webkit-backdrop-filter:none;backdrop-filter:none}
-  .card-btn:hover{border-color:var(--gold);color:var(--gold);background:var(--card-bg)}
-  .star-btn.starred{background:var(--gold);border-color:var(--gold);color:#fff}
-  .copy-btn.copied,.share-btn.sent{background:var(--success);border-color:var(--success);color:#fff}
-}
 
 .empty{text-align:center;padding:32px 16px;color:var(--muted);font-size:13px}
 .error-box{margin:16px;padding:16px;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);border-radius:var(--radius-md);color:var(--danger);font-size:13px}
@@ -244,7 +222,7 @@ body.dark .spinner-ring{border-color:#1f3563;border-top-color:var(--gold)}
          data-type="standard" data-size="large" data-theme="outline"
          data-text="sign_in_with" data-shape="rectangular"></div>
     <div id="loginError" class="login-error"></div>
-    <div class="login-foot">© Rattanaphaiboon · v2.1</div>
+    <div class="login-foot">© Rattanaphaiboon · v2.2</div>
   </div>
 </div>
 
@@ -292,7 +270,7 @@ body.dark .spinner-ring{border-color:#1f3563;border-top-color:var(--gold)}
   <div class="section" id="categorySection"></div>
 
   <div class="footer-note">
-    <strong>Rattana Hub v2.1</strong> · ดึง config จาก Google Sheet<br>
+    <strong>Rattana Hub v2.2</strong> · ดึง config จาก Google Sheet<br>
     Login ครั้งเดียวใช้ได้ทุกแอปใน <code>github.io/rattana/</code>
   </div>
 </div>
