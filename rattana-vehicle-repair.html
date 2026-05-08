@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Vehicle Repair v3.8</title>
+<title>Rattana Vehicle Repair v3.9</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
@@ -51,7 +51,7 @@ header{background:var(--navy);color:#fff;padding:12px 16px;display:flex;align-it
 .tab-menu.hidden{display:none}
 .tab-menu-trigger{display:flex;align-items:center;gap:4px}
 .tab-menu.has-active-child > .tab-menu-trigger{color:var(--navy);background:var(--gold);font-weight:700;box-shadow:0 -2px 8px rgba(201,168,76,.3)}
-.tab-menu-panel{display:flex;flex-direction:column;position:absolute;top:calc(100% + 4px);right:0;min-width:260px;background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:0 8px 28px rgba(13,27,62,.18);overflow:hidden;z-index:200;animation:slideUp .15s ease}
+.tab-menu-panel{display:flex;flex-direction:column;position:fixed;min-width:260px;max-width:320px;background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:0 8px 28px rgba(13,27,62,.25);overflow:hidden;z-index:9500;animation:slideUp .15s ease}
 .tab-menu-panel.hidden{display:none !important}
 .tab-menu-item{width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;background:transparent;border:none;text-align:left;color:var(--text);cursor:pointer;border-bottom:1px solid var(--border);transition:background .12s}
 .tab-menu-item:last-child{border-bottom:none}
@@ -62,7 +62,7 @@ header{background:var(--navy);color:#fff;padding:12px 16px;display:flex;align-it
 .tab-menu-item .tmi-text strong{font-size:13px;color:var(--text);font-weight:600;line-height:1.3}
 .tab-menu-item .tmi-text .tmi-desc{font-size:11px;color:var(--muted);font-weight:400;line-height:1.3}
 @media(max-width:520px){
-  .tab-menu-panel{position:fixed;left:8px;right:8px;top:auto;bottom:auto;min-width:0;width:auto;max-width:calc(100vw - 16px)}
+  .tab-menu-panel{left:8px !important;right:8px !important;top:auto;bottom:auto;min-width:0;width:auto;max-width:calc(100vw - 16px)}
 }
 
 /* Floating Action Button */
@@ -349,7 +349,7 @@ body.dark .vsum-stat.count .vs-value{color:#e8eaf0}
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
     <div class="login-logo">RATTANA<span> · </span>REPAIR</div>
-    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v3.8</div>
+    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v3.9</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -1649,12 +1649,41 @@ function switchTab(name) {
 function toggleReportsMenu(ev) {
   if (ev) { ev.stopPropagation(); ev.preventDefault(); }
   const panel = document.getElementById('reportsMenuPanel');
-  if (!panel) { console.warn('panel not found'); return; }
+  const trigger = document.getElementById('tabReportsBtn');
+  if (!panel || !trigger) return;
   panel.classList.toggle('hidden');
-  console.log('[reportsMenu]', panel.classList.contains('hidden') ? 'CLOSED' : 'OPENED', panel.className);
+  if (!panel.classList.contains('hidden')) {
+    positionReportsPanel();
+  }
 }
 
-// ปิด dropdown เมื่อคลิกข้างนอก trigger + panel — ใช้ setTimeout เพื่อให้ toggle ทำงานก่อน
+function positionReportsPanel() {
+  const panel = document.getElementById('reportsMenuPanel');
+  const trigger = document.getElementById('tabReportsBtn');
+  if (!panel || !trigger) return;
+  // Mobile (≤520px): ใช้ CSS media query แล้ว — ไม่ต้องคำนวณ
+  if (window.innerWidth <= 520) return;
+  const rect = trigger.getBoundingClientRect();
+  const panelW = panel.offsetWidth || 260;
+  panel.style.top = (rect.bottom + 4) + 'px';
+  // จัดให้ขอบขวาตรงกับขอบขวาของ trigger
+  let left = rect.right - panelW;
+  if (left < 8) left = 8;
+  panel.style.left = left + 'px';
+  panel.style.right = 'auto';
+}
+
+// Reposition เมื่อ resize / scroll
+window.addEventListener('resize', () => {
+  const panel = document.getElementById('reportsMenuPanel');
+  if (panel && !panel.classList.contains('hidden')) positionReportsPanel();
+});
+window.addEventListener('scroll', () => {
+  const panel = document.getElementById('reportsMenuPanel');
+  if (panel && !panel.classList.contains('hidden')) positionReportsPanel();
+}, true);
+
+// ปิด dropdown เมื่อคลิกข้างนอก trigger + panel
 document.addEventListener('click', e => {
   const panel = document.getElementById('reportsMenuPanel');
   if (!panel || panel.classList.contains('hidden')) return;
