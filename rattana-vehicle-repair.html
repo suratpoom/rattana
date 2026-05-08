@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Vehicle Repair v3.6</title>
+<title>Rattana Vehicle Repair v3.7</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
@@ -349,7 +349,7 @@ body.dark .vsum-stat.count .vs-value{color:#e8eaf0}
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
     <div class="login-logo">RATTANA<span> · </span>REPAIR</div>
-    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v3.6</div>
+    <div class="login-title">ระบบแจ้งซ่อมรถบริษัท · v3.7</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -375,7 +375,7 @@ body.dark .vsum-stat.count .vs-value{color:#e8eaf0}
       <button class="tab-btn hidden" data-tab="approve" id="tabApprove" onclick="switchTab('approve')">✅ รออนุมัติ <span class="tab-badge hidden" id="approveBadge">0</span></button>
       <button class="tab-btn" data-tab="mine" onclick="switchTab('mine')">📁 รายการของฉัน</button>
       <div class="tab-menu hidden" id="tabReportsMenu">
-        <button class="tab-btn tab-menu-trigger" id="tabReportsBtn" onclick="toggleReportsMenu(event)">
+        <button class="tab-btn tab-menu-trigger" id="tabReportsBtn" type="button">
           📊 รายงาน <span style="font-size:10px;margin-left:2px">▾</span>
         </button>
         <div class="tab-menu-panel hidden" id="reportsMenuPanel">
@@ -1646,21 +1646,18 @@ function switchTab(name) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function toggleReportsMenu(ev) {
-  if (ev) { ev.stopPropagation(); ev.preventDefault(); }
-  const panel = $('reportsMenuPanel');
-  if (!panel) { console.warn('[reportsMenu] panel ไม่พบ'); return; }
-  const wasHidden = panel.classList.contains('hidden');
-  panel.classList.toggle('hidden');
-  console.log('[reportsMenu] toggle:', wasHidden ? 'OPEN' : 'CLOSE',
-              '→ class:', panel.className,
-              '→ visible?', getComputedStyle(panel).display !== 'none');
-}
-
-// ปิด dropdown เมื่อคลิกข้างนอก
+// ปิด/เปิด Reports dropdown — ใช้ delegation single listener
 document.addEventListener('click', e => {
-  if (!e.target.closest('#tabReportsMenu')) {
-    $('reportsMenuPanel')?.classList.add('hidden');
+  const panel = $('reportsMenuPanel');
+  if (!panel) return;
+  // กด trigger → toggle
+  if (e.target.closest('#tabReportsBtn')) {
+    panel.classList.toggle('hidden');
+    return;
+  }
+  // กดข้างนอก trigger + panel → ปิด
+  if (!panel.classList.contains('hidden') && !e.target.closest('#reportsMenuPanel')) {
+    panel.classList.add('hidden');
   }
 });
 
