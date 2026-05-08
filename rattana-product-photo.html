@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>Rattana Product Photos v3.4</title>
+<title>Rattana Product Photos v3.5</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -359,7 +359,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 <div id="loginScreen">
   <div class="login-card">
     <div class="logo-big">RATTANA <span>PRODUCT PHOTOS</span></div>
-    <div class="sub">รัตนไพบูลย์ · v3.4</div>
+    <div class="sub">รัตนไพบูลย์ · v3.5</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -372,7 +372,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 <!-- App Screen -->
 <div id="appScreen" class="page" style="display:none">
   <header>
-    <div class="logo-text">RATTANA <span>PRODUCT PHOTOS</span><span class="ver">v3.4 · 2026-05-07</span></div>
+    <div class="logo-text">RATTANA <span>PRODUCT PHOTOS</span><span class="ver">v3.5 · 2026-05-07</span></div>
     <button class="icon-btn" onclick="refreshAll()" title="รีเฟรช" id="btnRefresh">⟳</button>
     <button class="icon-btn" onclick="toggleDark()" title="โหมดมืด">🌓</button>
     <button class="icon-btn" onclick="logout()" title="ออก">⏻</button>
@@ -630,7 +630,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
     </div>
 
     <div class="app-footer">
-      Rattana Product Photos · <span class="ver">v3.4</span> · 2026-05-07
+      Rattana Product Photos · <span class="ver">v3.5</span> · 2026-05-07
     </div>
   </div>
 </div>
@@ -1965,7 +1965,8 @@ window.loadHistory = async function() {
       const nm = row['productName'] || row['name'] || '';
       const uc = row['unitCode'] || '';
       const up = row['unitPack'] || '';
-      const url = row['fileUrl'] || row['url'] || '';
+      // viewUrl = Drive viewer (ใหม่ใน v1.5) — fallback กลับไปใช้ fileUrl ถ้าไม่มี (รายการเก่า)
+      const viewUrl = row['viewUrl'] || row['fileUrl'] || row['url'] || '';
       const directUrl = row['directUrl'] || '';
       const by = row['userName'] || row['by'] || '';
       const wG = row['weightG'] || '';
@@ -1974,7 +1975,7 @@ window.loadHistory = async function() {
       const h  = row['heightCm'] || '';
       const dims = (w || l || h) ? `${w||'-'} × ${l||'-'} × ${h||'-'}` : '-';
       const weightTxt = wG ? `${wG} ก.` : '-';
-      const thumb = directUrl ? `<img class="thumb" src="${directUrl}" loading="lazy" onclick="window.open('${url}','_blank')" onerror="this.style.display='none'">` : '-';
+      const thumb = directUrl ? `<img class="thumb" src="${directUrl}" loading="lazy" onclick="window.open('${viewUrl}','_blank')" onerror="this.style.display='none'">` : '-';
       const unitCell = uc ? `<span class="unit-pill unit-${escapeHtml(uc)}">${escapeHtml(uc)}</span>${up ? `<div style="font-size:10px;color:var(--muted);margin-top:2px">${escapeHtml(up)}</div>` : ''}` : '-';
       return `<tr>
         <td>${formatThaiDate(ts)}</td>
@@ -1984,7 +1985,7 @@ window.loadHistory = async function() {
         <td>${escapeHtml(nm)}</td>
         <td>${weightTxt}</td>
         <td>${dims}</td>
-        <td>${url ? `<a href="${url}" target="_blank" class="badge badge-info">เปิด</a>` : '-'}</td>
+        <td>${viewUrl ? `<a href="${viewUrl}" target="_blank" class="badge badge-info">เปิด</a>` : '-'}</td>
         <td>${escapeHtml(by)}</td>
       </tr>`;
     }).join('');
