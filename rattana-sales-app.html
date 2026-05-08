@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Sales — v2.4 Fix Visibility Edition</title>
+<title>Rattana Sales — v2.5 Ship It Edition</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -310,9 +310,13 @@ body.dark .debt-warn { background: #2a1816; border-color: #5a2a26; }
 .action-btn .ico { font-size: 22px; }
 
 /* ─── ORDER SCREEN ─── */
-.search-bar { width: 100%; padding: 12px 16px; padding-left: 40px; border-radius: 12px; border: 1.5px solid var(–border); background: var(–card-bg); color: var(–text); font-size: 15px; outline: none; }
+.search-bar { width: 100%; padding: 12px 16px; padding-left: 40px; padding-right: 40px; border-radius: 12px; border: 1.5px solid var(–border); background: var(–card-bg); color: var(–text); font-size: 15px; outline: none; }
 .search-wrap { position: relative; margin-bottom: 12px; }
-.search-wrap::before { content: ‘🔍’; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; }
+.search-wrap::before { content: ‘🔍’; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; z-index: 1; pointer-events: none; }
+.search-clear { position: absolute; right: 50px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; border-radius: 12px; border: none; background: var(–row-alt); color: var(–muted); font-size: 14px; cursor: pointer; display: none; align-items: center; justify-content: center; z-index: 2; padding: 0; }
+.search-clear.show { display: flex; }
+.search-scan-btn { flex-shrink: 0; width: 42px; height: 42px; border-radius: 21px; border: 1.5px solid var(–border); background: var(–card-bg); font-size: 18px; cursor: pointer; font-family: inherit; }
+.screen { padding-bottom: 90px; }  /* clear bottom nav */
 
 .product-card { background: var(–card-bg); border: 1px solid var(–border); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; gap: 12px; align-items: flex-start; }
 .product-emoji { width: 48px; height: 48px; border-radius: 10px; background: var(–row-alt); display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
@@ -792,7 +796,7 @@ grid-template-columns: repeat(4, 1fr) !important;
 ```
 
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v2.4 · 2026-05-07</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v2.5 · 2026-05-07</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -805,7 +809,7 @@ grid-template-columns: repeat(4, 1fr) !important;
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v2.4</span>
+  <span class="demo-tag">v2.5</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="โหลดข้อมูลใหม่">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
 </header>
@@ -877,7 +881,7 @@ grid-template-columns: repeat(4, 1fr) !important;
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v2.4<br>2026-05-07</div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v2.5<br>2026-05-07</div>
   </div>
 </aside>
 
@@ -971,9 +975,12 @@ grid-template-columns: repeat(4, 1fr) !important;
 
   <div id="pushSection"></div>
 
-  <div class="search-wrap" style="display:flex;gap:8px;align-items:center">
-    <input class="search-bar" type="text" placeholder="ค้นหาสินค้า / barcode..." oninput="filterProducts(this.value)" id="productSearch" style="flex:1">
-    <button onclick="openBarcodeScanner('order')" title="สแกนบาร์โค้ด" style="flex-shrink:0;width:42px;height:42px;border-radius:21px;border:1.5px solid var(--border);background:var(--card-bg);font-size:18px;cursor:pointer;font-family:inherit">📷</button>
+  <div class="search-wrap" style="display:flex;gap:8px;align-items:center;position:relative">
+    <div style="flex:1;position:relative">
+      <input class="search-bar" type="text" placeholder="ค้นหาสินค้า / barcode..." oninput="filterProducts(this.value); toggleClearBtn('productSearch','productSearchClear')" id="productSearch">
+      <button id="productSearchClear" class="search-clear" onclick="clearSearch('productSearch','productSearchClear', filterProducts)">✕</button>
+    </div>
+    <button class="search-scan-btn" onclick="openBarcodeScanner('order')" title="สแกนบาร์โค้ด">📷</button>
   </div>
 
   <div class="sec-title" id="productListTitle"><span class="sec-title-icon">📦</span>สินค้าทั้งหมด<span class="sec-title-link" onclick="showAllProducts()" id="toggleAllLink"></span></div>
@@ -1284,8 +1291,11 @@ grid-template-columns: repeat(4, 1fr) !important;
 
   <div style="background:var(--card-bg);padding:10px 12px;border-radius:12px;margin:0 -2px 8px;border:1px solid var(--border)">
     <div style="position:relative;display:flex;gap:8px;align-items:center">
-      <input type="text" id="productInfoSearch" placeholder="🔍 ค้นหา ชื่อ / barcode / brand (เว้นวรรคได้)" oninput="onProductInfoSearch(this.value)" style="flex:1;height:42px;padding:0 14px;border-radius:21px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;outline:none;box-sizing:border-box">
-      <button onclick="openBarcodeScanner('price')" title="สแกนบาร์โค้ด" style="flex-shrink:0;width:42px;height:42px;border-radius:21px;border:1.5px solid var(--border);background:var(--bg);font-size:18px;cursor:pointer;font-family:inherit">📷</button>
+      <div style="flex:1;position:relative">
+        <input type="text" id="productInfoSearch" placeholder="🔍 ค้นหา ชื่อ / barcode / brand" oninput="onProductInfoSearch(this.value); toggleClearBtn('productInfoSearch','productInfoSearchClear')" style="width:100%;height:42px;padding:0 36px 0 14px;border-radius:21px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;outline:none;box-sizing:border-box">
+        <button id="productInfoSearchClear" class="search-clear" style="right:8px" onclick="clearSearch('productInfoSearch','productInfoSearchClear', onProductInfoSearch)">✕</button>
+      </div>
+      <button class="search-scan-btn" onclick="openBarcodeScanner('price')" title="สแกนบาร์โค้ด">📷</button>
     </div>
     <!-- Filter chips -->
     <div id="priceFilterChips" style="display:flex;gap:6px;margin-top:8px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch">
@@ -1326,7 +1336,7 @@ grid-template-columns: repeat(4, 1fr) !important;
 
 <script>
 // ═══════════════════════════════════════════════════════════
-// v2.4 — FIX VISIBILITY EDITION · 2026-05-07
+// v2.5 — SHIP IT EDITION · 2026-05-07
 // ═══════════════════════════════════════════════════════════
 
 const CONFIG = {
@@ -1435,13 +1445,15 @@ async function fetchSheet(sheetId, sheetName) {
   });
 }
 
-// Cache layer — uses IndexedDB for large keys (products, customers), localStorage for small keys
-const LARGE_KEYS = new Set(['products', 'customers']);  // > 5MB → use IndexedDB
+// Cache layer — memory-only for large keys (no IndexedDB overhead),
+// localStorage for small keys
+const LARGE_KEYS = new Set(['products', 'customers']);  // memory-only, no disk I/O
+const _memCache = {};  // in-session memory cache
 
 let _idbPromise = null;
 function getIdb() {
   if (_idbPromise) return _idbPromise;
-  _idbPromise = new Promise((resolve, reject) => {
+  _idbPromise = new Promise((resolve) => {
     if (!window.indexedDB) return resolve(null);
     const req = indexedDB.open('rsa_cache', 1);
     req.onupgradeneeded = e => {
@@ -1449,35 +1461,9 @@ function getIdb() {
       if (!db.objectStoreNames.contains('cache')) db.createObjectStore('cache');
     };
     req.onsuccess = e => resolve(e.target.result);
-    req.onerror = () => resolve(null);  // fall back gracefully
+    req.onerror = () => resolve(null);
   });
   return _idbPromise;
-}
-
-async function idbGet(key) {
-  const db = await getIdb();
-  if (!db) return null;
-  return new Promise(resolve => {
-    try {
-      const tx = db.transaction('cache', 'readonly');
-      const req = tx.objectStore('cache').get(key);
-      req.onsuccess = () => resolve(req.result || null);
-      req.onerror = () => resolve(null);
-    } catch { resolve(null); }
-  });
-}
-
-async function idbSet(key, value) {
-  const db = await getIdb();
-  if (!db) return false;
-  return new Promise(resolve => {
-    try {
-      const tx = db.transaction('cache', 'readwrite');
-      tx.objectStore('cache').put(value, key);
-      tx.oncomplete = () => resolve(true);
-      tx.onerror = () => resolve(false);
-    } catch { resolve(false); }
-  });
 }
 
 async function idbClear() {
@@ -1493,9 +1479,9 @@ async function idbClear() {
 }
 
 async function cacheGet(key, ttl) {
-  // Try IndexedDB for large keys
+  // Memory cache for large keys (no disk I/O — much faster)
   if (LARGE_KEYS.has(key)) {
-    const item = await idbGet('rsa_'+key);
+    const item = _memCache[key];
     if (item && (Date.now() - item.ts) < ttl) return item.data;
     return null;
   }
@@ -1507,7 +1493,8 @@ async function cacheGet(key, ttl) {
 async function cacheSet(key, data) {
   const item = { ts: Date.now(), data };
   if (LARGE_KEYS.has(key)) {
-    return idbSet('rsa_'+key, item);
+    _memCache[key] = item;
+    return true;
   }
   try {
     localStorage.setItem('rsa_'+key, JSON.stringify(item));
@@ -2127,7 +2114,7 @@ function findProductForCart(c) {
     if (sheetP) return sheetP;
   }
   // Fallback to mock PRODUCTS
-  return PRODUCTS.find(x => x.id === c.productId);
+  return findProduct(c.productId);
 }
 
 // Pick the BEST promo for a draft item.
@@ -2246,23 +2233,11 @@ function productSearchText(p) {
   return p._searchText;
 }
 
-// Match a single token against a haystack with tolerance
-// Token matches if: substring ✓ OR any word in haystack has Lev distance ≤ tolerance
+// Match a single token against a haystack — STRICT SUBSTRING ONLY
+// (Levenshtein doesn't work for Thai: 1-char substitutions change meaning entirely
+//  e.g. มาม่า vs ชาช่า differ by only 2 chars but mean totally different things)
 function tokenMatches(token, haystack) {
-  if (haystack.includes(token)) return true;
-  // Pure-digit barcodes need exact match (no fuzzy)
-  if (/^\d+$/.test(token)) return false;
-  // Skip Lev for short tokens (would match too many)
-  if (token.length < 3) return false;
-  // Try Lev against each word in haystack
-  const words = haystack.split(/[\s,/.()]+/);
-  const tolerance = token.length <= 4 ? 1 : token.length <= 7 ? 2 : 3;
-  for (const w of words) {
-    if (!w) continue;
-    if (Math.abs(w.length - token.length) > tolerance) continue;
-    if (levenshtein(token, w) <= tolerance) return true;
-  }
-  return false;
+  return haystack.includes(token);
 }
 
 // Smart search — tokenize query by space, every token must match (substring or fuzzy)
@@ -3624,7 +3599,7 @@ function renderPushSection() {
     return;
   }
   const items = shop.pushList.map(pid => {
-    const p = PRODUCTS.find(x => x.id === pid);
+    const p = findProduct(pid);
     if (!p) return '';
     const ownStock = p.stock[SALESMAN.warehouseId] || 0;
     const reserved = getReservedQty(p.id);
@@ -3762,7 +3737,7 @@ function getReservedQty(productId) {
   // qty in cart (mock — would also include other salesmen's reservations from server)
   let qty = 0;
   cart.filter(c => c.productId === productId).forEach(c => {
-    const p = PRODUCTS.find(x => x.id === productId);
+    const p = findProduct(productId);
     let mult = 1;
     if (c.unit === 'pack') mult = p.packSize;
     else if (c.unit === 'case') mult = p.packSize * p.caseSize;
@@ -3796,7 +3771,8 @@ function openProductSmart(productId) {
 }
 
 function showCartLineChoiceModal(productId, idxs) {
-  const p = PRODUCTS.find(x => x.id === productId);
+  let p = findProduct(productId);
+  if (!p) p = adaptSheetToMock(productId);
   if (!p) return;
 
   const html = `
@@ -3834,9 +3810,59 @@ function showCartLineChoiceModal(productId, idxs) {
   document.getElementById('productModal').classList.add('active');
 }
 
+// Universal product lookup — checks mock PRODUCTS first, then adapts from Sheet
+function findProduct(id) {
+  return findProduct(id) || adaptSheetToMock(id);
+}
+window.findProduct = findProduct;
+
+// Adapter: convert Sheet product row → mock-shape (so existing modal code works unchanged)
+function adaptSheetToMock(productId) {
+  const sheetP = (SHEET_DATA.products||[]).find(p =>
+    String(p['CODE EA']||'').trim() === String(productId).trim() ||
+    String(p['CODE PA']||'').trim() === String(productId).trim() ||
+    String(p['CODE BP']||'').trim() === String(productId).trim() ||
+    String(p['CODE CS']||'').trim() === String(productId).trim() ||
+    String(p['PRODUCT NAME']||'').trim() === String(productId).trim()
+  );
+  if (!sheetP) return null;
+  const qtyPA = numv(sheetP['QTY PA']) || 1;
+  const qtyCS = numv(sheetP['QTY CS']) || 1;
+  const packSize = Math.max(1, qtyPA);
+  const caseSize = Math.max(1, qtyPA > 0 ? Math.round(qtyCS / qtyPA) : 1);
+  return {
+    id: productId,
+    name: sheetP['PRODUCT NAME'] || '—',
+    emoji: '📦',
+    cat: [sheetP['CAT BRAND'], sheetP['CAT GROUP']].filter(Boolean).join(' · '),
+    brand: sheetP['CAT BRAND'] || '',
+    packSize, caseSize,
+    price: {
+      piece: numv(sheetP['PRICE S03 EA']) || numv(sheetP['PRICE CC03 EA']) || 0,
+      pack:  numv(sheetP['PRICE S03 PA']) || numv(sheetP['PRICE CC03 PA']) || 0,
+      case:  numv(sheetP['PRICE S03 CS']) || numv(sheetP['PRICE CC03 CS']) || 0,
+    },
+    minPrice: {
+      piece: numv(sheetP['PRICE S00 EA']) || 0,
+      pack:  numv(sheetP['PRICE S00 PA']) || 0,
+      case:  numv(sheetP['PRICE S00 CS']) || 0,
+    },
+    stock: {
+      W1: numv(sheetP['STOCK W1']),
+      W2: numv(sheetP['STOCK W2']),
+      W3: numv(sheetP['STOCK W3']),
+      W4: numv(sheetP['STOCK W4']),
+      C4: numv(sheetP['STOCK C4']),
+    },
+    _sheet: sheetP,
+  };
+}
+window.adaptSheetToMock = adaptSheetToMock;
+
 function openProductModal(productId, editIdx = -1) {
-  const p = PRODUCTS.find(x => x.id === productId);
-  if (!p) return;
+  let p = findProduct(productId);
+  if (!p) p = adaptSheetToMock(productId);
+  if (!p) { console.warn('[modal] product not found:', productId); showToast('ไม่พบสินค้า', 'error'); return; }
   currentModalProduct = p;
   editingCartIdx = editIdx;
 
@@ -3958,7 +3984,7 @@ function openProductModal(productId, editIdx = -1) {
 
 function getCartItemPieces(idx) {
   const c = cart[idx];
-  const p = PRODUCTS.find(x => x.id === c.productId);
+  const p = findProduct(c.productId);
   let mult = 1;
   if (c.unit === 'pack') mult = p.packSize;
   else if (c.unit === 'case') mult = p.packSize * p.caseSize;
@@ -4245,7 +4271,7 @@ function renderCart() {
     return;
   }
   list.innerHTML = cart.map((c, idx) => {
-    const p = PRODUCTS.find(x => x.id === c.productId);
+    const p = findProduct(c.productId);
     if (!p) return '';
     const unitLabel = c.unit === 'piece' ? 'ชิ้น' : c.unit === 'pack' ? 'แพ็ค' : 'ลัง';
     return `
@@ -4318,7 +4344,7 @@ function confirmOrder() {
 
 async function pushOrderToSheet(orderId, shop, items, now) {
   for (const c of items) {
-    const p = (typeof PRODUCTS !== 'undefined' ? PRODUCTS.find(x => x.id === c.productId) : null) ||
+    const p = (typeof PRODUCTS !== 'undefined' ? findProduct(c.productId) : null) ||
               SHEET_DATA.products.find(x => x['CODE EA']===c.productId || x['CODE CS']===c.productId || x['PRODUCT NAME']===c.productId);
     const productName = p ? (p.name || p['PRODUCT NAME']) : c.productId;
     const unitLabel = c.unit === 'piece' ? 'ชิ้น' : c.unit === 'pack' ? 'แพ็ค' : c.unit === 'case' ? 'ลัง' : c.unit;
@@ -4457,7 +4483,7 @@ function buildOrderText(orderIdx) {
   lines.push(``);
   lines.push(`รายการสั่งซื้อ:`);
   o.items.forEach((c, i) => {
-    const p = PRODUCTS.find(x => x.id === c.productId);
+    const p = findProduct(c.productId);
     const unit = c.unit === 'piece' ? 'ชิ้น' : c.unit === 'pack' ? 'แพ็ค' : 'ลัง';
     const lineTotal = c.qty * c.price;
     lines.push(`${i+1}. ${p?.name || c.productId}`);
@@ -4501,7 +4527,7 @@ function viewOrderDetail(orderIdx) {
       salesmanCode: SALESMAN.code,
       warehouseId: SALESMAN.warehouseId,
       items: o.items.map(c => {
-        const p = PRODUCTS.find(x => x.id === c.productId);
+        const p = findProduct(c.productId);
         return {
           productId: c.productId,
           productName: p?.name,
@@ -4560,18 +4586,23 @@ function goReturn() {
 
 function renderReturnList() {
   const list = document.getElementById('returnProductList');
-  list.innerHTML = PRODUCTS.slice(0, 5).map(p => `
-    <div class="product-card" style="cursor:default">
-      <div class="product-emoji">${p.emoji}</div>
+  const products = getDefaultProductList().slice(0, 5);
+  list.innerHTML = products.map(p => {
+    const id = p['CODE EA'] || p['CODE CS'] || p['PRODUCT NAME'];
+    const name = p['PRODUCT NAME'] || '—';
+    const cat = [p['CAT BRAND'], p['CAT GROUP']].filter(Boolean).join(' · ');
+    return `
+    <div class="product-card" style="cursor:default" data-pid="${id}">
+      <div class="product-emoji">📦</div>
       <div class="product-info">
-        <div class="product-name">${p.name}</div>
-        <div class="product-cat">${p.cat}</div>
+        <div class="product-name">${name}</div>
+        <div class="product-cat">${cat}</div>
       </div>
       <div class="qty-row" style="width:auto">
         <input class="qty-input" type="number" min="0" value="0" style="width:60px;font-size:16px;padding:6px">
       </div>
     </div>
-  `).join('');
+  `;}).join('');
 }
 
 function confirmReturn() {
@@ -5299,6 +5330,27 @@ function toggleDark() {
 
 // ═══════════════════════════════════════════════════════════
 // INIT
+// ═══════════════════════════════════════════════════════════
+// SEARCH HELPERS
+// ═══════════════════════════════════════════════════════════
+function toggleClearBtn(inputId, btnId) {
+  const inp = document.getElementById(inputId);
+  const btn = document.getElementById(btnId);
+  if (!inp || !btn) return;
+  if (inp.value && inp.value.length > 0) btn.classList.add('show');
+  else btn.classList.remove('show');
+}
+window.toggleClearBtn = toggleClearBtn;
+
+function clearSearch(inputId, btnId, callback) {
+  const inp = document.getElementById(inputId);
+  const btn = document.getElementById(btnId);
+  if (inp) { inp.value = ''; inp.focus(); }
+  if (btn) btn.classList.remove('show');
+  if (typeof callback === 'function') callback('');
+}
+window.clearSearch = clearSearch;
+
 // ═══════════════════════════════════════════════════════════
 // REFRESH + BARCODE SCANNER
 // ═══════════════════════════════════════════════════════════
