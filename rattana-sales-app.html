@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Sales — v2.8 Recursion Fix Edition</title>
+<title>Rattana Sales — v3.1 Stock Timestamp Edition</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -869,7 +869,7 @@ body.dark .text-gold { color: var(--gold-light); }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:12px;font-size:12px;display:none"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v2.8 · 2026-05-08</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v3.1 · 2026-05-08</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -880,7 +880,7 @@ body.dark .text-gold { color: var(--gold-light); }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v2.8</span>
+  <span class="demo-tag">v3.1</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="โหลดข้อมูลใหม่">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
 </header>
@@ -951,7 +951,7 @@ body.dark .text-gold { color: var(--gold-light); }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v2.8<br>2026-05-07</div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v3.1<br>2026-05-07</div>
   </div>
 </aside>
 
@@ -1371,7 +1371,7 @@ body.dark .text-gold { color: var(--gold-light); }
 
 <script>
 // ═══════════════════════════════════════════════════════════
-// v2.8 — RECURSION FIX EDITION · 2026-05-07
+// v3.1 — STOCK TIMESTAMP EDITION · 2026-05-07
 // ═══════════════════════════════════════════════════════════
 
 const CONFIG = {
@@ -1679,7 +1679,7 @@ async function enterApp() {
 
   initAppUI();
 
-  showSpinner('กำลังโหลดข้อมูลร้านค้า...');
+  showSpinner('กำลังโหลด...');
   try {
     await loadAllSheetData();
     console.log('[enterApp] Sheet data loaded — re-rendering UI');
@@ -1803,7 +1803,7 @@ async function loadAllSheetData() {
   // Product Detail (12K SKUs) — load AFTER customer/orders so login is fast
   // BUT block before Order/Shop screens render (otherwise shows mock products)
   console.log('[Rattana Sales] Loading 12K products...');
-  if (typeof showSpinner === 'function') showSpinner('กำลังโหลด 12,304 SKU...');
+  if (typeof showSpinner === 'function') showSpinner('กำลังโหลด...');
   try {
     const d = await fetchWithCache('products', () => fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.productDetail), CONFIG.cacheTTLLong);
     SHEET_DATA.products = d;
@@ -2963,14 +2963,37 @@ function renderMyDashboard() {
     ${renderGroupsCardSheet(salesByGroup, isToday)}
 
     <div class="card card-gold">
-      <div class="flex-between" style="margin-bottom:8px">
+      <div class="flex-between" style="margin-bottom:6px">
         <span style="font-size:13px;font-weight:600">📦 สต็อกคลัง${SALESMAN.warehouse}</span>
-        <span class="badge badge-ok">${(SHEET_DATA.products?.length||0).toLocaleString()} SKU</span>
+        <span class="badge badge-ok">${(SHEET_DATA.products?.length||0).toLocaleString() || '...'} SKU</span>
       </div>
-      <div style="font-size:11px;color:var(--muted)">⚡ ระบบรีเซ็ตสต็อกอัตโนมัติ 2 รอบ/วัน (06.00 และ 13.00)</div>
+      <div style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px">
+        <span>🕐</span>
+        <span>อัพเดท ${(()=>{
+          const ts = _memCache?.products?.ts;
+          if (!ts) return 'ยังไม่ได้โหลด';
+          return formatRelativeTime(ts);
+        })()}</span>
+      </div>
     </div>
   `;
 }
+
+// Format timestamp as relative Thai time
+function formatRelativeTime(ts) {
+  const diff = Date.now() - ts;
+  const sec = Math.floor(diff / 1000);
+  const min = Math.floor(sec / 60);
+  const hr  = Math.floor(min / 60);
+  if (sec < 30) return 'เมื่อกี้';
+  if (sec < 60) return `${sec} วินาทีที่แล้ว`;
+  if (min < 60) return `${min} นาทีที่แล้ว`;
+  if (hr < 24)  return `${hr} ชม.ที่แล้ว`;
+  // Older: show date
+  const d = new Date(ts);
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')} วันที่ ${d.getDate()}/${d.getMonth()+1}`;
+}
+window.formatRelativeTime = formatRelativeTime;
 
 function switchMyView(view) {
   myViewMode = view;
@@ -4911,7 +4934,6 @@ function getDefaultProductList() {
   if (all.length === 0) return [];
 
   const wh = SALESMAN.warehouseId || 'W1';
-  const role = currentUser?.role || 3;
 
   // Diagnostic: log column names once
   if (!window._loggedProductCols) {
@@ -4922,31 +4944,17 @@ function getDefaultProductList() {
 
   // Helper: get 30D avg with column-name fallback (underscore vs space)
   const get30D = (p, w) => numv(p[`AVERAGE 30D_${w}`]) || numv(p[`AVERAGE 30D ${w}`]) || numv(p[`AVG 30D ${w}`]);
-  const getStock = (p, w) => numv(p[`STOCK ${w}`]);
 
-  // Role 6+ (HQ/Manager): see ALL products, sorted by total 30D avg across all warehouses
-  if (role >= 6) {
-    return [...all]
-      .map(p => ({ p, score: ['W1','W2','W3','W4','C4'].reduce((s,w) => s + get30D(p, w), 0) }))
-      .sort((a,b) => b.score - a.score)
-      .slice(0, 200)
-      .map(x => x.p);
-  }
-
-  // Role 3-5: filter by own warehouse stock, sort by 30D avg
-  let list = all
-    .filter(p => getStock(p, wh) > 0)
-    .sort((a,b) => get30D(b, wh) - get30D(a, wh))
-    .slice(0, 200);
-
-  // Fallback: if warehouse filter is too aggressive, drop it
-  if (list.length === 0) {
-    console.warn(`[products] no stock in ${wh} — falling back to all`);
-    list = [...all]
-      .sort((a,b) => get30D(b, wh) - get30D(a, wh))
-      .slice(0, 200);
-  }
-  return list;
+  // Everyone sees all products in all warehouses (including zero-stock).
+  // Sort by 30D avg of own warehouse first, fall back to total.
+  return [...all]
+    .map(p => ({
+      p,
+      score: get30D(p, wh) || ['W1','W2','W3','W4','C4'].reduce((s, w) => s + get30D(p, w), 0)
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 200)
+    .map(x => x.p);
 }
 
 let productInfoTimer = null;
@@ -5431,7 +5439,7 @@ window.clearSearch = clearSearch;
 async function globalRefresh() {
   const btn = document.getElementById('refreshBtn');
   if (btn) btn.style.transform = 'rotate(360deg)';
-  showSpinner('กำลังโหลดข้อมูลใหม่...');
+  showSpinner('กำลังโหลด...');
   try {
     await cacheClear();
     await loadAllSheetData();
