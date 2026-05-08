@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Sales — v2.7 Click Fix Edition</title>
+<title>Rattana Sales — v2.8 Recursion Fix Edition</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -869,7 +869,7 @@ body.dark .text-gold { color: var(--gold-light); }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:12px;font-size:12px;display:none"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v2.7 · 2026-05-08</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v2.8 · 2026-05-08</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -880,7 +880,7 @@ body.dark .text-gold { color: var(--gold-light); }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v2.7</span>
+  <span class="demo-tag">v2.8</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="โหลดข้อมูลใหม่">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
 </header>
@@ -951,7 +951,7 @@ body.dark .text-gold { color: var(--gold-light); }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v2.7<br>2026-05-07</div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v2.8<br>2026-05-07</div>
   </div>
 </aside>
 
@@ -1371,7 +1371,7 @@ body.dark .text-gold { color: var(--gold-light); }
 
 <script>
 // ═══════════════════════════════════════════════════════════
-// v2.7 — CLICK FIX EDITION · 2026-05-07
+// v2.8 — RECURSION FIX EDITION · 2026-05-07
 // ═══════════════════════════════════════════════════════════
 
 const CONFIG = {
@@ -3874,7 +3874,7 @@ function showCartLineChoiceModal(productId, idxs) {
 
 // Universal product lookup — checks mock PRODUCTS first, then adapts from Sheet
 function findProduct(id) {
-  return findProduct(id) || adaptSheetToMock(id);
+  return PRODUCTS.find(x => x.id === id) || adaptSheetToMock(id);
 }
 window.findProduct = findProduct;
 
@@ -5067,7 +5067,7 @@ function showProductInfoDetail(productName) {
   }).join('');
 
   // Stock per warehouse
-  const stockRows = CONFIG.warehouses.map(w => {
+  const stockRows = WAREHOUSES.map(w => {
     const stk = numv(p[`STOCK ${w.id}`]);
     const isMine = w.id === myWh;
     const stkColor = stk <= 0 ? 'var(--warning)' : stk < 10 ? '#9b59b6' : 'var(--success)';
