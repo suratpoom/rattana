@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Sales — v2.6 Premium UI Fix Edition</title>
+<title>Rattana Sales — v2.7 Click Fix Edition</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -869,7 +869,7 @@ body.dark .text-gold { color: var(--gold-light); }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:12px;font-size:12px;display:none"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v2.6 · 2026-05-07</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v2.7 · 2026-05-08</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -880,7 +880,7 @@ body.dark .text-gold { color: var(--gold-light); }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v2.6</span>
+  <span class="demo-tag">v2.7</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="โหลดข้อมูลใหม่">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
 </header>
@@ -951,7 +951,7 @@ body.dark .text-gold { color: var(--gold-light); }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v2.6<br>2026-05-07</div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v2.7<br>2026-05-07</div>
   </div>
 </aside>
 
@@ -1371,7 +1371,7 @@ body.dark .text-gold { color: var(--gold-light); }
 
 <script>
 // ═══════════════════════════════════════════════════════════
-// v2.6 — PREMIUM UI FIX EDITION · 2026-05-07
+// v2.7 — CLICK FIX EDITION · 2026-05-07
 // ═══════════════════════════════════════════════════════════
 
 const CONFIG = {
@@ -3712,9 +3712,10 @@ function renderProductList(filterText = '') {
     return;
   }
 
-  // Render Sheet-shaped products (uses CODE EA as id, PRODUCT NAME, prices, stock by warehouse)
+  // Store products globally for index-based click lookup (bypasses ALL escape issues)
+  window._lastOrderProducts = products;
   const wh = SALESMAN.warehouseId || 'W1';
-  list.innerHTML = products.map(p => {
+  list.innerHTML = products.map((p, idx) => {
     const id = p['CODE EA'] || p['CODE CS'] || p['PRODUCT NAME'];
     const name = p['PRODUCT NAME'] || '—';
     const cat = [p['CAT BRAND'], p['CAT GROUP']].filter(Boolean).join(' · ') || '';
@@ -3734,11 +3735,11 @@ function renderProductList(filterText = '') {
 
     const photoUrl = p['PHOTO_SQL'] || p['PHOTO'] || '';
     const photoHtml = photoUrl
-      ? `<img src="${normalizePhotoThumb(photoUrl)}" style="width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0" loading="lazy" onerror="this.outerHTML='<div class=&quot;product-emoji&quot;>📦</div>'">`
+      ? `<img src="${escapeAttr(normalizePhotoThumb(photoUrl))}" style="width:52px;height:52px;border-radius:10px;object-fit:cover;flex-shrink:0;border:1px solid rgba(201,168,76,.2)" loading="lazy" onerror="this.outerHTML='<div class=&quot;product-emoji&quot;>📦</div>'">`
       : `<div class="product-emoji">📦</div>`;
 
     return `
-      <div class="product-card ${inCart ? 'in-cart' : ''}" data-pid="${escapeAttr(id)}">
+      <div class="product-card ${inCart ? 'in-cart' : ''}" onclick="_clickOrderProduct(${idx})">
         ${photoHtml}
         <div class="product-info">
           <div class="product-name">${escapeHtml(name)}</div>
@@ -3749,21 +3750,28 @@ function renderProductList(filterText = '') {
           <div class="stock-other" style="font-size:10px;color:var(--muted)">${escapeHtml(otherStock)}</div>
           <div class="product-price" style="margin-top:4px">฿ ${priceEA||'—'}/ชิ้น <span class="product-price-sub">• แพ็ค ฿${pricePA||'—'} • ลัง ฿${priceCS||'—'}</span></div>
         </div>
-        <button class="product-add" data-pid="${escapeAttr(id)}" type="button">${inCart ? '✓' : '+'}</button>
+        <button class="product-add" onclick="event.stopPropagation();_clickOrderProduct(${idx})" type="button">${inCart ? '✓' : '+'}</button>
       </div>
     `;
   }).join('');
-
-  // Wire up event delegation (so quote-escape issues don't break clicks)
-  list.onclick = function(e) {
-    const card = e.target.closest('[data-pid]');
-    if (!card) return;
-    const pid = card.getAttribute('data-pid');
-    if (!pid) return;
-    e.stopPropagation();
-    openProductSmart(pid);
-  };
 }
+
+// Index-based click handlers — immune to all string-escape bugs
+window._clickOrderProduct = function(idx) {
+  console.log('[click] order product idx:', idx);
+  const p = (window._lastOrderProducts || [])[idx];
+  if (!p) { console.warn('[click] no product at idx', idx); return; }
+  const id = p['CODE EA'] || p['CODE CS'] || p['PRODUCT NAME'];
+  openProductSmart(id);
+};
+
+window._clickPriceProduct = function(idx) {
+  console.log('[click] price product idx:', idx);
+  const p = (window._lastPriceProducts || [])[idx];
+  if (!p) { console.warn('[click] no product at idx', idx); return; }
+  const name = p['PRODUCT NAME'] || '';
+  if (name) showProductInfoDetail(name);
+};
 
 // HTML escape helpers (prevent broken markup from product names with quotes/&)
 function escapeHtml(s) {
@@ -4890,18 +4898,12 @@ function renderPriceList() {
 
   // Cap to 60 in default view (no search)
   const capped = list.slice(0, 60);
+  // Store for index-based click lookup
+  window._lastPriceProducts = capped;
   el.innerHTML = `
     <div style="font-size:11px;color:var(--muted);margin:8px 0">📦 รวม ${totalLoaded.toLocaleString()} SKU · แสดง ${capped.length} จาก ${list.length} หลังกรอง</div>
     ${capped.map((p, idx) => renderProductInfoCard(p, idx)).join('')}
   `;
-
-  // Event delegation — handles all clicks regardless of quote/special chars in name
-  el.onclick = function(e) {
-    const card = e.target.closest('[data-name]');
-    if (!card) return;
-    const name = card.getAttribute('data-name');
-    if (name) showProductInfoDetail(name);
-  };
 }
 
 function getDefaultProductList() {
@@ -4987,11 +4989,13 @@ function renderProductInfoList(products, query) {
     el.innerHTML = `
       <div style="text-align:center;padding:48px 20px;color:var(--muted)">
         <div style="font-size:48px;margin-bottom:8px;opacity:.5">🔍</div>
-        <div style="font-size:13px">ไม่พบสินค้า${query?' "'+query+'"':''}</div>
+        <div style="font-size:13px">ไม่พบสินค้า${query?' "'+escapeHtml(query)+'"':''}</div>
       </div>
     `;
     return;
   }
+  // Store for index-based click lookup
+  window._lastPriceProducts = products;
   el.innerHTML = `
     ${query ? `<div style="font-size:11px;color:var(--muted);margin:4px 0 10px">พบ ${products.length} รายการ</div>` : ''}
     ${products.map((p, idx) => renderProductInfoCard(p, idx)).join('')}
@@ -5014,9 +5018,9 @@ function renderProductInfoCard(p, idx) {
   const productName = String(p['PRODUCT NAME']||'');
 
   return `
-    <div class="price-card" data-name="${escapeAttr(productName)}">
+    <div class="price-card" onclick="_clickPriceProduct(${idx})">
       ${photo
-        ? `<img src="${photo}" class="price-card-photo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        ? `<img src="${escapeAttr(photo)}" class="price-card-photo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
            <div class="price-card-emoji" style="display:none">${emoji}</div>`
         : `<div class="price-card-emoji">${emoji}</div>`}
       <div class="price-card-info">
