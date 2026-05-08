@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>Rattana Product Photos v3.5</title>
+<title>Rattana Product Photos v3.6</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -125,6 +125,20 @@ body.dark .photo-zone.has-image{background:#fff}
 .photo-zone img{width:100%;height:auto;max-height:60vh;object-fit:contain;display:block}
 .photo-zone .placeholder-icon{font-size:48px;margin-bottom:8px;opacity:.35}
 .photo-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.photo-actions-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px}
+@media(max-width:480px){.photo-actions-row3{grid-template-columns:1fr 1fr}}
+
+/* URL input row */
+.url-divider{display:flex;align-items:center;gap:10px;margin:14px 0 10px;color:var(--muted);font-size:11px;font-weight:600;letter-spacing:.5px}
+.url-divider::before,.url-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.url-row{display:flex;gap:6px;align-items:stretch}
+.url-row .input{flex:1;font-size:14px;height:42px;min-width:0}
+.url-row .btn-fetch{flex-shrink:0;padding:0 14px;background:var(--info);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px;min-height:42px;white-space:nowrap}
+.url-row .btn-fetch:hover{opacity:.88}
+.url-row .btn-fetch:active{transform:scale(.96)}
+.url-row .btn-fetch:disabled{opacity:.45;cursor:not-allowed}
+.url-helper{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.4}
+.url-helper code{background:var(--row-alt);padding:1px 5px;border-radius:3px;font-size:11px}
 .checker-bg{background-image:linear-gradient(45deg,#e0e0e0 25%,transparent 25%),linear-gradient(-45deg,#e0e0e0 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e0e0e0 75%),linear-gradient(-45deg,transparent 75%,#e0e0e0 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,10px 0px;background-color:#f5f5f5}
 
 /* Progress bar */
@@ -359,7 +373,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 <div id="loginScreen">
   <div class="login-card">
     <div class="logo-big">RATTANA <span>PRODUCT PHOTOS</span></div>
-    <div class="sub">รัตนไพบูลย์ · v3.5</div>
+    <div class="sub">รัตนไพบูลย์ · v3.6</div>
     <div id="g_id_onload"
          data-client_id="615875645128-gasjjvkt6lu8g449cbnhl40k1pu25r0b.apps.googleusercontent.com"
          data-callback="handleGoogleLogin"
@@ -372,7 +386,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
 <!-- App Screen -->
 <div id="appScreen" class="page" style="display:none">
   <header>
-    <div class="logo-text">RATTANA <span>PRODUCT PHOTOS</span><span class="ver">v3.5 · 2026-05-07</span></div>
+    <div class="logo-text">RATTANA <span>PRODUCT PHOTOS</span><span class="ver">v3.6 · 2026-05-08</span></div>
     <button class="icon-btn" onclick="refreshAll()" title="รีเฟรช" id="btnRefresh">⟳</button>
     <button class="icon-btn" onclick="toggleDark()" title="โหมดมืด">🌓</button>
     <button class="icon-btn" onclick="logout()" title="ออก">⏻</button>
@@ -466,6 +480,15 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
             <input type="file" accept="image/*" id="galleryInput" style="display:none" onchange="handleFileSelect(event)">
             <button class="btn btn-primary" onclick="document.getElementById('cameraInput').click()">📷 ถ่ายรูป</button>
             <button class="btn btn-outline" onclick="document.getElementById('galleryInput').click()">🖼️ เลือกรูป</button>
+          </div>
+
+          <div class="url-divider">หรือ</div>
+          <div class="url-row">
+            <input type="url" class="input" id="imageUrlInput" placeholder="วาง URL ของรูปจากเว็บ..." autocomplete="off" inputmode="url" onkeydown="if(event.key==='Enter'){event.preventDefault();fetchImageFromUrl();}">
+            <button class="btn-fetch" type="button" onclick="fetchImageFromUrl()" id="btnFetchUrl">📎 ดึงรูป</button>
+          </div>
+          <div class="url-helper">
+            💡 ใช้ <b>Google Images</b> ค้นรูปสินค้า → คลิกขวาที่รูป → "Copy image address" → วางที่นี่ · รองรับ <code>.jpg</code> <code>.png</code> <code>.webp</code>
           </div>
         </div>
       </div>
@@ -630,7 +653,7 @@ body.dark .setup-notice{background:#3a2e15;color:#e8c86a;border-color:#7a5d20}
     </div>
 
     <div class="app-footer">
-      Rattana Product Photos · <span class="ver">v3.5</span> · 2026-05-07
+      Rattana Product Photos · <span class="ver">v3.6</span> · 2026-05-08
     </div>
   </div>
 </div>
@@ -1408,6 +1431,102 @@ function blobToDataUrl(blob) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// Fetch image from URL (paste URL → CORS proxy → Blob)
+// ═══════════════════════════════════════════════════════════════════
+window.fetchImageFromUrl = async function() {
+  const inp = $('imageUrlInput');
+  const btn = $('btnFetchUrl');
+  const url = (inp.value || '').trim();
+
+  if (!url) {
+    showToast('วาง URL ของรูปก่อน', 'warning');
+    inp.focus();
+    return;
+  }
+  if (!/^https?:\/\//i.test(url)) {
+    showToast('URL ต้องขึ้นต้นด้วย http:// หรือ https://', 'error');
+    return;
+  }
+
+  btn.disabled = true;
+  const originalLabel = btn.innerHTML;
+  btn.innerHTML = '⏳ กำลังดึง...';
+  setLoading(true);
+
+  try {
+    const blob = await fetchImageBlobViaProxy(url);
+    if (!blob.type.startsWith('image/')) {
+      throw new Error(`ไม่ใช่ไฟล์รูปภาพ (got ${blob.type || 'unknown'})`);
+    }
+    if (blob.size < 100) {
+      throw new Error('ไฟล์เล็กเกินไป — URL อาจไม่ใช่รูปจริง');
+    }
+
+    // Reuse handleFileSelect logic by simulating a file
+    // Convert Blob → File with a name (for downstream consistency)
+    const ext = (blob.type.split('/')[1] || 'jpg').replace('jpeg','jpg');
+    const file = new File([blob], `from-url.${ext}`, { type: blob.type });
+
+    // Mimic the file input flow
+    const fakeEvent = { target: { files: [file], value: '' } };
+    await window.handleFileSelect(fakeEvent);
+
+    inp.value = '';
+    showToast(`ดึงรูปเสร็จ (${(blob.size/1024).toFixed(0)} KB)`, 'success');
+  } catch (e) {
+    console.error('Fetch URL failed:', e);
+    showToast('ดึงรูปไม่สำเร็จ: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalLabel;
+    setLoading(false);
+  }
+};
+
+/**
+ * Try direct fetch first; if blocked by CORS, fall back through proxy chain.
+ * Most public image hosts support CORS so direct often works.
+ */
+async function fetchImageBlobViaProxy(url) {
+  // 1) Direct fetch (works for CORS-friendly hosts: most CDNs, Imgur, etc.)
+  try {
+    const res = await fetch(url, { mode: 'cors', cache: 'no-store' });
+    if (res.ok) {
+      const blob = await res.blob();
+      if (blob.size > 0) return blob;
+    }
+  } catch (e) {
+    // CORS blocked — try proxies
+    console.warn('Direct fetch failed, trying proxies:', e.message);
+  }
+
+  // 2) Proxy chain (Rattana standard CORS proxies)
+  const proxies = [
+    `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}`,
+    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  ];
+
+  let lastErr = null;
+  for (const proxyUrl of proxies) {
+    try {
+      const res = await fetch(proxyUrl, { cache: 'no-store' });
+      if (!res.ok) {
+        lastErr = new Error(`HTTP ${res.status} from ${new URL(proxyUrl).hostname}`);
+        continue;
+      }
+      const blob = await res.blob();
+      if (blob.size > 0) return blob;
+      lastErr = new Error('Empty response');
+    } catch (e) {
+      lastErr = e;
+      console.warn(`Proxy ${proxyUrl} failed:`, e.message);
+    }
+  }
+  throw new Error(lastErr?.message || 'ทุก proxy ล้มเหลว — URL อาจไม่ถูกต้อง');
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // Background removal (imgly)
 // ═══════════════════════════════════════════════════════════════════
 async function loadBgRemovalLib() {
@@ -1924,6 +2043,10 @@ window.resetAll = function() {
   ['dimWeight','dimWidth','dimLength','dimHeight'].forEach(id => {
     const el = $(id); if (el) el.value = '';
   });
+
+  // URL input
+  const urlInp = $('imageUrlInput');
+  if (urlInp) urlInp.value = '';
 
   // Photo zones
   const oz = $('originalZone');
