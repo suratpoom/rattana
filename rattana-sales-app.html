@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Rattana Sales — v3.1 Stock Timestamp Edition</title>
+<title>Rattana Sales — v3.4 CN+Visit Edition</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -356,6 +356,11 @@ body.dark .product-emoji { background: linear-gradient(135deg, #2a2415, #1f1a10)
 .stock-other { font-size: 10px; color: var(--muted); margin-top: 2px; }
 .product-price { font-size: 13px; font-weight: 700; color: var(--gold); }
 .product-price-sub { font-size: 10px; color: var(--muted); font-weight: 400; }
+.product-meta-row { display: flex; gap: 8px; align-items: center; margin-top: 4px; flex-wrap: wrap; }
+.stock-pill { padding: 3px 10px; border-radius: 8px; background: rgba(46,204,113,.12); color: var(--success); font-weight: 700; font-size: 11px; }
+.stock-pill.low { background: rgba(243,156,18,.15); color: var(--warning); }
+.stock-pill.out { background: rgba(231,76,60,.12); color: var(--danger); }
+.price-pill { padding: 3px 10px; border-radius: 8px; background: rgba(201,168,76,.12); color: var(--gold); font-weight: 800; font-size: 13px; }
 .product-add {
   width: 42px; height: 42px;
   border-radius: 12px;
@@ -404,12 +409,10 @@ body.dark .product-emoji { background: linear-gradient(135deg, #2a2415, #1f1a10)
 }
 body.dark .price-card-emoji { background: linear-gradient(135deg, #2a2415, #1f1a10); }
 .price-card-info { flex: 1; min-width: 0; }
-.price-card-name { font-size: 13px; font-weight: 700; line-height: 1.3; color: var(--text); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.price-card-tags { font-size: 10px; color: var(--muted); margin-top: 4px; display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
-.price-card-brand { color: var(--muted); }
-.price-card-right { text-align: right; flex-shrink: 0; }
-.price-card-price { font-size: 15px; font-weight: 800; color: var(--gold); line-height: 1.2; }
-.price-card-stock { font-size: 10px; color: var(--muted); margin-top: 3px; }
+.price-card-name { font-size: 13px; font-weight: 700; line-height: 1.3; color: var(--text); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 4px; }
+.price-card-stocks { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 4px; }
+.price-card-prices { font-size: 11px; color: var(--muted); }
+.price-card-prices b { color: var(--gold); font-weight: 800; font-size: 12px; }
 .price-card-arrow { color: var(--gold); font-size: 22px; flex-shrink: 0; font-weight: 300; }
 body.dark .product-price { color: var(--gold-light); }
 
@@ -869,7 +872,7 @@ body.dark .text-gold { color: var(--gold-light); }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:12px;font-size:12px;display:none"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v3.1 · 2026-05-08</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v3.4 · 2026-05-08</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -880,7 +883,7 @@ body.dark .text-gold { color: var(--gold-light); }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v3.1</span>
+  <span class="demo-tag">v3.4</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="โหลดข้อมูลใหม่">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
 </header>
@@ -951,7 +954,7 @@ body.dark .text-gold { color: var(--gold-light); }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v3.1<br>2026-05-07</div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v3.4<br>2026-05-07</div>
   </div>
 </aside>
 
@@ -1371,7 +1374,7 @@ body.dark .text-gold { color: var(--gold-light); }
 
 <script>
 // ═══════════════════════════════════════════════════════════
-// v3.1 — STOCK TIMESTAMP EDITION · 2026-05-07
+// v3.4 — CN+VISIT EDITION · 2026-05-07
 // ═══════════════════════════════════════════════════════════
 
 const CONFIG = {
@@ -1684,6 +1687,8 @@ async function enterApp() {
     await loadAllSheetData();
     console.log('[enterApp] Sheet data loaded — re-rendering UI');
     rerenderCurrentScreen();
+    // Start auto-poll for stock updates (every 30s, silent)
+    if (typeof initStockHeartbeat === 'function') initStockHeartbeat();
   } catch (e) {
     console.warn('Sheet load error:', e);
   } finally {
@@ -1724,8 +1729,8 @@ function rerenderCurrentScreen() {
 }
 
 function checkSession() {
-  // BYPASS LOGIN — auto-enter as Role 7 HQ (testing mode)
-  // Role 7 = sees all customers + sees all products (no warehouse filter)
+  // BYPASS LOGIN — auto-enter as Role 7 viewing W1 stock (testing mode)
+  // HQ users default to viewing W1 (สมุทรสงคราม) — same view as field sales
   // TODO: re-enable login later via showLogin()
   currentUser = {
     email: 'surat.rat@rattanaphaiboon.com',
@@ -1734,7 +1739,7 @@ function checkSession() {
     role: 7,
     dept: 'IT',
     company: 'รัตนไพบูลย์',
-    warehouse: 'HQ',
+    warehouse: 'W1',
     empId: 'AUTO',
     bplusCode: '',
     salesmanCode: '',
@@ -2530,6 +2535,7 @@ async function postToAppsScript(payload) {
 async function submitOrderRow(orderRow) { return postToAppsScript({ action:'appendOrder', row: orderRow }); }
 async function submitVisitRow(visit)    { return postToAppsScript({ action:'appendVisit', row: visit });    }
 async function submitNewCustomer(row)   { return postToAppsScript({ action:'appendCustomer', row });        }
+async function submitCNRow(row)         { return postToAppsScript({ action:'appendCN', row });              }
 
 function initAppUI() {
   if (typeof updateDate === 'function') updateDate();
@@ -2660,7 +2666,7 @@ let submittedOrders = []; // {id, shopId, items, subtotal, vat, total, time, syn
 function formatTimeThai(d = new Date()) {
   const h = String(d.getHours()).padStart(2, '0');
   const m = String(d.getMinutes()).padStart(2, '0');
-  return `${h}.${m}`;
+  return `${h}:${m}`;
 }
 
 // ISO date YYYY/MM/DD — e.g. "2026/05/03"
@@ -3569,8 +3575,8 @@ function renderShopDetail(shopId) {
       <button class="btn btn-gold action-btn" onclick="goOrder()" ${!canTakeOrder ? 'disabled' : ''}>
         <span class="ico">🛒</span>${hasOrderedToday ? 'สั่งเพิ่ม' : 'สั่งซื้อ'}
       </button>
-      <button class="btn btn-outline action-btn" onclick="showToast('ถ่ายรูปร้าน — จะเพิ่มในเวอร์ชั่นถัดไป','info')">
-        <span class="ico">📷</span>ถ่ายร้าน
+      <button class="btn btn-outline action-btn" onclick="openCNModal()" ${!canTakeOrder ? 'disabled' : ''}>
+        <span class="ico">📋</span>ใบลดหนี้
       </button>
       <button class="btn btn-danger action-btn" onclick="goNoSale()" ${!checkedIn || hasOrderedToday ? 'disabled' : ''}>
         <span class="ico">❌</span>ไม่ซื้อ
@@ -3621,11 +3627,45 @@ function doCheckIn(shopId) {
 
 // Manual check-out (no order/refusal — just visit)
 function manualCheckOut(shopId) {
-  if (!confirm('เช็คเอ้าโดยไม่สั่งซื้อ?\n(ใช้กรณีแค่เยี่ยมไม่ได้ขายของ)')) return;
-  finishVisit(shopId, 'visit-only');
-  showToast('✓ เช็คเอ้าแล้ว', 'info');
-  setTimeout(() => goRoute(), 600);
+  // Show reason picker
+  const reasons = [
+    'ร้านปิด',
+    'เจ้าของไม่อยู่',
+    'ของเดิมเหลือ ยังไม่สั่ง',
+    'ไม่ขายแบรนด์/สินค้านี้',
+    'รอราคาดีกว่า',
+    'งบจำกัด',
+    'แค่เยี่ยมเฉยๆ',
+    'อื่นๆ',
+  ];
+  const html = `
+    <div class="modal-handle"></div>
+    <div style="font-size:18px;font-weight:800;margin-bottom:8px">📝 เหตุผลที่ไม่ซื้อ</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">เลือกเหตุผลเพื่อเก็บข้อมูลให้บริษัท</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${reasons.map(r => `<button class="btn btn-outline" style="text-align:left;padding:14px;justify-content:flex-start" onclick="_finishWithReason('${escapeAttr(shopId)}', '${escapeAttr(r)}')">${escapeHtml(r)}</button>`).join('')}
+    </div>
+    <div style="margin-top:14px">
+      <input type="text" id="reasonOther" placeholder="พิมพ์เหตุผลอื่นๆ..." style="width:100%;padding:12px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;outline:none;font-family:inherit">
+      <button class="btn btn-primary btn-block" style="margin-top:8px" onclick="_finishWithReasonOther('${escapeAttr(shopId)}')">บันทึก</button>
+    </div>
+    <button class="btn btn-outline btn-block" style="margin-top:8px" onclick="closeModal()">ยกเลิก</button>
+  `;
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('productModal').classList.add('active');
 }
+
+window._finishWithReason = function(shopId, reason) {
+  closeModal();
+  finishVisit(shopId, 'no-order', { reason });
+  showToast('✓ บันทึกเหตุผลแล้ว', 'info');
+  setTimeout(() => goRoute(), 600);
+};
+window._finishWithReasonOther = function(shopId) {
+  const v = (document.getElementById('reasonOther')||{}).value.trim();
+  if (!v) { showToast('กรุณาพิมพ์เหตุผล', 'warning'); return; }
+  _finishWithReason(shopId, v);
+};
 
 // Common check-out logic — called by order/no-sale/manual
 function finishVisit(shopId, result, extra = {}) {
@@ -3635,14 +3675,41 @@ function finishVisit(shopId, result, extra = {}) {
   v.checkOutTime = formatTimeThai(now);
   v.checkOutLat = SALESMAN.currentLat;
   v.checkOutLng = SALESMAN.currentLng;
-  // duration in minutes
-  const [inH, inM] = v.checkInTime.split('.').map(Number);
+  // duration in minutes — supports both old "HH.MM" and new "HH:MM" formats
+  const [inH, inM] = v.checkInTime.split(/[.:]/).map(Number);
   const checkInDate = new Date(now);
   checkInDate.setHours(inH, inM, 0, 0);
   v.duration = Math.max(1, Math.round((now - checkInDate) / 60000));
   v.result = result;
   Object.assign(v, extra);
+
+  // Push to Sheet (1 row per visit — both check-in + check-out + result)
+  pushVisitToSheet(shopId, v).catch(e => console.warn('Visit sync error:', e));
   return v;
+}
+
+async function pushVisitToSheet(shopId, v) {
+  const shop = SHOPS.find(s => s.id === shopId);
+  const today = formatDateISO(new Date());
+  const row = {
+    'วัน':              today,
+    'email':           (currentUser && currentUser.email) || SALESMAN.email || '',
+    'ชื่อ-สกุล':        (currentUser && currentUser.name) || SALESMAN.name || '',
+    'รหัสเซลล์':        (currentUser && currentUser.salesmanCode) || SALESMAN.code || '',
+    'คลัง':             SALESMAN.warehouseId || '',
+    'รหัสร้าน':         shop?.bplusCode || shop?.id || '',
+    'ชื่อร้าน':         shop?.name || '',
+    'เวลาเช็คอิน':      v.checkInTime || '',
+    'เวลาเช็คเอาท์':    v.checkOutTime || '',
+    'ระยะเวลา(นาที)':   v.duration || 0,
+    'พิกัดเช็คอิน':     (v.checkInLat && v.checkInLng) ? `${v.checkInLat.toFixed(6)},${v.checkInLng.toFixed(6)}` : '',
+    'พิกัดเช็คเอาท์':   (v.checkOutLat && v.checkOutLng) ? `${v.checkOutLat.toFixed(6)},${v.checkOutLng.toFixed(6)}` : '',
+    'ผลลัพธ์':          v.result || '',
+    'เหตุผลที่ไม่ซื้อ':  v.reason || '',
+    'orderIds':         (v.orderIds && v.orderIds.length) ? v.orderIds.join(',') : (v.orderId || ''),
+    'หมายเหตุ':         v.notes || '',
+  };
+  return submitVisitRow(row);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -3766,12 +3833,10 @@ function renderProductList(filterText = '') {
         ${photoHtml}
         <div class="product-info">
           <div class="product-name">${escapeHtml(name)}</div>
-          <div class="product-cat">${escapeHtml(cat)}</div>
-          <div class="product-stock-row" style="margin-top:4px">
-            <span class="stock-own ${stockClass}">📦 ${escapeHtml(SALESMAN.warehouse||'คลังเรา')}: ${stockLabel}</span>
+          <div class="product-meta-row">
+            <span class="stock-pill ${stockClass}">${stockLabel}</span>
+            <span class="price-pill">฿${priceEA||priceCS||'—'}</span>
           </div>
-          <div class="stock-other" style="font-size:10px;color:var(--muted)">${escapeHtml(otherStock)}</div>
-          <div class="product-price" style="margin-top:4px">฿ ${priceEA||'—'}/ชิ้น <span class="product-price-sub">• แพ็ค ฿${pricePA||'—'} • ลัง ฿${priceCS||'—'}</span></div>
         </div>
         <button class="product-add" onclick="event.stopPropagation();_clickOrderProduct(${idx})" type="button">${inCart ? '✓' : '+'}</button>
       </div>
@@ -4427,7 +4492,14 @@ function confirmOrder() {
   showToast(`✅ ${isReorder ? 'สั่งเพิ่มเรียบร้อย' : 'ส่งออเดอร์เรียบร้อย'} ฿${total.toLocaleString(undefined,{maximumFractionDigits:0})}`, 'success');
 
   // Push each cart row to Apps Script (1 row = 1 line item in Order tab)
-  pushOrderToSheet(orderId, shop, cart, now).catch(e => console.warn('Order sync error:', e));
+  // Mark order as synced when push completes — clears "รอส่งระบบ" queue
+  pushOrderToSheet(orderId, shop, cart, now)
+    .then(() => {
+      const o = submittedOrders.find(x => x.id === orderId);
+      if (o) o.synced = true;
+      if (typeof rerenderCurrentScreen === 'function') rerenderCurrentScreen();
+    })
+    .catch(e => console.warn('Order sync error:', e));
 
   cart = [];
   setTimeout(() => goOrders(), 700);
@@ -4901,7 +4973,13 @@ function renderPriceList() {
   if (!el) return;
 
   const totalLoaded = (SHEET_DATA.products || []).length;
-  let list = getDefaultProductList();
+  // When filter chip is active, search across ALL 12K SKUs (not top 200)
+  let list;
+  if (priceTabFilter === 'all') {
+    list = getDefaultProductList();   // top 200 by 30D avg
+  } else {
+    list = SHEET_DATA.products || [];   // all
+  }
   list = applyPriceFilter(list);
 
   if (list.length === 0) {
@@ -5012,18 +5090,26 @@ function renderProductInfoList(products, query) {
 
 function renderProductInfoCard(p, idx) {
   const photo = productPhoto(p, true);
-  const stock = productStock(p);
-  const units = productUnits(p);
-  const priceS03 = units[0] ? defaultPrice(p, units[0].code) : 0;
-  const stockTag = stock <= 0 ? '<span style="background:rgba(243,156,18,.15);color:var(--warning);padding:1px 6px;border-radius:5px;font-size:9px;font-weight:700">หมดสต็อก</span>'
-                : stock < 10 ? '<span style="background:rgba(155,89,182,.15);color:#9b59b6;padding:1px 6px;border-radius:5px;font-size:9px;font-weight:700">เหลือน้อย</span>'
-                : '';
-  const promoTag = hasPromotion(p) ? '<span style="background:rgba(231,76,60,.15);color:#e74c3c;padding:1px 6px;border-radius:5px;font-size:9px;font-weight:700">🎁 มีโปร</span>' : '';
-  const focusTag = isFocusProduct(p) ? '<span style="background:rgba(52,152,219,.15);color:#3498db;padding:1px 6px;border-radius:5px;font-size:9px;font-weight:700">🎯 โฟกัส</span>' : '';
-  const ib = productIBAge(p);
-  const ibTag = ib ? `<span style="background:${ib.bg};color:${ib.color};padding:1px 6px;border-radius:5px;font-size:9px;font-weight:700">⏰ ${ib.days}d</span>` : '';
   const emoji = p['_emoji'] || '📦';
   const productName = String(p['PRODUCT NAME']||'');
+
+  // Stock per warehouse
+  const stockCells = WAREHOUSES.map(w => {
+    const stk = numv(p[`STOCK ${w.id}`]);
+    const cls = stk <= 0 ? 'out' : stk < 10 ? 'low' : '';
+    const shortName = (w.id === 'C4') ? 'C4' : w.id;
+    return `<span class="stock-pill ${cls}" style="font-size:10px;padding:2px 7px">${shortName}:${stk.toFixed(0)}</span>`;
+  }).join('');
+
+  // Prices per unit
+  const priceEA = numv(p['PRICE S03 EA']) || numv(p['PRICE CC03 EA']);
+  const pricePA = numv(p['PRICE S03 PA']) || numv(p['PRICE CC03 PA']);
+  const priceCS = numv(p['PRICE S03 CS']) || numv(p['PRICE CC03 CS']);
+  const priceLine = [
+    priceEA ? `ชิ้น <b>฿${priceEA}</b>` : '',
+    pricePA ? `แพ็ค <b>฿${pricePA}</b>` : '',
+    priceCS ? `ลัง <b>฿${priceCS}</b>` : '',
+  ].filter(Boolean).join(' · ');
 
   return `
     <div class="price-card" onclick="_clickPriceProduct(${idx})">
@@ -5033,14 +5119,8 @@ function renderProductInfoCard(p, idx) {
         : `<div class="price-card-emoji">${emoji}</div>`}
       <div class="price-card-info">
         <div class="price-card-name">${escapeHtml(productName||'(ไม่มีชื่อ)')}</div>
-        <div class="price-card-tags">
-          ${p['CAT BRAND']?`<span class="price-card-brand">${escapeHtml(p['CAT BRAND'])}</span>`:''}
-          ${promoTag}${focusTag}${stockTag}${ibTag}
-        </div>
-      </div>
-      <div class="price-card-right">
-        <div class="price-card-price">฿${priceS03.toLocaleString()}</div>
-        <div class="price-card-stock">คงเหลือ ${stock.toFixed(0)}</div>
+        <div class="price-card-stocks">${stockCells}</div>
+        <div class="price-card-prices">${priceLine}</div>
       </div>
       <div class="price-card-arrow">›</div>
     </div>
@@ -5059,17 +5139,16 @@ function showProductInfoDetail(productName) {
   const myWh = currentUser?.warehouse || SALESMAN.warehouseId || 'W1';
   const isManager = (currentUser?.role || SALESMAN.level) >= 5;
 
-  // Build unit + price table
+  // Build unit + price table — show S03 only (clean view)
+  // S00 kept for Role 5+ sales as floor reference
   const unitRows = units.map(u => {
     const prices = productPrices(p, u.code);
     return `
       <tr>
-        <td style="padding:8px 6px;font-weight:700">${u.label}</td>
-        <td style="padding:8px 6px;font-size:11px;color:var(--muted)">${u.barcode||''}</td>
-        <td style="padding:8px 6px;text-align:right;font-weight:700">฿${(prices.S03||0).toLocaleString()}</td>
-        <td style="padding:8px 6px;text-align:right">฿${(prices.S02||0).toLocaleString()}</td>
-        <td style="padding:8px 6px;text-align:right">฿${(prices.S01||0).toLocaleString()}</td>
-        ${isManager?`<td style="padding:8px 6px;text-align:right;color:var(--danger);font-weight:700">฿${(prices.S00||0).toLocaleString()}</td>`:''}
+        <td style="padding:10px 8px;font-weight:700">${u.label}</td>
+        <td style="padding:10px 8px;font-size:11px;color:var(--muted)">${u.barcode||''}</td>
+        <td style="padding:10px 8px;text-align:right;font-weight:800;color:var(--gold);font-size:14px">฿${(prices.S03||0).toLocaleString()}</td>
+        ${isManager?`<td style="padding:10px 8px;text-align:right;color:var(--danger);font-weight:700">฿${(prices.S00||0).toLocaleString()}</td>`:''}
       </tr>
     `;
   }).join('');
@@ -5117,35 +5196,31 @@ function showProductInfoDetail(productName) {
 
     ${photoBig ? `<img src="${photoBig}" style="width:100%;height:200px;object-fit:contain;border-radius:10px;margin-bottom:12px;background:var(--row-alt);border:1px solid var(--border)" onerror="this.style.display='none'">` : ''}
 
-    <!-- Categories -->
-    <div style="background:var(--row-alt);padding:10px 12px;border-radius:8px;margin-bottom:14px;font-size:11px;line-height:1.8">
-      ${p['CAT BU']     ? `<div><strong>BU:</strong> ${p['CAT BU']}</div>` : ''}
-      ${p['CAT TYPE']   ? `<div><strong>Type:</strong> ${p['CAT TYPE']}</div>` : ''}
-      ${p['CAT GROUP']  ? `<div><strong>Group:</strong> ${p['CAT GROUP']}</div>` : ''}
-      ${p['CAT BRAND']  ? `<div><strong>Brand:</strong> ${p['CAT BRAND']}</div>` : ''}
-      ${p['CAT VENDOR'] ? `<div><strong>Vendor:</strong> ${p['CAT VENDOR']}</div>` : ''}
-      ${p['CAT SIZE']   ? `<div><strong>Size:</strong> ${p['CAT SIZE']}</div>` : ''}
+    <!-- Categories as chips -->
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">
+      ${[p['CAT BU'], p['CAT TYPE'], p['CAT GROUP'], p['CAT BRAND'], p['CAT VENDOR'], p['CAT SIZE']]
+        .filter(Boolean)
+        .map(v => `<span style="background:var(--row-alt);border:1px solid var(--border);padding:4px 10px;border-radius:14px;font-size:11px;color:var(--text);font-weight:500">${escapeHtml(v)}</span>`)
+        .join('')}
     </div>
 
-    <!-- Units & Prices -->
+    <!-- Units & Prices (S03 only, clean) -->
     <div style="margin-bottom:14px">
       <div style="font-size:13px;font-weight:700;margin-bottom:8px">💰 หน่วยและราคา</div>
-      <div style="overflow-x:auto;border-radius:8px;border:1px solid var(--border)">
-        <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:${isManager?'440px':'380px'}">
+      <div style="overflow-x:auto;border-radius:10px;border:1px solid var(--border)">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
           <thead>
             <tr style="background:var(--navy);color:#fff">
-              <th style="padding:8px 6px;text-align:left;font-size:11px">หน่วย</th>
-              <th style="padding:8px 6px;text-align:left;font-size:11px">บาร์โค้ด</th>
-              <th style="padding:8px 6px;text-align:right;font-size:11px">S03</th>
-              <th style="padding:8px 6px;text-align:right;font-size:11px">S02</th>
-              <th style="padding:8px 6px;text-align:right;font-size:11px">S01</th>
-              ${isManager?'<th style="padding:8px 6px;text-align:right;font-size:11px;color:var(--gold)">S00</th>':''}
+              <th style="padding:10px 8px;text-align:left;font-size:11px">หน่วย</th>
+              <th style="padding:10px 8px;text-align:left;font-size:11px">บาร์โค้ด</th>
+              <th style="padding:10px 8px;text-align:right;font-size:11px">ราคา</th>
+              ${isManager?'<th style="padding:10px 8px;text-align:right;font-size:11px;color:var(--gold)">ขั้นต่ำ</th>':''}
             </tr>
           </thead>
-          <tbody>${unitRows||'<tr><td colspan="6" style="padding:12px;text-align:center;color:var(--muted)">ไม่มีหน่วยขาย</td></tr>'}</tbody>
+          <tbody>${unitRows||'<tr><td colspan="4" style="padding:12px;text-align:center;color:var(--muted)">ไม่มีหน่วยขาย</td></tr>'}</tbody>
         </table>
       </div>
-      ${!isManager?'<div style="font-size:10px;color:var(--muted);margin-top:6px">🔒 ราคา S00 (ขั้นต่ำ) สำหรับ Role 5+ เท่านั้น</div>':''}
+      ${!isManager?'<div style="font-size:10px;color:var(--muted);margin-top:6px">🔒 ราคาขั้นต่ำสำหรับ Role 5+ เท่านั้น</div>':''}
     </div>
 
     <!-- Stock per warehouse -->
@@ -5454,27 +5529,97 @@ async function globalRefresh() {
 }
 window.globalRefresh = globalRefresh;
 
-// Auto-refresh products when app comes back to foreground (visibility change)
-// — gives Rattana Mart-like "real time" feel without polling
-let _lastRefreshAt = Date.now();
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden && currentUser) {
-    const minutesSince = (Date.now() - _lastRefreshAt) / 60000;
-    if (minutesSince >= 1) {
-      // App was hidden 1+ min — silently refresh products
-      console.log('[visibility] refreshing after', minutesSince.toFixed(1), 'min hidden');
-      _lastRefreshAt = Date.now();
-      fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.productDetail)
-        .then(d => {
-          SHEET_DATA.products = d;
-          cacheSet('products', d);
-          console.log('[visibility] products refreshed:', d.length);
-          rerenderCurrentScreen();
-        })
-        .catch(e => console.warn('[visibility] refresh failed:', e.message));
+// ═══════════════════════════════════════════════════════════
+// AUTO-REFRESH SYSTEM — silent polling + instant visibility refresh
+// "Real-time feel" without overloading Sheets API:
+// 1. Heartbeat every 30s: fetch _SyncStatus (~1KB) → if timestamp newer → refetch products
+// 2. Visibility change: app comes back to foreground → check immediately
+// 3. Tab switch in app: instant heartbeat check
+// ═══════════════════════════════════════════════════════════
+
+let _lastSyncTimestamp = '';   // last seen _SyncStatus timestamp (stock)
+let _lastOrderCount = 0;       // last seen Order tab row count
+let _heartbeatTimer = null;
+const HEARTBEAT_INTERVAL_MS = 30 * 1000;  // 30 seconds
+
+// Quick check: poll _SyncStatus tab (tiny), refetch products only if changed.
+// Also check Order tab row count for new orders (real-time dashboard).
+async function checkForStockUpdate() {
+  if (!currentUser || document.hidden) return;
+  try {
+    // STOCK: check _SyncStatus
+    const rows = await fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.syncStatus);
+    if (rows && rows.length) {
+      const last = rows[rows.length - 1];
+      const ts = String(last['Timestamp'] || last['timestamp'] || '').trim();
+      if (ts && _lastSyncTimestamp && ts !== _lastSyncTimestamp) {
+        console.log('[heartbeat] stock updated:', _lastSyncTimestamp, '→', ts);
+        _lastSyncTimestamp = ts;
+        SHEET_DATA.syncStatus = rows;
+        const d = await fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.productDetail);
+        SHEET_DATA.products = d;
+        cacheSet('products', d);
+        console.log('[heartbeat] products refetched:', d.length);
+        rerenderCurrentScreen();
+        if (typeof showToast === 'function') showToast('📦 สต็อกอัพเดท', 'success');
+      } else if (!_lastSyncTimestamp) {
+        _lastSyncTimestamp = ts;   // first run
+      }
     }
+
+    // ORDERS: check Order tab — silent refetch if count changed
+    const orderRows = await fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.order);
+    if (orderRows) {
+      const cnt = orderRows.length;
+      if (_lastOrderCount && cnt !== _lastOrderCount) {
+        const delta = cnt - _lastOrderCount;
+        console.log('[heartbeat] orders changed:', _lastOrderCount, '→', cnt);
+        _lastOrderCount = cnt;
+        SHEET_DATA.orders = orderRows;
+        cacheSet('orders', orderRows);
+        rerenderCurrentScreen();
+        if (delta > 0 && typeof showToast === 'function') showToast(`🆕 มีออเดอร์ใหม่ ${delta} รายการ`, 'success');
+      } else if (!_lastOrderCount) {
+        _lastOrderCount = cnt;   // first run
+      }
+    }
+  } catch (e) {
+    console.warn('[heartbeat]', e.message);
+  }
+}
+
+function startHeartbeat() {
+  stopHeartbeat();
+  _heartbeatTimer = setInterval(checkForStockUpdate, HEARTBEAT_INTERVAL_MS);
+  console.log('[heartbeat] started — checking every', HEARTBEAT_INTERVAL_MS/1000, 's');
+}
+function stopHeartbeat() {
+  if (_heartbeatTimer) { clearInterval(_heartbeatTimer); _heartbeatTimer = null; }
+}
+window.startHeartbeat = startHeartbeat; window.stopHeartbeat = stopHeartbeat;
+
+// Visibility: instant check when app comes back, pause when hidden
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    stopHeartbeat();
+  } else if (currentUser) {
+    checkForStockUpdate();   // instant check
+    startHeartbeat();        // resume polling
   }
 });
+
+// Initialize last timestamp from initial sync data, then start heartbeat
+function initStockHeartbeat() {
+  const rows = SHEET_DATA.syncStatus || [];
+  if (rows.length) {
+    const last = rows[rows.length - 1];
+    _lastSyncTimestamp = String(last['Timestamp'] || last['timestamp'] || '').trim();
+  }
+  _lastOrderCount = (SHEET_DATA.orders || []).length;
+  console.log('[heartbeat] init — stock ts:', _lastSyncTimestamp, 'order count:', _lastOrderCount);
+  startHeartbeat();
+}
+window.initStockHeartbeat = initStockHeartbeat;
 
 // ═══ Barcode scanner (Html5Qrcode pattern) ═══
 let _qrScanner = null;
@@ -5609,6 +5754,260 @@ if (typeof showToast !== 'function') {
     setTimeout(() => t.remove(), 3000);
   };
 }
+
+// ═══════════════════════════════════════════════════════════
+// CN — Credit Note (ใบลดหนี้)
+// Flow: Open shop → กด "ใบลดหนี้" → search สินค้า → กรอก qty + reason → submit
+// ═══════════════════════════════════════════════════════════
+
+let _cnDraft = { items: [] };  // in-progress CN
+
+function openCNModal() {
+  if (!currentShopId) { showToast('เปิดร้านก่อน', 'warning'); return; }
+  _cnDraft = { items: [] };
+  renderCNModal();
+  document.getElementById('productModal').classList.add('active');
+}
+window.openCNModal = openCNModal;
+
+function renderCNModal() {
+  const shop = SHOPS.find(s => s.id === currentShopId);
+  const total = _cnDraft.items.reduce((s, i) => s + (i.qty * i.price), 0);
+  const itemsHtml = _cnDraft.items.length === 0
+    ? '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">— ยังไม่มีรายการ —</div>'
+    : _cnDraft.items.map((it, idx) => `
+        <div style="display:flex;gap:10px;align-items:center;padding:10px;border:1px solid var(--border);border-radius:10px;margin-bottom:6px">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:700">${escapeHtml(it.name)}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">${it.qty} ${it.unitLabel} × ฿${it.price} = <b style="color:var(--gold)">฿${(it.qty*it.price).toLocaleString()}</b></div>
+            <div style="font-size:11px;color:var(--danger);margin-top:2px">${escapeHtml(it.reason)}</div>
+          </div>
+          <button onclick="_removeCNItem(${idx})" style="width:30px;height:30px;border-radius:8px;background:rgba(231,76,60,.12);color:var(--danger);border:none;font-size:16px;cursor:pointer">×</button>
+        </div>
+      `).join('');
+
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-handle"></div>
+    <div style="font-size:18px;font-weight:800;margin-bottom:4px">📋 ใบลดหนี้ (CN)</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">${escapeHtml(shop?.name||'')}</div>
+
+    <div style="margin-bottom:14px">
+      <label style="font-size:12px;font-weight:700;display:block;margin-bottom:6px">รายการสินค้าที่จะลดหนี้</label>
+      ${itemsHtml}
+    </div>
+
+    <button class="btn btn-outline btn-block" style="margin-bottom:12px" onclick="_addCNItem()">+ เพิ่มสินค้า</button>
+
+    <div style="background:var(--row-alt);padding:12px;border-radius:10px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-weight:700">รวม</span>
+      <span style="font-weight:800;color:var(--gold);font-size:18px">฿${total.toLocaleString()}</span>
+    </div>
+
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-outline" style="flex:1" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn btn-success" style="flex:1" onclick="_submitCN()" ${_cnDraft.items.length === 0 ? 'disabled' : ''}>ส่งใบลดหนี้</button>
+    </div>
+  `;
+}
+
+function _addCNItem() {
+  // Open product picker — search across SHEET_DATA.products
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-handle"></div>
+    <div style="font-size:16px;font-weight:800;margin-bottom:8px">🔍 เลือกสินค้า</div>
+    <input type="text" id="cnSearchInput" placeholder="ค้นหา ชื่อ / barcode / brand"
+      style="width:100%;padding:12px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;outline:none;font-family:inherit;margin-bottom:10px"
+      oninput="_renderCNSearchResults(this.value)">
+    <div id="cnSearchResults" style="max-height:50vh;overflow-y:auto"></div>
+    <button class="btn btn-outline btn-block" style="margin-top:10px" onclick="renderCNModal()">← กลับ</button>
+  `;
+  setTimeout(() => document.getElementById('cnSearchInput')?.focus(), 100);
+  _renderCNSearchResults('');
+}
+window._addCNItem = _addCNItem;
+
+function _renderCNSearchResults(query) {
+  const el = document.getElementById('cnSearchResults');
+  if (!el) return;
+  let results;
+  const q = (query||'').trim();
+  if (q.length < 2) {
+    results = (SHEET_DATA.products||[]).slice(0, 30);
+  } else {
+    results = searchSheetProducts(q, 50);
+  }
+  if (!results.length) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">ไม่พบสินค้า</div>';
+    return;
+  }
+  window._cnSearchResults = results;
+  el.innerHTML = results.map((p, idx) => `
+    <div onclick="_pickCNProduct(${idx})" style="display:flex;gap:10px;align-items:center;padding:10px;border-bottom:1px solid var(--border);cursor:pointer">
+      <div style="font-size:24px">📦</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;line-height:1.3">${escapeHtml(p['PRODUCT NAME']||'')}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">${escapeHtml(p['CAT BRAND']||'')} · ${escapeHtml(p['CODE EA']||'')}</div>
+      </div>
+      <div style="color:var(--gold);font-weight:800">฿${(numv(p['PRICE S03 EA'])||0).toLocaleString()}</div>
+    </div>
+  `).join('');
+}
+window._renderCNSearchResults = _renderCNSearchResults;
+
+function _pickCNProduct(idx) {
+  const p = (window._cnSearchResults||[])[idx];
+  if (!p) return;
+  // Show qty/unit/reason form
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-handle"></div>
+    <div style="font-size:16px;font-weight:800;margin-bottom:6px">${escapeHtml(p['PRODUCT NAME']||'')}</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px">${escapeHtml(p['CAT BRAND']||'')}</div>
+
+    <div style="margin-bottom:12px">
+      <label style="font-size:12px;font-weight:700;display:block;margin-bottom:6px">หน่วย</label>
+      <select id="cnUnit" onchange="_updateCNPrice()" style="width:100%;padding:12px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;font-family:inherit">
+        ${numv(p['PRICE S03 EA']) ? `<option value="EA" data-price="${numv(p['PRICE S03 EA'])}" data-label="ชิ้น">ชิ้น (EA) — ฿${numv(p['PRICE S03 EA'])}</option>` : ''}
+        ${numv(p['PRICE S03 PA']) ? `<option value="PA" data-price="${numv(p['PRICE S03 PA'])}" data-label="แพ็ค">แพ็ค (PA) — ฿${numv(p['PRICE S03 PA'])}</option>` : ''}
+        ${numv(p['PRICE S03 CS']) ? `<option value="CS" data-price="${numv(p['PRICE S03 CS'])}" data-label="ลัง">ลัง (CS) — ฿${numv(p['PRICE S03 CS'])}</option>` : ''}
+      </select>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label style="font-size:12px;font-weight:700;display:block;margin-bottom:6px">จำนวน</label>
+      <input type="number" id="cnQty" value="1" min="1" oninput="_updateCNPrice()"
+        style="width:100%;padding:12px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;font-family:inherit">
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label style="font-size:12px;font-weight:700;display:block;margin-bottom:6px">ราคาต่อหน่วย</label>
+      <input type="number" id="cnPrice" value="${numv(p['PRICE S03 EA'])||0}" oninput="_updateCNPrice()"
+        style="width:100%;padding:12px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;font-family:inherit">
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label style="font-size:12px;font-weight:700;display:block;margin-bottom:6px">เหตุผล</label>
+      <select id="cnReasonSelect" onchange="_toggleCNReasonOther()" style="width:100%;padding:12px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;font-family:inherit;margin-bottom:6px">
+        <option value="">-- เลือกเหตุผล --</option>
+        <option>สินค้าหมดอายุ</option>
+        <option>สินค้าเสียหาย</option>
+        <option>ลูกค้าคืน</option>
+        <option>ราคาผิด</option>
+        <option>จำนวนผิด</option>
+        <option value="__OTHER__">อื่นๆ (พิมพ์เอง)</option>
+      </select>
+      <input type="text" id="cnReasonOther" placeholder="พิมพ์เหตุผล..." style="display:none;width:100%;padding:12px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;font-family:inherit">
+    </div>
+
+    <div style="margin-bottom:14px">
+      <label style="font-size:12px;font-weight:700;display:block;margin-bottom:6px">orderId เดิม (ถ้ามี)</label>
+      <input type="text" id="cnOrigOrderId" placeholder="ORD..." style="width:100%;padding:12px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;font-family:inherit">
+    </div>
+
+    <div style="background:var(--row-alt);padding:10px;border-radius:8px;margin-bottom:14px;display:flex;justify-content:space-between">
+      <span style="font-weight:700">รวม</span>
+      <span id="cnLineTotal" style="font-weight:800;color:var(--gold)">฿0</span>
+    </div>
+
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-outline" style="flex:1" onclick="_addCNItem()">← กลับ</button>
+      <button class="btn btn-success" style="flex:1" onclick="_confirmCNItem(${idx})">เพิ่มรายการ</button>
+    </div>
+  `;
+  setTimeout(_updateCNPrice, 50);
+}
+window._pickCNProduct = _pickCNProduct;
+
+function _toggleCNReasonOther() {
+  const sel = document.getElementById('cnReasonSelect');
+  const oth = document.getElementById('cnReasonOther');
+  if (!sel || !oth) return;
+  oth.style.display = (sel.value === '__OTHER__') ? 'block' : 'none';
+}
+window._toggleCNReasonOther = _toggleCNReasonOther;
+
+function _updateCNPrice() {
+  const sel = document.getElementById('cnUnit');
+  const priceEl = document.getElementById('cnPrice');
+  const qtyEl = document.getElementById('cnQty');
+  const totalEl = document.getElementById('cnLineTotal');
+  if (!sel || !priceEl || !qtyEl || !totalEl) return;
+  const opt = sel.options[sel.selectedIndex];
+  if (opt && !priceEl.dataset.userEdited) priceEl.value = opt.dataset.price || 0;
+  const total = (parseFloat(priceEl.value)||0) * (parseFloat(qtyEl.value)||0);
+  totalEl.textContent = '฿' + total.toLocaleString();
+}
+window._updateCNPrice = _updateCNPrice;
+
+function _confirmCNItem(idx) {
+  const p = (window._cnSearchResults||[])[idx];
+  if (!p) return;
+  const unit = document.getElementById('cnUnit').value;
+  const qty = parseFloat(document.getElementById('cnQty').value) || 0;
+  const price = parseFloat(document.getElementById('cnPrice').value) || 0;
+  const reasonSel = document.getElementById('cnReasonSelect').value;
+  const reasonOth = document.getElementById('cnReasonOther').value.trim();
+  const origOrderId = document.getElementById('cnOrigOrderId').value.trim();
+  const reason = reasonSel === '__OTHER__' ? reasonOth : reasonSel;
+
+  if (qty <= 0) { showToast('จำนวนต้องมากกว่า 0', 'warning'); return; }
+  if (price <= 0) { showToast('ราคาต้องมากกว่า 0', 'warning'); return; }
+  if (!reason) { showToast('เลือก/กรอกเหตุผล', 'warning'); return; }
+
+  const unitLabel = unit === 'EA' ? 'ชิ้น' : unit === 'PA' ? 'แพ็ค' : 'ลัง';
+  const barcode = p[`CODE ${unit}`] || p['CODE EA'] || '';
+  _cnDraft.items.push({
+    productId: p['CODE EA'] || '',
+    name: p['PRODUCT NAME'] || '',
+    barcode,
+    unit, unitLabel, qty, price, reason, origOrderId,
+  });
+  renderCNModal();
+}
+window._confirmCNItem = _confirmCNItem;
+
+function _removeCNItem(idx) {
+  _cnDraft.items.splice(idx, 1);
+  renderCNModal();
+}
+window._removeCNItem = _removeCNItem;
+
+async function _submitCN() {
+  if (_cnDraft.items.length === 0) return;
+  const shop = SHOPS.find(s => s.id === currentShopId);
+  const cnId = 'CN' + Date.now().toString().slice(-7);
+  const now = new Date();
+  closeModal();
+  showToast('กำลังส่งใบลดหนี้...', 'info');
+  try {
+    for (const it of _cnDraft.items) {
+      await submitCNRow({
+        'วัน':           formatDateISO(now),
+        'เวลา':          formatTimeThai(now),
+        'email':        (currentUser && currentUser.email) || SALESMAN.email || '',
+        'ชื่อ-สกุล':     (currentUser && currentUser.name) || SALESMAN.name || '',
+        'รหัสเซลล์':     (currentUser && currentUser.salesmanCode) || SALESMAN.code || '',
+        'คลัง':          SALESMAN.warehouseId || '',
+        'รหัสร้าน':      shop?.bplusCode || shop?.id || '',
+        'ชื่อร้าน':      shop?.name || '',
+        'Barcode':      it.barcode,
+        'ชื่อสินค้า':    it.name,
+        'จำนวน':         it.qty,
+        'หน่วย':         it.unitLabel,
+        'ราคา':          it.price,
+        'ยอดเงิน':       it.qty * it.price,
+        'เหตุผล':        it.reason,
+        'orderIdเดิม':   it.origOrderId,
+        'cnId':          cnId,
+      });
+    }
+    showToast(`✅ ส่งใบลดหนี้แล้ว ${_cnDraft.items.length} รายการ`, 'success');
+    _cnDraft = { items: [] };
+  } catch (e) {
+    console.error('CN submit failed:', e);
+    showToast('ส่งไม่สำเร็จ: ' + e.message, 'error');
+  }
+}
+window._submitCN = _submitCN;
 
 // ═══════════════════════════════════════════════════════════
 window.addEventListener('load', () => {
