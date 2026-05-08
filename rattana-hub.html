@@ -222,7 +222,7 @@ body.dark .spinner-ring{border-color:#1f3563;border-top-color:var(--gold)}
          data-type="standard" data-size="large" data-theme="outline"
          data-text="sign_in_with" data-shape="rectangular"></div>
     <div id="loginError" class="login-error"></div>
-    <div class="login-foot">© Rattanaphaiboon · v2.2</div>
+    <div class="login-foot">© Rattanaphaiboon · v2.3</div>
   </div>
 </div>
 
@@ -270,7 +270,7 @@ body.dark .spinner-ring{border-color:#1f3563;border-top-color:var(--gold)}
   <div class="section" id="categorySection"></div>
 
   <div class="footer-note">
-    <strong>Rattana Hub v2.2</strong> · ดึง config จาก Google Sheet<br>
+    <strong>Rattana Hub v2.3</strong> · ดึง config จาก Google Sheet<br>
     Login ครั้งเดียวใช้ได้ทุกแอปใน <code>github.io/rattana/</code>
   </div>
 </div>
@@ -617,10 +617,32 @@ function favKey() {
   return `rattana_hub_favorites_${currentUser.email}`;
 }
 function loadFavs() {
-  try { return JSON.parse(localStorage.getItem(favKey()) || '[]'); }
-  catch { return []; }
+  try {
+    const raw = localStorage.getItem(favKey());
+    const parsed = raw ? JSON.parse(raw) : [];
+    console.log('[Hub] Loaded favorites:', parsed.length, 'items, key:', favKey());
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    console.error('[Hub] loadFavs failed:', e);
+    return [];
+  }
 }
-function saveFavs() { localStorage.setItem(favKey(), JSON.stringify(favorites)); }
+function saveFavs() {
+  try {
+    const json = JSON.stringify(favorites);
+    localStorage.setItem(favKey(), json);
+    console.log('[Hub] Saved favorites:', favorites.length, 'items');
+    // Verify the write actually persisted (sometimes private/incognito mode silently fails)
+    const verify = localStorage.getItem(favKey());
+    if (verify !== json) {
+      console.warn('[Hub] Favorites write did not persist! localStorage may be disabled.');
+      showToast('บันทึกไม่สำเร็จ — เปิด private/incognito mode อยู่หรือเปล่า?', 'error');
+    }
+  } catch (e) {
+    console.error('[Hub] saveFavs failed:', e);
+    showToast('บันทึกรายการโปรดไม่สำเร็จ', 'error');
+  }
+}
 function isFav(url) { return favorites.includes(url); }
 function toggleFav(url, ev) {
   ev.preventDefault(); ev.stopPropagation();
@@ -727,7 +749,7 @@ function hasValidUrl(app) {
 function appCard(app) {
   const starred = isFav(app.url);
   const valid = hasValidUrl(app);
-  const target = /^https?:\/\//.test(app.url) ? ' target="_blank" rel="noopener"' : '';
+  const target = ''; // always same window so browser back returns to Hub
 
   // No URL → render as <div> (no click action), add "เร็วๆ นี้" badge, dim it
   if (!valid) {
