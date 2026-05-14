@@ -6634,7 +6634,7 @@ function _showOutOfRangeModal(shopId, distance) {
   const btns = reasons.map(r =>
     `<button class="modal-option-btn" onclick="_confirmOutOfRange('${shopId}',${Math.round(distance)},'${r}')">${r}</button>`
   ).join('');
-  showModal(`
+  document.getElementById('modalContent').innerHTML = `
     <button type="button" class="modal-close-x" onclick="closeModal()">✕</button>
     <div class="modal-handle"></div>
     <div style="padding:20px 16px 24px">
@@ -6642,7 +6642,8 @@ function _showOutOfRangeModal(shopId, distance) {
       <div style="font-size:13px;color:var(--muted);margin-bottom:18px">ร้านนี้ห่างเกิน 50m — กรุณาระบุเหตุผลก่อนเช็คอิน</div>
       <div style="display:flex;flex-direction:column;gap:8px">${btns}</div>
     </div>
-  `);
+  `;
+  document.getElementById('productModal').classList.add('active');
 }
 window._confirmOutOfRange = function(shopId, distance, reason) {
   closeModal();
