@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v5.0 Search Persist & Chip Fix</title>
+<title>Rattana Sales — v6.5.5 Promo Fix + Filter Chip</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -34,15 +34,15 @@
   --danger:     #ff4d6a;
   --warning:    #ffab2e;
   --info:       #1e7fff;
-  --bg:         #f0f3f9;          /* cooler grey-blue bg */
+  --bg:         #e4e9f3;          /* darker grey-blue bg for stronger card contrast */
   --text:       #0a1628;
   --card-bg:    #ffffff;
-  --border:     #d8e0ef;
+  --border:     #c8d2e3;
   --muted:      #647898;
-  --row-alt:    #f7f9fd;
-  --shadow-sm:  0 1px 3px rgba(8,20,46,.07), 0 1px 2px rgba(8,20,46,.04);
-  --shadow-md:  0 4px 12px rgba(8,20,46,.10), 0 2px 4px rgba(8,20,46,.06);
-  --shadow-lg:  0 12px 32px rgba(8,20,46,.14);
+  --row-alt:    #eef2f9;
+  --shadow-sm:  0 2px 6px rgba(8,20,46,.12), 0 1px 2px rgba(8,20,46,.06);
+  --shadow-md:  0 6px 16px rgba(8,20,46,.14), 0 2px 4px rgba(8,20,46,.08);
+  --shadow-lg:  0 16px 40px rgba(8,20,46,.18);
   --shadow-gold: 0 4px 14px rgba(212,168,67,.4);
   --shadow-accent: 0 4px 14px rgba(30,127,255,.35);
 }
@@ -367,7 +367,112 @@ body.dark .badge-gold { background: #2a2415; color: var(--gold-light); }
 body.dark .add-off-route { color: var(--gold-light); }
 
 /* ─── RICH CARD (shop card v4.1 — Variant B with photo banner + actions) ─── */
-.rich-card {
+/* ═══ SEMI CARD — v5.0 (photo left, info center, 2 action buttons right) ═══ */
+.semi-card {
+  background: var(--card-bg);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  margin-bottom: 11px;
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(8,20,46,.10), 0 1px 3px rgba(8,20,46,.06);
+  min-height: 104px;
+  transition: box-shadow .15s, transform .1s;
+}
+.semi-card:active { transform: scale(.99); }
+.semi-card.sc-pending    { border-left: 4px solid #94a3c0; }
+.semi-card.sc-checked-in { border-left: 4px solid #28a745; }
+.semi-card.sc-done       { border-left: 4px solid #1e7fff; opacity: .88; }
+.semi-card.sc-no-buy     { border-left: 4px solid #f39c12; opacity: .88; }
+
+.sc-photo {
+  width: 88px;
+  flex-shrink: 0;
+  background: var(--row-alt);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px;
+  overflow: hidden;
+  position: relative;
+}
+.sc-photo img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .3s; }
+.sc-photo img.loaded { opacity: 1; }
+
+.sc-info {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 8px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.sc-name { font-size: 13px; font-weight: 800; color: var(--text); line-height: 1.3; }
+.sc-sub  { font-size: 10px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+.sc-chips { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 5px; }
+.sc-chip { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
+.sc-chip-ci   { background: rgba(40,167,69,.14); color: #155724; }
+.sc-chip-done { background: rgba(30,127,255,.12); color: #1e7fff; }
+.sc-chip-no   { background: rgba(243,156,18,.14); color: #856404; }
+.sc-chip-debt { background: rgba(231,76,60,.12); color: #c0392b; }
+.sc-chip-grey { background: var(--row-alt); color: var(--muted); }
+
+/* Quick actions row inside info column — GPS · Phone · Check-in/out */
+.sc-quick-row { display: flex; gap: 5px; margin-top: 7px; }
+.sc-quick {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center; gap: 3px;
+  padding: 5px 4px; border-radius: 7px;
+  font-size: 10px; font-weight: 700;
+  border: 1.5px solid var(--border); background: var(--row-alt); color: var(--muted);
+  text-decoration: none; cursor: pointer; font-family: inherit;
+  white-space: nowrap; overflow: hidden;
+}
+.sc-quick:active { filter: brightness(.92); }
+.sc-quick.gps   { border-color: #c0d4ef; background: rgba(30,127,255,.08); color: #1e7fff; }
+.sc-quick.phone { border-color: #c8cdd8; background: var(--row-alt); color: var(--muted); }
+.sc-quick.ci    { border-color: #28a745; background: rgba(40,167,69,.1); color: #155724; }
+.sc-quick.ci.co { border-color: #0d1b3e; background: rgba(13,27,62,.08); color: #0d1b3e; }
+.sc-quick.ci.done { border-color: var(--border); background: var(--row-alt); color: var(--muted); cursor: default; opacity: .75; }
+body.dark .sc-quick.ci.co { color: #6db5ff; border-color: #6db5ff; background: rgba(109,181,255,.1); }
+body.dark .sc-quick.phone { color: #b0b8c8; }
+
+.sc-actions {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: 88px;
+}
+.sc-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0 4px;
+  transition: background .12s;
+  border-top: 1px solid var(--border);
+}
+.sc-btn:first-child { border-top: none; }
+.sc-btn:active { filter: brightness(.9); }
+.sc-btn.sc-disabled { opacity: .25; cursor: not-allowed; pointer-events: none; }
+.sc-btn .sc-icon { font-size: 24px; }
+.sc-btn .sc-label { font-size: 11px; font-weight: 800; letter-spacing: .2px; }
+.sc-btn.sc-buy { background: rgba(212,168,67,.14); }
+.sc-btn.sc-buy .sc-label { color: #7a5500; }
+.sc-btn.sc-no  { background: rgba(231,76,60,.08); }
+.sc-btn.sc-no  .sc-icon { color: #e74c3c; font-weight: 900; }
+.sc-btn.sc-no  .sc-label { color: #c0392b; }
+
+/* Dark mode adjustments */
+body.dark .semi-card { box-shadow: 0 2px 8px rgba(0,0,0,.3), 0 1px 3px rgba(0,0,0,.2); }
+body.dark .sc-chip-ci   { background: rgba(40,167,69,.2); color: #6dd58c; }
+body.dark .sc-chip-done { background: rgba(30,127,255,.2); color: #6db5ff; }
+body.dark .sc-chip-no   { background: rgba(243,156,18,.2); color: #ffcb70; }
+body.dark .sc-chip-debt { background: rgba(231,76,60,.2); color: #ff8a7e; }
   background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: 18px;
@@ -987,9 +1092,9 @@ body.dark .product-price { color: var(--gold-light); }
 .cart-bar { position: fixed; bottom: 76px; left: 12px; right: 12px; background: var(--navy); color: #fff; border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 -4px 16px rgba(0,0,0,.15); z-index: 80; border: 1px solid var(--gold); }
 .cart-bar.hide { display: none; }
 
-/* Floating back-to-top button (Surat 2026-05-10 v4.3) */
+/* Floating back-to-top button (Surat 2026-05-10 v4.3; v6.5.2: lifted to not overlap cart bar) */
 .back-to-top {
-  position: fixed; right: 16px; bottom: 90px; z-index: 120;
+  position: fixed; right: 16px; bottom: 152px; z-index: 120;
   width: 44px; height: 44px; border-radius: 50%;
   background: var(--navy); color: var(--gold);
   border: 2px solid var(--gold); box-shadow: 0 4px 14px rgba(13,27,62,.35);
@@ -1015,8 +1120,8 @@ body:has(.modal-backdrop.active) .back-to-top { opacity: 0 !important; pointer-e
 /* ─── PRODUCT MODAL — Centered Dialog (v4.6) ─── */
 .modal-backdrop {
   position: fixed; inset: 0;
-  background: rgba(8,20,46,.55);
-  backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+  background: rgba(8,20,46,.7);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
   z-index: 200;
   display: none; align-items: center; justify-content: center;
   padding: 16px;
@@ -1082,6 +1187,682 @@ body:has(.modal-backdrop.active) .back-to-top { opacity: 0 !important; pointer-e
 .modal-stock-chips .chip.zero {
   background: rgba(255,77,106,.1); color: var(--danger);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   v6.0 — ORDER MODAL REDESIGN
+   - Warm beige backdrop (Order context only)
+   - Depot stock chips with mini vertical bars
+   - Days-of-stock traffic light: ≤3d red, 4-10d amber, 11-30d green, >30d overstock blue
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Warm beige backdrop for Order screen modal context */
+.modal-backdrop.order-context {
+  background: linear-gradient(180deg, rgba(236,233,226,.92) 0%, rgba(232,228,218,.92) 100%);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
+body.dark .modal-backdrop.order-context {
+  background: linear-gradient(180deg, rgba(11,20,38,.92) 0%, rgba(8,15,30,.94) 100%);
+}
+
+/* Stock section in modal body */
+.modal-stock-section {
+  margin-bottom: 14px;
+  padding: 10px 12px 12px;
+  background: linear-gradient(180deg, rgba(232,178,58,.04), transparent 80%);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.modal-stock-section .stock-summary-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 11px; color: var(--muted);
+  font-weight: 700; letter-spacing: .3px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.modal-stock-section .stock-summary-total {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  color: var(--text);
+  font-weight: 800;
+  font-size: 13px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* Depot chip row — 5 equal-width tiles */
+.depot-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+.depot-chip {
+  position: relative;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 5px;
+  padding: 6px 3px 7px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  min-width: 0;
+  transition: box-shadow .15s, transform .15s;
+}
+.depot-chip.is-mine {
+  box-shadow: 0 0 0 2px var(--gold), 0 2px 6px rgba(232,178,58,.25);
+  border-color: var(--gold);
+}
+.depot-chip-label {
+  font-size: 10px; font-weight: 800;
+  color: var(--muted); letter-spacing: .4px;
+  line-height: 1;
+}
+.depot-chip.is-mine .depot-chip-label { color: var(--gold); }
+.depot-chip-bar-track {
+  width: 14px; height: 36px;
+  background: rgba(0,0,0,.06);
+  border-radius: 3px;
+  position: relative; overflow: hidden;
+}
+body.dark .depot-chip-bar-track { background: rgba(255,255,255,.08); }
+.depot-chip-bar-fill {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  border-radius: 0 0 3px 3px;
+  transition: height .35s cubic-bezier(.34,1.56,.64,1);
+  min-height: 2px;
+}
+.depot-chip-bar-fill.lvl-out   { background: rgba(0,0,0,.18); }
+.depot-chip-bar-fill.lvl-unknown {
+  background: repeating-linear-gradient(0deg, rgba(120,120,120,.35) 0 3px, transparent 3px 6px);
+}
+.depot-chip-bar-fill.lvl-red   { background: #D63A3A; box-shadow: 0 0 6px rgba(214,58,58,.4); }
+.depot-chip-bar-fill.lvl-amber { background: #E8B23A; }
+.depot-chip-bar-fill.lvl-green { background: #1F9D6B; }
+.depot-chip-bar-fill.lvl-over  {
+  background: repeating-linear-gradient(45deg, #2C7FB8 0 4px, #4A9DD4 4px 8px);
+  height: 100% !important;
+}
+.depot-chip-overstock-icon {
+  position: absolute; top: -7px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px; font-weight: 900;
+  color: #2C7FB8;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(0,0,0,.15);
+  z-index: 2;
+}
+.depot-chip-qty {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 11px; font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+}
+.depot-chip-qty.zero {
+  text-decoration: line-through;
+  opacity: .45;
+  color: var(--muted);
+}
+.depot-chip-days {
+  font-size: 9px; font-weight: 700;
+  color: var(--muted);
+  line-height: 1;
+  opacity: .85;
+}
+.depot-chip-days.lvl-red   { color: #D63A3A; }
+.depot-chip-days.lvl-amber { color: #B8861A; }
+.depot-chip-days.lvl-green { color: #1F9D6B; }
+.depot-chip-days.lvl-over  { color: #2C7FB8; }
+body.dark .depot-chip-days.lvl-amber { color: #E8B23A; }
+
+/* ═══════════════════════════════════════════════════════════════
+   v6.0 — INLINE ORDER CARD (NO POPUP)
+   Each product = fully expanded card with all controls inline
+   ═══════════════════════════════════════════════════════════════ */
+.order-card-v6 {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 12px 10px;
+  margin-bottom: 12px;
+  position: relative;
+  transition: box-shadow .2s, border-color .2s, background .2s;
+  /* v6.3: subtle depth for all cards so idle doesn't look flat */
+  box-shadow: 0 1px 3px rgba(0,0,0,.05), 0 1px 2px rgba(0,0,0,.04);
+}
+body.dark .order-card-v6 { box-shadow: 0 1px 3px rgba(0,0,0,.2), 0 1px 2px rgba(0,0,0,.15); }
+
+/* v6.5.2: promo/focus signal is now carried by inline promo bar — no border-left needed.
+   has-promo/has-focus classes still applied for legacy semantic, but visually no effect. */
+.order-card-v6.has-promo,
+.order-card-v6.has-focus {
+  /* intentionally empty — visual cue is in .oc-promo-bar below */
+}
+
+.order-card-v6.pending {
+  border-color: var(--gold);
+  background: linear-gradient(180deg, rgba(232,178,58,.06) 0%, var(--card-bg) 50%);
+  box-shadow: 0 0 0 2px rgba(232,178,58,.25), 0 4px 12px rgba(232,178,58,.15);
+}
+.order-card-v6.confirmed {
+  border-color: #1F9D6B;
+  background: linear-gradient(180deg, rgba(31,157,107,.06) 0%, var(--card-bg) 50%);
+  box-shadow: 0 0 0 2px rgba(31,157,107,.2), 0 2px 8px rgba(31,157,107,.1);
+}
+
+/* v6.5: PROMO is now an inline full-width bar UNDER unit tabs (not pinned top-right).
+   Hidden — kept for legacy fallback only. */
+.oc-promo-pin { display: none; }
+
+/* v6.5: PROMO BAR — always visible, auto-calculates progress toward gift threshold */
+.oc-promo-bar {
+  margin-top: 6px;
+  padding: 8px 11px;
+  background: linear-gradient(90deg, rgba(231,76,60,.08), rgba(255,107,107,.04) 90%);
+  border: 1px solid rgba(231,76,60,.3);
+  border-radius: 9px;
+  display: flex; align-items: center; gap: 9px;
+}
+.oc-promo-bar.unlocked {
+  background: linear-gradient(90deg, rgba(31,157,107,.1), rgba(31,157,107,.04));
+  border-color: rgba(31,157,107,.4);
+}
+/* v6.5.2: warning state — admin misconfig (CAT-based + PA/BP) */
+.oc-promo-bar.warning {
+  background: linear-gradient(90deg, rgba(232,178,58,.1), rgba(232,178,58,.04));
+  border-color: rgba(232,178,58,.5);
+  border-style: dashed;
+}
+.oc-promo-bar.warning .oc-promo-bar-text .need { color: #B8861A; font-weight: 700; }
+/* v6.5.2: selected promo gets stronger highlight */
+.oc-promo-bar.selected {
+  box-shadow: 0 0 0 2px rgba(31,157,107,.35);
+  border-color: rgba(31,157,107,.6);
+}
+.oc-promo-bar.selected:not(.unlocked) {
+  box-shadow: 0 0 0 2px rgba(232,178,58,.35);
+  border-color: rgba(232,178,58,.6);
+}
+.oc-promo-bar-emoji { font-size: 18px; flex-shrink: 0; line-height: 1; }
+.oc-promo-bar-text { flex: 1; min-width: 0; font-size: 11px; line-height: 1.4; color: #5a1e15; }
+.oc-promo-bar.unlocked .oc-promo-bar-text { color: #0c4e36; }
+.oc-promo-bar-text .name { font-weight: 800; display: block; margin-bottom: 1px; }
+.oc-promo-bar-text .gift { color: #1F9D6B; font-weight: 800; }
+.oc-promo-bar-text .need { color: #D63A3A; font-weight: 800; }
+.oc-promo-bar.unlocked .oc-promo-bar-text .need { color: #1F9D6B; }
+/* v6.5.2: meta-tag = วิธีวัด + extra info on second line */
+.oc-promo-bar-text .meta-tag {
+  display: block; margin-top: 3px;
+  font-size: 9.5px; font-weight: 600;
+  color: rgba(0,0,0,.45); letter-spacing: .2px;
+  text-transform: uppercase;
+}
+body.dark .oc-promo-bar-text .meta-tag { color: rgba(255,255,255,.45); }
+body.dark .oc-promo-bar-text { color: #f5b8a8; }
+body.dark .oc-promo-bar.unlocked .oc-promo-bar-text { color: #4dd4a0; }
+body.dark .oc-promo-bar.warning .oc-promo-bar-text { color: #E8B23A; }
+
+/* v6.5.2: promo picker chip — radio-style selector */
+.oc-promo-pick {
+  flex-shrink: 0;
+  background: rgba(0,0,0,.06);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  padding: 4px 11px;
+  font-size: 10px; font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .15s;
+  letter-spacing: .2px;
+}
+.oc-promo-pick:hover { background: rgba(0,0,0,.1); }
+.oc-promo-pick.on {
+  background: #1F9D6B;
+  color: #fff;
+  border-color: #1F9D6B;
+  box-shadow: 0 2px 6px rgba(31,157,107,.3);
+}
+body.dark .oc-promo-pick { background: rgba(255,255,255,.08); color: #aaa; }
+body.dark .oc-promo-pick:hover { background: rgba(255,255,255,.12); }
+
+/* Header row: thumb + name + promo + unit tabs + pallet chip */
+.oc-head {
+  display: flex; gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+.oc-thumb {
+  width: 72px; height: 72px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--row-alt), #e8edf7);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  font-size: 34px; overflow: hidden;
+  border: 1px solid var(--border);
+}
+.oc-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.oc-name-wrap {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column;
+  gap: 4px;
+}
+.oc-name {
+  font-size: 13px; font-weight: 800;
+  line-height: 1.3; color: var(--text);
+  word-break: break-word;
+}
+/* v6.5: removed promo pin → no padding-right needed (promo bar is below, full-width) */
+.oc-name-meta {
+  display: flex; gap: 5px; align-items: center;
+}
+/* v6.5: legacy chips/pins hidden — visual signals via border-left + inline promo bar */
+.oc-promo-chip { display: none; }
+.oc-focus-chip { display: none; }
+.oc-focus-pin { display: none; }
+.oc-unit-tabs {
+  margin-left: auto;
+  display: flex; gap: 3px;
+  flex-shrink: 0;
+}
+.oc-unit-tab {
+  padding: 4px 13px;
+  border-radius: 6px;
+  background: var(--row-alt);
+  border: 1px solid transparent;
+  font-size: 11px; font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .15s;
+  min-width: 38px;
+  text-align: center;
+  letter-spacing: .2px;
+}
+.oc-unit-tab.active {
+  background: var(--navy);
+  color: #fff;
+  border-color: var(--navy);
+}
+body.dark .oc-unit-tab.active { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+
+/* v6.5: pallet sits right after unit tabs (no auto-margin) */
+.oc-right { display: contents; }
+.oc-pallet-chip {
+  display: inline-flex; align-items: center;
+  background: rgba(232,178,58,.12);
+  color: #B8861A;
+  border: 1px solid rgba(232,178,58,.4);
+  font-size: 10.5px; font-weight: 800;
+  padding: 3px 9px; border-radius: 99px;
+  cursor: pointer;
+  transition: all .15s;
+  flex-shrink: 0;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  white-space: nowrap;
+}
+.oc-pallet-chip:hover, .oc-pallet-chip:active {
+  background: rgba(232,178,58,.25);
+  transform: scale(1.05);
+}
+body.dark .oc-pallet-chip { color: var(--gold); }
+
+/* v6.2: PROMO chip detail (expand inline, no popup) */
+.oc-promo-detail {
+  display: none;
+  margin-top: 6px;
+  padding: 8px 10px;
+  background: rgba(231,76,60,.06);
+  border: 1px solid rgba(231,76,60,.3);
+  border-radius: 7px;
+  font-size: 11px;
+  color: #7a3a30;
+  line-height: 1.45;
+}
+.oc-promo-detail.show {
+  display: block;
+  animation: ocPromoFade .2s ease;
+}
+.oc-promo-detail b { color: #5a1e15; }
+.oc-promo-reward { color: #1F9D6B; font-weight: 800; }
+body.dark .oc-promo-detail b { color: #f5b8a8; }
+body.dark .oc-promo-reward { color: #4dd4a0; }
+@keyframes ocPromoFade {
+  from { opacity: 0; transform: translateY(-2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+body.dark .oc-promo-detail { background: rgba(231,76,60,.1); color: #f5b8a8; border-color: rgba(231,76,60,.4); }
+
+/* Stock row — compact 5-depot bars */
+.oc-stock-box {
+  background: var(--row-alt);
+  border-radius: 9px;
+  padding: 7px 9px 8px;
+  margin-bottom: 8px;
+}
+.oc-stock-header {
+  display: flex; justify-content: space-between;
+  align-items: baseline;
+  font-size: 10px; font-weight: 700;
+  color: var(--muted);
+  letter-spacing: .3px;
+  margin-bottom: 5px;
+}
+.oc-stock-total {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  color: var(--text); font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0;
+}
+.oc-depot-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+}
+.oc-depot {
+  position: relative;
+  display: flex; flex-direction: row;
+  align-items: center; gap: 5px;
+  padding: 4px 6px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  min-width: 0;
+}
+.oc-depot.mine {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1.5px rgba(232,178,58,.4);
+}
+.oc-depot-bar-track {
+  width: 4px; height: 22px;
+  background: rgba(0,0,0,.08);
+  border-radius: 2px;
+  position: relative; overflow: hidden;
+  flex-shrink: 0;
+}
+body.dark .oc-depot-bar-track { background: rgba(255,255,255,.1); }
+.oc-depot-bar-fill {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  border-radius: 0 0 2px 2px;
+  min-height: 1px;
+  transition: height .3s ease;
+}
+.oc-depot-bar-fill.lvl-out   { background: rgba(0,0,0,.2); }
+.oc-depot-bar-fill.lvl-unknown {
+  background: repeating-linear-gradient(0deg, rgba(120,120,120,.35) 0 2px, transparent 2px 4px);
+}
+.oc-depot-bar-fill.lvl-red   { background: #D63A3A; }
+.oc-depot-bar-fill.lvl-amber { background: #E8B23A; }
+.oc-depot-bar-fill.lvl-green { background: #1F9D6B; }
+.oc-depot-bar-fill.lvl-over  {
+  background: repeating-linear-gradient(45deg, #2C7FB8 0 3px, #4A9DD4 3px 6px);
+  height: 100% !important;
+}
+.oc-depot-overstock {
+  position: absolute; top: -5px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px; color: #2C7FB8; font-weight: 900;
+  line-height: 1;
+}
+.oc-depot-meta {
+  display: flex; flex-direction: column;
+  gap: 1px; min-width: 0; flex: 1;
+}
+.oc-depot-label {
+  font-size: 9px; font-weight: 700;
+  color: var(--muted); letter-spacing: .3px;
+  line-height: 1;
+}
+.oc-depot.mine .oc-depot-label { color: var(--gold); }
+.oc-depot-qty {
+  font-size: 10px; font-weight: 800;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  color: var(--text); line-height: 1;
+}
+.oc-depot-qty.zero { text-decoration: line-through; opacity: .45; color: var(--muted); }
+
+/* Action row — qty stepper + price input + tier badge
+   v6.2: true 50/50 split using minmax(0,1fr) + min-width:0 on items.
+   Without minmax(0,1fr), price box wins because its min-content is wider
+   (฿ prefix + price + tier badge). */
+.oc-action-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 7px;
+  align-items: stretch;
+  margin-bottom: 5px;
+}
+.oc-qty-stepper {
+  display: flex; align-items: center;
+  background: var(--card-bg);
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  overflow: hidden;
+  min-width: 0;
+  height: 40px;
+}
+.oc-qty-btn {
+  flex: 0 0 36px; height: 100%;
+  background: transparent;
+  border: none;
+  font-size: 18px; font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+}
+.oc-qty-btn:hover { background: var(--row-alt); }
+.oc-qty-btn:disabled { opacity: .3; cursor: not-allowed; }
+.oc-qty-input {
+  flex: 1; min-width: 0; width: 100%;
+  height: 100%;
+  border: none;
+  text-align: center;
+  font-size: 17px; font-weight: 800;
+  background: transparent; color: var(--text);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  padding: 0;
+  -moz-appearance: textfield;
+}
+.oc-qty-input::-webkit-outer-spin-button,
+.oc-qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.oc-qty-input:focus { outline: none; }
+.oc-price-wrap {
+  position: relative;
+  display: flex; align-items: stretch;
+  background: var(--card-bg);
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  min-width: 0;
+  overflow: hidden;
+  height: 40px;
+  transition: border-color .2s, box-shadow .2s;
+}
+/* v6.5.3: price guardrails — warn (over ceiling), danger (under floor / tier-locked) */
+.oc-price-wrap.warn {
+  border-color: var(--warning);
+  box-shadow: 0 0 0 1px rgba(232,178,58,.3);
+}
+.oc-price-wrap.danger {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 1px rgba(214,58,58,.3);
+}
+.oc-price-warn {
+  margin-top: 5px;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 0 2px;
+  color: var(--warning);
+}
+.oc-price-warn.danger { color: var(--danger); }
+.oc-price-warn.warn { color: var(--warning); }
+.oc-price-prefix {
+  padding: 0 4px 0 9px;
+  display: flex; align-items: center;
+  font-size: 15px; font-weight: 800;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.oc-price-input {
+  flex: 1; min-width: 0; width: 100%;
+  height: 100%; border: none;
+  background: transparent; color: var(--text);
+  font-size: 15px; font-weight: 800;
+  text-align: center;
+  padding: 0 4px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  -moz-appearance: textfield;
+}
+.oc-price-input::-webkit-outer-spin-button,
+.oc-price-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.oc-price-input:focus { outline: none; }
+.oc-price-input::placeholder { color: var(--muted); font-weight: 700; opacity: .6; }
+.oc-tier-badge {
+  padding: 0 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800;
+  background: var(--row-alt);
+  color: var(--muted);
+  border-left: 1.5px solid var(--border);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  letter-spacing: .3px;
+  flex-shrink: 0;
+}
+.oc-tier-badge.tier-neutral { background: rgba(0,0,0,.05); color: rgba(0,0,0,.4); }
+body.dark .oc-tier-badge.tier-neutral { background: rgba(255,255,255,.06); color: rgba(255,255,255,.4); }
+.oc-tier-badge.tier-S03 { background: rgba(120,120,120,.12); color: #555; }
+.oc-tier-badge.tier-S02 { background: rgba(232,178,58,.18); color: #B8861A; }
+.oc-tier-badge.tier-S01p2 { background: rgba(44,127,184,.15); color: #2C7FB8; }
+.oc-tier-badge.tier-S01 { background: rgba(31,157,107,.18); color: #1F9D6B; }
+body.dark .oc-tier-badge.tier-S02 { color: var(--gold); }
+
+.oc-sub-row {
+  display: flex; justify-content: space-between;
+  font-size: 10px; color: var(--muted);
+  margin-bottom: 8px;
+  padding: 0 2px;
+}
+.oc-sub-row .floor-warn { color: var(--danger); font-weight: 700; }
+
+/* Tier ladder — 4 tiles */
+.oc-tier-ladder {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+  margin-bottom: 9px;
+}
+.oc-tier-tile {
+  background: var(--card-bg);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 4px 6px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .15s;
+  min-width: 0;
+}
+.oc-tier-tile:hover { border-color: rgba(232,178,58,.5); }
+.oc-tier-tile.active {
+  background: rgba(31,157,107,.1);
+  border-color: #1F9D6B;
+  box-shadow: 0 0 0 1px #1F9D6B inset;
+}
+.oc-tier-tile.disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+.oc-tier-name {
+  font-size: 10px; font-weight: 800;
+  color: var(--text);
+  letter-spacing: .2px;
+  margin-bottom: 3px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.oc-tier-name .rng {
+  color: var(--muted);
+  font-weight: 600;
+  margin-left: 3px;
+  font-size: 9px;
+}
+.oc-tier-tile.active .oc-tier-name .rng { color: #1F9D6B; }
+.oc-tier-price {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12.5px; font-weight: 800;
+  color: var(--text);
+}
+.oc-tier-tile.active .oc-tier-price { color: #1F9D6B; }
+.oc-tier-tile.disabled .oc-tier-price { color: var(--muted); }
+
+/* Confirm footer */
+.oc-foot {
+  display: flex; justify-content: space-between;
+  align-items: center;
+  padding-top: 5px;
+  border-top: 1px dashed var(--border);
+  margin-top: 2px;
+}
+.oc-foot-status {
+  font-size: 10px; font-weight: 700;
+  color: var(--muted);
+}
+.oc-foot-status.ready { color: var(--gold); }
+.oc-foot-status.saved { color: #1F9D6B; }
+.oc-confirm-btn {
+  background: var(--row-alt);
+  color: var(--muted);
+  border: none;
+  border-radius: 8px;
+  padding: 7px 16px;
+  font-size: 12px; font-weight: 800;
+  cursor: not-allowed;
+  transition: all .15s;
+  letter-spacing: .3px;
+}
+.oc-confirm-btn.ready {
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  color: var(--navy);
+  box-shadow: 0 3px 10px rgba(232,178,58,.35);
+  cursor: pointer;
+}
+.oc-confirm-btn.ready:hover, .oc-confirm-btn.ready:active { transform: scale(1.03); }
+.oc-confirm-btn.saved {
+  background: rgba(31,157,107,.12);
+  color: #1F9D6B;
+  cursor: pointer;
+  box-shadow: none;
+}
+.oc-remove-btn {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: 8px;
+  padding: 5px 11px;
+  font-size: 10px; font-weight: 700;
+  cursor: pointer;
+  margin-left: 6px;
+}
+.oc-remove-btn:hover { background: rgba(214,58,58,.08); }
+
+/* Hint row above tier ladder */
+.oc-hint-row {
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 6px;
+  padding: 4px 8px;
+  background: rgba(232,178,58,.06);
+  border-radius: 6px;
+  font-weight: 600;
+  display: none;
+}
+.oc-hint-row.show { display: block; }
+
+/* No-S00 / floor warning */
+.oc-floor-warn {
+  font-size: 10px; color: var(--danger);
+  font-weight: 700;
+  margin-top: 4px;
+  padding: 3px 7px;
+  background: rgba(214,58,58,.08);
+  border-radius: 5px;
+  display: none;
+}
+.oc-floor-warn.show { display: block; }
+
 /* v5.0 — CAT chips: vendor / brand / size */
 
 /* Modal body — scrollable section */
@@ -1285,6 +2066,11 @@ body.dark .range-confirm { background: #3a2e15; }
   background: var(--navy); color: var(--gold);
   border-color: var(--navy); font-weight: 800;
 }
+.product-filter-chips {
+  display: flex; gap: 6px; overflow-x: auto;
+  padding: 6px 0 4px; scrollbar-width: none;
+}
+.product-filter-chips::-webkit-scrollbar { display: none; }
 .filter-clear-btn {
   margin-left: auto; padding: 5px 10px;
   border-radius: 12px; border: 1px solid var(--danger);
@@ -1621,7 +2407,7 @@ body.dark .text-gold { color: var(--gold-light); }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v5.0 · 2026-05-11</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.5 · 2026-05-14</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -1632,7 +2418,7 @@ body.dark .text-gold { color: var(--gold-light); }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v5.0</span>
+  <span class="demo-tag">v6.5.5</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -1658,6 +2444,11 @@ body.dark .text-gold { color: var(--gold-light); }
   <button class="drawer-item" onclick="closeDrawer();goRoute()">
     <span class="drawer-item-icon">📍</span>
     <span class="drawer-item-label">รูทวันนี้</span>
+  </button>
+  <button class="drawer-item" onclick="closeDrawer();goRoute();setRouteView('map')">
+    <span class="drawer-item-icon">🗺️</span>
+    <span class="drawer-item-label">แผนที่ลูกค้า</span>
+    <span class="drawer-item-arrow">›</span>
   </button>
   <button class="drawer-item" onclick="closeDrawer();goOrders()">
     <span class="drawer-item-icon">📋</span>
@@ -1704,7 +2495,7 @@ body.dark .text-gold { color: var(--gold-light); }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v5.0<br>2026-05-11<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.5<br>2026-05-14<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -1727,8 +2518,8 @@ body.dark .text-gold { color: var(--gold-light); }
     </div>
   </div>
 
-  <!-- View toggle: List / Map -->
-  <div class="view-toggle">
+  <!-- View toggle moved to hamburger drawer (v5.0) -->
+  <div class="view-toggle" style="display:none">
     <button class="view-toggle-btn active" id="viewListBtn" onclick="setRouteView('list')">📋 รายการ</button>
     <button class="view-toggle-btn" id="viewMapBtn" onclick="setRouteView('map')">🗺️ แผนที่</button>
   </div>
@@ -1781,7 +2572,7 @@ body.dark .text-gold { color: var(--gold-light); }
 <!-- ═══════════════════════ ORDER SCREEN ═══════════════════════ -->
 <section class="screen" id="screenOrder">
   <div class="page-bar" style="margin:-16px -16px 16px;top:60px">
-    <button class="back-btn" onclick="backToShop()">←</button>
+    <button class="back-btn" onclick="confirmBackFromOrder()">←</button>
     <div>
       <div class="page-title">สั่งซื้อ</div>
       <div class="page-sub" id="orderShopName"></div>
@@ -1797,6 +2588,11 @@ body.dark .text-gold { color: var(--gold-light); }
       <button id="productSearchClear" class="search-clear" onclick="clearSearch('productSearch','productSearchClear', function(q){ _productSearchQuery=''; filterProducts(q); })">✕</button>
     </div>
     <button class="search-scan-btn" onclick="openBarcodeScanner('order')" title="สแกนบาร์โค้ด">📷</button>
+  </div>
+
+  <div class="product-filter-chips" id="productFilterChips">
+    <button class="filter-chip active" data-filter="all"   onclick="setProductFilter('all')">ทั้งหมด</button>
+    <button class="filter-chip"        data-filter="promo" onclick="setProductFilter('promo')">🎁 มีโปร</button>
   </div>
 
   <div class="sec-title" id="productListTitle"><span class="sec-title-icon">📦</span>สินค้าทั้งหมด<span class="sec-title-link" onclick="showAllProducts()" id="toggleAllLink"></span></div>
@@ -2452,6 +3248,11 @@ async function handleGoogleCredential(response) {
 
 // Keep buildUserFromRow (used by OAuth + legacy SSO restore)
 function buildUserFromRow(user, email, role) {
+  // AllowBelowSuggest column in User Sheet:
+  //   1 (or empty) = can sell BELOW suggested tier price (default behavior)
+  //   0 = cannot sell below — price input is locked to ≥ suggested tier
+  const allowBelowRaw = String(user['AllowBelowSuggest'] || '').trim();
+  const allowBelow = allowBelowRaw === '' ? true : (allowBelowRaw !== '0');
   return {
     email,
     name:        user['ชื่อ - สกุล'] || user['ชื่อ-สกุล'] || '',
@@ -2459,10 +3260,13 @@ function buildUserFromRow(user, email, role) {
     role,
     dept:        user['แผนก'] || '',
     company:     user['บริษัท'] || '',
-    warehouse:   user['W'] || '',
+    warehouse:   user['W'] || '',           // home warehouse (team / sangkat)
+    shipFromWh:  user['คลังส่ง'] || user['W'] || '', // v6.5: ship-from warehouse (may differ from home)
     empId:       user['รหัสพนักงาน'] || '',
     bplusCode:   user['รหัสขาย Bplus'] || '',
-    salesmanCode:user['รหัสเซล'] || '',
+    // v6.5.1: User Sheet column is 'รหัสเซลล์' (with ์) in column AD. Fallback to 'รหัสเซล' for legacy.
+    salesmanCode:user['รหัสเซลล์'] || user['รหัสเซล'] || '',
+    allowBelowSuggest: allowBelow,
   };
 }
 
@@ -2972,7 +3776,7 @@ function showSuggestionsModal(shopId, proceedCb) {
     const stockParsed = stockRaw ? parseStockCsEa(stockRaw, csSize) : null;
     const stockText = stockParsed && !stockParsed.empty ? `มี ${stockParsed.raw}` : '';
     const unitLabel = s.unit === 'cs' ? 'ลัง' : s.unit === 'pa' ? 'แพ็ค' : 'ชิ้น';
-    const photoUrl = p ? (p['PHOTO_SQL'] || p['PHOTO'] || '') : '';
+    const photoUrl = p ? (p['SKU_USAGE'] || p['PHOTO_SQL'] || p['PHOTO'] || p['รูป'] || '') : '';
     const thumbHtml = photoUrl
       ? buildPhotoImg(photoUrl, { size: 80, cls: 'suggest-thumb', emojiCls: 'suggest-thumb-emoji', emoji: '📦' })
       : `<div class="suggest-thumb-emoji">📦</div>`;
@@ -3204,7 +4008,8 @@ function productStock(p) {
 }
 
 function productPhoto(p, thumb=true) {
-  const url = normalizePhotoUrl(p['PHOTO_SQL'] || p['PHOTO'] || p['รูป'] || '');
+  // v6.5: prefer SKU_USAGE (new schema 2026-05-14), fallback to legacy PHOTO_SQL/PHOTO/รูป
+  const url = normalizePhotoUrl(p['SKU_USAGE'] || p['PHOTO_SQL'] || p['PHOTO'] || p['รูป'] || '');
   return thumb ? thumbnailUrl(url, 200) : url;
 }
 
@@ -3259,10 +4064,22 @@ function hasPromotion(p) {
 
 // Returns the matching promo object for display, or null
 function getPromotionFor(p) {
+  // Legacy: returns first match (most specific by sheet order). Kept for non-Order screens.
+  const all = getAllPromotionsFor(p);
+  return all.length ? all[0] : null;
+}
+
+// v6.5.2: Return ALL matching promos for a product. Used by Order screen so user
+// can manually pick when SKU has multiple applicable promos (no auto-default).
+// Sorts by specificity: PRODUCT NAME > CAT SIZE > CAT BRAND > CAT TYPE > CAT GROUP > CAT VENDOR > CAT BU
+function getAllPromotionsFor(p) {
   const promos = SHEET_DATA.promotions || [];
-  // Support both raw Sheet rows and adaptSheetToMock objects (which keep _sheet reference)
-  // Per Surat 2026-05-08 — bug fix: modal received mock object without CAT BRAND/etc fields
   const sheet = p._sheet || p;
+  const specificityRank = {
+    'PRODUCT NAME': 1, 'CAT SIZE': 2, 'CAT BRAND': 3,
+    'CAT TYPE': 4, 'CAT GROUP': 5, 'CAT VENDOR': 6, 'CAT BU': 7,
+  };
+  const matched = [];
   for (const promo of promos) {
     const measureBy = String(promo['วิธีวัด'] || '').trim();
     const matchValue = String(promo['ชื่อ'] || '').trim();
@@ -3275,7 +4092,24 @@ function getPromotionFor(p) {
     else if (measureBy === 'CAT TYPE')   productValue = String(sheet['CAT TYPE']||'');
     else if (measureBy === 'CAT GROUP')  productValue = String(sheet['CAT GROUP']||'');
     else if (measureBy === 'PRODUCT NAME') productValue = String(sheet['PRODUCT NAME']||p.name||'');
-    if (productValue.trim() === matchValue) return promo;
+    if (productValue.trim() === matchValue) matched.push(promo);
+  }
+  matched.sort((a, b) =>
+    (specificityRank[a['วิธีวัด']] || 99) - (specificityRank[b['วิธีวัด']] || 99));
+  return matched;
+}
+window.getAllPromotionsFor = getAllPromotionsFor;
+
+// v6.5.2: Detect invalid promo config (CAT-based + unit other than CS/EA/บาท)
+// Returns warning string if invalid, else null.
+function _validatePromoConfig(promo) {
+  const measureBy = String(promo['วิธีวัด'] || '').trim();
+  const sellMode = String(promo['รูปแบบขาย'] || '').trim().toUpperCase();
+  // CAT SIZE removed from block list (v6.5.5): narrow sub-brand level — PA/BP workable
+  const isCatBased = ['CAT BU','CAT BRAND','CAT VENDOR','CAT TYPE','CAT GROUP'].includes(measureBy);
+  // Forbidden combos: wide CAT-based + PA/BP (since pack sizes differ per SKU across wide categories)
+  if (isCatBased && (sellMode === 'PA' || sellMode === 'BP')) {
+    return `⚠️ โปรนี้ตั้งค่าไม่ถูกต้อง (วิธีวัด=${measureBy} + รูปแบบขาย=${sellMode}) — กรุณาถามจัดซื้อก่อนใช้`;
   }
   return null;
 }
@@ -3290,12 +4124,20 @@ function cartMatchesPromo(promo, draftItem) {
   const matchValue = String(promo['ชื่อ']||'').trim();
   if (!measureBy || !matchValue) return { matches: false };
 
-  let totalPieces = 0;   // total pieces from matching cart lines (for unit-based promos)
+  let totalPieces = 0;   // total pieces (EA) from matching cart lines — used for legacy ratio path
   let totalBaht = 0;     // total baht from matching cart lines (for baht-based promos)
+  let totalInTargetUnit = 0;  // v6.5.4: total qty converted to promo's target unit, per-SKU correctly
   const matchingLines = [];
 
   // Combine cart with optional draft line (so modal hint works in real-time)
   const allLines = draftItem ? [...cart, draftItem] : cart;
+
+  // v6.5.4 — read promo's target unit FIRST so we can convert each line correctly per-SKU.
+  // Avoids the v6.5.x bug of dividing through one sample SKU's CS-size (which gave 165 instead of 100).
+  const _threshold = numv(promo['จำนวน']);
+  const _sellMode = String(promo['รูปแบบขาย']||'').trim().toUpperCase();
+  const _targetUnit = (_sellMode === 'EA' || _sellMode === 'PA' || _sellMode === 'BP' || _sellMode === 'CS')
+    ? _sellMode : null;
 
   for (const c of allLines) {
     const p = findProductForCart(c);
@@ -3313,34 +4155,35 @@ function cartMatchesPromo(promo, draftItem) {
       return '';
     })().trim();
     if (pVal !== matchValue) continue;
-    // Convert qty to pieces (so EA/PA/BP/CS can sum together)
+    // Convert qty to pieces (so EA/PA/BP/CS can sum together) — legacy path, kept for baht calc
     const piecesPerUnit = unitToPieces(p, c.unit);
     const linePieces = (c.qty || 0) * piecesPerUnit;
     totalPieces += linePieces;
     totalBaht   += (c.qty || 0) * (c.price || 0);
+    // v6.5.4: convert THIS line's qty → target unit using THIS SKU's own QTY ratios.
+    // Each SKU has its own QTY EA/PA/BP/CS — using a sample SKU's ratios is wrong when SKUs differ
+    // (e.g. 320ml has 24 EA/CS, 620ml has 12 EA/CS — they can't share one conversion).
+    if (_targetUnit) {
+      const piecesPerTarget = unitToPieces(p, _targetUnit);
+      if (piecesPerTarget > 0) {
+        totalInTargetUnit += linePieces / piecesPerTarget;
+      }
+    }
     matchingLines.push({ p, c, pieces: linePieces, baht: (c.qty||0)*(c.price||0) });
   }
 
   // Now compare against threshold based on รูปแบบขาย
-  const threshold = numv(promo['จำนวน']);
-  const sellMode = String(promo['รูปแบบขาย']||'').trim().toUpperCase();
+  const threshold = _threshold;
+  const sellMode = _sellMode;
 
   let currentValue, currentUnit, ratio;
   if (sellMode === 'บาท' || sellMode === 'BAHT') {
     currentValue = totalBaht;
     currentUnit = 'บาท';
-  } else if (sellMode === 'EA' || sellMode === 'PA' || sellMode === 'BP' || sellMode === 'CS') {
-    // Convert totalPieces → target unit using ANY product in matching lines
-    // (assume products in same group have similar EA/PA/BP/CS structure for the target unit)
-    const sample = matchingLines[0]?.p;
-    if (!sample) {
-      currentValue = 0;
-      currentUnit = sellMode;
-    } else {
-      const piecesPerTarget = unitToPieces(sample, sellMode.toLowerCase() === 'ea' ? 'EA' : sellMode);
-      currentValue = piecesPerTarget > 0 ? totalPieces / piecesPerTarget : 0;
-      currentUnit = sellMode;
-    }
+  } else if (_targetUnit) {
+    // v6.5.4: use per-SKU sum (was: divide totalPieces by sample SKU's ratio — wrong for mixed SKUs)
+    currentValue = totalInTargetUnit;
+    currentUnit = sellMode;
   } else {
     return { matches: false };
   }
@@ -4279,6 +5122,42 @@ function cartGuardDiscardAndContinue(nextShopId) {
 }
 
 function backToShop() { goShop(currentShopId); }
+// v5.0: ← from screenOrder — confirm cancel if cart has items
+function confirmBackFromOrder() {
+  const saleItems = cart.filter(c => !c.isFree);
+  if (saleItems.length === 0) {
+    // Empty cart — just go back no confirm needed
+    _orderScreenForShopId = null;
+    backToShop();
+    return;
+  }
+  const total = cart.reduce((s, c) => s + c.qty * c.price, 0);
+  // Reuse existing cart guard modal for confirm
+  const modal = document.getElementById('productModal');
+  if (!modal) { backToShop(); return; }
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-head">
+      <div class="modal-head-info">
+        <div class="modal-title">🗑️ ยกเลิกออเดอร์?</div>
+      </div>
+    </div>
+    <div class="modal-body" style="padding:16px">
+      <div style="font-size:14px;color:var(--text);margin-bottom:16px">
+        มีสินค้า <strong>${saleItems.length} รายการ</strong> ยอดรวม <strong style="color:var(--gold)">฿${Math.round(total).toLocaleString()}</strong> ในตะกร้า
+        <br><br>ต้องการยกเลิกออเดอร์ทั้งหมดและกลับไปที่ร้านใช่ไหม?
+      </div>
+      <button class="btn btn-danger btn-block" style="margin-bottom:8px" onclick="closeModal();cart=[];appliedPromos.clear();_orderScreenForShopId=null;backToShop();updateCartBar()">
+        🗑️ ใช่ ยกเลิกออเดอร์
+      </button>
+      <button class="btn btn-outline btn-block" onclick="closeModal()">
+        ← กลับไปเพิ่มสินค้าต่อ
+      </button>
+    </div>
+  `;
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
 function goOrder() {
   const shop = SHOPS.find(s => s.id === currentShopId);
   document.getElementById('orderShopName').textContent = shop ? shop.name : '';
@@ -4291,6 +5170,10 @@ function goOrder() {
     if (searchEl) { searchEl.value = ''; }
     const clearBtn = document.getElementById('productSearchClear');
     if (clearBtn) clearBtn.classList.remove('show');
+    // v6.5.5: reset filter chip to 'all' for new shop
+    _productActiveFilter = 'all';
+    document.querySelectorAll('#productFilterChips .filter-chip')
+      .forEach(el => el.classList.toggle('active', el.dataset.filter === 'all'));
   } else {
     // Same shop — restore input value from module var in case DOM was stale
     const searchEl = document.getElementById('productSearch');
@@ -4950,195 +5833,80 @@ function renderShopList() {
     return;
   }
 
-  // RICH CARD rendering — Variant B with photo banner + 3 actions (per Surat 2026-05-08, v4.1)
-  // Each card has all info needed to make decision — no separate shop detail page needed.
+  // SEMI CARD rendering — v5.0 (photo left · info center · 3 buttons right)
   list.innerHTML = filtered.map((s, idx) => {
-    // Status: pending / visited / refused
-    const statusClass = s.status === 'visited' ? 'visited' : s.status === 'refused' ? 'refused' : 'pending';
-    const statusLabel = s.status === 'visited' ? 'เยี่ยมแล้ว' : s.status === 'refused' ? 'ไม่ซื้อ' : 'ลูกค้า';
+    const visit      = visits[s.id];
+    const checkedIn  = visit && !visit.checkOutTime;
+    const checkedOut = visit && !!visit.checkOutTime;
+    const done       = s.status === 'visited' || checkedOut;
+    const noBuy      = s.status === 'refused';
+    const pending    = !done && !noBuy;
 
-    // Photo (Drive URL → buildPhotoImg with fallback chain)
+    // State class
+    const stateClass = checkedIn ? 'sc-checked-in' : done ? 'sc-done' : noBuy ? 'sc-no-buy' : 'sc-pending';
+
+    // Photo with lazy loading + smooth fade-in
     const photoUrl = s.photo || s._raw?.['รูป'] || '';
-    let photoHtml;
-    if (photoUrl) {
-      photoHtml = buildPhotoImg(photoUrl, {
-        size: 600,
-        cls: 'rich-card-banner-img',
-        emojiCls: 'rich-card-banner-fallback',
-        emoji: '🏪'
-      });
-    } else {
-      photoHtml = '<div class="rich-card-banner-fallback">🏪</div>';
-    }
+    const photoHtml = photoUrl
+      ? `<img src="${thumbnailUrl(photoUrl, 160)}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.style.display='none';this.nextSibling.style.display='flex'">`+
+        `<span style="display:none;font-size:32px;align-items:center;justify-content:center;width:100%;height:100%">🏪</span>`
+      : `<span style="font-size:32px">🏪</span>`;
 
-    // Debt pill (only if > 0)
-    const debtPill = s.debt > 0
-      ? `<span class="rich-card-debt-pill">⚠️ ฿${s.debt.toLocaleString()}</span>`
-      : '';
+    // Status chips
+    const chips = [];
+    if (done)        chips.push(`<span class="sc-chip sc-chip-done">✓ ฿${(s.visitedAmount||0).toLocaleString()}</span>`);
+    else if (noBuy)  chips.push(`<span class="sc-chip sc-chip-no">✕ ${escapeHtml(s.refuseReason||'ไม่ซื้อ')}</span>`);
+    if (s.debt > 0)  chips.push(`<span class="sc-chip sc-chip-debt">ค้าง ฿${s.debt>=1000?(s.debt/1000).toFixed(0)+'K':s.debt.toLocaleString()}</span>`);
 
-    // Visit data + check-in (use existing global `visits` map keyed by shopId)
-    const visit = visits[s.id];
-    // Check-in: someone has checked in if visit exists and no checkout yet
-    const checkedIn = visit && !visit.checkOutTime;
-    const checkedOut = visit && visit.checkOutTime;
-    // Also check if already have an order/refusal today (don't need to checkout again)
-    const hasActionToday = s.status === 'visited' || s.status === 'refused';
+    // Address
+    const addrLine = [s.subdistrict, s.district, s.province].filter(Boolean).join(' · ') || s.addr || '';
 
-    // Distance
-    const distance = (s.lat && s.lng && SALESMAN.currentLat && SALESMAN.currentLng)
-      ? haversine(SALESMAN.currentLat, SALESMAN.currentLng, s.lat, s.lng)
-      : null;
-    const inRange = distance !== null && distance <= 50;
+    // 3 Quick Actions: GPS · Phone · Check-in/Out
+    // GPS — Google Maps directions
+    const lat = numv(s.lat || s._raw?.['Latitude']);
+    const lng = numv(s.lng || s._raw?.['Longitude']);
+    const gpsUrl = lat && lng
+      ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
+      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.name + ' ' + addrLine)}`;
+    const gpsBtn = `<a class="sc-quick gps" href="${gpsUrl}" target="_blank" onclick="event.stopPropagation()">📍 GPS</a>`;
 
-    // "เช็คอินแล้ว" badge beside shop name (in banner) — Surat 2026-05-10 v4.3
-    const checkinBadge = checkedIn
-      ? `<span style="background:rgba(46,204,113,.92);color:#fff;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:800;margin-left:6px">✓ เช็คอิน ${visit.checkInTime}</span>`
-      : '';
-
-    // Quick action chips (call + maps)
+    // Phone
     const phoneClean = String(s.phone||'').replace(/[^0-9+]/g,'');
-    const phoneCallable = phoneClean.length >= 6;
-    const navUrl = (s.lat && s.lng) ? `https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}` :
-                  s.addr ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.addr)}` : '#';
+    const phoneBtn = phoneClean.length >= 6
+      ? `<a class="sc-quick phone" href="tel:${phoneClean}" onclick="event.stopPropagation()">📞 โทร</a>`
+      : `<span class="sc-quick phone" style="opacity:.4">📞 โทร</span>`;
 
-    // Result block — only for visited/refused
-    let resultHtml = '';
-    if (s.status === 'visited' && (s.visitedAmount || 0) > 0) {
-      resultHtml = `
-        <div class="rich-card-result">
-          <span style="font-size:14px">✓</span>
-          <span style="font-weight:700;color:var(--success)">ออเดอร์เสร็จแล้ว</span>
-          <span class="rich-card-result-amount" style="color:var(--success)">฿ ${(s.visitedAmount||0).toLocaleString()}</span>
-        </div>
-      `;
-    } else if (s.status === 'refused') {
-      resultHtml = `
-        <div class="rich-card-result refused">
-          <span style="font-size:14px">❌</span>
-          <span style="font-weight:700;color:var(--danger)">${escapeHtml(s.refuseReason || 'ไม่ซื้อ')}</span>
-        </div>
-      `;
+    // Check-in/Out mini button
+    let ciBtn;
+    if (done || noBuy) {
+      const t = visit && visit.checkOutTime ? visit.checkOutTime : '';
+      ciBtn = `<button class="sc-quick ci done" disabled>✓ ${escapeHtml(t)}</button>`;
+    } else if (checkedIn) {
+      ciBtn = `<button class="sc-quick ci co" onclick="event.stopPropagation();handleShopCheckOut('${s.id}')">🚪 เช็คเอาท์</button>`;
+    } else {
+      ciBtn = `<button class="sc-quick ci" onclick="event.stopPropagation();handleShopCheckIn('${s.id}')">✓ เช็คอิน</button>`;
     }
 
-    // Check-in section — Surat 2026-05-10 v4.3:
-    // • If visited/refused today → no need to check out (action already logged)
-    // • Check-in btn = navy + bigger; Check-out btn = orange (clearly different)
-    let checkinHtml = '';
-    if (s.status === 'pending') {
-      let checkinClass = '';
-      let iconText = '📍';
-      let statusText = 'ยังไม่ได้เช็คอิน';
-      let distText = distance !== null ? `~${Math.round(distance)}m` : '—';
-      let buttonHtml = '';
-
-      if (checkedOut) {
-        // Completed visit
-        checkinClass = 'checked-out';
-        iconText = '✓✓';
-        statusText = 'เยี่ยมเสร็จแล้ว';
-        distText = `เช็คอิน ${visit.checkInTime} · ออก ${visit.checkOutTime}`;
-        // No button needed — done
-      } else if (checkedIn) {
-        checkinClass = 'checked';
-        iconText = '✓';
-        statusText = 'อยู่ที่ร้าน';
-        distText = `เช็คอินเมื่อ ${visit.checkInTime}`;
-        // Check-out button — ORANGE, clearly different from check-in
-        buttonHtml = `
-          <button class="rich-checkin-btn rich-checkin-btn--checkout"
-                  onclick="event.stopPropagation();handleShopCheckOut('${s.id}')"
-                  title="บันทึกว่าออกจากร้านแล้ว">
-            🚪 เช็คเอาท์
-          </button>
-        `;
-      } else {
-        // Not checked in yet
-        if (distance !== null && !inRange) distText += ' · นอกระยะ';
-        else if (distance !== null) distText += ' · ในระยะ ✓';
-        if (!SALESMAN.gpsEnabled) distText += ' (GPS Mock)';
-        // Check-in button — NAVY, big
-        buttonHtml = `
-          <button class="rich-checkin-btn rich-checkin-btn--checkin"
-                  onclick="event.stopPropagation();handleShopCheckIn('${s.id}')"
-                  title="บันทึกว่าเดินทางถึงร้านแล้ว">
-            📍 เช็คอิน
-          </button>
-        `;
-      }
-
-      checkinHtml = `
-        <div class="rich-card-checkin ${checkinClass}">
-          <div class="rich-card-checkin-icon">${iconText}</div>
-          <div class="rich-card-checkin-info">
-            <div class="rich-card-checkin-status">${statusText}</div>
-            <div class="rich-card-checkin-distance">${distText}</div>
-          </div>
-          ${buttonHtml}
-        </div>
-      `;
-    } else if (hasActionToday && checkedIn) {
-      // Shop has order/refusal but no checkout — show gentle reminder that it's ok
-      checkinHtml = `
-        <div class="rich-card-checkin checked" style="opacity:.75">
-          <div class="rich-card-checkin-icon">✓</div>
-          <div class="rich-card-checkin-info">
-            <div class="rich-card-checkin-status" style="color:var(--success)">เช็คอิน ${visit.checkInTime}</div>
-            <div class="rich-card-checkin-distance" style="color:var(--muted)">ดำเนินการเสร็จแล้ว — ไม่ต้องเช็คเอาท์</div>
-          </div>
-        </div>
-      `;
-    }
-
-    // Action buttons — disabled until checked-in (per existing logic)
-    const canTakeOrder = !!checkedIn || s.status !== 'pending';
-    const showActions = s.status === 'pending';
-    const actionsHtml = showActions ? `
-      <div class="rich-card-actions">
-        <button class="rich-action refuse" ${!checkedIn ? 'disabled' : ''} onclick="event.stopPropagation();openShopForAction('${s.id}','refuse')">
-          <span class="ico">❌</span>ไม่ซื้อ
-        </button>
-        <button class="rich-action cn" ${!canTakeOrder ? 'disabled' : ''} onclick="event.stopPropagation();openShopForAction('${s.id}','cn')">
-          <span class="ico">📋</span>ใบลดหนี้
-        </button>
-        <button class="rich-action order" ${!canTakeOrder ? 'disabled' : ''} onclick="event.stopPropagation();openShopForAction('${s.id}','order')">
-          <span class="ico">🛒</span>${s.visitedAmount > 0 ? 'สั่งเพิ่ม' : 'สั่งซื้อ'}
-        </button>
-      </div>
-    ` : `
-      <div class="rich-card-actions">
-        <button class="rich-action cn" onclick="event.stopPropagation();openShopForAction('${s.id}','cn')">
-          <span class="ico">📋</span>ใบลดหนี้
-        </button>
-        <button class="rich-action order" style="grid-column:span 2" onclick="event.stopPropagation();openShopForAction('${s.id}','order')">
-          <span class="ico">🛒</span>สั่งเพิ่ม
-        </button>
-      </div>
-    `;
+    // 2 big action buttons (right column)
+    const canOrder = checkedIn || done;
+    const orderLabel = s.visitedAmount > 0 ? 'สั่งเพิ่ม' : 'สั่งซื้อ';
+    const btnBuy = canOrder && !noBuy
+      ? `<button class="sc-btn sc-buy" onclick="event.stopPropagation();openShopForAction('${s.id}','order')"><span class="sc-icon">🛒</span><span class="sc-label">${orderLabel}</span></button>`
+      : `<button class="sc-btn sc-buy sc-disabled" disabled><span class="sc-icon">🛒</span><span class="sc-label">${orderLabel}</span></button>`;
+    const btnNo = checkedIn && !done && !noBuy
+      ? `<button class="sc-btn sc-no" onclick="event.stopPropagation();openShopForAction('${s.id}','refuse')"><span class="sc-icon">✕</span><span class="sc-label">ไม่ซื้อ</span></button>`
+      : `<button class="sc-btn sc-no sc-disabled" disabled><span class="sc-icon">✕</span><span class="sc-label">ไม่ซื้อ</span></button>`;
 
     return `
-      <div class="rich-card${checkedIn ? ' is-checkedin' : ''}" data-shop="${s.id}">
-        <div class="rich-card-banner">
-          ${photoHtml}
-          <span class="rich-card-status-pill ${statusClass}">${statusLabel}</span>
-          ${debtPill}
-          <div class="rich-card-banner-text">
-            <div class="rich-card-banner-name">${escapeHtml(s.name)}${checkinBadge}</div>
-            <div class="rich-card-banner-addr">📍 ${escapeHtml(s.addr || '—')}</div>
-          </div>
+      <div class="semi-card ${stateClass}" onclick="goShop('${s.id}')">
+        <div class="sc-photo">${photoHtml}</div>
+        <div class="sc-info">
+          <div class="sc-name">${escapeHtml(s.name)}</div>
+          <div class="sc-sub">${escapeHtml(addrLine)}</div>
+          <div class="sc-quick-row">${gpsBtn}${phoneBtn}${ciBtn}</div>
+          ${chips.length ? `<div class="sc-chips">${chips.join('')}</div>` : ''}
         </div>
-        <div class="rich-card-body">
-          <div class="rich-card-quicks">
-            ${phoneCallable
-              ? `<a class="rich-quick" href="tel:${phoneClean}" onclick="event.stopPropagation()">📞 ${escapeHtml(s.phone)}</a>`
-              : `<span class="rich-quick disabled">📞 ไม่มีเบอร์</span>`}
-            <a class="rich-quick" href="${navUrl}" target="_blank" onclick="event.stopPropagation()">🗺️ Google Maps</a>
-            ${s.notes ? `<span class="rich-quick" title="${escapeAttr(s.notes)}">📝 ${escapeHtml(s.notes.length > 25 ? s.notes.substring(0,25)+'…' : s.notes)}</span>` : ''}
-          </div>
-          ${resultHtml}
-          ${checkinHtml}
-          ${actionsHtml}
-          ${s.status === 'pending' && !checkedIn ? '<div style="text-align:center;font-size:11px;color:var(--muted);margin-top:8px">📍 เช็คอินก่อนถึงจะดำเนินการได้</div>' : ''}
-        </div>
+        <div class="sc-actions">${btnBuy}${btnNo}</div>
       </div>
     `;
   }).join('');
@@ -5782,6 +6550,938 @@ function showAllProducts() {
   renderProductList();
 }
 
+// ═══════════════════════════════════════════════════════════════
+// v6.0 — INLINE ORDER CARD: state + helpers + tier logic
+// (Replaces popup modal for Order screen — Product Info still uses modal)
+// ═══════════════════════════════════════════════════════════════
+
+// Per-shop draft state: { [productId]: { unit, qty, price } }
+// Cleared whenever shop changes (entering/leaving). Pre-populated from cart on render.
+window._orderDraft = window._orderDraft || {};
+window._lastDraftShopId = window._lastDraftShopId || null;
+
+function _ensureDraftScope() {
+  if (window._lastDraftShopId !== currentShopId) {
+    window._orderDraft = {};
+    window._lastDraftShopId = currentShopId;
+  }
+}
+
+// Decide initial state for one product card.
+// Priority: cart entry > _orderDraft entry > defaults
+// status is ALWAYS derived from cart membership (no stale "confirmed" drafts)
+function _initOrderCardState(p) {
+  _ensureDraftScope();
+  const id = p['CODE EA'] || p['CODE CS'] || p['PRODUCT NAME'];
+  // 1) Already in cart? → confirmed
+  const cartIdx = cart.findIndex(c => c.productId === id && c.shopId === currentShopId);
+  if (cartIdx >= 0) {
+    const c = cart[cartIdx];
+    // Sync draft with cart so live edits know baseline
+    window._orderDraft[id] = { unit: c.unit, qty: c.qty, price: c.price };
+    return { id, unit: c.unit, qty: c.qty, price: c.price, status: 'confirmed', cartIdx };
+  }
+  // 2) Draft? (working state but not yet confirmed)
+  if (window._orderDraft[id]) {
+    const d = window._orderDraft[id];
+    const qty = parseInt(d.qty) || 0;
+    return { id, unit: d.unit, qty, price: d.price ?? '', status: qty > 0 ? 'pending' : 'idle', cartIdx: -1 };
+  }
+  // 3) Default: prefer case unit if available
+  const hasCase = numv(p['QTY CS']) > 1 && (numv(p['PRICE S03 CS']) > 0 || numv(p['PRICE CC03 CS']) > 0);
+  const hasPack = numv(p['QTY PA']) > 1 && (numv(p['PRICE S03 PA']) > 0 || numv(p['PRICE CC03 PA']) > 0);
+  const defUnit = hasCase ? 'case' : hasPack ? 'pack' : 'piece';
+  return { id, unit: defUnit, qty: 0, price: '', status: 'idle', cartIdx: -1 };
+}
+
+// Compute tier ladder for current unit + qty.
+// Returns: { tiers: [{key, range, price, active, disabled, restricted, privileged}], activeKey, allowBelow }
+// Rules per handoff:
+//   <5 CS  → S03 (or S03 for non-CS units always)
+//   5-19   → S02
+//   ≥20 + AllowBelowSuggest=false → S01+2 = min(S01+2, S02)
+//   ≥20 + AllowBelowSuggest=true  → S01
+// v6.2: If pickedTier given AND valid for current qty → use it instead of auto-suggest
+//        Click-to-select wins over auto, but qty changes that invalidate a pick fall back to auto.
+function getOrderTiers(p, unitCode, qty, pickedTier) {
+  const pr = productPrices(p, unitCode);
+  const allowBelow = !currentUser || currentUser.allowBelowSuggest !== false;
+  const s01plus2 = pr.S01 > 0 ? Math.min(pr.S01 + 2, pr.S02 || (pr.S01 + 2)) : 0;
+
+  // Auto-suggest from qty
+  let autoKey;
+  if (unitCode !== 'CS') {
+    autoKey = 'S03';
+  } else if (qty < 5) {
+    autoKey = 'S03';
+  } else if (qty < 20) {
+    autoKey = 'S02';
+  } else {
+    autoKey = allowBelow ? 'S01' : 'S01+2';
+  }
+
+  // v6.5.2: ถ้า qty=0 และ user ยังไม่ได้เลือก tier เอง → ไม่ highlight tile ใดๆ
+  // (ป้องกัน confusion ว่า "ทำไม S03 เขียว ตอนที่ฉันยังไม่ได้กดอะไร")
+  let activeKey;
+  if (unitCode === 'CS' && pickedTier) {
+    // User picked manually — validate against qty band
+    const pickValid =
+      (pickedTier === 'S03' && qty < 5) ||
+      (pickedTier === 'S02' && qty >= 5 && qty < 20) ||
+      ((pickedTier === 'S01' || pickedTier === 'S01+2') && qty >= 20);
+    activeKey = pickValid ? pickedTier : autoKey;
+  } else if (qty <= 0) {
+    activeKey = null; // no tile highlighted when qty=0 and no manual pick
+  } else {
+    activeKey = autoKey;
+  }
+
+  const tiers = [
+    { key: 'S03',   range: '<5',     price: pr.S03 },
+    { key: 'S02',   range: '5–19',   price: pr.S02 },
+    { key: 'S01+2', range: '≥20*',   price: s01plus2,  restricted: true },
+    { key: 'S01',   range: '≥20',    price: pr.S01,    privileged: true },
+  ];
+
+  // Disable tiles where price = 0 or restricted/privileged doesn't match user
+  tiers.forEach(t => {
+    if (!t.price || t.price <= 0) t.disabled = true;
+    if (t.privileged && !allowBelow) t.disabled = true;
+    t.active = activeKey !== null && (t.key === activeKey);
+  });
+
+  // Return autoKey as fallback (used by tier badge in price input — always show something)
+  return { tiers, activeKey, autoKey, allowBelow };
+}
+window.getOrderTiers = getOrderTiers;
+
+// Unit code mapper
+function _unitToCode(unit) {
+  return unit === 'piece' ? 'EA' : unit === 'pack' ? 'PA' : unit === 'bigpack' ? 'BP' : 'CS';
+}
+
+// Compact depot row builder (smaller than modal version — for inline card)
+function buildDepotChipsCompact(p) {
+  const csSize = getCsSize(p);
+  const myWh = (currentUser && currentUser.warehouse) || SALESMAN.warehouseId || 'W1';
+  // v6.4: AVERAGE 60D_W is already daily EA rate (sell-out per day, NOT cumulative).
+  // '60D' just indicates the lookback window for averaging. Use as-is. Do NOT divide.
+  // Fallback to legacy 30D (also daily) if 60D column missing.
+  const getAvgDaily = (w) => {
+    const v60 = numv(p[`AVERAGE 60D_${w}`]) || numv(p[`AVERAGE 60D ${w}`]);
+    if (v60 > 0) return v60;
+    return numv(p[`AVERAGE 30D_${w}`]) || numv(p[`AVERAGE 30D ${w}`]) || numv(p[`AVG 30D ${w}`]);
+  };
+
+  const depots = WAREHOUSES.map(w => {
+    const parsed = parseStockCsEa(p[`STOCK ${w.id}`], csSize);
+    const avgDailyEa = getAvgDaily(w.id);
+    const stockEa = parsed.totalEa;
+    let days = null;
+    if (avgDailyEa > 0) days = stockEa / avgDailyEa;
+    return { id: w.id, parsed, stockEa, avgDailyEa, days };
+  });
+  const totalEa = depots.reduce((s, d) => s + d.stockEa, 0);
+  const totalCs = csSize > 1 ? Math.floor(totalEa / csSize) : totalEa;
+
+  const chips = depots.map(d => {
+    let lvl, heightPct, overstockBadge = '';
+    if (d.stockEa <= 0) { lvl = 'out'; heightPct = 0; }
+    else if (d.days === null) { lvl = 'unknown'; heightPct = 60; } // v6.4: gray (not misleading green) when avg data missing
+    else if (d.days <= 3) { lvl = 'red';   heightPct = Math.max(8, (d.days/30)*100); }
+    else if (d.days <= 10){ lvl = 'amber'; heightPct = Math.max(8, (d.days/30)*100); }
+    else if (d.days <= 30){ lvl = 'green'; heightPct = (d.days/30)*100; }
+    else { lvl = 'over'; heightPct = 100; overstockBadge = '<div class="oc-depot-overstock">↑</div>'; }
+
+    const qtyText = d.parsed.empty ? '0' : (d.parsed.cs > 0 ? d.parsed.cs.toLocaleString() : '0');
+    const qtyCls = d.stockEa <= 0 ? 'zero' : '';
+    const mineCls = d.id === myWh ? 'mine' : '';
+    const tip = `${d.id} • ${d.parsed.raw || '0'} CS.EA` +
+      (d.days !== null ? ` • ${Math.round(d.days)}d of stock (avg ${Math.round(d.avgDailyEa)} EA/วัน)` : '');
+
+    return `<div class="oc-depot ${mineCls}" title="${tip}">
+      <div class="oc-depot-bar-track">
+        ${overstockBadge}
+        <div class="oc-depot-bar-fill lvl-${lvl}" style="height:${heightPct.toFixed(1)}%"></div>
+      </div>
+      <div class="oc-depot-meta">
+        <div class="oc-depot-label">${d.id}</div>
+        <div class="oc-depot-qty ${qtyCls}">${qtyText}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `
+    <div class="oc-stock-header">
+      <span>📦 สต็อกในคลัง</span>
+      <span class="oc-stock-total">รวม ${totalCs.toLocaleString()} CS</span>
+    </div>
+    <div class="oc-depot-row">${chips}</div>
+  `;
+}
+window.buildDepotChipsCompact = buildDepotChipsCompact;
+
+// ───────────────────────────────────────────────────────────────
+// v6.5.2 — Multi-promo inline bars with cart-aware progress
+// ───────────────────────────────────────────────────────────────
+// Lists ALL promos matching this SKU. User MUST pick one (no default).
+// Progress uses cartMatchesPromo() — handles CAT-based stacking across SKUs.
+// Special rule: CAT-based + PA/BP = invalid config → warning, no calculation.
+//
+// State stored in window._orderDraft[pid].selectedPromoId — index of chosen promo,
+// or null if not yet picked.
+function _buildPromoBarsHtml(p, productId, safeId, unit, qty) {
+  const allPromos = getAllPromotionsFor(p);
+  if (!allPromos.length) return '';
+
+  const draft = window._orderDraft[productId] || {};
+  // v6.5.4: auto-pick when only 1 promo matches. Multi-promo still requires manual pick.
+  let selectedIdx = (typeof draft.selectedPromoIdx === 'number') ? draft.selectedPromoIdx : null;
+  if (allPromos.length === 1 && selectedIdx === null) {
+    selectedIdx = 0;  // auto-pick the single promo (no user action needed)
+    // Persist to draft so cart line carries the selection on confirm
+    draft.selectedPromoIdx = 0;
+    window._orderDraft[productId] = draft;
+  }
+
+  // Build cart line snapshot for cartMatchesPromo (includes current draft qty as "preview")
+  const draftLine = qty > 0 ? {
+    productId, unit, qty, price: 0, shopId: currentShopId, isDraft: true,
+  } : null;
+
+  // v6.5.4: pass isMulti so _buildOnePromoBar can hide progress for unselected promos
+  // when multiple match (user must pick first — Q2 in plan).
+  const isMulti = allPromos.length > 1;
+
+  return allPromos.map((promo, idx) => {
+    const isSelected = (selectedIdx === idx);
+    return _buildOnePromoBar(promo, p, productId, safeId, idx, isSelected, draftLine, unit, isMulti);
+  }).join('');
+}
+window._buildPromoBarsHtml = _buildPromoBarsHtml;
+
+// Single promo bar — shown stacked when SKU has multiple promos
+// v6.5.4: isMulti=true means SKU has 2+ promos → unselected bars don't show progress
+// (per user spec: "ต้องรอ user พิจารณา / กดเลือก promo ก่อน ถึงจะปลดล็อก")
+function _buildOnePromoBar(promo, p, productId, safeId, idx, isSelected, draftLine, unit, isMulti) {
+  const promoName = String(promo['ชื่อโปร'] || 'โปรโมชั่น').trim();
+  const measureBy = String(promo['วิธีวัด'] || '').trim();
+  const threshold = numv(promo['จำนวน']) || 1;
+  const sellMode = String(promo['รูปแบบขาย'] || '').trim().toUpperCase();
+  const giftName = String(promo['แถมสินค้า'] || '').trim();
+  const giftQty = numv(promo['จำนวนแถม']) || 1;
+  const discount = numv(promo['ลดราคา']);
+
+  // Reward text
+  let rewardText;
+  if (discount > 0 && !giftName) rewardText = `ลด ${discount.toLocaleString()} บาท`;
+  else if (giftName) rewardText = `แถม ${escapeHtml(giftName)} × ${giftQty}`;
+  else rewardText = describeReward(promo);
+
+  // Step 1: validate config — admin error guard
+  const configWarning = _validatePromoConfig(promo);
+  if (configWarning) {
+    return `
+      <div class="oc-promo-bar warning" data-promo-idx="${idx}">
+        <div class="oc-promo-bar-emoji">⚠️</div>
+        <div class="oc-promo-bar-text">
+          <span class="name">${escapeHtml(promoName)}</span>
+          <span class="need">${escapeHtml(configWarning)}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  // Selection chip — radio-style, user must pick
+  const pickerHtml = `
+    <button class="oc-promo-pick ${isSelected ? 'on' : ''}"
+            onclick="orderPromoPick('${safeId}', ${idx})"
+            title="${isSelected ? 'กำลังใช้โปรนี้' : 'แตะเพื่อเลือกโปรนี้'}">
+      ${isSelected ? '✓ ใช้โปรนี้' : 'เลือก'}
+    </button>
+  `;
+
+  // v6.5.4: when SKU has multiple promos AND this one is not selected → static info only.
+  // Don't run cartMatchesPromo (would give wrong/misleading numbers before user commits to a promo).
+  if (isMulti && !isSelected) {
+    return `
+      <div class="oc-promo-bar" data-promo-idx="${idx}">
+        <div class="oc-promo-bar-emoji">🎁</div>
+        <div class="oc-promo-bar-text">
+          <span class="name">${escapeHtml(promoName)}</span>
+          ซื้อ <b>${threshold} ${escapeHtml(sellMode || 'หน่วย')}</b> → <span class="gift">${rewardText}</span>
+          <span class="meta-tag">${escapeHtml(measureBy)} · เลือกโปรนี้เพื่อดูความคืบหน้า</span>
+        </div>
+        ${pickerHtml}
+      </div>
+    `;
+  }
+
+  // Step 2: compute progress via cartMatchesPromo (handles stacking, baht mode, CAT-based)
+  let currentValue = 0;
+  let currentUnit = sellMode;
+  let result = { matches: false, threshold, remaining: threshold, currentValue: 0 };
+  try {
+    result = cartMatchesPromo(promo, draftLine) || result;
+    currentValue = result.currentValue || 0;
+    currentUnit = result.currentUnit || sellMode;
+  } catch (e) {
+    console.warn('[promo] cartMatchesPromo failed', promoName, e);
+  }
+
+  const tiersEarned = Math.floor(currentValue / threshold);
+  const remaining = Math.max(0, threshold - (currentValue % threshold || 0));
+  const remainingDisplay = (currentValue > 0 && (currentValue % threshold === 0))
+    ? threshold  // edge case: exact multiple — next tier needs full threshold
+    : remaining;
+  const totalGifts = tiersEarned * giftQty;
+  const giftDisplay = giftName ? `${escapeHtml(giftName)} × ${totalGifts}` : rewardText;
+
+  // Step 3: render based on state
+  const fmtVal = (v) => Number.isInteger(v) ? v.toString() : v.toFixed(1);
+
+  // 3a: nothing in cart yet → encouragement
+  if (currentValue === 0) {
+    return `
+      <div class="oc-promo-bar ${isSelected ? 'selected' : ''}" data-promo-idx="${idx}">
+        <div class="oc-promo-bar-emoji">🎁</div>
+        <div class="oc-promo-bar-text">
+          <span class="name">${escapeHtml(promoName)}</span>
+          ซื้อ <b>${threshold} ${escapeHtml(currentUnit)}</b> → <span class="gift">${rewardText}</span>
+          <span class="meta-tag">${escapeHtml(measureBy)}</span>
+        </div>
+        ${pickerHtml}
+      </div>
+    `;
+  }
+
+  // 3b: in progress, not yet unlocked
+  if (tiersEarned === 0) {
+    return `
+      <div class="oc-promo-bar ${isSelected ? 'selected' : ''}" data-promo-idx="${idx}">
+        <div class="oc-promo-bar-emoji">🎁</div>
+        <div class="oc-promo-bar-text">
+          <span class="name">${escapeHtml(promoName)}</span>
+          <span class="need">อีก ${fmtVal(remainingDisplay)} ${escapeHtml(currentUnit)}</span> → <span class="gift">${rewardText}</span>
+          <span class="meta-tag">${escapeHtml(measureBy)} · มี ${fmtVal(currentValue)}/${threshold}</span>
+        </div>
+        ${pickerHtml}
+      </div>
+    `;
+  }
+
+  // 3c: unlocked at least 1 tier
+  return `
+    <div class="oc-promo-bar unlocked ${isSelected ? 'selected' : ''}" data-promo-idx="${idx}">
+      <div class="oc-promo-bar-emoji">✅</div>
+      <div class="oc-promo-bar-text">
+        <span class="name">${escapeHtml(promoName)}</span>
+        <span class="need">ได้แถม ${tiersEarned} ชุด</span> → <span class="gift">${giftDisplay}</span>
+        <span class="meta-tag">${escapeHtml(measureBy)}${remainingDisplay > 0 && remainingDisplay < threshold ? ` · อีก ${fmtVal(remainingDisplay)} = +1 ชุด` : ''}</span>
+      </div>
+      ${pickerHtml}
+    </div>
+  `;
+}
+
+// Picker handler — store selected promo idx in draft
+window.orderPromoPick = function(safeId, idx) {
+  const el = document.getElementById('orderCard-' + safeId);
+  if (!el) return;
+  const pid = el.getAttribute('data-pid');
+  const d = window._orderDraft[pid] || { unit: 'case', qty: 0, price: '' };
+  // Toggle off if same idx clicked again, else select
+  if (d.selectedPromoIdx === idx) delete d.selectedPromoIdx;
+  else d.selectedPromoIdx = idx;
+  window._orderDraft[pid] = d;
+  _renderOneOrderCard(safeId);
+};
+
+// Legacy wrapper (kept for callers that pass single promo)
+function _buildPromoBarHtml(promo, p, unit, qty) {
+  if (!promo) return '';
+  // This path is only hit by legacy code outside the order card. Just render a simple info bar.
+  const promoName = String(promo['ชื่อโปร'] || 'โปรโมชั่น').trim();
+  const threshold = numv(promo['จำนวน']) || 1;
+  const sellMode = String(promo['รูปแบบขาย'] || '').trim().toUpperCase();
+  const rewardText = describeReward(promo);
+  return `
+    <div class="oc-promo-bar">
+      <div class="oc-promo-bar-emoji">🎁</div>
+      <div class="oc-promo-bar-text">
+        <span class="name">${escapeHtml(promoName)}</span>
+        ซื้อ <b>${threshold} ${escapeHtml(sellMode || 'หน่วย')}</b> → <span class="gift">${escapeHtml(rewardText)}</span>
+      </div>
+    </div>
+  `;
+}
+window._buildPromoBarHtml = _buildPromoBarHtml;
+
+// Build one full inline order card
+// Used by renderProductList — replaces popup modal flow
+function buildOrderCardV6(p, idx) {
+  const id = p['CODE EA'] || p['CODE CS'] || p['PRODUCT NAME'];
+  const name = p['PRODUCT NAME'] || '—';
+  const safeId = String(id || '').replace(/[^A-Za-z0-9_-]/g, '_');
+  const state = _initOrderCardState(p);
+  window._orderDraft[id] = window._orderDraft[id] || { unit: state.unit, qty: state.qty, price: state.price };
+  const unitCode = _unitToCode(state.unit);
+  const qtyNum = parseInt(state.qty) || 0;
+  // v6.2: respect user's tier pick (click overrides auto-suggest)
+  const pickedTier = (window._orderDraft[id] || {}).pickedTier || null;
+  const { tiers, activeKey, autoKey, allowBelow } = getOrderTiers(p, unitCode, qtyNum, pickedTier);
+  const activeTier = tiers.find(t => t.active) || tiers[0];
+
+  // Detect available units
+  const hasUnit = {
+    piece:   true,
+    pack:    numv(p['QTY PA']) > 1 && (numv(p['PRICE S03 PA']) > 0 || numv(p['PRICE CC03 PA']) > 0),
+    bigpack: numv(p['QTY BP']) > 0 && (numv(p['PRICE S03 BP']) > 0 || numv(p['PRICE CC03 BP']) > 0),
+    case:    numv(p['QTY CS']) > 1 && (numv(p['PRICE S03 CS']) > 0 || numv(p['PRICE CC03 CS']) > 0),
+  };
+
+  const unitTabs = [
+    hasUnit.piece   ? `<div class="oc-unit-tab ${state.unit==='piece'?'active':''}" onclick="orderUnitChange('${safeId}','piece')">EA</div>` : '',
+    hasUnit.pack    ? `<div class="oc-unit-tab ${state.unit==='pack'?'active':''}" onclick="orderUnitChange('${safeId}','pack')">PA</div>` : '',
+    hasUnit.bigpack ? `<div class="oc-unit-tab ${state.unit==='bigpack'?'active':''}" onclick="orderUnitChange('${safeId}','bigpack')">BP</div>` : '',
+    hasUnit.case    ? `<div class="oc-unit-tab ${state.unit==='case'?'active':''}" onclick="orderUnitChange('${safeId}','case')">CS</div>` : '',
+  ].filter(Boolean).join('');
+
+  // Pallet chip: CS PALLET column. v6.3: ALWAYS shown when CS PALLET > 0 (was: only when CS active).
+  // Tap → switches to CS unit + sets qty=pallet + price=S01.
+  const palletCs = numv(p['CS PALLET']);
+  const palletChip = (palletCs > 0)
+    ? `<div class="oc-pallet-chip" onclick="orderPalletTap('${safeId}',${palletCs})" title="แตะเพื่อสั่ง 1 พาเลท (${palletCs} ลัง, ราคา S01)">${palletCs} CS</div>`
+    : '';
+
+  // v6.5.2: support multiple promos — render bars stacked, user picks one (no default)
+  const allPromos = getAllPromotionsFor(p);
+  const hasPromos = allPromos.length > 0;
+  const isFocus = isFocusProduct(p);
+  const promoBarHtml = hasPromos ? _buildPromoBarsHtml(p, id, safeId, state.unit, qtyNum) : '';
+
+  // Photo — v6.4: prefer SKU_USAGE (new schema 2026-05-14), fallback to legacy fields
+  const photoUrl = p['SKU_USAGE'] || p['PHOTO_SQL'] || p['PHOTO'] || p['รูป'] || '';
+  const thumb = photoUrl
+    ? buildPhotoImg(photoUrl, { size: 112, name })
+    : `<div style="font-size:28px;opacity:.6">📦</div>`;
+
+  // Conversion subtitle: e.g. "5 CS = 60 ชิ้น"
+  const qtyPA = numv(p['QTY PA']) || 1;
+  const qtyCS = numv(p['QTY CS']) || 1;
+  const csSize = Math.max(1, qtyCS);
+  let pieceCount = 0;
+  if (state.unit === 'piece') pieceCount = qtyNum;
+  else if (state.unit === 'pack') pieceCount = qtyNum * qtyPA;
+  else if (state.unit === 'bigpack') pieceCount = qtyNum * (numv(p['QTY BP']) || 0);
+  else if (state.unit === 'case') pieceCount = qtyNum * csSize;
+  const unitLabel = state.unit === 'piece' ? 'ชิ้น' : state.unit === 'pack' ? 'PA' : state.unit === 'bigpack' ? 'BP' : 'CS';
+  const subLeft = `${qtyNum} ${unitLabel} = ${pieceCount.toLocaleString()} ชิ้น`;
+  const subRight = `ราคา / ${unitLabel}`;
+
+  // Tier ladder — only show for CS unit (matches handoff: 4-tier breakdown is CS-only)
+  // v6.2: single-line name+range inside tile (narrower tiles)
+  const showLadder = state.unit === 'case';
+  const tierLadder = showLadder ? `
+    <div class="oc-tier-ladder">
+      ${tiers.map(t => {
+        const cls = [t.active ? 'active' : '', t.disabled ? 'disabled' : ''].filter(Boolean).join(' ');
+        const onClick = t.disabled ? '' : `onclick="orderTierSelect('${safeId}','${t.key}')"`;
+        const priceDisp = t.price > 0 ? '฿' + Math.round(t.price).toLocaleString() : '—';
+        return `<div class="oc-tier-tile ${cls}" data-key="${t.key}" ${onClick}>
+          <div class="oc-tier-name">${t.key} <span class="rng">${t.range}</span></div>
+          <div class="oc-tier-price">${priceDisp}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  ` : '';
+
+  // Price placeholder = active tier suggested price
+  const suggestedPrice = activeTier ? activeTier.price : 0;
+  const pricePlaceholder = suggestedPrice > 0 ? Math.round(suggestedPrice) : '0';
+
+  // Status + button
+  const isReady = qtyNum > 0 && state.status !== 'confirmed';
+  const isSaved = state.status === 'confirmed';
+  let statusText = 'ตั้งจำนวนเพื่อยืนยัน';
+  let statusCls = '';
+  let btnLabel = 'ยืนยัน';
+  let btnCls = '';
+  if (isSaved) {
+    statusText = '✓ บันทึกแล้ว — แก้ qty/ราคาแล้วกด อัพเดท';
+    statusCls = 'saved';
+    btnLabel = '✓ ในตะกร้า';
+    btnCls = 'saved';
+  } else if (isReady) {
+    statusText = 'พร้อมยืนยัน';
+    statusCls = 'ready';
+    btnLabel = 'ยืนยัน';
+    btnCls = 'ready';
+  }
+  const removeBtn = isSaved
+    ? `<button class="oc-remove-btn" onclick="orderRemove('${safeId}')">🗑 ลบ</button>`
+    : '';
+
+  const cardCls = isSaved ? 'confirmed' : (qtyNum > 0 ? 'pending' : '');
+
+  // CSS-safe tier badge class (no '+' in class name)
+  // v6.5.2: when qty=0 (activeKey null) → badge is gray + shows auto-suggest (S03 default)
+  const displayKey = activeKey || autoKey;
+  const tierBadgeCls = activeKey === null ? 'neutral' : (activeKey === 'S01+2' ? 'S01p2' : activeKey);
+
+  // v6.5.2: state classes simplified — promo/focus signal carried by inline promo bar, not card border
+  const stateClasses = cardCls; // pending / confirmed only
+
+  return `
+    <div class="order-card-v6 ${stateClasses}" id="orderCard-${safeId}" data-pid="${escapeAttr(id)}">
+      <div class="oc-head">
+        <div class="oc-thumb">${thumb}</div>
+        <div class="oc-name-wrap">
+          <div class="oc-name">${escapeHtml(name)}</div>
+          <div class="oc-name-meta">
+            <div class="oc-unit-tabs">${unitTabs}</div>
+            ${palletChip}
+          </div>
+          <div class="oc-promo-bar-slot" id="ocPromoBar-${safeId}">${promoBarHtml}</div>
+        </div>
+      </div>
+
+      <div class="oc-stock-box">${buildDepotChipsCompact(p)}</div>
+
+      <div class="oc-action-row">
+        <div class="oc-qty-stepper">
+          <button class="oc-qty-btn" onclick="orderQtyAdj('${safeId}',-1)" ${qtyNum<=0?'disabled':''}>−</button>
+          <input class="oc-qty-input" type="number" inputmode="numeric" min="0"
+            value="${qtyNum > 0 ? qtyNum : ''}" placeholder="0"
+            oninput="orderQtyChange('${safeId}',this.value)"
+            onfocus="this.select()">
+          <button class="oc-qty-btn" onclick="orderQtyAdj('${safeId}',1)">+</button>
+        </div>
+        <div class="oc-price-wrap">
+          <span class="oc-price-prefix">฿</span>
+          <input class="oc-price-input" type="number" inputmode="decimal"
+            value="${state.price !== '' ? state.price : ''}"
+            placeholder="${pricePlaceholder}"
+            step="0.5"
+            oninput="orderPriceChange('${safeId}',this.value)">
+          <div class="oc-tier-badge tier-${tierBadgeCls}">${displayKey}</div>
+        </div>
+      </div>
+
+      <div class="oc-price-warn" style="display:none"></div>
+
+      <div class="oc-sub-row">
+        <span>${subLeft}</span>
+        <span>${subRight}</span>
+      </div>
+
+      ${tierLadder}
+
+      <div class="oc-foot">
+        <div class="oc-foot-status ${statusCls}">${statusText}</div>
+        <div style="display:flex;align-items:center">
+          ${removeBtn}
+          <button class="oc-confirm-btn ${btnCls}"
+            ${isReady || isSaved ? '' : 'disabled'}
+            onclick="orderConfirm('${safeId}')">${btnLabel}</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+window.buildOrderCardV6 = buildOrderCardV6;
+
+// Re-render only one card (avoids whole-list re-render flicker)
+function _renderOneOrderCard(safeId) {
+  const el = document.getElementById('orderCard-' + safeId);
+  if (!el) { console.warn('[v6] card not found:', safeId); return; }
+  const pid = el.getAttribute('data-pid');
+  // Find product in last products array
+  const p = (window._lastOrderProducts || []).find(x =>
+    (x['CODE EA'] || x['CODE CS'] || x['PRODUCT NAME']) === pid
+  );
+  if (!p) { console.warn('[v6] product not found for re-render:', pid); return; }
+  el.outerHTML = buildOrderCardV6(p, 0);
+}
+
+// ───────── Event handlers ─────────
+window.orderUnitChange = function(safeId, unit) {
+  const el = document.getElementById('orderCard-' + safeId);
+  if (!el) return;
+  const pid = el.getAttribute('data-pid');
+  if (!window._orderDraft[pid]) window._orderDraft[pid] = { unit, qty: 0, price: '' };
+  window._orderDraft[pid].unit = unit;
+  // Clear price (suggested differs by unit)
+  if (window._orderDraft[pid].status !== 'confirmed') window._orderDraft[pid].price = '';
+  // v6.2: clear tier pick — tier ladder is CS-only, irrelevant for other units
+  delete window._orderDraft[pid].pickedTier;
+  // v6.5.2: clear promo pick — different unit may match different promo set
+  delete window._orderDraft[pid].selectedPromoIdx;
+  _renderOneOrderCard(safeId);
+};
+
+window.orderQtyAdj = function(safeId, delta) {
+  const el = document.getElementById('orderCard-' + safeId);
+  if (!el) return;
+  const pid = el.getAttribute('data-pid');
+  const d = window._orderDraft[pid] || { unit: 'case', qty: 0, price: '' };
+  d.qty = Math.max(0, (parseInt(d.qty)||0) + delta);
+  window._orderDraft[pid] = d;
+  _renderOneOrderCard(safeId);
+};
+
+window.orderQtyChange = function(safeId, value) {
+  const el = document.getElementById('orderCard-' + safeId);
+  if (!el) return;
+  const pid = el.getAttribute('data-pid');
+  const d = window._orderDraft[pid] || { unit: 'case', qty: 0, price: '' };
+  d.qty = Math.max(0, parseInt(value) || 0);
+  window._orderDraft[pid] = d;
+  // Light update: tier badge + ladder + confirm button — no full re-render to keep focus
+  _updateCardLive(safeId);
+};
+
+window.orderPriceChange = function(safeId, value) {
+  const el = document.getElementById('orderCard-' + safeId);
+  if (!el) return;
+  const pid = el.getAttribute('data-pid');
+  const d = window._orderDraft[pid] || { unit: 'case', qty: 0, price: '' };
+  d.price = value === '' ? '' : (parseFloat(value) || 0);
+  window._orderDraft[pid] = d;
+  _updateCardLive(safeId);  // v6.0: refresh button state on price change too
+};
+
+window.orderTierSelect = function(safeId, tierKey) {
+  const el = document.getElementById('orderCard-' + safeId);
+  if (!el) return;
+  const pid = el.getAttribute('data-pid');
+  const p = (window._lastOrderProducts || []).find(x => (x['CODE EA']||x['CODE CS']||x['PRODUCT NAME']) === pid);
+  if (!p) return;
+  const d = window._orderDraft[pid] || { unit: 'case', qty: 0, price: '' };
+  // Set qty to tier minimum + apply tier price
+  if (tierKey === 'S03' && d.qty >= 5) d.qty = 1;
+  else if (tierKey === 'S02' && (d.qty < 5 || d.qty >= 20)) d.qty = 5;
+  else if ((tierKey === 'S01' || tierKey === 'S01+2') && d.qty < 20) d.qty = 20;
+  const pr = productPrices(p, _unitToCode(d.unit));
+  if (tierKey === 'S03')      d.price = Math.round(pr.S03 || 0);
+  else if (tierKey === 'S02') d.price = Math.round(pr.S02 || 0);
+  else if (tierKey === 'S01+2') d.price = Math.round(Math.min((pr.S01||0)+2, pr.S02 || ((pr.S01||0)+2)));
+  else if (tierKey === 'S01') d.price = Math.round(pr.S01 || 0);
+  // v6.2: remember user's pick so live updates won't auto-flip back
+  d.pickedTier = tierKey;
+  window._orderDraft[pid] = d;
+  _renderOneOrderCard(safeId);
+};
+
+// v6.2: toggle inline PROMO detail (no popup)
+window.orderPromoToggle = function(safeId) {
+  const el = document.getElementById('ocPromoDetail-' + safeId);
+  if (el) el.classList.toggle('show');
+};
+
+window.orderPalletTap = function(safeId, palletCs) {
+  const el = document.getElementById('orderCard-' + safeId);
+  if (!el) return;
+  const pid = el.getAttribute('data-pid');
+  const p = (window._lastOrderProducts || []).find(x => (x['CODE EA']||x['CODE CS']||x['PRODUCT NAME']) === pid);
+  if (!p) return;
+  const d = window._orderDraft[pid] || { unit: 'case', qty: 0, price: '' };
+  d.unit = 'case';
+  d.qty = palletCs;
+  const pr = productPrices(p, 'CS');
+  const allowBelow = !currentUser || currentUser.allowBelowSuggest !== false;
+  d.price = Math.round(allowBelow
+    ? (pr.S01 || pr.S02 || pr.S03 || 0)
+    : Math.min((pr.S01||0)+2, pr.S02 || ((pr.S01||0)+2)));
+  window._orderDraft[pid] = d;
+  _renderOneOrderCard(safeId);
+};
+
+window.orderConfirm = function(safeId) {
+  const el = document.getElementById('orderCard-' + safeId);
+  if (!el) return;
+  const pid = el.getAttribute('data-pid');
+  const p = (window._lastOrderProducts || []).find(x => (x['CODE EA']||x['CODE CS']||x['PRODUCT NAME']) === pid);
+  if (!p) return;
+  const d = window._orderDraft[pid];
+  if (!d || !d.qty || d.qty <= 0) return;
+  // Compute suggested price for current tier — always calculate, even if user typed a custom price.
+  // v6.5: capture suggested for supervisor to compare against actual price.
+  const unitCode = _unitToCode(d.unit);
+  const pr = productPrices(p, unitCode);
+  const { activeKey: suggestedTierKey } = getOrderTiers(p, unitCode, d.qty, d.pickedTier || null);
+  let suggestedPrice;
+  if (suggestedTierKey === 'S03')      suggestedPrice = pr.S03;
+  else if (suggestedTierKey === 'S02') suggestedPrice = pr.S02;
+  else if (suggestedTierKey === 'S01+2') suggestedPrice = Math.min((pr.S01||0)+2, pr.S02 || ((pr.S01||0)+2));
+  else                                 suggestedPrice = pr.S01;
+  suggestedPrice = parseFloat(suggestedPrice) || 0;
+
+  // Final price: typed value, else suggested
+  let price = d.price;
+  if (price === '' || price === null || price === undefined) price = suggestedPrice;
+  price = parseFloat(price) || 0;
+  if (price <= 0) {
+    showToast('❌ ราคาต้องมากกว่า 0', 'error');
+    return;
+  }
+
+  // v6.5.3: enforce price guardrails restored from v5
+  //   Ceiling = Math.floor(S03 × 1.10) per unit — cap if exceeded
+  //   Floor   = PRICE S00 per unit — fallback to suggested if below
+  //   Tier lock — allowBelowSuggest=false users can't drop below suggested tier
+  const sheet = p._sheet || p;
+  const s00 = numv(sheet[`PRICE S00 ${unitCode}`]) || 0;
+  const s03 = pr.S03 || pr.S02 || pr.S01 || 0;
+  const ceiling = s03 > 0 ? Math.floor(s03 * 1.10) : 0;
+  const floor = s00;
+  const allowBelow = !currentUser || currentUser.allowBelowSuggest !== false;
+  let priceAdjusted = false;
+  let adjustMsg = '';
+
+  if (ceiling > 0 && price > ceiling) {
+    price = ceiling;
+    priceAdjusted = true;
+    adjustMsg = `⚠️ ลดราคาเป็น ฿${ceiling.toLocaleString()} (เพดานสูงสุด)`;
+  } else if (floor > 0 && price < floor) {
+    price = suggestedPrice;
+    priceAdjusted = true;
+    adjustMsg = `⚠️ ปรับเป็น ฿${Math.round(suggestedPrice).toLocaleString()} (ต่ำกว่า S00)`;
+  } else if (!allowBelow && suggestedPrice > 0 && price < suggestedPrice) {
+    price = suggestedPrice;
+    priceAdjusted = true;
+    adjustMsg = `🔒 ปรับเป็น ฿${Math.round(suggestedPrice).toLocaleString()} (ไม่มีสิทธิ์ต่ำกว่า ${suggestedTierKey})`;
+  }
+  if (priceAdjusted) {
+    // Sync draft back so user sees corrected price
+    d.price = price;
+    showToast(adjustMsg, 'warning');
+  }
+
+  // Apply VAT-inclusive (existing cart convention: price is VAT-inclusive)
+  const priceVat = withVat(price);
+  const suggestedPriceVat = withVat(suggestedPrice);
+
+  // v6.5: cart line carries suggestedPrice + suggestedTier for sheet logging
+  // v6.5.2: also capture selected promo (if SKU has promos AND user picked one)
+  const allPromos = getAllPromotionsFor(p);
+  let selectedPromo = null;
+  if (allPromos.length && typeof d.selectedPromoIdx === 'number') {
+    selectedPromo = allPromos[d.selectedPromoIdx] || null;
+  }
+  const cartLine = {
+    productId: pid, unit: d.unit, qty: d.qty,
+    price: priceVat, shopId: currentShopId,
+    suggestedPrice: suggestedPriceVat,
+    suggestedTier: suggestedTierKey,
+    selectedPromoName: selectedPromo ? (selectedPromo['ชื่อโปร'] || '') : '',
+    selectedPromoMeasureBy: selectedPromo ? (selectedPromo['วิธีวัด'] || '') : '',
+  };
+
+  // Check existing cart entry — update or insert
+  const existingIdx = cart.findIndex(c => c.productId === pid && c.shopId === currentShopId);
+  if (existingIdx >= 0) {
+    cart[existingIdx] = cartLine;
+    showToast('✓ อัพเดทออเดอร์แล้ว', 'success');
+  } else {
+    cart.push(cartLine);
+    showToast(`✓ ใส่ ${p['PRODUCT NAME']} แล้ว`, 'success');
+  }
+  // Sync draft with confirmed cart state (so subsequent edits know baseline)
+  d.price = priceVat;
+  window._orderDraft[pid] = d;
+  updateCartBar();
+  _renderOneOrderCard(safeId);
+};
+
+window.orderRemove = function(safeId) {
+  const el = document.getElementById('orderCard-' + safeId);
+  if (!el) return;
+  const pid = el.getAttribute('data-pid');
+  const idx = cart.findIndex(c => c.productId === pid && c.shopId === currentShopId);
+  if (idx >= 0) cart.splice(idx, 1);
+  // Reset draft
+  delete window._orderDraft[pid];
+  updateCartBar();
+  _renderOneOrderCard(safeId);
+  showToast('ลบจากตะกร้าแล้ว', 'info');
+};
+
+// Lightweight live update — only repaints tier highlight + confirm button
+// (Avoids re-render to preserve qty input focus during typing)
+function _updateCardLive(safeId) {
+  const el = document.getElementById('orderCard-' + safeId);
+  if (!el) return;
+  const pid = el.getAttribute('data-pid');
+  const p = (window._lastOrderProducts || []).find(x => (x['CODE EA']||x['CODE CS']||x['PRODUCT NAME']) === pid);
+  if (!p) return;
+  const d = window._orderDraft[pid];
+  if (!d) return;
+  const qtyNum = parseInt(d.qty) || 0;
+  const unitCode = _unitToCode(d.unit);
+  // v6.2: respect user's tier pick during live updates (don't auto-flip)
+  const { tiers, activeKey, autoKey } = getOrderTiers(p, unitCode, qtyNum, d.pickedTier || null);
+  const activeTier = tiers.find(t => t.active);
+  // CSS-safe badge class (S01+2 → S01p2; '+' isn't valid in class names)
+  // v6.5.2: activeKey can be null (qty=0 + no pick) → badge neutral, shows autoKey
+  const displayKey = activeKey || autoKey;
+  const badgeCls = activeKey === null ? 'neutral' : (activeKey === 'S01+2' ? 'S01p2' : activeKey);
+
+  // Update tier badge
+  const badge = el.querySelector('.oc-tier-badge');
+  if (badge) {
+    badge.className = 'oc-tier-badge tier-' + badgeCls;
+    badge.textContent = displayKey;
+  }
+  // v6.5.2: refresh promo bars (multi-promo aware)
+  const promoSlot = el.querySelector('.oc-promo-bar-slot');
+  if (promoSlot) {
+    const all = getAllPromotionsFor(p);
+    const pid = el.getAttribute('data-pid');
+    const safeId2 = el.id.replace(/^orderCard-/, '');
+    promoSlot.innerHTML = all.length ? _buildPromoBarsHtml(p, pid, safeId2, d.unit, qtyNum) : '';
+  }
+  // Update price placeholder
+  const priceInput = el.querySelector('.oc-price-input');
+  if (priceInput && activeTier && activeTier.price > 0) {
+    priceInput.placeholder = Math.round(activeTier.price).toString();
+  } else if (priceInput) {
+    // qty=0 → show S03 (default tier) as placeholder
+    const pr = productPrices(p, unitCode);
+    if (pr.S03 > 0) priceInput.placeholder = Math.round(pr.S03).toString();
+  }
+  // Update tier ladder tiles (use data-key — name now has range nested)
+  // v6.5.2: when activeKey null (qty=0), clear ALL tile highlights → none green
+  el.querySelectorAll('.oc-tier-tile').forEach(tile => {
+    const key = tile.getAttribute('data-key');
+    if (activeKey && key === activeKey) tile.classList.add('active');
+    else tile.classList.remove('active');
+  });
+  // Update sub-row qty/conversion
+  const qtyPA = numv(p['QTY PA']) || 1;
+  const csSize = Math.max(1, numv(p['QTY CS']) || 1);
+  let pieceCount = 0;
+  if (d.unit === 'piece') pieceCount = qtyNum;
+  else if (d.unit === 'pack') pieceCount = qtyNum * qtyPA;
+  else if (d.unit === 'bigpack') pieceCount = qtyNum * (numv(p['QTY BP']) || 0);
+  else if (d.unit === 'case') pieceCount = qtyNum * csSize;
+  const unitLabel = d.unit === 'piece' ? 'ชิ้น' : d.unit === 'pack' ? 'PA' : d.unit === 'bigpack' ? 'BP' : 'CS';
+  const subLeft = el.querySelector('.oc-sub-row span:first-child');
+  if (subLeft) subLeft.textContent = `${qtyNum} ${unitLabel} = ${pieceCount.toLocaleString()} ชิ้น`;
+
+  // Card halo + confirm button
+  const isSaved = d.status === 'confirmed';
+  el.classList.toggle('pending', qtyNum > 0 && !isSaved);
+  el.classList.toggle('confirmed', isSaved);
+  const status = el.querySelector('.oc-foot-status');
+  const btn = el.querySelector('.oc-confirm-btn');
+  if (status && btn) {
+    if (isSaved) {
+      status.textContent = '✓ บันทึกแล้ว — แก้ qty/ราคาแล้วกด อัพเดท';
+      status.className = 'oc-foot-status saved';
+      btn.textContent = qtyNum !== (cart.find(c=>c.productId===pid&&c.shopId===currentShopId)||{}).qty ? 'อัพเดท' : '✓ ในตะกร้า';
+      btn.className = 'oc-confirm-btn ' + (qtyNum > 0 ? 'ready' : 'saved');
+      btn.disabled = false;
+    } else if (qtyNum > 0) {
+      status.textContent = 'พร้อมยืนยัน';
+      status.className = 'oc-foot-status ready';
+      btn.textContent = 'ยืนยัน';
+      btn.className = 'oc-confirm-btn ready';
+      btn.disabled = false;
+    } else {
+      status.textContent = 'ตั้งจำนวนเพื่อยืนยัน';
+      status.className = 'oc-foot-status';
+      btn.textContent = 'ยืนยัน';
+      btn.className = 'oc-confirm-btn';
+      btn.disabled = true;
+    }
+  }
+  // Disable [-] button at qty 0
+  const minusBtn = el.querySelector('.oc-qty-btn');
+  if (minusBtn) minusBtn.disabled = qtyNum <= 0;
+
+  // v6.5.3: Run price guardrails — visual feedback on price input + warning text below action row
+  _runPriceGuardrails(el, p, d, unitCode);
+}
+
+// v6.5.3 — Price guardrails (restored from v5; lost in v6 inline rewrite).
+// Rules:
+//   • Ceiling = floor(S03 × 1.10) — no user can exceed this; cap on confirm.
+//   • Floor   = PRICE S00 of unit — no user can go below; silent fallback to S03 default on confirm.
+//   • Tier lock — if currentUser.allowBelowSuggest === false AND price < suggestedTier → bump up.
+// Returns { state, ceiling, floor, suggested, message } where state ∈ 'ok'|'warn'|'danger'|'locked'.
+function _getPriceGuardrails(p, unit, qty, typedPrice, pickedTier) {
+  const sheet = p._sheet || p;
+  const unitCode = unit === 'piece' ? 'EA' : unit === 'pack' ? 'PA' : unit === 'bigpack' ? 'BP' : 'CS';
+  const pr = productPrices(sheet, unitCode);
+  const s00 = numv(sheet[`PRICE S00 ${unitCode}`]) || 0;
+  const s03 = pr.S03 || pr.S02 || pr.S01 || 0;
+  const ceiling = s03 > 0 ? Math.floor(s03 * 1.10) : 0;
+  const floor = s00;
+  const allowBelow = !currentUser || currentUser.allowBelowSuggest !== false;
+
+  // Compute suggested tier price (auto for current qty)
+  const { activeKey, autoKey } = getOrderTiers(p, unitCode, qty, pickedTier || null);
+  const suggestKey = activeKey || autoKey;
+  let suggested;
+  if (suggestKey === 'S03') suggested = pr.S03;
+  else if (suggestKey === 'S02') suggested = pr.S02;
+  else if (suggestKey === 'S01+2') suggested = Math.min((pr.S01||0)+2, pr.S02 || ((pr.S01||0)+2));
+  else suggested = pr.S01;
+  suggested = parseFloat(suggested) || 0;
+
+  // No typed price → nothing to validate
+  if (typedPrice === '' || typedPrice === null || typedPrice === undefined) {
+    return { state: 'ok', ceiling, floor, suggested, message: '' };
+  }
+  const price = parseFloat(typedPrice) || 0;
+
+  // Order of checks: tier lock first (most restrictive for some users), then ceiling, then floor
+  if (!allowBelow && suggested > 0 && price < suggested && qty > 0) {
+    return {
+      state: 'locked', ceiling, floor, suggested,
+      message: `🔒 คุณไม่ได้รับสิทธิ์ลดต่ำกว่า ${suggestKey} (฿${Math.round(suggested).toLocaleString()})`,
+    };
+  }
+  if (ceiling > 0 && price > ceiling) {
+    return {
+      state: 'warn', ceiling, floor, suggested,
+      message: `⚠️ เกินราคาสูงสุด ฿${ceiling.toLocaleString()} — กดยืนยันจะถูกลดเป็น ฿${ceiling.toLocaleString()}`,
+    };
+  }
+  if (floor > 0 && price < floor) {
+    return {
+      state: 'danger', ceiling, floor, suggested,
+      message: `❌ ต่ำกว่าราคาต่ำสุด ฿${floor.toLocaleString()} — กดยืนยันจะใช้ราคา ${suggestKey} (฿${Math.round(suggested).toLocaleString()})`,
+    };
+  }
+  return { state: 'ok', ceiling, floor, suggested, message: '' };
+}
+window._getPriceGuardrails = _getPriceGuardrails;
+
+function _runPriceGuardrails(cardEl, p, d, unitCode) {
+  if (!cardEl || !p || !d) return;
+  const priceWrap = cardEl.querySelector('.oc-price-wrap');
+  const warnEl = cardEl.querySelector('.oc-price-warn');
+  if (!priceWrap) return;
+  const result = _getPriceGuardrails(p, d.unit, d.qty || 0, d.price, d.pickedTier);
+  // Reset classes
+  priceWrap.classList.remove('warn', 'danger');
+  if (result.state === 'warn') priceWrap.classList.add('warn');
+  else if (result.state === 'danger' || result.state === 'locked') priceWrap.classList.add('danger');
+  // Update warning text
+  if (warnEl) {
+    if (result.message) {
+      warnEl.textContent = result.message;
+      warnEl.className = 'oc-price-warn ' + (result.state === 'warn' ? 'warn' : 'danger');
+      warnEl.style.display = '';
+    } else {
+      warnEl.style.display = 'none';
+      warnEl.textContent = '';
+    }
+  }
+}
+
 function renderProductList(filterText = '') {
   const list = document.getElementById('productList');
   const titleEl = document.getElementById('productListTitle');
@@ -5813,12 +7513,22 @@ function renderProductList(filterText = '') {
     const { results, didYouMean: dym } = doThaiSearch(allProducts, filterText);
     products = results.slice(0, 200);
     didYouMean = dym;
-
-    if (titleEl) {
-      titleEl.innerHTML = `<span class="sec-title-icon">🔍</span>ผลการค้นหา (${products.length})`;
-    }
   } else {
     if (titleEl) titleEl.innerHTML = `<span class="sec-title-icon">📦</span>สินค้าขายดี <span class="badge badge-gold" style="margin-left:6px">${products.length}</span>`;
+  }
+
+  // v6.5.5: apply product filter chip
+  if (_productActiveFilter === 'promo') {
+    products = products.filter(p => getAllPromotionsFor(p).length > 0);
+  }
+
+  if (titleEl) {
+    if (filterText && filterText.trim()) {
+      const promoSuffix = _productActiveFilter === 'promo' ? ' · 🎁 มีโปร' : '';
+      titleEl.innerHTML = `<span class="sec-title-icon">🔍</span>ผลการค้นหา (${products.length})${promoSuffix}`;
+    } else if (_productActiveFilter === 'promo') {
+      titleEl.innerHTML = `<span class="sec-title-icon">🎁</span>สินค้ามีโปร <span class="badge badge-gold" style="margin-left:6px">${products.length}</span>`;
+    }
   }
 
   if (!products.length) {
@@ -5850,45 +7560,8 @@ function renderProductList(filterText = '') {
 
   // Store products globally for index-based click lookup (bypasses ALL escape issues)
   window._lastOrderProducts = products;
-  const wh = SALESMAN.warehouseId || 'W1';
-  list.innerHTML = products.map((p, idx) => {
-    const id = p['CODE EA'] || p['CODE CS'] || p['PRODUCT NAME'];
-    const name = p['PRODUCT NAME'] || '—';
-    const cat = [p['CAT BRAND'], p['CAT GROUP']].filter(Boolean).join(' · ') || '';
-    const ownStock = numv(p[`STOCK ${wh}`]);
-    const reserved = getReservedQty(id);
-    const available = Math.max(0, ownStock - reserved);
-    const stockClass = available <= 0 ? 'out' : available < 20 ? 'low' : '';
-    const stockLabel = available <= 0 ? 'หมด' : `${available} ลัง`;
-
-    const inCart = cart.some(c => c.productId === id);
-    const photoUrl = p['PHOTO_SQL'] || p['PHOTO'] || '';
-    const photoHtml = buildPhotoImg(photoUrl, { name });
-
-    // Badges (PROMO / FOCUS) — v5.0: show actual promo name not just "PROMO"
-    const promo = getPromotionFor(p);
-    const isFocus = isFocusProduct(p);
-    const badges = [];
-    if (promo) {
-      const promoName = promo['ชื่อโปร'] || 'มีโปร';
-      badges.push(`<span class="card-badge card-badge-promo">🎁 ${escapeHtml(promoName)}</span>`);
-    }
-    if (isFocus) badges.push('<span class="card-badge card-badge-focus">🎯 โฟกัส</span>');
-    const badgesHtml = badges.length ? `<div class="card-badges">${badges.join('')}</div>` : '';
-
-    return `
-      <div class="product-card-v2 ${inCart ? 'in-cart' : ''}" data-pid="${escapeAttr(id)}" onclick="_clickOrderProduct(${idx})">
-        ${photoHtml}
-        <div class="card-info">
-          <div class="card-name">${escapeHtml(name)}</div>
-          ${badgesHtml}
-          <div class="card-stocks">${buildStockChips(p)}</div>
-          <div class="card-prices">${buildPriceLine(p)}</div>
-        </div>
-        <button class="card-add-btn ${inCart?'in-cart':''}" onclick="event.stopPropagation();_clickOrderProduct(${idx})" type="button">${inCart ? '✓' : '+'}</button>
-      </div>
-    `;
-  }).join('');
+  // v6.0: each card is now FULLY EXPANDED inline (no popup) — built by buildOrderCardV6
+  list.innerHTML = products.map((p, idx) => buildOrderCardV6(p, idx)).join('');
 }
 
 // Build stock chips (one per warehouse) — display CS.EA notation (e.g. "1269.14")
@@ -5907,6 +7580,96 @@ function buildStockChips(p) {
   }).filter(Boolean).join('');
 }
 window.buildStockChips = buildStockChips;
+
+// ═══════════════════════════════════════════════════════════════
+// v6.0 — buildDepotChips: vertical-bar chips for Order modal
+// Each chip = label (W1) + vertical bar + qty (CS.EA) + days-of-stock
+// Bar HEIGHT: (days_of_stock / 30) × 100%, capped 100%, min 8% when stock>0
+// Bar COLOR (days-of-stock traffic light):
+//   ≤3 days   → red    (critical, about to run out)
+//   4-10 days → amber  (low, watch this)
+//   11-30 days → green (healthy)
+//   >30 days  → blue overstock (full bar + ↑ icon, alert: too much stock)
+//   0 stock   → gray + strikethrough qty
+// ═══════════════════════════════════════════════════════════════
+function buildDepotChips(p) {
+  const csSize = getCsSize(p);
+  const myWh = (currentUser && currentUser.warehouse) || SALESMAN.warehouseId || 'W1';
+  // v6.4: AVERAGE 60D_W is daily EA rate (no ÷60). Fallback to 30D (legacy, already daily).
+  const getAvgDaily = (w) => {
+    const v60 = numv(p[`AVERAGE 60D_${w}`]) || numv(p[`AVERAGE 60D ${w}`]);
+    if (v60 > 0) return v60;
+    return numv(p[`AVERAGE 30D_${w}`]) || numv(p[`AVERAGE 30D ${w}`]) || numv(p[`AVG 30D ${w}`]);
+  };
+
+  const depots = WAREHOUSES.map(w => {
+    const parsed = parseStockCsEa(p[`STOCK ${w.id}`], csSize);
+    const avgDailyEa = getAvgDaily(w.id);
+    const stockEa = parsed.totalEa;
+    let days = null;
+    if (avgDailyEa > 0) days = stockEa / avgDailyEa;
+    return { id: w.id, parsed, stockEa, avgDailyEa, days };
+  });
+
+  // Total CS across all depots (for header summary)
+  const totalEa = depots.reduce((s, d) => s + d.stockEa, 0);
+  const totalCs = csSize > 1 ? Math.floor(totalEa / csSize) : totalEa;
+
+  const chipsHtml = depots.map(d => {
+    let lvl, heightPct, daysLabel, overstockBadge = '';
+
+    if (d.stockEa <= 0) {
+      lvl = 'out'; heightPct = 0; daysLabel = '—';
+    } else if (d.days === null) {
+      // v6.4: gray (not misleading green) when avg data unavailable
+      lvl = 'unknown'; heightPct = 60; daysLabel = 'ไม่มีข้อมูล';
+    } else if (d.days <= 3) {
+      lvl = 'red';
+      heightPct = Math.max(8, (d.days / 30) * 100);
+      daysLabel = Math.round(d.days * 10) / 10 + 'd';
+    } else if (d.days <= 10) {
+      lvl = 'amber';
+      heightPct = Math.max(8, (d.days / 30) * 100);
+      daysLabel = Math.round(d.days) + 'd';
+    } else if (d.days <= 30) {
+      lvl = 'green';
+      heightPct = (d.days / 30) * 100;
+      daysLabel = Math.round(d.days) + 'd';
+    } else {
+      lvl = 'over';
+      heightPct = 100;
+      daysLabel = d.days > 99 ? '99+d' : Math.round(d.days) + 'd';
+      overstockBadge = '<div class="depot-chip-overstock-icon">↑</div>';
+    }
+
+    const qtyText = d.parsed.empty ? '0' : d.parsed.raw;
+    const qtyCls = d.stockEa <= 0 ? 'zero' : '';
+    const mineCls = d.id === myWh ? 'is-mine' : '';
+    const titleText = `${d.id} • ${d.parsed.raw || '0'} CS.EA` +
+      (d.days !== null ? ` • ${daysLabel} of stock (avg ${Math.round(d.avgDailyEa)} EA/วัน)` : ' • ไม่มีข้อมูล avg 30D');
+
+    return `
+      <div class="depot-chip ${mineCls}" title="${titleText}">
+        ${overstockBadge}
+        <div class="depot-chip-label">${d.id}</div>
+        <div class="depot-chip-bar-track">
+          <div class="depot-chip-bar-fill lvl-${lvl}" style="height:${heightPct.toFixed(1)}%"></div>
+        </div>
+        <div class="depot-chip-qty ${qtyCls}">${qtyText}</div>
+        <div class="depot-chip-days lvl-${lvl}">${daysLabel}</div>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="stock-summary-row">
+      <span>📦 สต็อกในคลัง</span>
+      <span class="stock-summary-total">รวม ${totalCs.toLocaleString()} CS</span>
+    </div>
+    <div class="depot-row">${chipsHtml}</div>
+  `;
+}
+window.buildDepotChips = buildDepotChips;
 
 // Build price chips per Surat 2026-05-08:
 //   ชิ้น/แพ็ค/แพ็คใหญ่ — single price (S03 retail)
@@ -5990,12 +7753,13 @@ window.photoFallbackUrl = photoFallbackUrl;
 window.debugPhotos = function(n) {
   n = n || 10;
   const products = SHEET_DATA.products || [];
-  const withPhotos = products.filter(p => p['PHOTO_SQL'] || p['PHOTO']).slice(0, n);
+  const withPhotos = products.filter(p => p['SKU_USAGE'] || p['PHOTO_SQL'] || p['PHOTO']).slice(0, n);
   console.table(withPhotos.map(p => ({
     name: String(p['PRODUCT NAME']||'').slice(0,30),
-    raw: String(p['PHOTO_SQL']||p['PHOTO']||'').slice(0,50),
-    extractedId: extractDriveId(p['PHOTO_SQL']||p['PHOTO']||''),
-    primaryUrl: normalizePhotoThumb(p['PHOTO_SQL']||p['PHOTO']||''),
+    raw: String(p['SKU_USAGE']||p['PHOTO_SQL']||p['PHOTO']||'').slice(0,50),
+    src: p['SKU_USAGE'] ? 'SKU_USAGE' : p['PHOTO_SQL'] ? 'PHOTO_SQL' : 'PHOTO',
+    extractedId: extractDriveId(p['SKU_USAGE']||p['PHOTO_SQL']||p['PHOTO']||''),
+    primaryUrl: normalizePhotoThumb(p['SKU_USAGE']||p['PHOTO_SQL']||p['PHOTO']||''),
   })));
   console.log(`Found ${withPhotos.length} products with photo URLs (out of ${products.length})`);
   return withPhotos.length;
@@ -6042,6 +7806,16 @@ window.buildPhotoImg = buildPhotoImg;
 // Store in module variable — never rely on DOM for the canonical query value
 // because DOM can be stale during re-render (causes "search resets to all products" bug)
 let _productSearchQuery = '';
+// v6.5.5: active filter chip on Order screen ('all' | 'promo')
+let _productActiveFilter = 'all';
+
+function setProductFilter(filter) {
+  _productActiveFilter = filter;
+  document.querySelectorAll('#productFilterChips .filter-chip')
+    .forEach(el => el.classList.toggle('active', el.dataset.filter === filter));
+  renderProductList(_productSearchQuery);
+}
+
 // ─── Price/Product-Info tab search state (v5.0)
 // Persists across tab navigation — only cleared by explicit ✕ click
 let _priceSearchQuery = '';
@@ -6338,16 +8112,15 @@ function openProductModal(productId, editIdx = -1) {
       })
     : `<div class="emoji-fallback">${p.emoji || '📦'}</div>`;
 
-  // Build stock chips for header (compact, beside the name)
-  const stockChipsHtml = p._sheet ? buildStockChips(p._sheet) : '';
+  // v6.0: stock chips moved out of header → into stock section in body
+  const stockSectionHtml = p._sheet ? buildDepotChips(p._sheet) : '';
 
   document.getElementById('modalContent').innerHTML = `
-    <!-- HEADER: thumbnail + name + stock chips + cat chips -->
+    <!-- HEADER: thumbnail + name + cat chips -->
     <div class="modal-head">
       <div class="modal-thumb">${modalThumbHtml}</div>
       <div class="modal-head-info">
         <div class="modal-title">${escapeHtml(p.name)}</div>
-        <div class="modal-stock-chips">${stockChipsHtml}</div>
         ${(()=>{
           const sh = p._sheet || {};
           const vendor = String(sh['CAT VENDOR']||'').trim();
@@ -6370,6 +8143,8 @@ function openProductModal(productId, editIdx = -1) {
         <span style="font-size:18px">🎉</span>
         <span>โปรโมชั่น: ${p.promo.text}</span>
       </div>` : ''}
+
+      ${stockSectionHtml ? `<div class="modal-stock-section">${stockSectionHtml}</div>` : ''}
 
       ${p._sheet ? `
       <div class="modal-section">
@@ -6422,7 +8197,14 @@ function openProductModal(productId, editIdx = -1) {
     </div>
   `;
 
-  document.getElementById('productModal').classList.add('active');
+  // v6.0: warm beige backdrop only for Order context (shop session active)
+  const backdrop = document.getElementById('productModal');
+  if (currentShopId) {
+    backdrop.classList.add('order-context');
+  } else {
+    backdrop.classList.remove('order-context');
+  }
+  backdrop.classList.add('active');
   updateModalTotal();
 }
 
@@ -6527,6 +8309,11 @@ function updateModalTotal() {
     price = cap;
     priceInput.value = cap;
     priceInput.style.borderColor = 'var(--warning)';
+  } else if (priceRaw !== '' && currentUser && currentUser.allowBelowSuggest === false && suggestedPrice > 0 && price < suggestedPrice) {
+    // v5.0: lock min — if user.AllowBelowSuggest=0, can't go below suggested tier
+    price = suggestedPrice;
+    priceInput.value = suggestedPrice;
+    priceInput.style.borderColor = 'var(--danger)';
   } else {
     priceInput.style.borderColor = '';
   }
@@ -6833,7 +8620,9 @@ function describeReward(promo) {
 }
 
 function closeModal() {
-  document.getElementById('productModal').classList.remove('active');
+  const m = document.getElementById('productModal');
+  m.classList.remove('active');
+  m.classList.remove('order-context'); // v6.0: clear beige theme
   document.body.style.overflow = '';  // reset any inline override
   currentModalProduct = null;
   editingCartIdx = -1;
@@ -6970,9 +8759,26 @@ function buildPromoGroups() {
   const promos = SHEET_DATA.promotions || [];
   if (!promos.length) return [];
 
+  // v6.5.4 — only consider promos that at least ONE cart line explicitly selected via Order screen.
+  // (Cart line carries c.selectedPromoName + c.selectedPromoMeasureBy from orderConfirm.)
+  // This prevents showing two competing promos for the same brand when user picked just one.
+  const selectedSet = new Set();
+  for (const c of cart) {
+    if (c && c.selectedPromoName) {
+      selectedSet.add(`${c.selectedPromoMeasureBy||''}|${c.selectedPromoName}`);
+    }
+  }
+
   // Evaluate every promo against cart (no draft)
   const evaluated = [];
   for (const promo of promos) {
+    // v6.5.4: filter to selected promos only (key = วิธีวัด|ชื่อโปร).
+    // If selectedSet is empty (no Order-screen selection happened yet → legacy carts) → fall back to old
+    // behavior (evaluate everything) so existing flows don't break.
+    if (selectedSet.size > 0) {
+      const key = `${promo['วิธีวัด']||''}|${promo['ชื่อโปร']||''}`;
+      if (!selectedSet.has(key)) continue;
+    }
     const progress = cartMatchesPromo(promo, null);
     if (!progress.matches) continue;
     const tiersEarned = progress.threshold > 0
@@ -7320,6 +9126,7 @@ async function pushOrderToSheet(orderId, shop, items, now, notes) {
       'ชื่อ-สกุล':      (currentUser && currentUser.name) || SALESMAN.name || '',
       'รหัสเซลล์':      (currentUser && currentUser.salesmanCode) || SALESMAN.code || '',
       'คลัง':           SALESMAN.warehouseId || '',
+      'คลังส่ง':        (currentUser && currentUser.shipFromWh) || SALESMAN.warehouseId || '',  // v6.5: ship-from warehouse
       'ชื่อร้าน':       shop?.name || '',
       'รหัสร้าน':       shop?.bplusCode || shop?.id || '',
       'รูปแบบ':         (c.isFree || c.isPromo) ? 'แถม' : 'ขาย',
@@ -7328,6 +9135,8 @@ async function pushOrderToSheet(orderId, shop, items, now, notes) {
       'จำนวน':          c.qty,
       'หน่วย':          unitLabel,
       'ราคา':           c.price,
+      'ราคาแนะนำ':      c.suggestedPrice || c.price || 0,  // v6.5: tier-suggested price for supervisor audit
+      'โปรที่ใช้':      c.selectedPromoName || '',  // v6.5.2: which promo user picked (blank if none)
       'ยอดเงินรวม':    c.qty * c.price,
       'orderId':       orderId,
       'หมายเหตุ':      notes,  // column Q (Surat 2026-05-10 v4.3)
@@ -8417,12 +10226,20 @@ function getDefaultProductList() {
   // Diagnostic: log column names once
   if (!window._loggedProductCols) {
     console.log('[products] sample columns:', Object.keys(all[0] || {}).slice(0, 30));
-    console.log('[products] sample row STOCK W1:', all[0]?.['STOCK W1'], 'AVG 30D:', all[0]?.['AVERAGE 30D_W1'], 'or:', all[0]?.['AVERAGE 30D W1']);
+    console.log('[products] sample row STOCK W1:', all[0]?.['STOCK W1'],
+      'AVG 60D:', all[0]?.['AVERAGE 60D_W1'],
+      'AVG 30D:', all[0]?.['AVERAGE 30D_W1']);
     window._loggedProductCols = true;
   }
 
-  // Helper: get 30D avg with column-name fallback (underscore vs space)
-  const get30D = (p, w) => numv(p[`AVERAGE 30D_${w}`]) || numv(p[`AVERAGE 30D ${w}`]) || numv(p[`AVG 30D ${w}`]);
+  // v6.4: AVERAGE 60D_W is daily EA rate (no ÷60). Fallback to legacy 30D (also daily).
+  const getAvgDaily = (p, w) => {
+    const v60 = numv(p[`AVERAGE 60D_${w}`]) || numv(p[`AVERAGE 60D ${w}`]);
+    if (v60 > 0) return v60;
+    return numv(p[`AVERAGE 30D_${w}`]) || numv(p[`AVERAGE 30D ${w}`]) || numv(p[`AVG 30D ${w}`]);
+  };
+  // Backward-compat alias for any downstream code in this function still using get30D
+  const get30D = getAvgDaily;
 
   // Everyone sees all products in all warehouses (including zero-stock).
   // Sort by 30D avg of own warehouse first, fall back to total.
@@ -8500,7 +10317,8 @@ function renderProductInfoList(products, query) {
 }
 
 function renderProductInfoCard(p, idx) {
-  const photoUrl = p['PHOTO_SQL'] || p['PHOTO'] || p['รูป'] || '';
+  // v6.5: prefer SKU_USAGE (new schema), fallback to legacy
+  const photoUrl = p['SKU_USAGE'] || p['PHOTO_SQL'] || p['PHOTO'] || p['รูป'] || '';
   const emoji = p['_emoji'] || '📦';
   const productName = String(p['PRODUCT NAME']||'');
 
@@ -8537,7 +10355,7 @@ function showProductInfoDetail(productName) {
   if (!p) p = getDefaultProductList().find(x => x['PRODUCT NAME'] === productName);
   if (!p) { showToast('ไม่พบสินค้า', 'error'); return; }
 
-  const photoUrl = p['PHOTO_SQL'] || p['PHOTO'] || p['รูป'] || '';
+  const photoUrl = p['SKU_USAGE'] || p['PHOTO_SQL'] || p['PHOTO'] || p['รูป'] || '';
   const photoBigHtml = photoUrl ? buildPhotoImg(photoUrl, {
     size: 800,
     cls: 'product-detail-photo',
@@ -8644,7 +10462,10 @@ function showProductInfoDetail(productName) {
 
       <!-- AVG SALES if available -->
       ${(()=>{
-        const dailyEa = numv(p[`AVERAGE 30D_${myWh}`]);
+        // v6.4: AVERAGE 60D_W is daily EA rate (no ÷60). Fallback to 30D (legacy, also daily).
+        const v60 = numv(p[`AVERAGE 60D_${myWh}`]) || numv(p[`AVERAGE 60D ${myWh}`]);
+        const v30 = numv(p[`AVERAGE 30D_${myWh}`]) || numv(p[`AVERAGE 30D ${myWh}`]);
+        const dailyEa = v60 > 0 ? v60 : v30;
         if (!dailyEa) return '';
         const monthlyCs = Math.floor(dailyEa * 25 / csSize);
         const ownStockEa = parseStockCsEa(p[`STOCK ${myWh}`], csSize).totalEa;
