@@ -331,10 +331,14 @@ body.dark .badge-gold { background: #2a2415; color: var(--gold-light); }
 .sec-title-link { margin-left: auto; font-size: 12px; color: var(--info); font-weight: 500; cursor: pointer; }
 
 /* ─── ROUTE TABS ─── */
-.route-tabs { display: flex; gap: 6px; padding: 4px; background: var(--card-bg); border-radius: 12px; margin-bottom: 14px; border: 1px solid var(--border); }
+.route-tabs { display: flex; gap: 6px; padding: 4px; background: var(--card-bg); border-radius: 12px; margin-bottom: 8px; border: 1px solid var(--border); }
 .route-tab { flex: 1; padding: 10px; border-radius: 8px; background: transparent; color: var(--muted); font-size: 13px; font-weight: 600; transition: all .15s; }
 .route-tab.active { background: var(--navy); color: var(--gold); }
 .route-tab .count { font-size: 11px; opacity: .8; margin-left: 4px; }
+.route-filter-chips { display:flex; gap:6px; overflow-x:auto; padding:0 0 10px; scrollbar-width:none; }
+.route-filter-chips::-webkit-scrollbar { display:none; }
+.route-section-hdr { font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; padding:10px 4px 4px; }
+.sc-dist { font-size:10px; font-weight:700; color:var(--accent); background:rgba(30,127,255,.08); padding:2px 6px; border-radius:8px; margin-left:6px; }
 
 /* ─── VIEW TOGGLE (List/Map) ─── */
 .view-toggle { display: flex; gap: 6px; padding: 4px; background: var(--card-bg); border-radius: 12px; margin-bottom: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
@@ -473,6 +477,56 @@ body.dark .sc-chip-ci   { background: rgba(40,167,69,.2); color: #6dd58c; }
 body.dark .sc-chip-done { background: rgba(30,127,255,.2); color: #6db5ff; }
 body.dark .sc-chip-no   { background: rgba(243,156,18,.2); color: #ffcb70; }
 body.dark .sc-chip-debt { background: rgba(231,76,60,.2); color: #ff8a7e; }
+
+/* ─── Route Hero Header (v6.5.5) ─── */
+.route-hero { background: var(--navy); margin: -16px -16px 0; padding: 12px 16px 14px; position: sticky; top: 60px; z-index: 50; }
+.route-hero-top { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.rh-back { width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,.12); border: none; color: #fff; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: inherit; }
+.rh-progress-pill { flex: 1; text-align: center; font-size: 13px; font-weight: 700; color: #fff; background: rgba(255,255,255,.12); padding: 5px 10px; border-radius: 20px; }
+.rh-pct-pill { font-size: 13px; font-weight: 800; color: var(--navy); background: var(--gold); padding: 5px 12px; border-radius: 20px; flex-shrink: 0; }
+.route-hero-title { font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 3px; }
+.route-hero-sub { font-size: 12px; color: rgba(255,255,255,.55); margin-bottom: 10px; }
+.route-hero-bar { height: 4px; background: rgba(255,255,255,.15); border-radius: 2px; overflow: hidden; }
+.route-hero-bar-fill { height: 100%; background: var(--gold); border-radius: 2px; transition: width .6s ease; }
+
+/* ─── KPI Strip ─── */
+.route-kpi-strip { display: flex; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; margin: 12px 0; overflow: hidden; }
+.rk-cell { flex: 1; padding: 10px 0; text-align: center; border-right: 1px solid var(--border); }
+.rk-cell:last-child { border-right: none; }
+.rk-val { font-size: 22px; font-weight: 900; color: var(--text); font-family: ui-monospace, monospace; line-height: 1; }
+.rk-label { font-size: 10px; font-weight: 600; color: var(--muted); margin-top: 3px; }
+.rk-cell.kpi-warn .rk-val { color: #f39c12; }
+.rk-cell.kpi-ok   .rk-val { color: var(--success); }
+
+/* ─── Full-width Shop Card v2 (v6.5.5) ─── */
+.shop-card-v2 { border-radius: 16px; overflow: hidden; margin-bottom: 12px; background: var(--card-bg); box-shadow: 0 4px 16px rgba(8,20,46,.12), 0 1px 4px rgba(8,20,46,.05); border: 1px solid var(--border); cursor: pointer; transition: transform .1s; }
+.shop-card-v2:active { transform: scale(.99); }
+.shop-card-v2.shc-done   { opacity: .82; }
+.shop-card-v2.shc-no-buy { opacity: .82; }
+.shc-banner { position: relative; width: 100%; height: 170px; background: linear-gradient(135deg, #0d1b3e 0%, #1a2e5a 100%); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.shc-banner img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .4s; position: absolute; inset: 0; }
+.shc-banner img.loaded { opacity: 1; }
+.shc-banner-emoji { font-size: 64px; opacity: .25; }
+.shc-debt-chip { position: absolute; top: 10px; right: 10px; background: #D63A3A; color: #fff; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 20px; z-index: 2; display: flex; align-items: center; gap: 4px; }
+.shc-name-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 40px 14px 12px; background: linear-gradient(transparent, rgba(0,0,0,.78)); color: #fff; font-size: 16px; font-weight: 900; line-height: 1.25; z-index: 2; }
+.shc-body { padding: 11px 12px 12px; }
+.shc-addr { font-size: 11px; color: var(--muted); margin-bottom: 10px; display: flex; align-items: flex-start; gap: 5px; line-height: 1.45; }
+.shc-row { display: flex; gap: 7px; margin-bottom: 7px; }
+.shc-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 9px 6px; border-radius: 9px; font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer; border: 1.5px solid var(--border); background: var(--row-alt); color: var(--text); text-decoration: none; transition: filter .12s; white-space: nowrap; overflow: hidden; }
+.shc-btn:active { filter: brightness(.9); }
+.shc-btn.ci    { background: #E8B23A; color: #0d1b3e; border-color: #E8B23A; font-weight: 800; }
+.shc-btn.co    { background: var(--navy); color: #fff; border-color: var(--navy); }
+.shc-btn.ci-done { background: var(--row-alt); color: var(--muted); border-color: var(--border); cursor: default; font-size: 11px; }
+.shc-btn.no    { background: rgba(231,76,60,.07); color: #c0392b; border-color: rgba(231,76,60,.2); }
+.shc-btn.cn    { background: var(--row-alt); color: var(--muted); border-color: var(--border); }
+.shc-btn.order { background: rgba(232,178,58,.1); color: #7a5500; border-color: rgba(232,178,58,.25); }
+.shc-btn.order-active { background: #E8B23A; color: #0d1b3e; border-color: #E8B23A; font-weight: 800; }
+.shc-btn.dis   { opacity: .28; cursor: not-allowed; pointer-events: none; }
+.shc-hint { font-size: 10px; font-weight: 600; text-align: center; padding: 2px 0 2px; color: var(--danger); }
+.shc-amount-chip { display: inline-flex; align-items: center; gap: 4px; background: rgba(30,127,255,.1); color: #1e7fff; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 10px; margin-bottom: 8px; }
+body.dark .shc-btn.ci { color: #0d1b3e; }
+body.dark .shc-btn.co { background: #1e3a6e; }
+
   background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: 18px;
@@ -801,12 +855,37 @@ body.dark .shop-tags-row .shop-hero-tag.gold { background: rgba(201,168,76,.18);
 .target-label { font-size: 12px; color: var(--muted); font-weight: 600; }
 .target-value { font-size: 14px; font-weight: 700; }
 
-/* Debt warning */
+/* Debt warning (legacy) */
 .debt-warn { background: linear-gradient(135deg, #fff5f3, #fee); border: 1px solid #fcc; border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
 body.dark .debt-warn { background: #2a1816; border-color: #5a2a26; }
 .debt-icon { font-size: 22px; }
 .debt-text { flex: 1; font-size: 13px; }
 .debt-amount { font-size: 16px; font-weight: 800; color: var(--danger); }
+/* Debt detail card (v6.5.6 — live SQL Data) */
+.debt-detail-card { background: linear-gradient(135deg,#fff5f3,#fee); border: 1px solid #fcc; border-radius: 14px; margin-top: 12px; overflow: hidden; }
+body.dark .debt-detail-card { background: #2a1816; border-color: #5a2a26; }
+.debt-header { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px 10px; }
+.debt-header-icon { font-size: 22px; flex-shrink: 0; }
+.debt-header-info { flex: 1; min-width: 0; }
+.debt-header-total { font-size: 20px; font-weight: 900; color: var(--danger); font-family: ui-monospace, monospace; }
+.debt-header-sub { font-size: 11px; color: var(--muted); margin-top: 3px; display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+.debt-flag-chip { font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 20px; background: #0d1b3e; color: #fff; white-space: nowrap; }
+body.dark .debt-flag-chip { background: var(--gold); color: var(--navy); }
+.debt-limit-bar { height: 6px; background: var(--row-alt); border-radius: 3px; overflow: hidden; }
+.debt-limit-fill { height: 100%; border-radius: 3px; transition: width .6s; }
+.debt-limit-fill.danger { background: var(--danger); }
+.debt-limit-fill.warn { background: #f39c12; }
+.debt-invoices { border-top: 1px solid rgba(204,100,100,.2); }
+.debt-invoice-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; border-bottom: 1px solid rgba(204,100,100,.1); gap: 8px; }
+body.dark .debt-invoice-row { border-bottom-color: rgba(204,100,100,.08); }
+.debt-invoice-row:last-child { border-bottom: none; }
+.debt-inv-doc { font-size: 12px; font-weight: 700; }
+.debt-inv-date { font-size: 10px; color: var(--muted); margin-top: 1px; }
+.debt-inv-note { font-size: 10px; color: var(--danger); margin-top: 1px; }
+.debt-inv-amount { font-size: 13px; font-weight: 800; font-family: ui-monospace, monospace; color: var(--danger); white-space: nowrap; }
+.debt-inv-age { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 6px; white-space: nowrap; }
+.debt-inv-age.old { background: rgba(231,76,60,.15); color: #c0392b; }
+.debt-inv-age.mid { background: rgba(243,156,18,.15); color: #856404; }
 
 /* Push list */
 .push-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
@@ -2071,6 +2150,39 @@ body.dark .range-confirm { background: #3a2e15; }
   padding: 6px 0 4px; scrollbar-width: none;
 }
 .product-filter-chips::-webkit-scrollbar { display: none; }
+
+/* ─── Product Info Detail popup (v6.5.5) ─── */
+.pi-hero { display:flex; gap:12px; align-items:flex-start; padding:16px 16px 12px; }
+.pi-photo-wrap { flex-shrink:0; }
+.pi-photo { width:100px; height:100px; border-radius:12px; object-fit:cover; background:var(--row-alt); border:1px solid var(--border); }
+.pi-photo-emoji { width:100px; height:100px; border-radius:12px; background:var(--row-alt); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:42px; }
+.pi-hero-info { flex:1; min-width:0; }
+.pi-name { font-size:14px; font-weight:800; color:var(--text); line-height:1.35; margin-bottom:6px; }
+.pi-cats { display:flex; flex-wrap:wrap; gap:4px; }
+.pi-body { overflow-y:auto; flex:1; padding:0 16px 16px; }
+.pi-tabs { display:flex; gap:6px; margin-bottom:10px; padding-bottom:8px; border-bottom:2px solid var(--border); }
+.pi-tab { flex:1; padding:6px 4px; border-radius:8px; border:1.5px solid var(--border); background:var(--card-bg); color:var(--text); font-size:12px; font-weight:600; font-family:inherit; cursor:pointer; transition:background .15s; }
+.pi-tab.active { background:var(--navy); color:var(--gold); border-color:var(--navy); font-weight:800; }
+.pi-prices { margin-bottom:4px; }
+.pi-price-row { display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-radius:8px; margin-bottom:4px; background:var(--row-alt); border:1px solid var(--border); }
+.pi-price-row.highlight { background:rgba(30,127,255,.06); border-color:rgba(30,127,255,.25); }
+.pi-price-row.danger { background:rgba(231,76,60,.05); border-color:rgba(231,76,60,.2); }
+.pi-price-label { font-size:12px; color:var(--muted); font-weight:600; }
+.pi-price-val { font-size:16px; font-weight:900; color:var(--gold); }
+.pi-price-row.danger .pi-price-val { color:var(--danger); font-size:13px; }
+.pi-barcode { font-size:10px; color:var(--muted); text-align:center; margin:2px 0 8px; opacity:.65; letter-spacing:.5px; }
+.pi-section-label { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin:10px 0 6px; }
+.pi-stocks { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+.pi-stock-chip { display:flex; flex-direction:column; align-items:center; padding:6px 10px; border-radius:8px; background:var(--row-alt); border:1px solid var(--border); min-width:50px; }
+.pi-stock-chip.mine { border-color:var(--accent); background:rgba(30,127,255,.05); }
+.pi-stock-wh { font-size:9px; color:var(--muted); font-weight:700; margin-bottom:2px; }
+.pi-stock-qty { font-size:12px; font-weight:700; color:var(--text); }
+.pi-avg-row { display:flex; gap:8px; background:var(--row-alt); border-radius:10px; border:1px solid var(--border); padding:10px 12px; margin-top:4px; }
+.pi-avg-cell { flex:1; }
+.pi-avg-label { font-size:10px; color:var(--muted); font-weight:700; margin-bottom:2px; }
+.pi-avg-val { font-size:15px; font-weight:800; color:var(--text); }
+.pi-footer { padding:10px 16px 14px; border-top:1px solid var(--border); }
+
 .filter-clear-btn {
   margin-left: auto; padding: 5px 10px;
   border-radius: 12px; border: 1px solid var(--danger);
@@ -2510,30 +2622,47 @@ body.dark .text-gold { color: var(--gold-light); }
 
 <!-- ═══════════════════════ ROUTE SCREEN ═══════════════════════ -->
 <section class="screen" id="screenRoute">
-  <div class="page-bar" style="margin:-16px -16px 16px;top:60px">
-    <button class="back-btn" onclick="goHome()">←</button>
-    <div>
-      <div class="page-title">รูทวันนี้</div>
-      <div class="page-sub" id="routeDate"></div>
+
+  <!-- Route Hero Header -->
+  <div class="route-hero">
+    <div class="route-hero-top">
+      <button class="rh-back" onclick="goHome()">←</button>
+      <div class="rh-progress-pill"><span id="routeDoneCount">0</span> / <span id="routeTotalCount">0</span> เสร็จ</div>
+      <div class="rh-pct-pill" id="routePctPill">0%</div>
     </div>
+    <div class="route-hero-title">รูทวันนี้</div>
+    <div class="route-hero-sub" id="routeDate"></div>
+    <div class="route-hero-bar"><div class="route-hero-bar-fill" id="routeProgressBar" style="width:0%"></div></div>
   </div>
 
-  <!-- View toggle moved to hamburger drawer (v5.0) -->
+  <!-- View toggle (hidden — accessible via drawer) -->
   <div class="view-toggle" style="display:none">
     <button class="view-toggle-btn active" id="viewListBtn" onclick="setRouteView('list')">📋 รายการ</button>
     <button class="view-toggle-btn" id="viewMapBtn" onclick="setRouteView('map')">🗺️ แผนที่</button>
   </div>
 
   <!-- LIST VIEW -->
-  <div id="routeListView">
-    <div class="search-wrap sticky-search">
+  <div id="routeListView" style="padding-top:12px">
+    <div class="search-wrap" style="margin-bottom:10px;position:relative">
       <input class="search-bar" type="text" id="shopSearch" placeholder="ค้นหาชื่อร้าน หรือ ที่อยู่..." oninput="filterShops(this.value); toggleClearBtn('shopSearch','shopSearchClear')" style="padding-right:40px">
       <button id="shopSearchClear" class="search-clear" style="right:10px" onclick="clearSearch('shopSearch','shopSearchClear', filterShops)">✕</button>
     </div>
 
     <div class="route-tabs">
-      <button class="route-tab active" id="tabIn" onclick="switchRouteTab('in')">📋 ในรูท<span class="count">(<span id="inCount">5</span>)</span></button>
-      <button class="route-tab" id="tabOff" onclick="switchRouteTab('off')">➕ นอกรูท<span class="count">(<span id="offCount">0</span>)</span></button>
+      <button class="route-tab active" id="tabIn" onclick="switchRouteTab('in')">📍 ในรูท <span id="inCount">0</span></button>
+      <button class="route-tab" id="tabOff" onclick="switchRouteTab('off')">+ นอกรูท <span id="offCount">0</span></button>
+    </div>
+
+    <!-- KPI Strip -->
+    <div class="route-kpi-strip">
+      <div class="rk-cell kpi-ok"><div class="rk-val" id="kpiCheckin">0</div><div class="rk-label">เช็คอินแล้ว</div></div>
+      <div class="rk-cell kpi-warn"><div class="rk-val" id="kpiPending">0</div><div class="rk-label">ค้าง</div></div>
+      <div class="rk-cell"><div class="rk-val" id="kpiTotal">0</div><div class="rk-label">รวม</div></div>
+    </div>
+
+    <div class="route-filter-chips" id="routeFilterChips">
+      <button class="filter-chip" id="rfNear" data-rf="near" onclick="setRouteSort('near')">🧭 ใกล้ฉัน</button>
+      <button class="filter-chip" id="rfCheckin" data-rf="checkin" onclick="setRouteStatusFilter('checkin')">📍 เช็คอินอยู่</button>
     </div>
 
     <div id="shopList"></div>
@@ -2937,6 +3066,9 @@ body.dark .text-gold { color: var(--gold-light); }
 const CONFIG = {
   // Backend Sheet (Customer / Order / Promotion / Data Center / Product Detail / Dashboard Config / Group Targets)
   backendSheetId: '1dAxF4Mz-zhJIVbuJ_Ql126gt08qvVS1wndJD50pqCZI',
+  // Debt (SQL Data) Sheet — live AR from Bplus
+  debtSheetId:   '1LqTqZg1z3e6FtPBbhZsKZd60DL6tZmCi78QQT1MoPq4',
+  debtSheetTab:  'SQL Data',
   // User auth Sheet
   usersSheetId: '1M6HdISsLN684qRWyQ73CA4AmUzmYtZaOlffDJXZZIXQ',
   usersSheetTab: 'Sheet1',
@@ -2972,6 +3104,8 @@ let SHEET_DATA = {
   groupTargets:    [],
   orders:          [],   // Order tab rows (1 row = 1 line item)
   syncStatus:      [],   // _SyncStatus tab rows (latest = stock sync state)
+  debtData:        [],   // SQL Data rows (1 row = 1 invoice/AR line)
+  debtMap:         {},   // { รหัสลูกหนี้: [invoice rows] }
   loaded:          false,
 };
 
@@ -3334,6 +3468,7 @@ window._loadingState = {
   customers: 'pending', products: 'pending', orders: 'pending',
   promotions: 'pending', users: 'pending', dataCenter: 'pending',
   dashboardConfig: 'pending', groupTargets: 'pending', syncStatus: 'pending',
+  debtData: 'pending',
 };
 window.markLoaded = function(key) {
   if (window._loadingState[key] === 'pending') {
@@ -3427,8 +3562,11 @@ async function loadProgressively() {
     fetchWithCache('syncStatus', () => fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.syncStatus), 60*1000)
       .then(d => { SHEET_DATA.syncStatus = d || []; markLoaded('syncStatus'); })
       .catch(e => { console.warn('syncStatus:', e.message); markLoaded('syncStatus'); }),
+    fetchWithCache('debtData', () => fetchSheet(CONFIG.debtSheetId, CONFIG.debtSheetTab), CONFIG.cacheTTLShort)
+      .then(d => { SHEET_DATA.debtData = d || []; _buildDebtMap(d); if (SHOPS.length) _applyDebtToShops(); markLoaded('debtData'); console.log('[boot] Debt rows loaded:', (d||[]).length); })
+      .catch(e => { console.warn('debtData:', e.message); markLoaded('debtData'); }),
   ]);
-  wave2.then(() => console.log('[boot] Wave 2 complete (orders + promo + dataCenter)'));
+  wave2.then(() => console.log('[boot] Wave 2 complete (orders + promo + dataCenter + debt)'));
 
   // ── Wave 3: Heavy (Products 12K + Dashboard config + Group targets) — ~5-10s ──
   const wave3 = Promise.allSettled([
@@ -3698,6 +3836,102 @@ function hydrateShopsFromSheet() {
     };
   });
   console.log('[Rattana Sales] SHOPS hydrated:', SHOPS.length, 'inRoute:', SHOPS.filter(s=>s.inRoute).length);
+  // Apply debt data if already loaded
+  if (SHEET_DATA.debtData && SHEET_DATA.debtData.length) _applyDebtToShops();
+}
+
+// ─── LIVE DEBT (SQL Data sheet) ───────────────────────────────────────────────
+
+function _buildDebtMap(rows) {
+  const map = {};
+  (rows || []).forEach(r => {
+    const code = String(r['รหัสลูกหนี้'] || '').trim();
+    if (!code) return;
+    if (!map[code]) map[code] = [];
+    map[code].push(r);
+  });
+  SHEET_DATA.debtMap = map;
+}
+
+function _applyDebtToShops() {
+  const map = SHEET_DATA.debtMap || {};
+  SHOPS.forEach(s => {
+    const rows = map[String(s.id).trim()];
+    if (!rows || !rows.length) { s.debtInvoices = s.debtInvoices || []; return; }
+    let totalDebt = 0, maxAge = 0, creditLimit = 0, flag = '', notes = [];
+    rows.forEach(r => {
+      totalDebt += numv(r['ยอดหนี้']);
+      const age = numv(r['อายุหนี้']);
+      if (age > maxAge) maxAge = age;
+      creditLimit = numv(r['วงเงิน']);
+      if (r['ธง'] && String(r['ธง']).trim()) flag = String(r['ธง']).trim();
+      const note = String(r['หมายเหตุ'] || '').trim();
+      if (note) notes.push(note);
+    });
+    s.debt = totalDebt;
+    s.debtDays = maxAge;
+    s.creditLimit = creditLimit;
+    s.flag = flag;
+    s.debtNotes = [...new Set(notes)].join(' · ');
+    s.debtInvoices = rows.map(r => ({
+      docNo:   String(r['เลขที่เอกสาร'] || '').trim(),
+      docDate: String(r['วันที่เอกสาร'] || '').trim(),
+      amount:  numv(r['ยอดหนี้']),
+      age:     numv(r['อายุหนี้']),
+      terms:   numv(r['เงื่อนไข']),
+      note:    String(r['หมายเหตุ'] || '').trim(),
+    })).sort((a, b) => b.age - a.age);
+  });
+  // Refresh live screens
+  if (document.getElementById('screenRoute')?.classList.contains('active')) renderShopList();
+  if (document.getElementById('screenShop')?.classList.contains('active') && currentShopId) renderShopDetail(currentShopId);
+}
+
+function _buildDebtDetailHtml(s) {
+  if (!s.debt || s.debt <= 0) return '';
+  const invoices = s.debtInvoices || [];
+  const limitPct = s.creditLimit > 0 ? Math.min(Math.round((s.debt / s.creditLimit) * 100), 100) : 0;
+  const limitBarCls = limitPct >= 90 ? 'danger' : 'warn';
+  const flagHtml = s.flag ? `<span class="debt-flag-chip">🚩 ${s.flag}</span>` : '';
+  const notesHtml = s.debtNotes ? `<div style="font-size:11px;color:var(--muted);margin-top:3px">${s.debtNotes}</div>` : '';
+  const invRowsHtml = invoices.map(inv => {
+    const ageCls = inv.age >= 90 ? 'old' : inv.age >= 30 ? 'mid' : '';
+    return `<div class="debt-invoice-row">
+      <div>
+        <div class="debt-inv-doc">${inv.docNo}</div>
+        <div class="debt-inv-date">${inv.docDate}${inv.terms ? ` · เครดิต ${inv.terms} วัน` : ''}</div>
+        ${inv.note ? `<div class="debt-inv-note">${inv.note}</div>` : ''}
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        ${inv.age > 0 ? `<span class="debt-inv-age ${ageCls}">${inv.age} วัน</span>` : ''}
+        <div class="debt-inv-amount">฿${inv.amount.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+      </div>
+    </div>`;
+  }).join('');
+  return `
+  <div class="debt-detail-card">
+    <div class="debt-header">
+      <div class="debt-header-icon">⚠️</div>
+      <div class="debt-header-info">
+        <div class="debt-header-total">฿${s.debt.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+        <div class="debt-header-sub">
+          ยอดค้างชำระ · ${invoices.length} บิล · อายุสูงสุด ${s.debtDays} วัน
+          ${s.creditLimit > 0 ? ` · วงเงิน ฿${s.creditLimit.toLocaleString(undefined,{maximumFractionDigits:0})}` : ''}
+          ${flagHtml}
+        </div>
+        ${notesHtml}
+      </div>
+    </div>
+    ${s.creditLimit > 0 && limitPct > 0 ? `
+    <div style="padding:0 14px 10px">
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px">
+        <span>ใช้วงเงิน ${limitPct}%</span>
+        <span>คงเหลือ ฿${Math.max(0,s.creditLimit-s.debt).toLocaleString(undefined,{maximumFractionDigits:0})}</span>
+      </div>
+      <div class="debt-limit-bar"><div class="debt-limit-fill ${limitBarCls}" style="width:${limitPct}%"></div></div>
+    </div>` : ''}
+    ${invRowsHtml ? `<div class="debt-invoices">${invRowsHtml}</div>` : ''}
+  </div>`;
 }
 
 // ─── SKU SUGGESTIONS (Surat 2026-05-10 v4.3) ─────────────────────────────────
@@ -4894,6 +5128,8 @@ let SHOPS = [];
 // ═══════════════════════════════════════════════════════════
 let currentShopId = null;
 let currentRouteTab = 'in';
+let _routeSort = 'default';       // 'default' | 'near'
+let _routeStatusFilter = 'all';   // 'all' | 'checkin'
 let cart = []; // {productId, unit, qty, price, shopId, isFree?, promoKey?}
 // Track which promos have been redeemed in current cart (per Surat 2026-05-08)
 // Key = promo's "ชื่อโปร" (or hash of promo row). Cleared on confirmOrder + new shop.
@@ -5189,6 +5425,15 @@ function goOrder() {
   updateCartBar();
 }
 function goSummary() {
+  // Block if a product card has qty entered but not yet confirmed
+  const openCard = document.querySelector('.order-card-v6.pending');
+  if (openCard) {
+    showToast('⚠️ กรุณายืนยันหรือล้างสินค้านี้ก่อนดูตะกร้า', 'warning');
+    openCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    openCard.style.outline = '2px solid var(--gold)';
+    setTimeout(() => { openCard.style.outline = ''; }, 1800);
+    return;
+  }
   if (cart.length === 0) {
     showToast('ตะกร้ายังว่าง — เพิ่มสินค้าก่อน', 'warning');
     return;
@@ -5210,7 +5455,9 @@ function updateDate() {
   const str = `${days[d.getDay()]} • ${isoDate}`;
   const el1 = document.getElementById('todayDate');
   if (el1) el1.textContent = str;
-  document.getElementById('routeDate').textContent = str;
+  const whArea = SALESMAN.warehouse ? ` · เขต ${SALESMAN.warehouse}` : '';
+  const routeDateEl = document.getElementById('routeDate');
+  if (routeDateEl) routeDateEl.textContent = `${days[d.getDay()]} · ${isoDate}${whArea}`;
   document.getElementById('ordersDate').textContent = str;
 }
 
@@ -5770,6 +6017,9 @@ function renderCompanyDashboard() {
 // ═══════════════════════════════════════════════════════════
 function switchRouteTab(tab) {
   currentRouteTab = tab;
+  _routeSort = 'default';
+  _routeStatusFilter = 'all';
+  _updateRouteFilterChips();
   document.getElementById('tabIn').classList.toggle('active', tab === 'in');
   document.getElementById('tabOff').classList.toggle('active', tab === 'off');
   renderShopList();
@@ -5783,6 +6033,32 @@ function filterShops(text) {
   renderShopList();
 }
 window.filterShops = filterShops;
+
+function setRouteSort(val) {
+  _routeSort = _routeSort === val ? 'default' : val;
+  _updateRouteFilterChips();
+  if (_routeSort === 'near') {
+    showToast('📍 กำลังหาตำแหน่งคุณ...', 'info');
+    refreshGPS(true).then(() => renderShopList()).catch(() => renderShopList());
+  } else {
+    renderShopList();
+  }
+}
+window.setRouteSort = setRouteSort;
+
+function setRouteStatusFilter(val) {
+  _routeStatusFilter = _routeStatusFilter === val ? 'all' : val;
+  _updateRouteFilterChips();
+  renderShopList();
+}
+window.setRouteStatusFilter = setRouteStatusFilter;
+
+function _updateRouteFilterChips() {
+  const nearEl = document.getElementById('rfNear');
+  const ciEl   = document.getElementById('rfCheckin');
+  if (nearEl) nearEl.classList.toggle('active', _routeSort === 'near');
+  if (ciEl)   ciEl.classList.toggle('active', _routeStatusFilter === 'checkin');
+}
 
 function renderShopList() {
   const list = document.getElementById('shopList');
@@ -5815,6 +6091,7 @@ function renderShopList() {
   // Tab counts always show TOTAL (before search filter applied)
   document.getElementById('inCount').textContent = SHOPS.filter(s => s.inRoute).length;
   document.getElementById('offCount').textContent = SHOPS.filter(s => !s.inRoute).length;
+  _updateRouteProgress();
 
   // Apply search filter (name + address only — per Surat 2026-05-08)
   if (_shopSearchQuery) {
@@ -5825,91 +6102,165 @@ function renderShopList() {
     );
   }
 
+  // Status filter (เช็คอินอยู่ chip)
+  if (_routeStatusFilter === 'checkin') {
+    filtered = filtered.filter(s => { const v = visits[s.id]; return v && !v.checkOutTime; });
+  }
+
   if (filtered.length === 0) {
     const emptyMsg = _shopSearchQuery
       ? `🔍 ไม่พบร้านที่ตรงกับ "${escapeHtml(_shopSearchQuery)}"`
+      : _routeStatusFilter === 'checkin' ? '📍 ยังไม่มีร้านที่เช็คอินอยู่'
       : (currentRouteTab === 'off' ? '🗺️ ยังไม่มีร้านนอกรูทวันนี้' : 'ยังไม่มีร้านในรูท');
     list.innerHTML = `<div class="card text-center" style="color:var(--muted);padding:40px 20px">${emptyMsg}</div>`;
     return;
   }
 
-  // SEMI CARD rendering — v5.0 (photo left · info center · 3 buttons right)
-  list.innerHTML = filtered.map((s, idx) => {
-    const visit      = visits[s.id];
-    const checkedIn  = visit && !visit.checkOutTime;
-    const checkedOut = visit && !!visit.checkOutTime;
-    const done       = s.status === 'visited' || checkedOut;
-    const noBuy      = s.status === 'refused';
-    const pending    = !done && !noBuy;
+  // Sort by distance (ใกล้ฉัน)
+  if (_routeSort === 'near' && SALESMAN.currentLat) {
+    filtered.sort((a, b) => (distanceToShop(a) ?? 999999) - (distanceToShop(b) ?? 999999));
+  }
 
-    // State class
-    const stateClass = checkedIn ? 'sc-checked-in' : done ? 'sc-done' : noBuy ? 'sc-no-buy' : 'sc-pending';
+  // Build sections (default sort only — near/filtered show flat)
+  const useSections = _routeSort === 'default' && _routeStatusFilter === 'all';
+  if (useSections) {
+    const secActive  = filtered.filter(s => { const v = visits[s.id]; return v && !v.checkOutTime; });
+    const secPending = filtered.filter(s => { const v = visits[s.id]; const ci = v && !v.checkOutTime; const co = v && !!v.checkOutTime; return !ci && !co && s.status !== 'visited' && s.status !== 'refused'; });
+    const secDone    = filtered.filter(s => { const v = visits[s.id]; const co = v && !!v.checkOutTime; return s.status === 'visited' || co || s.status === 'refused'; });
+    let html = '';
+    if (secActive.length)  html += `<div class="route-section-hdr">📍 กำลังเยี่ยม (${secActive.length})</div>`  + secActive.map(_buildShopCardHTML).join('');
+    if (secPending.length) html += `<div class="route-section-hdr">⏳ ยังไม่เยี่ยม (${secPending.length})</div>` + secPending.map(_buildShopCardHTML).join('');
+    if (secDone.length)    html += `<div class="route-section-hdr">✓ เสร็จแล้ว (${secDone.length})</div>`       + secDone.map(_buildShopCardHTML).join('');
+    list.innerHTML = html;
+  } else {
+    list.innerHTML = filtered.map(_buildShopCardHTML).join('');
+  }
+}
 
-    // Photo with lazy loading + smooth fade-in
-    const photoUrl = s.photo || s._raw?.['รูป'] || '';
-    const photoHtml = photoUrl
-      ? `<img src="${thumbnailUrl(photoUrl, 160)}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.style.display='none';this.nextSibling.style.display='flex'">`+
-        `<span style="display:none;font-size:32px;align-items:center;justify-content:center;width:100%;height:100%">🏪</span>`
-      : `<span style="font-size:32px">🏪</span>`;
+function _buildShopCardHTML(s) {
+  const visit      = visits[s.id];
+  const checkedIn  = visit && !visit.checkOutTime;
+  const checkedOut = visit && !!visit.checkOutTime;
+  const done       = s.status === 'visited' || checkedOut;
+  const noBuy      = s.status === 'refused';
 
-    // Status chips
-    const chips = [];
-    if (done)        chips.push(`<span class="sc-chip sc-chip-done">✓ ฿${(s.visitedAmount||0).toLocaleString()}</span>`);
-    else if (noBuy)  chips.push(`<span class="sc-chip sc-chip-no">✕ ${escapeHtml(s.refuseReason||'ไม่ซื้อ')}</span>`);
-    if (s.debt > 0)  chips.push(`<span class="sc-chip sc-chip-debt">ค้าง ฿${s.debt>=1000?(s.debt/1000).toFixed(0)+'K':s.debt.toLocaleString()}</span>`);
+  const cardStateCls = done ? 'shc-done' : noBuy ? 'shc-no-buy' : '';
 
-    // Address
-    const addrLine = [s.subdistrict, s.district, s.province].filter(Boolean).join(' · ') || s.addr || '';
+  // Banner photo
+  const photoUrl = s.photo || s._raw?.['รูป'] || '';
+  const bannerImg = photoUrl
+    ? `<img src="${thumbnailUrl(photoUrl, 400)}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.style.display='none'">`
+    : '';
 
-    // 3 Quick Actions: GPS · Phone · Check-in/Out
-    // GPS — Google Maps directions
-    const lat = numv(s.lat || s._raw?.['Latitude']);
-    const lng = numv(s.lng || s._raw?.['Longitude']);
-    const gpsUrl = lat && lng
-      ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
-      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.name + ' ' + addrLine)}`;
-    const gpsBtn = `<a class="sc-quick gps" href="${gpsUrl}" target="_blank" onclick="event.stopPropagation()">📍 GPS</a>`;
+  // Debt chip on banner
+  const debtChip = s.debt > 0
+    ? `<div class="shc-debt-chip">⚠ ${s.debt >= 1000 ? (s.debt/1000).toFixed(0)+'K' : s.debt.toLocaleString()}</div>`
+    : '';
 
-    // Phone
-    const phoneClean = String(s.phone||'').replace(/[^0-9+]/g,'');
-    const phoneBtn = phoneClean.length >= 6
-      ? `<a class="sc-quick phone" href="tel:${phoneClean}" onclick="event.stopPropagation()">📞 โทร</a>`
-      : `<span class="sc-quick phone" style="opacity:.4">📞 โทร</span>`;
+  // Distance badge
+  const dist = (_routeSort === 'near') ? distanceToShop(s) : null;
+  const distTag = dist !== null
+    ? `<span class="sc-dist" style="position:absolute;top:10px;left:10px;z-index:2">${dist < 1000 ? Math.round(dist)+'m' : (dist/1000).toFixed(1)+'km'}</span>`
+    : '';
 
-    // Check-in/Out mini button
-    let ciBtn;
-    if (done || noBuy) {
-      const t = visit && visit.checkOutTime ? visit.checkOutTime : '';
-      ciBtn = `<button class="sc-quick ci done" disabled>✓ ${escapeHtml(t)}</button>`;
-    } else if (checkedIn) {
-      ciBtn = `<button class="sc-quick ci co" onclick="event.stopPropagation();handleShopCheckOut('${s.id}')">🚪 เช็คเอาท์</button>`;
-    } else {
-      ciBtn = `<button class="sc-quick ci" onclick="event.stopPropagation();handleShopCheckIn('${s.id}')">✓ เช็คอิน</button>`;
-    }
+  // Address
+  const muBan   = s._raw?.['หมู่'] ? `ม.${s._raw['หมู่']} ` : '';
+  const addrNum = s._raw?.['ที่อยู่'] || '';
+  const addrLine = [addrNum ? `${addrNum}` : '', s.subdistrict, s.district, s.province].filter(Boolean).join(', ') || s.addr || '';
 
-    // 2 big action buttons (right column)
-    const canOrder = checkedIn || done;
-    const orderLabel = s.visitedAmount > 0 ? 'สั่งเพิ่ม' : 'สั่งซื้อ';
-    const btnBuy = canOrder && !noBuy
-      ? `<button class="sc-btn sc-buy" onclick="event.stopPropagation();openShopForAction('${s.id}','order')"><span class="sc-icon">🛒</span><span class="sc-label">${orderLabel}</span></button>`
-      : `<button class="sc-btn sc-buy sc-disabled" disabled><span class="sc-icon">🛒</span><span class="sc-label">${orderLabel}</span></button>`;
-    const btnNo = checkedIn && !done && !noBuy
-      ? `<button class="sc-btn sc-no" onclick="event.stopPropagation();openShopForAction('${s.id}','refuse')"><span class="sc-icon">✕</span><span class="sc-label">ไม่ซื้อ</span></button>`
-      : `<button class="sc-btn sc-no sc-disabled" disabled><span class="sc-icon">✕</span><span class="sc-label">ไม่ซื้อ</span></button>`;
+  // GPS / Maps
+  const lat = numv(s.lat || s._raw?.['Latitude']);
+  const lng = numv(s.lng || s._raw?.['Longitude']);
+  const mapsUrl = lat && lng
+    ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.name + ' ' + addrLine)}`;
 
-    return `
-      <div class="semi-card ${stateClass}" onclick="goShop('${s.id}')">
-        <div class="sc-photo">${photoHtml}</div>
-        <div class="sc-info">
-          <div class="sc-name">${escapeHtml(s.name)}</div>
-          <div class="sc-sub">${escapeHtml(addrLine)}</div>
-          <div class="sc-quick-row">${gpsBtn}${phoneBtn}${ciBtn}</div>
-          ${chips.length ? `<div class="sc-chips">${chips.join('')}</div>` : ''}
-        </div>
-        <div class="sc-actions">${btnBuy}${btnNo}</div>
+  // Phone
+  const phoneClean = String(s.phone||'').replace(/[^0-9+]/g,'');
+  const phoneDisplay = phoneClean.length >= 6 ? phoneClean : '';
+  const phoneBtn = phoneDisplay
+    ? `<a class="shc-btn" href="tel:${phoneClean}" onclick="event.stopPropagation()">📞 ${phoneDisplay}</a>`
+    : `<span class="shc-btn dis">📞 ไม่มีเบอร์</span>`;
+
+  const mapsBtn = `<a class="shc-btn" href="${mapsUrl}" target="_blank" onclick="event.stopPropagation()">🗺 Google Maps</a>`;
+
+  // Check-in/out button
+  let ciBtn;
+  if (done || noBuy) {
+    const t = visit?.checkOutTime || '';
+    ciBtn = `<button class="shc-btn ci-done" disabled>✓ ${escapeHtml(t) || 'เสร็จแล้ว'}</button>`;
+  } else if (checkedIn) {
+    ciBtn = `<button class="shc-btn co" onclick="event.stopPropagation();handleShopCheckOut('${s.id}')">🚪 เช็คเอาท์</button>`;
+  } else {
+    ciBtn = `<button class="shc-btn ci" onclick="event.stopPropagation();handleShopCheckIn('${s.id}')">⭐ เช็คอิน</button>`;
+  }
+
+  // Row 2: ไม่ซื้อ · ใบลดหนี้ · สั่งซื้อ
+  const canAct = checkedIn && !done && !noBuy;
+  const orderLabel = s.visitedAmount > 0 ? 'สั่งเพิ่ม' : 'สั่งซื้อ';
+  const canOrder = checkedIn || done;
+  const btnNo    = canAct
+    ? `<button class="shc-btn no" onclick="event.stopPropagation();openShopForAction('${s.id}','refuse')">✕ ไม่ซื้อ</button>`
+    : `<button class="shc-btn no dis" disabled>✕ ไม่ซื้อ</button>`;
+  const btnCN    = checkedIn
+    ? `<button class="shc-btn cn" onclick="event.stopPropagation();openShopForAction('${s.id}','cn')">📋 ใบลดหนี้</button>`
+    : `<button class="shc-btn cn dis" disabled>📋 ใบลดหนี้</button>`;
+  const btnOrder = canOrder && !noBuy
+    ? `<button class="shc-btn ${s.visitedAmount > 0 ? 'order-active' : 'order'}" onclick="event.stopPropagation();openShopForAction('${s.id}','order')">🛒 ${orderLabel}</button>`
+    : `<button class="shc-btn order dis" disabled>🛒 ${orderLabel}</button>`;
+
+  // Amount chip (if done)
+  const amountChip = done && s.visitedAmount > 0
+    ? `<div class="shc-amount-chip">✓ ฿${s.visitedAmount.toLocaleString()}</div>`
+    : noBuy ? `<div class="shc-amount-chip" style="background:rgba(231,76,60,.1);color:#c0392b">✕ ${escapeHtml(s.refuseReason||'ไม่ซื้อ')}</div>` : '';
+
+  // Hint text
+  const hint = !checkedIn && !done && !noBuy
+    ? `<div class="shc-hint">📍 เช็คอินก่อนถึงจะดำเนินการได้</div>` : '';
+
+  return `
+    <div class="shop-card-v2 ${cardStateCls}" onclick="goShop('${s.id}')">
+      <div class="shc-banner">
+        ${bannerImg}
+        <span class="shc-banner-emoji">🏪</span>
+        ${debtChip}${distTag}
+        <div class="shc-name-overlay">${escapeHtml(s.name)}</div>
       </div>
-    `;
-  }).join('');
+      <div class="shc-body">
+        ${amountChip}
+        <div class="shc-addr">📍 <span>${escapeHtml(addrLine)}</span></div>
+        <div class="shc-row">${phoneBtn}${mapsBtn}${ciBtn}</div>
+        <div class="shc-row">${btnNo}${btnCN}${btnOrder}</div>
+        ${hint}
+      </div>
+    </div>
+  `;
+}
+
+function _updateRouteProgress() {
+  const inRoute = SHOPS.filter(s => s.inRoute);
+  const total   = inRoute.length;
+  let done = 0, activeCI = 0, pending = 0;
+  inRoute.forEach(s => {
+    const v = visits[s.id];
+    const checkedOut = v && !!v.checkOutTime;
+    const isDone  = s.status === 'visited' || checkedOut || s.status === 'refused';
+    const isActive = v && !v.checkOutTime;
+    if (isDone)       done++;
+    else if (isActive) activeCI++;
+    else               pending++;
+  });
+  const pct = total > 0 ? Math.round(done / total * 100) : 0;
+
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  set('routeDoneCount', done);
+  set('routeTotalCount', total);
+  set('routePctPill', pct + '%');
+  set('kpiCheckin', activeCI);
+  set('kpiPending', pending);
+  set('kpiTotal', total);
+  const bar = document.getElementById('routeProgressBar');
+  if (bar) bar.style.width = pct + '%';
 }
 
 // Direct action handlers from Rich Card — no shop detail page needed (per Surat 2026-05-08, v4.1)
@@ -6176,14 +6527,7 @@ function renderShopDetail(shopId) {
        `<button class="btn btn-primary btn-sm" style="flex-shrink:0" onclick="doCheckIn('${s.id}')">เช็คอิน</button>`}
     </div>
 
-    ${s.debt > 0 ? `
-    <div class="debt-warn" style="margin-top:12px">
-      <div class="debt-icon">⚠️</div>
-      <div class="debt-text">
-        ลูกค้ามียอด<strong>ค้างชำระ</strong><br>
-        <span class="debt-amount">฿ ${s.debt.toLocaleString()}</span>
-      </div>
-    </div>` : ''}
+    ${_buildDebtDetailHtml(s)}
 
     ${s.monthTarget > 0 ? `
     <div class="target-box">
@@ -10353,157 +10697,145 @@ function renderProductInfoCard(p, idx) {
 }
 
 function showProductInfoDetail(productName) {
-  // Find product
   let p = SHEET_DATA.products.find(x => x['PRODUCT NAME'] === productName);
   if (!p) p = getDefaultProductList().find(x => x['PRODUCT NAME'] === productName);
   if (!p) { showToast('ไม่พบสินค้า', 'error'); return; }
 
-  const photoUrl = p['SKU_USAGE'] || p['PHOTO_SQL'] || p['PHOTO'] || p['รูป'] || '';
-  const photoBigHtml = photoUrl ? buildPhotoImg(photoUrl, {
-    size: 800,
-    cls: 'product-detail-photo',
-    emojiCls: 'product-detail-emoji',
-    emoji: '📦'
-  }) : '';
   const units = productUnits(p);
-  const myWh = currentUser?.warehouse || SALESMAN.warehouseId || 'W1';
   const isManager = (currentUser?.role || SALESMAN.level) >= 5;
-
-  // Build unit + price table — show S03 only (clean view)
-  // S00 kept for Role 5+ sales as floor reference
-  const unitRows = units.map(u => {
-    const prices = productPrices(p, u.code);
-    return `
-      <tr>
-        <td style="padding:10px 8px;font-weight:700">${u.label}</td>
-        <td style="padding:10px 8px;font-size:11px;color:var(--muted)">${u.barcode||''}</td>
-        <td style="padding:10px 8px;text-align:right;font-weight:800;color:var(--gold);font-size:14px">฿${(prices.S03||0).toLocaleString()}</td>
-        ${isManager?`<td style="padding:10px 8px;text-align:right;color:var(--danger);font-weight:700">฿${(prices.S00||0).toLocaleString()}</td>`:''}
-      </tr>
-    `;
-  }).join('');
-
-  // Stock per warehouse — display CS.EA notation (e.g. "1269.14")
+  const myWh = currentUser?.warehouse || SALESMAN.warehouseId || 'W1';
   const csSize = getCsSize(p);
-  const stockRows = WAREHOUSES.map(w => {
-    const raw = p[`STOCK ${w.id}`];
-    const parsed = parseStockCsEa(raw, csSize);
+  const promos = (typeof getAllPromotionsFor === 'function') ? getAllPromotionsFor(p) : [];
+
+  // Store data for tab switching
+  window._piData = { p, units, isManager, myWh, csSize };
+
+  // Photo
+  const photoUrl = p['SKU_USAGE'] || p['PHOTO_SQL'] || p['PHOTO'] || p['รูป'] || '';
+  const photoHtml = photoUrl
+    ? buildPhotoImg(photoUrl, { size: 300, cls: 'pi-photo', emojiCls: 'pi-photo-emoji', emoji: '📦' })
+    : '<div class="pi-photo-emoji">📦</div>';
+
+  // Category chips
+  const catChips = [
+    p['CAT BRAND'] && `<span class="cat-chip brand">${escapeHtml(p['CAT BRAND'])}</span>`,
+    p['CAT VENDOR'] && `<span class="cat-chip vendor">${escapeHtml(p['CAT VENDOR'])}</span>`,
+    p['CAT SIZE']  && `<span class="cat-chip size">${escapeHtml(p['CAT SIZE'])}</span>`,
+    p['CAT GROUP'] && `<span class="cat-chip size">${escapeHtml(p['CAT GROUP'])}</span>`,
+    (typeof isFocusProduct === 'function') && isFocusProduct(p) && `<span class="cat-chip" style="background:rgba(52,152,219,.12);color:#3498db">🎯 โฟกัส</span>`,
+    promos.length && `<span class="cat-chip" style="background:rgba(231,76,60,.1);color:#e74c3c">🎁 มีโปร</span>`
+  ].filter(Boolean).join('');
+
+  // Unit tabs — default to first unit with a price
+  const firstUnit = units.find(u => productPrices(p, u.code).S03)?.code || units[0]?.code || 'EA';
+  const tabsHtml = units.map(u =>
+    `<button class="pi-tab${u.code === firstUnit ? ' active' : ''}" data-unit="${u.code}" onclick="_piSwitchUnit('${u.code}')">${escapeHtml(u.label)}</button>`
+  ).join('');
+
+  // Stock chips
+  const stockChips = WAREHOUSES.map(w => {
+    const parsed = parseStockCsEa(p[`STOCK ${w.id}`], csSize);
     const isMine = w.id === myWh;
-    const stkColor = parsed.totalEa <= 0 ? 'var(--warning)' : parsed.totalEa < csSize ? '#9b59b6' : 'var(--success)';
-    const display = parsed.empty ? '—' : parsed.raw;
-    return `
-      <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px dashed var(--border)">
-        <span style="font-size:14px">🏭</span>
-        <span style="flex:1;font-size:12px;font-weight:${isMine?'700':'500'}">${w.name} ${isMine?'<span class="badge badge-gold" style="margin-left:4px;font-size:9px">ของคุณ</span>':''}</span>
-        <span style="font-weight:700;color:${stkColor}">${display}</span>
-      </div>
-    `;
+    const isEmpty = parsed.totalEa <= 0;
+    const qtyColor = isEmpty ? 'color:var(--warning)' : isMine ? 'color:var(--success);font-weight:800' : '';
+    return `<div class="pi-stock-chip${isMine ? ' mine' : ''}">
+      <span class="pi-stock-wh">${escapeHtml(w.id)}</span>
+      <span class="pi-stock-qty" style="${qtyColor}">${parsed.empty ? '—' : parsed.raw}</span>
+    </div>`;
   }).join('');
+
+  // Avg sales + DOS
+  const v60 = numv(p[`AVERAGE 60D_${myWh}`]) || numv(p[`AVERAGE 60D ${myWh}`]);
+  const v30 = numv(p[`AVERAGE 30D_${myWh}`]) || numv(p[`AVERAGE 30D ${myWh}`]);
+  const dailyEa = v60 > 0 ? v60 : v30;
+  let avgHtml = '';
+  if (dailyEa) {
+    const monthlyCs = Math.floor(dailyEa * 25 / csSize);
+    const ownStockEa = parseStockCsEa(p[`STOCK ${myWh}`], csSize).totalEa;
+    const dos = dailyEa > 0 ? Math.round(ownStockEa / dailyEa) : null;
+    let dosColor = 'var(--muted)', dosLabel = '';
+    if (dos !== null) {
+      if (dos < 7)        { dosColor = 'var(--danger)';  dosLabel = 'ใกล้หมด'; }
+      else if (dos <= 21) { dosColor = 'var(--warning)'; dosLabel = 'ปกติ'; }
+      else if (dos <= 90) { dosColor = 'var(--success)'; dosLabel = 'สต็อกดี'; }
+      else                { dosColor = '#9b59b6';        dosLabel = 'ค้างสต็อก'; }
+    }
+    avgHtml = `
+      <div class="pi-section-label">📈 ยอดขาย</div>
+      <div class="pi-avg-row">
+        <div class="pi-avg-cell">
+          <div class="pi-avg-label">เฉลี่ย/เดือน</div>
+          <div class="pi-avg-val">${monthlyCs} CS</div>
+        </div>
+        ${dos !== null ? `<div class="pi-avg-cell">
+          <div class="pi-avg-label">คงพอขาย</div>
+          <div class="pi-avg-val" style="color:${dosColor}">${dos} วัน <span style="font-size:10px;font-weight:600">${dosLabel}</span></div>
+        </div>` : ''}
+      </div>`;
+  }
+
+  // Footer button
+  const footerBtn = currentShopId
+    ? `<button class="btn btn-primary btn-block" onclick="closeModal();openProductSmart(window._piData.p['PRODUCT NAME'])">+ เพิ่มในออเดอร์</button>`
+    : `<button class="btn btn-outline btn-block" onclick="closeModal()">ปิด</button>`;
 
   document.getElementById('modalContent').innerHTML = `
+    <button type="button" class="modal-close-x" onclick="closeModal()" aria-label="ปิด">✕</button>
     <div class="modal-handle"></div>
 
-    <!-- HEADER: name + key cats inline -->
-    <div style="padding:16px 16px 0">
-      <div style="font-size:15px;font-weight:800;color:var(--text);line-height:1.35;margin-bottom:6px">${escapeHtml(p['PRODUCT NAME']||'')}</div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px">
-        ${[p['CAT BRAND']&&`<span class="cat-chip brand">${escapeHtml(p['CAT BRAND'])}</span>`,
-           p['CAT VENDOR']&&`<span class="cat-chip vendor">${escapeHtml(p['CAT VENDOR'])}</span>`,
-           p['CAT SIZE']&&`<span class="cat-chip size">${escapeHtml(p['CAT SIZE'])}</span>`,
-           p['CAT GROUP']&&`<span class="cat-chip size">${escapeHtml(p['CAT GROUP'])}</span>`,
-           isFocusProduct(p)&&`<span class="cat-chip" style="background:rgba(52,152,219,.12);color:#3498db">🎯 โฟกัส</span>`,
-           getPromotionFor(p)&&`<span class="cat-chip" style="background:rgba(231,76,60,.1);color:#e74c3c">🎁 ${escapeHtml(getPromotionFor(p)['ชื่อโปร']||'มีโปร')}</span>`
-        ].filter(Boolean).join('')}
+    <div class="pi-hero">
+      <div class="pi-photo-wrap">${photoHtml}</div>
+      <div class="pi-hero-info">
+        <div class="pi-name">${escapeHtml(p['PRODUCT NAME'] || '')}</div>
+        <div class="pi-cats">${catChips}</div>
       </div>
     </div>
 
-    <div style="overflow-y:auto;flex:1;padding:0 16px 16px">
-
-      <!-- UNITS & PRICES — compact 2-col grid -->
-      <div style="margin-bottom:14px">
-        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:7px">💰 ราคา (รวม VAT)</div>
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px">
-          ${units.map(u => {
-            const prices = productPrices(p, u.code);
-            const s03 = prices.S03 || 0;
-            const s01 = prices.S01 || 0;
-            if (!s03) return '';
-            return `
-              <div style="background:var(--row-alt);border:1px solid var(--border);border-radius:10px;padding:9px 11px">
-                <div style="font-size:10px;color:var(--muted);font-weight:700;margin-bottom:3px">${escapeHtml(u.label)}</div>
-                <div style="font-size:15px;font-weight:900;color:var(--gold)">฿${s03.toLocaleString()}</div>
-                ${isManager && prices.S00 ? `<div style="font-size:10px;color:var(--danger);margin-top:2px">ขั้นต่ำ ฿${prices.S00.toLocaleString()}</div>` : ''}
-                ${prices.S02 && prices.S02 !== s03 ? `<div style="font-size:10px;color:var(--muted)">10+ ฿${prices.S02.toLocaleString()}</div>` : ''}
-                ${s01 && s01 !== s03 ? `<div style="font-size:10px;color:var(--muted)">20+ ฿${s01.toLocaleString()}</div>` : ''}
-                <div style="font-size:9px;color:var(--muted);margin-top:3px;opacity:.7">${escapeHtml(u.barcode||'')}</div>
-              </div>
-            `;
-          }).filter(Boolean).join('')}
-        </div>
-      </div>
-
-      <!-- STOCK — compact list -->
-      <div style="margin-bottom:14px">
-        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:7px">📦 สต็อกแต่ละคลัง</div>
-        <div style="background:var(--row-alt);border-radius:10px;border:1px solid var(--border);overflow:hidden">
-          ${WAREHOUSES.map((w, idx) => {
-            const raw = p[`STOCK ${w.id}`];
-            const parsed = parseStockCsEa(raw, csSize);
-            const isMine = w.id === myWh;
-            const stkColor = parsed.totalEa <= 0 ? 'var(--warning)' : parsed.totalEa < csSize ? '#9b59b6' : 'var(--success)';
-            const display = parsed.empty ? '—' : parsed.raw;
-            return `
-              <div style="display:flex;align-items:center;padding:8px 12px;${idx>0?'border-top:1px solid var(--border)':''}${isMine?';background:rgba(30,127,255,.04)':''}">
-                <span style="font-size:12px;font-weight:${isMine?'800':'500'};color:var(--text);flex:1">${escapeHtml(w.name)}</span>
-                ${isMine?'<span style="font-size:9px;color:var(--accent);font-weight:700;margin-right:8px">คุณ</span>':''}
-                <span style="font-weight:800;color:${stkColor};font-size:13px">${display}</span>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      </div>
-
-      <!-- AVG SALES if available -->
-      ${(()=>{
-        // v6.4: AVERAGE 60D_W is daily EA rate (no ÷60). Fallback to 30D (legacy, also daily).
-        const v60 = numv(p[`AVERAGE 60D_${myWh}`]) || numv(p[`AVERAGE 60D ${myWh}`]);
-        const v30 = numv(p[`AVERAGE 30D_${myWh}`]) || numv(p[`AVERAGE 30D ${myWh}`]);
-        const dailyEa = v60 > 0 ? v60 : v30;
-        if (!dailyEa) return '';
-        const monthlyCs = Math.floor(dailyEa * 25 / csSize);
-        const ownStockEa = parseStockCsEa(p[`STOCK ${myWh}`], csSize).totalEa;
-        const dos = dailyEa > 0 ? Math.round(ownStockEa / dailyEa) : null;
-        let dosColor = 'var(--muted)', dosLabel = '';
-        if (dos !== null) {
-          if (dos < 7)        { dosColor = 'var(--danger)';  dosLabel = '⚡ ใกล้หมด'; }
-          else if (dos <= 21) { dosColor = 'var(--warning)'; dosLabel = '🟡 ปกติ'; }
-          else if (dos <= 90) { dosColor = 'var(--success)'; dosLabel = '🟢 สต็อกดี'; }
-          else                { dosColor = '#9b59b6';        dosLabel = '🐌 ค้างสต็อก'; }
-        }
-        return `
-          <div style="display:flex;gap:8px;background:var(--row-alt);border-radius:10px;border:1px solid var(--border);padding:10px 12px;margin-bottom:14px">
-            <div style="flex:1">
-              <div style="font-size:10px;color:var(--muted);font-weight:700;margin-bottom:3px">ขายเฉลี่ย/เดือน</div>
-              <div style="font-size:15px;font-weight:800;color:var(--text)">${monthlyCs} CS</div>
-            </div>
-            ${dos !== null ? `<div style="flex:1">
-              <div style="font-size:10px;color:var(--muted);font-weight:700;margin-bottom:3px">คงพอขาย</div>
-              <div style="font-size:15px;font-weight:800;color:${dosColor}">${dos} วัน</div>
-              <div style="font-size:10px;color:${dosColor}">${dosLabel}</div>
-            </div>` : ''}
-          </div>
-        `;
-      })()}
-
+    <div class="pi-body">
+      <div class="pi-tabs">${tabsHtml}</div>
+      <div class="pi-prices" id="piPrices">${_piBuildPriceBlock(firstUnit)}</div>
+      <div class="pi-section-label">📦 สต็อก</div>
+      <div class="pi-stocks">${stockChips}</div>
+      ${avgHtml}
     </div>
 
-    <div style="padding:10px 16px 14px;border-top:1px solid var(--border)">
-      <button class="btn btn-outline btn-block" onclick="closeModal()">ปิด</button>
-    </div>
+    <div class="pi-footer">${footerBtn}</div>
   `;
+
   document.getElementById('productModal').classList.add('active');
   document.body.style.overflow = 'hidden';
 }
+
+function _piBuildPriceBlock(unitCode) {
+  const { p, units, isManager } = window._piData || {};
+  if (!p) return '';
+  const u = units.find(x => x.code === unitCode);
+  if (!u) return '';
+  const pr = productPrices(p, unitCode);
+  const isCS = unitCode === 'CS';
+  const rows = [];
+  if (pr.S03) rows.push({ label: isCS ? '1 CS' : `1 ${escapeHtml(u.label)}`, price: pr.S03, highlight: true });
+  if (pr.S02 && pr.S02 !== pr.S03) rows.push({ label: isCS ? '10 CS+' : '10+', price: pr.S02 });
+  if (isCS && pr.S01 && pr.S01 !== pr.S02) rows.push({ label: '20 CS+', price: pr.S01 });
+  if (isManager && pr.S00) rows.push({ label: 'ควบคุม', price: pr.S00, danger: true });
+  const priceRows = rows.map(r =>
+    `<div class="pi-price-row${r.highlight ? ' highlight' : ''}${r.danger ? ' danger' : ''}">
+      <span class="pi-price-label">${r.label}</span>
+      <span class="pi-price-val">฿${r.price.toLocaleString()}</span>
+    </div>`
+  ).join('');
+  const barcodeRow = u.barcode ? `<div class="pi-barcode">${escapeHtml(u.barcode)}</div>` : '';
+  return priceRows + barcodeRow;
+}
+
+function _piSwitchUnit(unitCode) {
+  document.querySelectorAll('.pi-tab').forEach(el =>
+    el.classList.toggle('active', el.dataset.unit === unitCode)
+  );
+  const el = document.getElementById('piPrices');
+  if (el) el.innerHTML = _piBuildPriceBlock(unitCode);
+}
+window._piSwitchUnit = _piSwitchUnit;
 
 function resetNewShopForm() {
   ['newShopName','newShopAddrNum','newShopMoo','newShopTumbon','newShopZip',
