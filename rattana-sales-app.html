@@ -482,7 +482,8 @@ body.dark .sc-chip-debt { background: rgba(231,76,60,.2); color: #ff8a7e; }
 .route-hero { background: var(--navy); margin: -16px -16px 0; padding: 12px 16px 14px; position: sticky; top: 60px; z-index: 50; }
 .route-hero-top { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .rh-back { width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,.12); border: none; color: #fff; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: inherit; }
-.rh-progress-pill { flex: 1; text-align: center; font-size: 13px; font-weight: 700; color: #fff; background: rgba(255,255,255,.12); padding: 5px 10px; border-radius: 20px; }
+.route-hero-progress { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+.rh-progress-pill { width: auto; text-align: center; font-size: 13px; font-weight: 700; color: #fff; background: rgba(255,255,255,.12); padding: 5px 14px; border-radius: 20px; white-space: nowrap; }
 .rh-pct-pill { font-size: 13px; font-weight: 800; color: var(--navy); background: var(--gold); padding: 5px 12px; border-radius: 20px; flex-shrink: 0; }
 .route-hero-title { font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 3px; }
 .route-hero-sub { font-size: 12px; color: rgba(255,255,255,.55); margin-bottom: 10px; }
@@ -2633,12 +2634,14 @@ body.dark .text-gold { color: var(--gold-light); }
   <div class="route-hero">
     <div class="route-hero-top">
       <button class="rh-back" onclick="goHome()">←</button>
+      <div class="route-hero-title" style="flex:1;margin:0;font-size:20px">รูทวันนี้</div>
+    </div>
+    <div class="route-hero-sub" id="routeDate"></div>
+    <div class="route-hero-progress">
       <div class="rh-progress-pill"><span id="routeDoneCount">0</span> / <span id="routeTotalCount">0</span> เสร็จ</div>
       <div class="rh-pct-pill" id="routePctPill">0%</div>
     </div>
-    <div class="route-hero-title">รูทวันนี้</div>
-    <div class="route-hero-sub" id="routeDate"></div>
-    <div class="route-hero-bar"><div class="route-hero-bar-fill" id="routeProgressBar" style="width:0%"></div></div>
+    <div class="route-hero-bar" style="margin-top:8px"><div class="route-hero-bar-fill" id="routeProgressBar" style="width:0%"></div></div>
   </div>
 
   <!-- View toggle (hidden — accessible via drawer) -->
@@ -2668,7 +2671,7 @@ body.dark .text-gold { color: var(--gold-light); }
 
     <div class="route-filter-chips" id="routeFilterChips">
       <button class="filter-chip" id="rfNear" data-rf="near" onclick="setRouteSort('near')">🧭 ใกล้ฉัน</button>
-      <button class="filter-chip" id="rfCheckin" data-rf="checkin" onclick="setRouteStatusFilter('checkin')">📍 เช็คอินอยู่</button>
+      <button class="filter-chip" id="rfPending" data-rf="pending" onclick="setRouteStatusFilter('pending')">⏳ ยังไม่เช็คอิน</button>
     </div>
 
     <div id="shopList"></div>
@@ -3092,6 +3095,7 @@ const CONFIG = {
     promotion:       'Promotion',
     dataCenter:      'Data Center',
     order:           'Order',
+    visits:          'Visits',
     cn:              'CN',
     dashboardConfig: 'Dashboard Config',
     groupTargets:    'Group Targets',
@@ -3474,7 +3478,7 @@ window._loadingState = {
   customers: 'pending', products: 'pending', orders: 'pending',
   promotions: 'pending', users: 'pending', dataCenter: 'pending',
   dashboardConfig: 'pending', groupTargets: 'pending', syncStatus: 'pending',
-  debtData: 'pending',
+  debtData: 'pending', visitData: 'pending',
 };
 window.markLoaded = function(key) {
   if (window._loadingState[key] === 'pending') {
@@ -3571,6 +3575,9 @@ async function loadProgressively() {
     fetchWithCache('debtData', () => fetchSheet(CONFIG.debtSheetId, CONFIG.debtSheetTab), CONFIG.cacheTTLShort)
       .then(d => { SHEET_DATA.debtData = d || []; _buildDebtMap(d); if (SHOPS.length) _applyDebtToShops(); markLoaded('debtData'); console.log('[boot] Debt rows loaded:', (d||[]).length); })
       .catch(e => { console.warn('debtData:', e.message); markLoaded('debtData'); }),
+    fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.visits)
+      .then(d => { hydrateVisitsFromSheet(d); markLoaded('visitData'); })
+      .catch(e => { console.warn('visitData:', e.message); markLoaded('visitData'); }),
   ]);
   wave2.then(() => console.log('[boot] Wave 2 complete (orders + promo + dataCenter + debt)'));
 
@@ -3938,6 +3945,40 @@ function _buildDebtDetailHtml(s) {
     </div>` : ''}
     ${invRowsHtml ? `<div class="debt-invoices">${invRowsHtml}</div>` : ''}
   </div>`;
+}
+
+// ─── VISIT HYDRATION FROM SHEET ──────────────────────────────────────────────
+
+function hydrateVisitsFromSheet(rows) {
+  const myCode = (SALESMAN.salesmanCode || SALESMAN.code || '').trim();
+  let count = 0;
+  (rows || []).forEach(r => {
+    const date    = String(r['วัน'] || '').trim();
+    const code    = String(r['รหัสเซลล์'] || '').trim();
+    const shopId  = String(r['รหัสร้าน'] || '').trim();
+    if (!shopId || !isToday(date)) return;
+    if (myCode && code && code !== myCode) return;
+    if (visits[shopId]) return;   // in-session record takes priority
+    visits[shopId] = {
+      visitId:          r['visitId'] || '',
+      date:             date,
+      shopId:           shopId,
+      salesmanCode:     code,
+      checkInTime:      String(r['เวลาเช็คอิน']  || '').trim() || null,
+      checkOutTime:     String(r['เวลาเช็คเอาท์'] || '').trim() || null,
+      checkInRange:     true,
+      checkInDistance:  0,
+      duration:         r['ระยะเวลา(นาที)'] || null,
+      result:           String(r['ผลลัพธ์'] || '').trim() || null,
+      fromSheet:        true,
+    };
+    count++;
+  });
+  console.log('[hydrateVisitsFromSheet] restored', count, 'visits');
+  if (count > 0) {
+    if (document.getElementById('screenRoute')?.classList.contains('active')) renderShopList();
+    if (document.getElementById('screenShop')?.classList.contains('active') && currentShopId) renderShopDetail(currentShopId);
+  }
 }
 
 // ─── SKU SUGGESTIONS (Surat 2026-05-10 v4.3) ─────────────────────────────────
@@ -6060,10 +6101,10 @@ function setRouteStatusFilter(val) {
 window.setRouteStatusFilter = setRouteStatusFilter;
 
 function _updateRouteFilterChips() {
-  const nearEl = document.getElementById('rfNear');
-  const ciEl   = document.getElementById('rfCheckin');
-  if (nearEl) nearEl.classList.toggle('active', _routeSort === 'near');
-  if (ciEl)   ciEl.classList.toggle('active', _routeStatusFilter === 'checkin');
+  const nearEl    = document.getElementById('rfNear');
+  const pendingEl = document.getElementById('rfPending');
+  if (nearEl)    nearEl.classList.toggle('active', _routeSort === 'near');
+  if (pendingEl) pendingEl.classList.toggle('active', _routeStatusFilter === 'pending');
 }
 
 function renderShopList() {
@@ -6108,9 +6149,14 @@ function renderShopList() {
     );
   }
 
-  // Status filter (เช็คอินอยู่ chip)
-  if (_routeStatusFilter === 'checkin') {
-    filtered = filtered.filter(s => { const v = visits[s.id]; return v && !v.checkOutTime; });
+  // Status filter chips
+  if (_routeStatusFilter === 'pending') {
+    filtered = filtered.filter(s => {
+      const v = visits[s.id];
+      const done = s.status === 'visited' || s.status === 'refused' || (v && !!v.checkOutTime);
+      const active = v && !v.checkOutTime;
+      return !done && !active;
+    });
   }
 
   if (filtered.length === 0) {
