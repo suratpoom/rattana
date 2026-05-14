@@ -338,7 +338,7 @@ body.dark .badge-gold { background: #2a2415; color: var(--gold-light); }
 .route-filter-chips { display:flex; gap:6px; overflow-x:auto; padding:0 0 10px; scrollbar-width:none; }
 .route-filter-chips::-webkit-scrollbar { display:none; }
 .route-section-hdr { font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; padding:10px 4px 4px; }
-.sc-dist { font-size:10px; font-weight:700; color:var(--accent); background:rgba(30,127,255,.08); padding:2px 6px; border-radius:8px; margin-left:6px; }
+.sc-dist { font-size:12px; font-weight:800; color:#fff; background:rgba(0,0,0,.58); padding:3px 9px; border-radius:8px; margin-left:6px; letter-spacing:.2px; }
 
 /* ─── VIEW TOGGLE (List/Map) ─── */
 .view-toggle { display: flex; gap: 6px; padding: 4px; background: var(--card-bg); border-radius: 12px; margin-bottom: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
@@ -499,7 +499,10 @@ body.dark .sc-chip-debt { background: rgba(231,76,60,.2); color: #ff8a7e; }
 .rk-cell.kpi-ok   .rk-val { color: var(--success); }
 
 /* ─── Full-width Shop Card v2 (v6.5.5) ─── */
-.shop-card-v2 { border-radius: 16px; overflow: hidden; margin-bottom: 12px; background: var(--card-bg); box-shadow: 0 4px 16px rgba(8,20,46,.12), 0 1px 4px rgba(8,20,46,.05); border: 1px solid var(--border); cursor: pointer; transition: transform .1s; }
+.shop-card-v2 { border-radius: 16px; overflow: hidden; margin-bottom: 12px; background: var(--card-bg); box-shadow: 0 8px 28px rgba(8,20,46,.18), 0 2px 6px rgba(8,20,46,.10); border: 1px solid var(--border); border-left: 4px solid var(--border); cursor: pointer; transition: transform .1s; }
+.shop-card-v2.shc-active  { border-left-color: var(--gold); }
+.shop-card-v2.shc-done    { border-left-color: var(--success); }
+.shop-card-v2.shc-no-buy  { border-left-color: var(--danger); }
 .shop-card-v2:active { transform: scale(.99); }
 .shop-card-v2.shc-done   { opacity: .82; }
 .shop-card-v2.shc-no-buy { opacity: .82; }
@@ -509,7 +512,8 @@ body.dark .sc-chip-debt { background: rgba(231,76,60,.2); color: #ff8a7e; }
 .shc-banner-emoji { font-size: 64px; opacity: .25; }
 .shc-debt-chip { position: absolute; top: 10px; right: 10px; background: #D63A3A; color: #fff; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 20px; z-index: 2; display: flex; align-items: center; gap: 4px; }
 .shc-name-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 40px 14px 12px; background: linear-gradient(transparent, rgba(0,0,0,.78)); color: #fff; font-size: 16px; font-weight: 900; line-height: 1.25; z-index: 2; }
-.shc-body { padding: 11px 12px 12px; }
+.shc-body { padding: 11px 12px 12px; background: #f2f5fb; }
+body.dark .shc-body { background: rgba(255,255,255,.03); }
 .shc-addr { font-size: 11px; color: var(--muted); margin-bottom: 10px; display: flex; align-items: flex-start; gap: 5px; line-height: 1.45; }
 .shc-row { display: flex; gap: 7px; margin-bottom: 7px; }
 .shc-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 9px 6px; border-radius: 9px; font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer; border: 1.5px solid var(--border); background: var(--row-alt); color: var(--text); text-decoration: none; transition: filter .12s; white-space: nowrap; overflow: hidden; }
@@ -523,6 +527,8 @@ body.dark .sc-chip-debt { background: rgba(231,76,60,.2); color: #ff8a7e; }
 .shc-btn.order-active { background: #E8B23A; color: #0d1b3e; border-color: #E8B23A; font-weight: 800; }
 .shc-btn.dis   { opacity: .28; cursor: not-allowed; pointer-events: none; }
 .shc-hint { font-size: 10px; font-weight: 600; text-align: center; padding: 2px 0 2px; color: var(--danger); }
+.modal-option-btn { width: 100%; padding: 12px 14px; background: var(--card-bg); border: 1.5px solid var(--border); border-radius: 10px; font-size: 14px; font-weight: 600; color: var(--text); text-align: left; cursor: pointer; font-family: Sarabun, sans-serif; transition: background .15s; }
+.modal-option-btn:active { background: var(--row-alt); }
 .shc-amount-chip { display: inline-flex; align-items: center; gap: 4px; background: rgba(30,127,255,.1); color: #1e7fff; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 10px; margin-bottom: 8px; }
 body.dark .shc-btn.ci { color: #0d1b3e; }
 body.dark .shc-btn.co { background: #1e3a6e; }
@@ -2656,7 +2662,7 @@ body.dark .text-gold { color: var(--gold-light); }
     <!-- KPI Strip -->
     <div class="route-kpi-strip">
       <div class="rk-cell kpi-ok"><div class="rk-val" id="kpiCheckin">0</div><div class="rk-label">เช็คอินแล้ว</div></div>
-      <div class="rk-cell kpi-warn"><div class="rk-val" id="kpiPending">0</div><div class="rk-label">ค้าง</div></div>
+      <div class="rk-cell kpi-warn"><div class="rk-val" id="kpiPending">0</div><div class="rk-label">ยังไม่ได้เช็คอิน</div></div>
       <div class="rk-cell"><div class="rk-val" id="kpiTotal">0</div><div class="rk-label">รวม</div></div>
     </div>
 
@@ -6144,7 +6150,7 @@ function _buildShopCardHTML(s) {
   const done       = s.status === 'visited' || checkedOut;
   const noBuy      = s.status === 'refused';
 
-  const cardStateCls = done ? 'shc-done' : noBuy ? 'shc-no-buy' : '';
+  const cardStateCls = done ? 'shc-done' : noBuy ? 'shc-no-buy' : checkedIn ? 'shc-active' : '';
 
   // Banner photo
   const photoUrl = s.photo || s._raw?.['รูป'] || '';
@@ -6154,7 +6160,7 @@ function _buildShopCardHTML(s) {
 
   // Debt chip on banner
   const debtChip = s.debt > 0
-    ? `<div class="shc-debt-chip">⚠ ${s.debt >= 1000 ? (s.debt/1000).toFixed(0)+'K' : s.debt.toLocaleString()}</div>`
+    ? `<div class="shc-debt-chip">⚠ ฿${s.debt.toLocaleString(undefined,{maximumFractionDigits:0})}</div>`
     : '';
 
   // Distance badge
@@ -6564,30 +6570,52 @@ function renderShopDetail(shopId) {
   `;
 }
 
-// Check in — allow even if out of range, but confirm
+// Check in — silent within 50m, reason modal outside
 function doCheckIn(shopId) {
   const s = SHOPS.find(x => x.id === shopId);
   if (!s) return;
   const distance = distanceToShop(s);
   const inRange = distance !== null && distance <= 50;
-
   if (!inRange && distance !== null) {
-    if (!confirm(`คุณอยู่ห่างจากร้าน ${distance}m (เกิน 50m)\n\nระบบจะบันทึกว่า "เช็คอินนอกพิกัด"\nต้องการเช็คอินต่อหรือไม่?`)) {
-      return;
-    }
+    _showOutOfRangeModal(shopId, distance);
+    return;
   }
+  _executeCheckIn(shopId, distance, inRange, null);
+}
 
+function _showOutOfRangeModal(shopId, distance) {
+  const reasons = ['GPS ไม่แม่นยำ', 'ร้านย้ายที่ (ชั่วคราว)', 'ลูกค้ายืนยันอยู่ที่ร้าน', 'อื่นๆ'];
+  const btns = reasons.map(r =>
+    `<button class="modal-option-btn" onclick="_confirmOutOfRange('${shopId}',${Math.round(distance)},'${r}')">${r}</button>`
+  ).join('');
+  showModal(`
+    <button type="button" class="modal-close-x" onclick="closeModal()">✕</button>
+    <div class="modal-handle"></div>
+    <div style="padding:20px 16px 24px">
+      <div style="font-size:17px;font-weight:900;margin-bottom:6px">⚠️ อยู่นอกพิกัด ${Math.round(distance)}m</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:18px">ร้านนี้ห่างเกิน 50m — กรุณาระบุเหตุผลก่อนเช็คอิน</div>
+      <div style="display:flex;flex-direction:column;gap:8px">${btns}</div>
+    </div>
+  `);
+}
+window._confirmOutOfRange = function(shopId, distance, reason) {
+  closeModal();
+  _executeCheckIn(shopId, distance, false, reason);
+};
+
+function _executeCheckIn(shopId, distance, inRange, outOfRangeReason) {
   const now = new Date();
   visits[shopId] = {
     visitId: 'V' + formatDateISO(now).replace(/\//g,'') + '_' + shopId,
     date: formatDateISO(now),
-    shopId: shopId,
+    shopId,
     salesmanCode: SALESMAN.code,
     checkInTime: formatTimeThai(now),
     checkInLat: SALESMAN.currentLat,
     checkInLng: SALESMAN.currentLng,
     checkInDistance: distance,
     checkInRange: inRange,
+    outOfRangeReason: outOfRangeReason || null,
     checkOutTime: null,
     checkOutLat: null,
     checkOutLng: null,
@@ -6596,8 +6624,9 @@ function doCheckIn(shopId) {
     orderId: null,
     refusalReason: null,
   };
-  showToast(`✓ เช็คอินสำเร็จ ${visits[shopId].checkInTime}${!inRange?' (นอกพิกัด)':''}`, inRange ? 'success' : 'warning');
-  renderShopDetail(shopId);
+  showToast(`✓ เช็คอินสำเร็จ ${visits[shopId].checkInTime}${!inRange ? ' (นอกพิกัด)' : ''}`, inRange ? 'success' : 'warning');
+  if (document.getElementById('screenShop')?.classList.contains('active')) renderShopDetail(shopId);
+  else renderShopList();
 }
 
 // Manual check-out (no order/refusal — just visit)
