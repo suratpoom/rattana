@@ -834,7 +834,7 @@ body.dark .debt-warn { background: #2a1816; border-color: #5a2a26; }
   margin-bottom: 10px;
   display: flex;
   gap: 12px;
-  align-items: center;
+  align-items: flex-start;
   box-shadow: var(--shadow-sm);
   cursor: pointer;
   transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
@@ -850,18 +850,18 @@ body.dark .debt-warn { background: #2a1816; border-color: #5a2a26; }
 .card-badge-focus { background: rgba(52,152,219,.15); color: #2c80ce; border: 1px solid rgba(52,152,219,.4); }
 @keyframes badge-pulse { 0%,100% { box-shadow: 0 2px 6px rgba(231,76,60,.3); } 50% { box-shadow: 0 2px 12px rgba(231,76,60,.55); } }
 .card-photo {
-  width: 56px; height: 56px;
+  width: 72px; height: 72px;
   border-radius: 10px; object-fit: cover;
   flex-shrink: 0;
   border: 1px solid rgba(201,168,76,.2);
   background: var(--row-alt);
 }
 .card-emoji {
-  width: 56px; height: 56px;
+  width: 72px; height: 72px;
   border-radius: 10px;
   background: linear-gradient(135deg, #f5f0db, #faf5e6);
   display: flex; align-items: center; justify-content: center;
-  font-size: 28px; flex-shrink: 0;
+  font-size: 32px; flex-shrink: 0;
   border: 1px solid rgba(201,168,76,.2);
 }
 body.dark .card-emoji { background: linear-gradient(135deg, #2a2415, #1f1a10); }
@@ -3249,10 +3249,10 @@ async function handleGoogleCredential(response) {
 // Keep buildUserFromRow (used by OAuth + legacy SSO restore)
 function buildUserFromRow(user, email, role) {
   // AllowBelowSuggest column in User Sheet:
-  //   1 (or empty) = can sell BELOW suggested tier price (default behavior)
-  //   0 = cannot sell below — price input is locked to ≥ suggested tier
+  //   1 = can sell at S01 (below S01+2)
+  //   0 or empty = blocked at S01+2 (default safe)
   const allowBelowRaw = String(user['AllowBelowSuggest'] || '').trim();
-  const allowBelow = allowBelowRaw === '' ? true : (allowBelowRaw !== '0');
+  const allowBelow = allowBelowRaw === '1';
   return {
     email,
     name:        user['ชื่อ - สกุล'] || user['ชื่อ-สกุล'] || '',
@@ -6577,9 +6577,12 @@ function _initOrderCardState(p) {
   const cartIdx = cart.findIndex(c => c.productId === id && c.shopId === currentShopId);
   if (cartIdx >= 0) {
     const c = cart[cartIdx];
-    // Sync draft with cart so live edits know baseline
-    window._orderDraft[id] = { unit: c.unit, qty: c.qty, price: c.price };
-    return { id, unit: c.unit, qty: c.qty, price: c.price, status: 'confirmed', cartIdx };
+    // Only seed draft from cart on first open — preserve tier/pallet changes made after confirm
+    if (!window._orderDraft[id]) {
+      window._orderDraft[id] = { unit: c.unit, qty: c.qty, price: c.price };
+    }
+    const d = window._orderDraft[id];
+    return { id, unit: d.unit || c.unit, qty: parseInt(d.qty) || c.qty, price: d.price ?? '', status: 'confirmed', cartIdx };
   }
   // 2) Draft? (working state but not yet confirmed)
   if (window._orderDraft[id]) {
