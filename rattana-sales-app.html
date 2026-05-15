@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.23</title>
+<title>Rattana Sales — v6.5.24</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -2982,6 +2982,69 @@ body.dark .oc2-tier-range { background: #1a3060; color: #7a90b8; }
 body.dark .oc2-footer { background: #0c1a35; border-color: #1a3060; }
 body.dark .oc2-foot-hint { color: #7a90b8; }
 body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
+
+/* ─── Route Plan Panel (วางแผนรูท v6.5.24) ─── */
+.route-plan-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: linear-gradient(135deg, rgba(201,168,76,.12), rgba(201,168,76,.06));
+  color: var(--gold); border: 1.5px solid rgba(201,168,76,.35);
+  border-radius: 10px; padding: 11px 14px; width: 100%;
+  font-size: 14px; font-weight: 700; font-family: Sarabun, sans-serif;
+  cursor: pointer; margin: 8px 0 4px; transition: opacity .15s;
+}
+.route-plan-btn:active { opacity: .8; }
+.route-plan-btn.plan-active { background: linear-gradient(135deg, rgba(46,204,113,.12), rgba(46,204,113,.06)); border-color: rgba(46,204,113,.4); color: #2ecc71; }
+#routePlanPanel {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;
+  background: var(--surface); border-top: 1px solid var(--border);
+  border-top-left-radius: 20px; border-top-right-radius: 20px;
+  padding: 20px 16px calc(env(safe-area-inset-bottom, 0px) + 28px);
+  box-shadow: 0 -6px 32px rgba(0,0,0,.22);
+  transform: translateY(100%); transition: transform .3s cubic-bezier(.4,0,.2,1);
+  max-height: 88vh; overflow-y: auto;
+}
+#routePlanPanel.open { transform: translateY(0); }
+.rpp-handle { width: 44px; height: 4px; background: var(--border); border-radius: 2px; margin: -8px auto 16px; }
+.rpp-title { font-size: 17px; font-weight: 800; color: var(--text); margin-bottom: 16px; }
+.rpp-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 5px; }
+.rpp-select { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--row-alt); color: var(--text); font-size: 14px; font-family: Sarabun, sans-serif; margin-bottom: 14px; outline: none; }
+.rpp-select:focus { border-color: var(--gold); }
+.rpp-effort-row { display: flex; gap: 8px; margin-bottom: 16px; }
+.rpp-eff-btn { flex: 1; padding: 9px 4px; border: 1.5px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--muted); font-size: 12px; font-weight: 700; font-family: Sarabun, sans-serif; cursor: pointer; text-align: center; transition: all .15s; }
+.rpp-eff-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,.08); }
+.rpp-calc-btn { width: 100%; padding: 14px; background: var(--gold); color: #0d1b3e; border: none; border-radius: 12px; font-size: 15px; font-weight: 800; font-family: Sarabun, sans-serif; cursor: pointer; transition: opacity .15s; }
+.rpp-calc-btn:disabled { opacity: .5; cursor: not-allowed; }
+.rpp-status { text-align: center; font-size: 13px; color: var(--muted); margin: 10px 0; min-height: 20px; }
+.rpp-result { background: var(--row-alt); border-radius: 12px; padding: 12px; margin: 14px 0 0; display: none; }
+.rpp-result-head { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.rpp-result-head span { color: var(--gold); }
+.rpp-stop-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.rpp-stop-row:last-child { border-bottom: none; }
+.rpp-stop-num { width: 26px; height: 26px; border-radius: 50%; background: var(--gold); color: #0d1b3e; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; flex-shrink: 0; }
+.rpp-stop-num.visited { background: #2ecc71; color: #fff; }
+.rpp-stop-num.start { background: #f39c12; }
+.rpp-stop-num.end { background: #9b59b6; color: #fff; }
+.rpp-stop-name { flex: 1; color: var(--text); font-weight: 600; }
+.rpp-stop-dist { font-size: 11px; color: var(--muted); }
+.rpp-action-row { display: flex; gap: 8px; margin-top: 14px; }
+.rpp-apply-btn { flex: 2; padding: 12px; background: linear-gradient(135deg, #0d1b3e, #1a3060); color: var(--gold); border: 1.5px solid rgba(201,168,76,.4); border-radius: 10px; font-size: 14px; font-weight: 700; font-family: Sarabun, sans-serif; cursor: pointer; }
+.rpp-gmaps-btn { flex: 1; padding: 12px; background: var(--surface); color: var(--text); border: 1.5px solid var(--border); border-radius: 10px; font-size: 13px; font-weight: 700; font-family: Sarabun, sans-serif; cursor: pointer; }
+.rpp-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 9998; display: none; }
+.rpp-overlay.open { display: block; }
+.rpp-close-row { display: flex; justify-content: center; margin-top: 12px; }
+.rpp-cancel-btn { background: none; border: none; color: var(--muted); font-size: 13px; font-family: Sarabun, sans-serif; cursor: pointer; padding: 8px 20px; }
+
+/* ─── Re-route from here button ─── */
+.reroute-btn { display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(52,152,219,.1); color: #3498db; border: 1.5px solid rgba(52,152,219,.3); border-radius: 8px; padding: 8px 12px; font-size: 13px; font-weight: 700; font-family: Sarabun, sans-serif; cursor: pointer; width: 100%; margin-top: 6px; }
+.reroute-btn:active { opacity: .8; }
+
+/* ─── Team Map Screen (แผนที่ทีม v6.5.24) ─── */
+#teamMapEl { height: calc(100vh - 176px); min-height: 300px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+.team-map-legend { display: flex; gap: 12px; flex-wrap: wrap; padding: 8px 0; font-size: 12px; color: var(--muted); }
+.tm-leg-item { display: flex; align-items: center; gap: 5px; }
+.tm-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.team-map-btn { display: flex; align-items: center; gap: 6px; background: linear-gradient(135deg, rgba(52,152,219,.15), rgba(52,152,219,.08)); color: #3498db; border: 1.5px solid rgba(52,152,219,.3); border-radius: 10px; padding: 10px 14px; font-size: 14px; font-weight: 700; font-family: Sarabun, sans-serif; cursor: pointer; width: 100%; margin-top: 14px; justify-content: center; }
+.team-map-btn:active { opacity: .8; }
 </style>
   <!-- Google Identity Services (v5.0 — real OAuth login) -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -3016,7 +3079,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.23 · 2026-05-15</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.24 · 2026-05-15</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -3027,7 +3090,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.23</span>
+  <span class="demo-tag">v6.5.24</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -3112,7 +3175,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.23<br>2026-05-15 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.24<br>2026-05-15 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -3172,6 +3235,10 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
       <button class="filter-chip" id="rfPending" data-rf="pending" onclick="setRouteStatusFilter('pending')">⏳ ยังไม่เช็คอิน</button>
       <button class="filter-chip" id="rfDone" data-rf="done" onclick="setRouteStatusFilter('done')">✅ เยี่ยมแล้ว</button>
     </div>
+
+    <!-- Plan Route button -->
+    <button class="route-plan-btn" id="planRouteBtn" onclick="openRoutePlanPanel()">🗺️ วางแผนรูทวันนี้ — ให้ AI เรียงลำดับให้</button>
+    <button class="reroute-btn" id="rerouteBtn" style="display:none" onclick="rerouteFromHere()">🔄 เรียงใหม่จากตำแหน่งฉัน (ร้านที่เหลือ)</button>
 
     <div id="shopList"></div>
 
@@ -3584,6 +3651,7 @@ let SHEET_DATA = {
   syncStatus:      [],   // _SyncStatus tab rows (latest = stock sync state)
   debtData:        [],   // SQL Data rows (1 row = 1 invoice/AR line)
   debtMap:         {},   // { รหัสลูกหนี้: [invoice rows] }
+  visits:          [],   // raw Visits tab rows — all salesmen, today (for supervisor map)
   loaded:          false,
 };
 
@@ -4412,6 +4480,7 @@ function _buildDebtDetailHtml(s) {
 // ─── VISIT HYDRATION FROM SHEET ──────────────────────────────────────────────
 
 function hydrateVisitsFromSheet(rows) {
+  SHEET_DATA.visits = rows || [];   // keep raw rows for supervisor map
   const myCode = (SALESMAN.salesmanCode || SALESMAN.code || '').trim();
   let count = 0;
   (rows || []).forEach(r => {
@@ -5926,7 +5995,7 @@ function goRoute() {
 
   // Default — go to shop list
   renderShopList(); showScreen('screenRoute'); updateCartBar();
-  // v6.5.23: proactively fetch fresh GPS in background so ใกล้ฉัน sort is ready immediately
+  // v6.5.24: proactively fetch fresh GPS in background so ใกล้ฉัน sort is ready immediately
   refreshGPS(true)
     .then(() => { if (_routeSort === 'near') renderShopList(); })
     .catch(() => {}); // silent fail — user can tap ใกล้ฉัน to retry
@@ -6605,6 +6674,8 @@ function renderWarehouseDashboard() {
         `;
       }).join('')}
     </div>
+
+    <button class="team-map-btn" onclick="goTeamMap()">🗺️ แผนที่ทีม — ดูตำแหน่งเซลล์วันนี้</button>
   `;
 }
 
@@ -6735,6 +6806,8 @@ function renderCompanyDashboard() {
         }).join('')}
       </div>
     ` : ''}
+
+    <button class="team-map-btn" onclick="goTeamMap()">🗺️ แผนที่ทีม — ดูตำแหน่งเซลล์วันนี้</button>
   `;
 }
 
@@ -6761,7 +6834,7 @@ function filterShops(text) {
 window.filterShops = filterShops;
 
 function setRouteSort(val) {
-  // v6.5.23: don't toggle near OFF — near is always the default, clicking again re-fetches GPS
+  // v6.5.24: don't toggle near OFF — near is always the default, clicking again re-fetches GPS
   _routeSort = val;
   _updateRouteFilterChips();
   if (_routeSort === 'near') {
@@ -6797,92 +6870,7 @@ function _updateRouteFilterChips() {
   if (doneEl)    doneEl.classList.toggle('active', _routeStatusFilter === 'done');
 }
 
-function renderShopList() {
-  const list = document.getElementById('shopList');
-  if (!list) return;
-
-  // Show skeleton placeholder while customers data still loading (v4.5)
-  if (window.isLoading && window.isLoading('customers') && SHOPS.length === 0) {
-    list.innerHTML = Array(4).fill(0).map(() => `
-      <div class="skel-card">
-        <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
-          <span class="skel skel-pill" style="width:60px"></span>
-          <span class="skel skel-line" style="flex:1;max-width:none"></span>
-        </div>
-        <span class="skel skel-line lg" style="width:180px;display:block;margin-bottom:6px"></span>
-        <span class="skel skel-line sm" style="width:140px;display:block"></span>
-        <div style="display:flex;gap:6px;margin-top:10px">
-          <span class="skel skel-pill" style="width:50px"></span>
-          <span class="skel skel-pill" style="width:50px"></span>
-          <span class="skel skel-pill" style="width:50px"></span>
-        </div>
-      </div>
-    `).join('');
-    const inEl = document.getElementById('inCount'); if (inEl) inEl.innerHTML = '<span class="skel skel-pill" style="width:20px"></span>';
-    const offEl = document.getElementById('offCount'); if (offEl) offEl.innerHTML = '<span class="skel skel-pill" style="width:20px"></span>';
-    return;
-  }
-
-  let filtered = SHOPS.filter(s => currentRouteTab === 'in' ? s.inRoute : !s.inRoute);
-
-  // Tab counts always show TOTAL (before search filter applied)
-  document.getElementById('inCount').textContent = SHOPS.filter(s => s.inRoute).length;
-  document.getElementById('offCount').textContent = SHOPS.filter(s => !s.inRoute).length;
-  _updateRouteProgress();
-
-  // Apply search filter (name + address only — per Surat 2026-05-08)
-  if (_shopSearchQuery) {
-    const q = _shopSearchQuery;
-    filtered = filtered.filter(s =>
-      String(s.name||'').toLowerCase().includes(q) ||
-      String(s.addr||'').toLowerCase().includes(q)
-    );
-  }
-
-  // Status filter chips
-  if (_routeStatusFilter === 'pending') {
-    filtered = filtered.filter(s => {
-      const v = visits[s.id];
-      const done = s.status === 'visited' || s.status === 'refused' || (v && !!v.checkOutTime);
-      const active = v && !v.checkOutTime;
-      return !done && !active;
-    });
-  } else if (_routeStatusFilter === 'done') {
-    filtered = filtered.filter(s => {
-      const v = visits[s.id];
-      return s.status === 'visited' || s.status === 'refused' || (v && !!v.checkOutTime);
-    });
-  }
-
-  if (filtered.length === 0) {
-    const emptyMsg = _shopSearchQuery
-      ? `🔍 ไม่พบร้านที่ตรงกับ "${escapeHtml(_shopSearchQuery)}"`
-      : _routeStatusFilter === 'checkin' ? '📍 ยังไม่มีร้านที่เช็คอินอยู่'
-      : (currentRouteTab === 'off' ? '🗺️ ยังไม่มีร้านนอกรูทวันนี้' : 'ยังไม่มีร้านในรูท');
-    list.innerHTML = `<div class="card text-center" style="color:var(--muted);padding:40px 20px">${emptyMsg}</div>`;
-    return;
-  }
-
-  // Sort by distance (ใกล้ฉัน)
-  if (_routeSort === 'near' && SALESMAN.currentLat) {
-    filtered.sort((a, b) => (distanceToShop(a) ?? 999999) - (distanceToShop(b) ?? 999999));
-  }
-
-  // Build sections (default sort only — near/filtered show flat)
-  const useSections = _routeSort === 'default' && _routeStatusFilter === 'all';
-  if (useSections) {
-    const secActive  = filtered.filter(s => { const v = visits[s.id]; return v && !v.checkOutTime; });
-    const secPending = filtered.filter(s => { const v = visits[s.id]; const ci = v && !v.checkOutTime; const co = v && !!v.checkOutTime; return !ci && !co && s.status !== 'visited' && s.status !== 'refused'; });
-    const secDone    = filtered.filter(s => { const v = visits[s.id]; const co = v && !!v.checkOutTime; return s.status === 'visited' || co || s.status === 'refused'; });
-    let html = '';
-    if (secActive.length)  html += `<div class="route-section-hdr">📍 กำลังเยี่ยม (${secActive.length})</div>`  + secActive.map(_buildShopCardHTML).join('');
-    if (secPending.length) html += `<div class="route-section-hdr">⏳ ยังไม่เยี่ยม (${secPending.length})</div>` + secPending.map(_buildShopCardHTML).join('');
-    if (secDone.length)    html += `<div class="route-section-hdr">✓ เสร็จแล้ว (${secDone.length})</div>`       + secDone.map(_buildShopCardHTML).join('');
-    list.innerHTML = html;
-  } else {
-    list.innerHTML = filtered.map(_buildShopCardHTML).join('');
-  }
-}
+// renderShopList — moved below initMap (v6.5.24) with plan-sort support
 
 function _buildShopCardHTML(s) {
   const visit      = visits[s.id];
@@ -7152,6 +7140,658 @@ function initMap() {
 }
 
 // ═══════════════════════════════════════════════════════════
+// TSP ROUTE PLANNING (v6.5.24)
+// Algorithm: Nearest Neighbor → 2-opt → Or-opt → double-bridge
+// Adapted from rattana-route-optimizer.html
+// ═══════════════════════════════════════════════════════════
+
+// km distance wrapper (existing haversine returns meters)
+function _tspKm(a, b) { return haversine(a.lat, a.lng, b.lat, b.lng) / 1000; }
+
+function _tspNN(n, start, cost) {
+  if (n === 0) return [];
+  const visited = new Array(n).fill(false);
+  const route = [start]; visited[start] = true;
+  for (let i = 1; i < n; i++) {
+    const last = route[route.length - 1];
+    let nearest = -1, minC = Infinity;
+    for (let j = 0; j < n; j++) { if (!visited[j]) { const c = cost(last, j); if (c < minC) { minC = c; nearest = j; } } }
+    route.push(nearest); visited[nearest] = true;
+  }
+  return route;
+}
+
+function _tspLen(route, cost) {
+  let t = 0; for (let i = 1; i < route.length; i++) t += cost(route[i-1], route[i]); return t;
+}
+
+function _tsp2opt(route, cost) {
+  let r = [...route]; const n = r.length; if (n < 4) return r;
+  let imp = true, iter = 0;
+  while (imp && iter < 500) {
+    imp = false; iter++;
+    for (let i = 1; i < n - 1; i++) {
+      for (let j = i + 1; j < n; j++) {
+        const A = r[i-1], B = r[i], C = r[j], D = j+1 < n ? r[j+1] : null;
+        const old = cost(A, B) + (D !== null ? cost(C, D) : 0);
+        const nw  = cost(A, C) + (D !== null ? cost(B, D) : 0);
+        if (nw < old - 1e-9) { r = [...r.slice(0,i), ...r.slice(i,j+1).reverse(), ...r.slice(j+1)]; imp = true; }
+      }
+    }
+  }
+  return r;
+}
+
+function _tspOrOpt(route, cost, k) {
+  let r = [...route]; const n = r.length; if (n < k + 3) return r;
+  let imp = true, iter = 0;
+  while (imp && iter < 300) {
+    imp = false; iter++;
+    for (let i = 1; i + k <= n; i++) {
+      const se = i + k - 1, prev = r[i-1], sF = r[i], sL = r[se];
+      if (se + 1 >= n) continue;
+      const next = r[se+1];
+      const remG = cost(prev, sF) + cost(sL, next) - cost(prev, next);
+      let bestJ = -1, bestD = 0;
+      for (let j = 0; j < n; j++) {
+        if (j >= i-1 && j <= se) continue;
+        const a = r[j], b = j+1 < n ? r[j+1] : null; if (!b) continue;
+        const fwd = cost(a, sF) + cost(sL, b) - cost(a, b) - remG;
+        if (fwd < bestD - 1e-9) { bestD = fwd; bestJ = j; }
+      }
+      if (bestJ !== -1) {
+        const seg = r.slice(i, se+1);
+        const without = [...r.slice(0,i), ...r.slice(se+1)];
+        const ins = bestJ < i ? bestJ+1 : bestJ-k+1;
+        without.splice(ins, 0, ...seg); r = without; imp = true; break;
+      }
+    }
+  }
+  return r;
+}
+
+function _tspDoubleBridge(route) {
+  const n = route.length; if (n < 8) return [...route];
+  const rand = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo));
+  const q = Math.floor(n / 4);
+  const p1 = rand(1, q+1), p2 = p1 + rand(1, q+1), p3 = p2 + rand(1, q+1);
+  if (p3 >= n) return [...route];
+  return [...route.slice(0,p1), ...route.slice(p3), ...route.slice(p2,p3), ...route.slice(p1,p2)];
+}
+
+function _tspFull(route, cost) {
+  let imp = true, safety = 0;
+  while (imp && safety < 20) {
+    imp = false; safety++;
+    const before = _tspLen(route, cost);
+    route = _tsp2opt(route, cost);
+    route = _tspOrOpt(route, cost, 1);
+    route = _tspOrOpt(route, cost, 2);
+    route = _tspOrOpt(route, cost, 3);
+    if (_tspLen(route, cost) < before - 1e-6) imp = true;
+  }
+  return route;
+}
+
+function _tspThorough(route, cost, restarts) {
+  let best = _tspFull(route, cost), bestLen = _tspLen(best, cost);
+  for (let k = 0; k < restarts; k++) {
+    const c = _tspFull(_tspDoubleBridge(best), cost);
+    const l = _tspLen(c, cost);
+    if (l < bestLen - 1e-6) { best = c; bestLen = l; }
+  }
+  return best;
+}
+
+// Fetch OSRM road distance matrix for an array of {lat,lng} points
+async function _fetchOsrmMatrix(locs) {
+  if (locs.length > 80) throw new Error('too many');
+  const coords = locs.map(l => `${l.lng},${l.lat}`).join(';');
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 12000);
+  try {
+    const res = await fetch(`https://router.project-osrm.org/table/v1/driving/${coords}?annotations=distance`, { signal: ctrl.signal });
+    if (!res.ok) throw new Error('OSRM ' + res.status);
+    const d = await res.json();
+    if (d.code !== 'Ok') throw new Error('OSRM not OK');
+    return d.distances.map(row => row.map(m => m == null ? Infinity : m / 1000));
+  } finally { clearTimeout(timer); }
+}
+
+// Build Google Maps URL for ordered waypoints (splits every 9 points)
+function _buildGMapsUrl(waypoints) {
+  const urls = [];
+  for (let i = 0; i < waypoints.length; i += 9) {
+    const chunk = waypoints.slice(i, i + 9);
+    const coords = chunk.map(w => `${w.lat},${w.lng}`);
+    urls.push(`https://www.google.com/maps/dir/${coords.join('/')}`);
+  }
+  return urls;
+}
+
+// ─── Route Plan Panel state ───
+let _rppEffort = 'balanced';
+let _rppOptimizedOrder = null;   // array of shop indices into _rppShops
+let _rppShops = [];              // shops fed into the optimizer (only valid ones)
+let _rppTotalKm = 0;
+let _planPolyline = null;
+let _planMapMarkers = [];
+
+// Custom route order applied to shop list: null = off, array of shopIds = active plan
+let _planRouteOrder = null;
+
+function setRppEffort(eff) {
+  _rppEffort = eff;
+  document.querySelectorAll('.rpp-eff-btn').forEach(b => b.classList.toggle('active', b.dataset.eff === eff));
+}
+
+function openRoutePlanPanel() {
+  const panel = document.getElementById('routePlanPanel');
+  const overlay = document.getElementById('rppOverlay');
+  if (!panel) return;
+
+  // Populate start/end selectors with today's route shops
+  const shops = SHOPS.filter(s => s.inRoute && s.lat && s.lng);
+  const startSel = document.getElementById('rppStart');
+  const endSel = document.getElementById('rppEnd');
+  startSel.innerHTML = '<option value="__gps__">📍 ตำแหน่งฉัน (GPS)</option>';
+  endSel.innerHTML = '<option value="__none__">— ไม่กำหนด (จบอัตโนมัติ) —</option>';
+  shops.forEach(s => {
+    const visited = s.status === 'visited' || s.status === 'refused';
+    const label = `${visited ? '✓ ' : ''}${s.name}`;
+    startSel.innerHTML += `<option value="${s.id}">${label}</option>`;
+    endSel.innerHTML += `<option value="${s.id}">${label}</option>`;
+  });
+
+  document.getElementById('rppStatus').textContent = '';
+  document.getElementById('rppResult').style.display = 'none';
+  panel.classList.add('open');
+  overlay.classList.add('open');
+}
+window.openRoutePlanPanel = openRoutePlanPanel;
+
+function closeRoutePlanPanel() {
+  document.getElementById('routePlanPanel')?.classList.remove('open');
+  document.getElementById('rppOverlay')?.classList.remove('open');
+}
+window.closeRoutePlanPanel = closeRoutePlanPanel;
+
+async function runRoutePlanning() {
+  const statusEl = document.getElementById('rppStatus');
+  const calcBtn = document.getElementById('rppCalcBtn');
+  const resultEl = document.getElementById('rppResult');
+
+  const startVal = document.getElementById('rppStart').value;
+  const endVal = document.getElementById('rppEnd').value;
+
+  // Build shop list — use all in-route shops with coords
+  const allShops = SHOPS.filter(s => s.inRoute && s.lat && s.lng);
+  if (allShops.length < 2) { statusEl.textContent = '⚠️ ต้องมีร้านอย่างน้อย 2 ร้านในรูทที่มีพิกัด'; return; }
+
+  calcBtn.disabled = true;
+  calcBtn.textContent = '⏳ กำลังคำนวณ...';
+  statusEl.textContent = '';
+  resultEl.style.display = 'none';
+
+  try {
+    // Build location array: depot + shops
+    // depot = GPS position OR selected start shop
+    const locations = [];
+    let depotIsGps = startVal === '__gps__';
+    let fixedEndIdx = -1;  // index in locations array
+
+    if (depotIsGps) {
+      // GPS as virtual start — refresh first
+      statusEl.textContent = '📍 กำลังหาตำแหน่ง GPS...';
+      try {
+        const gps = await getMyGPS();
+        SALESMAN.currentLat = gps.lat; SALESMAN.currentLng = gps.lng; SALESMAN.gpsEnabled = true;
+      } catch(e) { /* use last known position */ }
+      locations.push({ lat: SALESMAN.currentLat, lng: SALESMAN.currentLng, name: '📍 ตำแหน่งฉัน', shopId: '__gps__' });
+    }
+
+    // If start is a specific shop, put it first
+    let startShop = null;
+    if (!depotIsGps) {
+      startShop = allShops.find(s => s.id === startVal);
+      if (startShop) locations.push({ lat: startShop.lat, lng: startShop.lng, name: startShop.name, shopId: startShop.id });
+    }
+
+    // Add remaining shops (excluding start if fixed)
+    const middleShops = allShops.filter(s => s.id !== startVal && s.id !== endVal);
+    middleShops.forEach(s => locations.push({ lat: s.lat, lng: s.lng, name: s.name, shopId: s.id }));
+
+    // If fixed end, add last
+    if (endVal !== '__none__') {
+      const endShop = allShops.find(s => s.id === endVal);
+      if (endShop) {
+        fixedEndIdx = locations.length;
+        locations.push({ lat: endShop.lat, lng: endShop.lng, name: endShop.name, shopId: endShop.id });
+      }
+    }
+
+    if (locations.length < 2) { statusEl.textContent = '⚠️ ต้องมีร้านอย่างน้อย 2 จุด'; calcBtn.disabled = false; calcBtn.textContent = '⚡ คำนวณเส้นทาง'; return; }
+
+    // Try OSRM road matrix, fallback to Haversine
+    let cost;
+    let costLabel = '📏 ระยะเส้นตรง';
+    statusEl.textContent = '🌐 กำลังโหลดระยะถนนจาก OSRM...';
+    try {
+      const matrix = await _fetchOsrmMatrix(locations);
+      cost = (i, j) => matrix[i][j];
+      costLabel = '🚗 ระยะถนนจริง';
+    } catch(e) {
+      cost = (i, j) => _tspKm(locations[i], locations[j]);
+    }
+
+    statusEl.textContent = '⚙️ กำลังคำนวณเส้นทางที่ดีที่สุด...';
+
+    // Run optimizer — start always index 0
+    const n = locations.length;
+    let route = _tspNN(n, 0, cost);
+
+    if (fixedEndIdx !== -1) {
+      // With fixed end: optimize middle, keep 0 and fixedEndIdx pinned
+      // Remove end from route, optimize middle, append end
+      const withoutEnd = route.filter(i => i !== fixedEndIdx);
+      const optimizedMiddle = _tspFull(withoutEnd, cost);
+      route = [...optimizedMiddle, fixedEndIdx];
+    } else {
+      const restarts = n <= 20 ? 10 : n <= 40 ? 6 : 3;
+      if (_rppEffort === 'fast') {
+        route = _tsp2opt(route, cost);
+      } else if (_rppEffort === 'balanced') {
+        route = _tspFull(route, cost);
+      } else {
+        route = _tspThorough(route, cost, restarts);
+      }
+    }
+
+    const totalKm = _tspLen(route, cost);
+    _rppShops = locations;
+    _rppOptimizedOrder = route;
+    _rppTotalKm = totalKm;
+
+    // Render result list
+    const headEl = document.getElementById('rppResultHead');
+    headEl.innerHTML = `เส้นทาง ${route.length} จุด · <span>${totalKm.toFixed(1)} km</span> · ${costLabel}`;
+
+    const stopListEl = document.getElementById('rppStopList');
+    let stopsHtml = '', cumKm = 0;
+    route.forEach((locIdx, order) => {
+      const loc = locations[locIdx];
+      const isFirst = order === 0;
+      const isLast = order === route.length - 1 && fixedEndIdx !== -1 && locIdx === fixedEndIdx;
+      const shop = SHOPS.find(s => s.id === loc.shopId);
+      const visited = shop && (shop.status === 'visited' || shop.status === 'refused');
+      const numClass = isFirst ? 'start' : isLast ? 'end' : visited ? 'visited' : '';
+      const label = isFirst ? '★' : order + 1;
+      if (order > 0) cumKm += cost(route[order-1], locIdx);
+      stopsHtml += `
+        <div class="rpp-stop-row">
+          <div class="rpp-stop-num ${numClass}">${label}</div>
+          <div class="rpp-stop-name">${escapeHtml(loc.name)}</div>
+          <div class="rpp-stop-dist">${order > 0 ? cumKm.toFixed(1)+' km' : 'start'}</div>
+        </div>`;
+    });
+    stopListEl.innerHTML = stopsHtml;
+    resultEl.style.display = 'block';
+
+    // Draw polyline on route map
+    _drawPlanPolyline(route, locations);
+
+    statusEl.textContent = '';
+  } catch(e) {
+    statusEl.textContent = '⚠️ เกิดข้อผิดพลาด: ' + e.message;
+  } finally {
+    calcBtn.disabled = false;
+    calcBtn.textContent = '⚡ คำนวณเส้นทาง';
+  }
+}
+window.runRoutePlanning = runRoutePlanning;
+
+function _drawPlanPolyline(route, locations) {
+  if (!routeMap) return;
+  // Remove old plan markers + polyline
+  _planMapMarkers.forEach(m => m.remove()); _planMapMarkers = [];
+  if (_planPolyline) { _planPolyline.remove(); _planPolyline = null; }
+
+  const latlngs = route.map(i => [locations[i].lat, locations[i].lng]);
+  _planPolyline = L.polyline(latlngs, { color: '#c9a84c', weight: 3, opacity: .8, dashArray: '6,4' }).addTo(routeMap);
+
+  route.forEach((locIdx, order) => {
+    const loc = locations[locIdx];
+    const isFirst = order === 0;
+    const color = isFirst ? '#f39c12' : '#c9a84c';
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="width:26px;height:26px;border-radius:50%;background:${color};border:2px solid #fff;display:flex;align-items:center;justify-content:center;color:#0d1b3e;font-weight:800;font-size:11px;box-shadow:0 2px 6px rgba(0,0,0,.3);margin-left:-13px;margin-top:-13px">${isFirst ? '★' : order+1}</div>`,
+      iconSize: [26,26], iconAnchor: [13,13]
+    });
+    const m = L.marker([loc.lat, loc.lng], { icon }).addTo(routeMap);
+    m.bindPopup(`<b>${isFirst ? '★ ' : (order+1)+'. '}${loc.name}</b>`);
+    _planMapMarkers.push(m);
+  });
+
+  routeMap.fitBounds(L.latLngBounds(latlngs), { padding: [30,30], maxZoom: 13 });
+}
+
+function applyPlanToRoute() {
+  if (!_rppOptimizedOrder || !_rppShops.length) return;
+  // Build ordered shopId list, skipping GPS depot
+  _planRouteOrder = _rppOptimizedOrder
+    .map(i => _rppShops[i].shopId)
+    .filter(id => id !== '__gps__');
+
+  _routeSort = 'plan';
+  // Update filter chip UI
+  const nearEl = document.getElementById('rfNear');
+  if (nearEl) { nearEl.textContent = '🗺️ วางแผน ✓'; nearEl.classList.add('active'); }
+
+  // Show re-route button
+  const rrBtn = document.getElementById('rerouteBtn');
+  if (rrBtn) rrBtn.style.display = 'flex';
+
+  // Update plan button appearance
+  const planBtn = document.getElementById('planRouteBtn');
+  if (planBtn) { planBtn.textContent = '🗺️ แผนวันนี้ใช้งานอยู่ — กดเพื่อแก้ไข'; planBtn.classList.add('plan-active'); }
+
+  renderShopList();
+  closeRoutePlanPanel();
+  showToast(`✅ ใช้เส้นทาง ${_planRouteOrder.length} ร้าน · ${_rppTotalKm.toFixed(1)} km`, 'success');
+}
+window.applyPlanToRoute = applyPlanToRoute;
+
+async function rerouteFromHere() {
+  if (!_planRouteOrder) return;
+  showToast('🔄 กำลังคำนวณเส้นทางใหม่...', 'info');
+  try {
+    await refreshGPS(true);
+  } catch(e) { /* use last known */ }
+
+  // Only unvisited shops remain
+  const remaining = SHOPS.filter(s =>
+    s.inRoute && s.lat && s.lng &&
+    s.status !== 'visited' && s.status !== 'refused' &&
+    !(visits[s.id]?.checkOutTime)
+  );
+  if (remaining.length < 2) { showToast('ไม่มีร้านที่เหลือเพียงพอ', 'warning'); return; }
+
+  const locs = [
+    { lat: SALESMAN.currentLat, lng: SALESMAN.currentLng, shopId: '__gps__' },
+    ...remaining.map(s => ({ lat: s.lat, lng: s.lng, shopId: s.id }))
+  ];
+  const cost = (i, j) => _tspKm(locs[i], locs[j]);
+  const n = locs.length;
+  let route = _tspNN(n, 0, cost);
+  route = _tspFull(route, cost);
+
+  _planRouteOrder = route.map(i => locs[i].shopId).filter(id => id !== '__gps__');
+  renderShopList();
+  showToast(`✅ เรียงใหม่ ${_planRouteOrder.length} ร้านที่เหลือ`, 'success');
+}
+window.rerouteFromHere = rerouteFromHere;
+
+function openGoogleMapsForPlan() {
+  if (!_rppOptimizedOrder || !_rppShops.length) return;
+  const wps = _rppOptimizedOrder
+    .map(i => _rppShops[i])
+    .filter(l => l.shopId !== '__gps__');
+  const urls = _buildGMapsUrl(wps);
+  if (urls.length === 1) {
+    window.open(urls[0], '_blank');
+  } else {
+    // Multiple chunks — open first, inform user
+    urls.forEach((u, i) => setTimeout(() => window.open(u, '_blank'), i * 300));
+    showToast(`เปิด ${urls.length} ลิงก์ Google Maps (เกิน 9 จุด)`, 'info');
+  }
+}
+window.openGoogleMapsForPlan = openGoogleMapsForPlan;
+
+function renderShopList() {
+  const list = document.getElementById('shopList');
+  if (!list) return;
+
+  if (window.isLoading && window.isLoading('customers') && SHOPS.length === 0) {
+    list.innerHTML = Array(4).fill(0).map(() => `<div class="skel-card"><div style="display:flex;gap:10px;align-items:center;margin-bottom:8px"><span class="skel skel-pill" style="width:60px"></span><span class="skel skel-line" style="flex:1;max-width:none"></span></div><span class="skel skel-line lg" style="width:180px;display:block;margin-bottom:6px"></span><span class="skel skel-line sm" style="width:140px;display:block"></span><div style="display:flex;gap:6px;margin-top:10px"><span class="skel skel-pill" style="width:50px"></span><span class="skel skel-pill" style="width:50px"></span><span class="skel skel-pill" style="width:50px"></span></div></div>`).join('');
+    const inEl = document.getElementById('inCount'); if (inEl) inEl.innerHTML = '<span class="skel skel-pill" style="width:20px"></span>';
+    const offEl = document.getElementById('offCount'); if (offEl) offEl.innerHTML = '<span class="skel skel-pill" style="width:20px"></span>';
+    return;
+  }
+
+  let filtered = SHOPS.filter(s => currentRouteTab === 'in' ? s.inRoute : !s.inRoute);
+  document.getElementById('inCount').textContent = SHOPS.filter(s => s.inRoute).length;
+  document.getElementById('offCount').textContent = SHOPS.filter(s => !s.inRoute).length;
+  _updateRouteProgress();
+
+  if (_shopSearchQuery) {
+    const q = _shopSearchQuery;
+    filtered = filtered.filter(s => String(s.name||'').toLowerCase().includes(q) || String(s.addr||'').toLowerCase().includes(q));
+  }
+
+  if (_routeStatusFilter === 'pending') {
+    filtered = filtered.filter(s => { const v = visits[s.id]; const done = s.status==='visited'||s.status==='refused'||(v&&!!v.checkOutTime); const active = v&&!v.checkOutTime; return !done&&!active; });
+  } else if (_routeStatusFilter === 'done') {
+    filtered = filtered.filter(s => { const v = visits[s.id]; return s.status==='visited'||s.status==='refused'||(v&&!!v.checkOutTime); });
+  }
+
+  if (filtered.length === 0) {
+    const emptyMsg = _shopSearchQuery ? `🔍 ไม่พบร้านที่ตรงกับ "${escapeHtml(_shopSearchQuery)}"` : _routeStatusFilter === 'checkin' ? '📍 ยังไม่มีร้านที่เช็คอินอยู่' : (currentRouteTab === 'off' ? '🗺️ ยังไม่มีร้านนอกรูทวันนี้' : 'ยังไม่มีร้านในรูท');
+    list.innerHTML = `<div class="card text-center" style="color:var(--muted);padding:40px 20px">${emptyMsg}</div>`;
+    return;
+  }
+
+  // Sort
+  if (_routeSort === 'plan' && _planRouteOrder && currentRouteTab === 'in') {
+    // Sort by plan order; unplanned shops go to end
+    filtered.sort((a, b) => {
+      const ai = _planRouteOrder.indexOf(a.id);
+      const bi = _planRouteOrder.indexOf(b.id);
+      return (ai === -1 ? 9999 : ai) - (bi === -1 ? 9999 : bi);
+    });
+  } else if (_routeSort === 'near' && SALESMAN.currentLat) {
+    filtered.sort((a, b) => (distanceToShop(a) ?? 999999) - (distanceToShop(b) ?? 999999));
+  }
+
+  const useSections = _routeSort === 'default' && _routeStatusFilter === 'all';
+  if (useSections) {
+    const secActive  = filtered.filter(s => { const v=visits[s.id]; return v&&!v.checkOutTime; });
+    const secPending = filtered.filter(s => { const v=visits[s.id]; const ci=v&&!v.checkOutTime; const co=v&&!!v.checkOutTime; return !ci&&!co&&s.status!=='visited'&&s.status!=='refused'; });
+    const secDone    = filtered.filter(s => { const v=visits[s.id]; const co=v&&!!v.checkOutTime; return s.status==='visited'||co||s.status==='refused'; });
+    let html = '';
+    if (secActive.length)  html += `<div class="route-section-hdr">📍 กำลังเยี่ยม (${secActive.length})</div>` + secActive.map(_buildShopCardHTML).join('');
+    if (secPending.length) html += `<div class="route-section-hdr">⏳ ยังไม่เยี่ยม (${secPending.length})</div>` + secPending.map(_buildShopCardHTML).join('');
+    if (secDone.length)    html += `<div class="route-section-hdr">✅ เยี่ยมแล้ว (${secDone.length})</div>` + secDone.map(_buildShopCardHTML).join('');
+    list.innerHTML = html || '<div class="card text-center" style="color:var(--muted);padding:40px 20px">ยังไม่มีร้านในรูท</div>';
+  } else {
+    list.innerHTML = filtered.map((s, idx) => {
+      const planNum = (_routeSort === 'plan' && _planRouteOrder) ? (_planRouteOrder.indexOf(s.id) + 1) : null;
+      return _buildShopCardHTML(s, idx, planNum);
+    }).join('');
+  }
+  _updatePlanBtnVisibility();
+}
+window.renderShopList = renderShopList;
+
+function _updatePlanBtnVisibility() {
+  const rrBtn = document.getElementById('rerouteBtn');
+  if (!rrBtn) return;
+  if (_planRouteOrder) {
+    const doneCount = SHOPS.filter(s => s.inRoute && (s.status==='visited'||s.status==='refused'||(visits[s.id]?.checkOutTime))).length;
+    rrBtn.style.display = doneCount > 0 ? 'flex' : 'none';
+  } else {
+    rrBtn.style.display = 'none';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// TEAM MAP — Supervisor view (level 5+, v6.5.24)
+// Shows last known position of each salesman from Visits sheet
+// ═══════════════════════════════════════════════════════════
+
+let teamMap = null;
+let _teamMapMarkers = [];
+let _teamMapPolylines = [];
+
+function goTeamMap() {
+  showScreen('screenTeamMap');
+  // Init map on first open (needs DOM to be visible)
+  setTimeout(() => {
+    initTeamMap();
+    renderTeamMap();
+  }, 60);
+}
+window.goTeamMap = goTeamMap;
+
+function goBack_teamMap() {
+  showScreen('screenHome');
+}
+window.goBack_teamMap = goBack_teamMap;
+
+function initTeamMap() {
+  const el = document.getElementById('teamMapEl');
+  if (!el || teamMap) {
+    if (teamMap) { [50,200,500].forEach(t => setTimeout(() => teamMap.invalidateSize(), t)); }
+    return;
+  }
+  teamMap = L.map('teamMapEl', { zoomControl: true, preferCanvas: true }).setView([13.6, 99.95], 9);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '© OSM © CARTO', subdomains: 'abcd', maxZoom: 19
+  }).addTo(teamMap);
+  [50, 200, 500, 1000].forEach(t => setTimeout(() => teamMap.invalidateSize(), t));
+}
+
+function renderTeamMap() {
+  initTeamMap();
+  if (!teamMap) return;
+
+  // Clear existing markers
+  _teamMapMarkers.forEach(m => m.remove()); _teamMapMarkers = [];
+  _teamMapPolylines.forEach(p => p.remove()); _teamMapPolylines = [];
+
+  // Build last-known-position per salesman from Visits sheet rows
+  const visitRows = SHEET_DATA.visits || [];
+  const todayVisits = visitRows.filter(r => isToday(String(r['วัน']||'')));
+
+  // Map: salesmanCode → array of visit rows (sorted by check-in time)
+  const byCode = new Map();
+  for (const r of todayVisits) {
+    const code = String(r['รหัสเซลล์']||'').trim();
+    if (!code) continue;
+    if (!byCode.has(code)) byCode.set(code, []);
+    byCode.get(code).push(r);
+  }
+
+  // Sort each salesman's visits by check-in time
+  byCode.forEach((rows, code) => {
+    rows.sort((a, b) => String(a['เวลาเช็คอิน']||'').localeCompare(String(b['เวลาเช็คอิน']||'')));
+  });
+
+  // Get salesman list for this warehouse / all (based on role)
+  const allSalesmen = allSalesmenFromSheet();
+  const viewSalesmen = SALESMAN.level >= 6
+    ? allSalesmen
+    : allSalesmen.filter(s => s.warehouseId === SALESMAN.warehouseId);
+
+  const allPoints = [];
+  let cardHtml = '';
+
+  viewSalesmen.forEach(sm => {
+    const smRows = byCode.get(sm.code) || [];
+    // Last position = most recent check-in with coords
+    let lastLat = null, lastLng = null, lastShopName = '', lastTime = '', hasOutOfRange = false;
+
+    smRows.forEach(r => {
+      const coordStr = String(r['พิกัดเช็คอิน']||'').trim();
+      if (coordStr && coordStr.includes(',')) {
+        const [latS, lngS] = coordStr.split(',');
+        const lat = parseFloat(latS), lng = parseFloat(lngS);
+        if (!isNaN(lat) && !isNaN(lng)) {
+          lastLat = lat; lastLng = lng;
+          lastShopName = String(r['ชื่อร้าน']||'').trim();
+          lastTime = String(r['เวลาเช็คอิน']||'').trim();
+        }
+      }
+      // Check for any out-of-range check-ins
+      if (String(r['หมายเหตุ']||'').includes('นอก') || String(r['พิกัดเช็คอิน']||'').trim() === '') {
+        /* heuristic — we don't have outOfRangeReason in sheet yet */
+      }
+    });
+
+    // Determine status
+    const lastRow = smRows[smRows.length - 1];
+    const isCheckedIn = lastRow && lastRow['เวลาเช็คอิน'] && !lastRow['เวลาเช็คเอาท์'];
+    const hasAnyVisit = smRows.length > 0;
+
+    let dotColor = '#95a5a6'; // no visits
+    let statusLabel = 'ยังไม่เริ่ม';
+    let statusClass = 'none';
+    if (isCheckedIn)    { dotColor = '#2ecc71'; statusLabel = 'กำลังเยี่ยม'; statusClass = 'active'; }
+    else if (hasAnyVisit) { dotColor = '#3498db'; statusLabel = `${smRows.length} ร้าน`; statusClass = 'idle'; }
+
+    // Place marker if we have coordinates
+    if (lastLat && lastLng) {
+      allPoints.push([lastLat, lastLng]);
+      const icon = L.divIcon({
+        className: '',
+        html: `<div style="position:relative">
+          <div style="width:36px;height:36px;border-radius:50%;background:${dotColor};border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 3px 10px rgba(0,0,0,.35);margin-left:-18px;margin-top:-18px">👤</div>
+          ${isCheckedIn ? '<div style="position:absolute;top:-2px;right:-2px;width:10px;height:10px;border-radius:50%;background:#2ecc71;border:2px solid #fff"></div>' : ''}
+        </div>`,
+        iconSize: [36,36], iconAnchor: [18,18]
+      });
+      const m = L.marker([lastLat, lastLng], { icon }).addTo(teamMap);
+      m.bindPopup(`
+        <div style="font-family:Sarabun,sans-serif;min-width:160px">
+          <b style="font-size:14px">👤 ${escapeHtml(sm.name)}</b><br>
+          <span style="font-size:11px;color:#666">${sm.code} · คลัง${sm.warehouseId}</span><br>
+          ${lastShopName ? `<span style="font-size:12px">📍 ${escapeHtml(lastShopName)}</span><br>` : ''}
+          ${lastTime ? `<span style="font-size:11px;color:#888">⏰ ${lastTime}</span><br>` : ''}
+          <span style="font-size:12px;color:${dotColor};font-weight:700">${statusLabel}</span><br>
+          <div style="margin-top:6px;font-size:12px">💰 วันนี้ ฿${Math.round(sm.todaySales).toLocaleString()} · ${sm.visits} ร้าน</div>
+        </div>
+      `);
+      _teamMapMarkers.push(m);
+
+      // Draw breadcrumb trail (line connecting check-ins in time order)
+      const crumbs = smRows
+        .map(r => { const c = String(r['พิกัดเช็คอิน']||'').trim(); if (!c.includes(',')) return null; const [la,lo] = c.split(','); const lt=parseFloat(la),lg=parseFloat(lo); return (!isNaN(lt)&&!isNaN(lg)) ? [lt,lg] : null; })
+        .filter(Boolean);
+      if (crumbs.length >= 2) {
+        const line = L.polyline(crumbs, { color: dotColor, weight: 2, opacity: .5, dashArray: '4,4' }).addTo(teamMap);
+        _teamMapPolylines.push(line);
+      }
+    }
+
+    cardHtml += `
+      <div class="tm-salesman-card" onclick="if(${lastLat||'null'}&&${lastLng||'null'})teamMap.flyTo([${lastLat||0},${lastLng||0}],14)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:10px;height:10px;border-radius:50%;background:${dotColor};flex-shrink:0"></div>
+          <div style="flex:1">
+            <div class="tm-sm-name">${escapeHtml(sm.name)}</div>
+            <div class="tm-sm-meta">${sm.code} · คลัง${sm.warehouseId} · วันนี้ ฿${Math.round(sm.todaySales).toLocaleString()}</div>
+          </div>
+          <span class="tm-sm-status ${statusClass}">${statusLabel}</span>
+        </div>
+      </div>`;
+  });
+
+  // Fit map
+  if (allPoints.length > 0) {
+    teamMap.fitBounds(L.latLngBounds(allPoints), { padding: [40,40], maxZoom: 13 });
+  }
+
+  // Update sub-title
+  const sub = document.getElementById('teamMapSub');
+  if (sub) sub.textContent = `${viewSalesmen.filter(s=>s.todaySales>0).length} active จาก ${viewSalesmen.length} คน • ${formatDateISO(new Date())}`;
+
+  // Render salesman list
+  const listEl = document.getElementById('teamMapSalesmenList');
+  if (listEl) listEl.innerHTML = cardHtml || `<div class="card text-center" style="color:var(--muted);padding:30px">ยังไม่มีข้อมูลเซลล์วันนี้</div>`;
+}
+window.renderTeamMap = renderTeamMap;
+
+// ═══════════════════════════════════════════════════════════
 // SHOP DETAIL
 // ═══════════════════════════════════════════════════════════
 function renderShopDetail(shopId) {
@@ -7308,7 +7948,7 @@ function renderShopDetail(shopId) {
   `;
 }
 
-// Check in — always get fresh GPS first (v6.5.23: never use stale position for check-in)
+// Check in — always get fresh GPS first (v6.5.24: never use stale position for check-in)
 function doCheckIn(shopId) {
   const s = SHOPS.find(x => x.id === shopId);
   if (!s) return;
@@ -11246,7 +11886,7 @@ function recalcPromoForRows(remainingRows, templateRow) {
   return newPromoRows;
 }
 
-// v6.5.23: Cancel a line — optimistic UI + write ยกเลิก to col V + recalc promo
+// v6.5.24: Cancel a line — optimistic UI + write ยกเลิก to col V + recalc promo
 window.deleteOrderRow = async function(btnEl, orderId, barcode, productName) {
   if (!confirm(`ยืนยันยกเลิก:\n"${productName}"\nออเดอร์ ${orderId}?`)) return;
 
@@ -13048,6 +13688,69 @@ window.addEventListener('load', () => {
 
 </div><!-- /app-shell -->
 </div><!-- /appScreen -->
+
+<!-- ═══════════════════════ ROUTE PLAN PANEL ═══════════════════════ -->
+<div class="rpp-overlay" id="rppOverlay" onclick="closeRoutePlanPanel()"></div>
+<div id="routePlanPanel">
+  <div class="rpp-handle"></div>
+  <div class="rpp-title">🗺️ วางแผนรูทวันนี้</div>
+
+  <div class="rpp-label">จุดเริ่มต้น</div>
+  <select class="rpp-select" id="rppStart">
+    <option value="__gps__">📍 ตำแหน่งฉัน (GPS)</option>
+  </select>
+
+  <div class="rpp-label">ร้านสุดท้าย (ไม่บังคับ)</div>
+  <select class="rpp-select" id="rppEnd">
+    <option value="__none__">— ไม่กำหนด (จบอัตโนมัติ) —</option>
+  </select>
+
+  <div class="rpp-label">ความละเอียดในการคำนวณ</div>
+  <div class="rpp-effort-row">
+    <button class="rpp-eff-btn" data-eff="fast" onclick="setRppEffort('fast')">⚡ เร็ว</button>
+    <button class="rpp-eff-btn active" data-eff="balanced" onclick="setRppEffort('balanced')">⚖️ สมดุล</button>
+    <button class="rpp-eff-btn" data-eff="thorough" onclick="setRppEffort('thorough')">🎯 ละเอียด</button>
+  </div>
+
+  <button class="rpp-calc-btn" id="rppCalcBtn" onclick="runRoutePlanning()">⚡ คำนวณเส้นทาง</button>
+  <div class="rpp-status" id="rppStatus"></div>
+
+  <div class="rpp-result" id="rppResult">
+    <div class="rpp-result-head" id="rppResultHead"></div>
+    <div id="rppStopList"></div>
+    <div class="rpp-action-row">
+      <button class="rpp-apply-btn" onclick="applyPlanToRoute()">✅ ใช้รูทนี้</button>
+      <button class="rpp-gmaps-btn" onclick="openGoogleMapsForPlan()">🗺️ Google Maps</button>
+    </div>
+  </div>
+
+  <div class="rpp-close-row">
+    <button class="rpp-cancel-btn" onclick="closeRoutePlanPanel()">ยกเลิก / ปิด</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════ TEAM MAP SCREEN ═══════════════════════ -->
+<section class="screen" id="screenTeamMap">
+  <div class="page-bar" style="margin:-16px -16px 16px;top:60px">
+    <button class="back-btn" onclick="goBack_teamMap()">←</button>
+    <div>
+      <div class="page-title">แผนที่ทีม</div>
+      <div class="page-sub" id="teamMapSub">ตำแหน่งเซลล์วันนี้</div>
+    </div>
+    <button style="background:none;border:none;color:var(--gold);font-size:13px;font-weight:700;cursor:pointer;font-family:Sarabun,sans-serif" onclick="renderTeamMap()">🔄</button>
+  </div>
+
+  <div id="teamMapEl"></div>
+
+  <div class="team-map-legend">
+    <div class="tm-leg-item"><div class="tm-dot" style="background:#2ecc71"></div>กำลังเยี่ยม</div>
+    <div class="tm-leg-item"><div class="tm-dot" style="background:#3498db"></div>เช็คเอาท์แล้ว</div>
+    <div class="tm-leg-item"><div class="tm-dot" style="background:#95a5a6"></div>ยังไม่เริ่ม</div>
+    <div class="tm-leg-item"><div class="tm-dot" style="background:#e74c3c"></div>เช็คอินนอกพื้นที่</div>
+  </div>
+
+  <div id="teamMapSalesmenList" style="margin-top:8px"></div>
+</section>
 
 </body>
 </html>
