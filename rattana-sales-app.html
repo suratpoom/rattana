@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.19</title>
+<title>Rattana Sales — v6.5.20</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -3016,7 +3016,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.19 · 2026-05-15</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.20 · 2026-05-15</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -3027,7 +3027,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.19</span>
+  <span class="demo-tag">v6.5.20</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -3104,7 +3104,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.19<br>2026-05-15 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.20<br>2026-05-15 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -10947,13 +10947,16 @@ window.viewSheetOrderDetail = function(orderId) {
   const time     = String(first['เวลา']||'');
 
   // Separate ขาย vs แถม vs ยกเลิก rows
-  const saleRows   = allRows.filter(r => String(r['รูปแบบ']||'ขาย').trim() === 'ขาย');
-  const freeRows   = allRows.filter(r => String(r['รูปแบบ']||'').trim() === 'แถม');
-  const cancelRows = allRows.filter(r => String(r['รูปแบบ']||'').trim() === 'ยกเลิก');
-  const cancelledBarcodes = new Set(cancelRows.map(r => String(r['Barcode']||'').trim()));
+  // v6.5.20: cancelled = col ยกเลิก = 'ยกเลิก' (new) OR รูปแบบ = 'ยกเลิก' (old append approach)
+  const oldCancelRows = allRows.filter(r => String(r['รูปแบบ']||'').trim() === 'ยกเลิก');
+  const oldCancelledBarcodes = new Set(oldCancelRows.map(r => String(r['Barcode']||'').trim()));
+  const isRowCancelled = r => String(r['ยกเลิก']||'').trim() === 'ยกเลิก' || oldCancelledBarcodes.has(String(r['Barcode']||'').trim());
+
+  const saleRows = allRows.filter(r => String(r['รูปแบบ']||'ขาย').trim() === 'ขาย');
+  const freeRows = allRows.filter(r => String(r['รูปแบบ']||'').trim() === 'แถม' && !isRowCancelled(r));
 
   const total = saleRows
-    .filter(r => !cancelledBarcodes.has(String(r['Barcode']||'').trim()))
+    .filter(r => !isRowCancelled(r))
     .reduce((s, r) => s + numv(r['ยอดเงินรวม']), 0);
 
   const rowHtml = (r, idx) => {
@@ -10964,7 +10967,7 @@ window.viewSheetOrderDetail = function(orderId) {
     const price    = numv(r['ราคา']);
     const rowTotal = numv(r['ยอดเงินรวม']);
     const isFree   = String(r['รูปแบบ']||'').trim() === 'แถม';
-    const isCancelled = cancelledBarcodes.has(barcode);
+    const isCancelled = isRowCancelled(r);
     const style = isCancelled ? 'opacity:.45;text-decoration:line-through' : '';
     const canDelete = !isCancelled && !isFree;
     const deleteBtn = canDelete
@@ -11024,43 +11027,130 @@ function openModal({ title, subtitle, body, showAdd = false }) {
   document.body.style.overflow = 'hidden';
 }
 
-// v5.0: Delete a single order row by appending "ยกเลิก" row via Apps Script
+// v6.5.20: Recalculate promotion from remaining active ขาย rows
+// Called after a line is cancelled to compute new แถม qty and append fresh row(s)
+function recalcPromoForRows(remainingRows, templateRow) {
+  if (!remainingRows.length) return [];
+  const promos = SHEET_DATA.promotions || [];
+  if (!promos.length) return [];
+
+  const now = new Date();
+  const newPromoRows = [];
+
+  for (const promo of promos) {
+    const measureBy  = String(promo['วิธีวัด']     || '').trim();
+    const matchValue = String(promo['ชื่อ']         || '').trim();
+    const threshold  = numv(promo['จำนวน']);
+    const sellMode   = String(promo['รูปแบบขาย']   || '').trim().toUpperCase();
+    const giftName   = String(promo['แถมสินค้า']   || '').trim();
+    const giftQtyPer = numv(promo['จำนวนแถม'])  || 1;
+    const giftUnit   = String(promo['หน่วยแถม']    || 'ชิ้น').trim();
+    const giftBarcode= String(promo['บาร์โค้ดแถม'] || '').trim();
+    if (!measureBy || !matchValue || !threshold || !giftName) continue;
+
+    let totalQty = 0;
+    for (const row of remainingRows) {
+      const bc = String(row['Barcode']||'').trim();
+      const p  = (SHEET_DATA.products||[]).find(x =>
+        String(x['CODE EA']||'')===bc || String(x['CODE CS']||'')===bc ||
+        String(x['CODE PA']||'')===bc || String(x['CODE BP']||'')===bc
+      );
+      if (!p) continue;
+
+      let pv = '';
+      if      (measureBy==='CAT BU')     pv = String(p['CAT BU']    ||'');
+      else if (measureBy==='CAT BRAND')  pv = String(p['CAT BRAND'] ||'');
+      else if (measureBy==='CAT TYPE')   pv = String(p['CAT TYPE']  ||'');
+      else if (measureBy==='CAT GROUP')  pv = String(p['CAT GROUP'] ||'');
+      else if (measureBy==='CAT VENDOR') pv = String(p['CAT VENDOR']||'');
+      else if (measureBy==='BARCODE')    pv = bc;
+      if (!pv || !pv.toLowerCase().includes(matchValue.toLowerCase())) continue;
+
+      const qty     = numv(row['จำนวน']);
+      const unitStr = String(row['หน่วย']||'');
+      if (sellMode === 'บาท') {
+        totalQty += numv(row['ยอดเงินรวม']);
+      } else if (sellMode === 'CS') {
+        totalQty += qty; // qty already in CS for CS rows
+      } else if (sellMode === 'EA') {
+        const m = unitStr.match(/[xX×](\d+)/);
+        const size = m ? parseInt(m[1]) : 1;
+        totalQty += qty * size;
+      } else {
+        totalQty += qty;
+      }
+    }
+
+    const tiersEarned = threshold > 0 ? Math.floor(totalQty / threshold) : 0;
+    if (tiersEarned <= 0) continue;
+
+    newPromoRows.push({
+      ...templateRow,
+      'รูปแบบ':     'แถม',
+      'Barcode':     giftBarcode,
+      'ชื่อสินค้า':  giftName,
+      'จำนวน':       tiersEarned * giftQtyPer,
+      'หน่วย':       giftUnit,
+      'ราคา':        0,
+      'ยอดเงินรวม':  0,
+      'เวลา':        formatTimeThai(now),
+      'หมายเหตุ':    `คำนวณใหม่หลังยกเลิก (${tiersEarned} ชุด × ${giftQtyPer})`,
+      'ยกเลิก':      '',
+    });
+  }
+  return newPromoRows;
+}
+
+// v6.5.20: Cancel a line — write 'ยกเลิก' to col V of original row + void old แถม + recalc promo
 window.deleteOrderRow = async function(orderId, barcode, productName) {
   if (!confirm(`ยืนยันยกเลิก:\n"${productName}"\nออเดอร์ ${orderId}?`)) return;
   showToast('กำลังยกเลิกรายการ...', 'info');
   try {
-    // Find the original row to copy its data
-    const origRow = (SHEET_DATA.orders || []).find(r =>
-      String(r['orderId']||'').trim() === orderId &&
-      String(r['Barcode']||'').trim() === barcode &&
-      String(r['รูปแบบ']||'ขาย').trim() === 'ขาย'
+    const allRows = (SHEET_DATA.orders || []).filter(r => String(r['orderId']||'').trim() === orderId);
+    const targetRow = allRows.find(r =>
+      String(r['Barcode']  ||'').trim() === barcode &&
+      String(r['รูปแบบ']  ||'ขาย').trim() === 'ขาย' &&
+      String(r['ยกเลิก']  ||'').trim() !== 'ยกเลิก'
     );
-    if (!origRow) throw new Error('ไม่พบข้อมูล row เดิม');
+    if (!targetRow) throw new Error('ไม่พบข้อมูล row เดิม');
 
-    const now = new Date();
-    const cancelRow = {
-      ...origRow,
-      'รูปแบบ':   'ยกเลิก',
-      'เวลา':     formatTimeThai(now),
-      'หมายเหตุ': `ยกเลิกโดย ${(currentUser&&currentUser.name)||SALESMAN.name} เวลา ${formatTimeThai(now)}`,
-    };
-    await submitOrderRow(cancelRow);
+    // Active แถม rows — will be voided
+    const activePromoRows = allRows.filter(r =>
+      String(r['รูปแบบ']||'').trim() === 'แถม' &&
+      String(r['ยกเลิก'] ||'').trim() !== 'ยกเลิก'
+    );
 
-    // Update in-memory SHEET_DATA.orders immediately
-    SHEET_DATA.orders = SHEET_DATA.orders || [];
-    SHEET_DATA.orders.unshift(cancelRow);
+    // Remaining ขาย rows after this cancellation (for promo recalc)
+    const remainingRows = allRows.filter(r =>
+      String(r['รูปแบบ']||'ขาย').trim() === 'ขาย' &&
+      String(r['Barcode'] ||'').trim()    !== barcode &&
+      String(r['ยกเลิก'] ||'').trim()    !== 'ยกเลิก'
+    );
 
-    // Clear orders cache so next refresh fetches fresh
+    // Recalculate promo from remaining rows
+    const newPromoRows = recalcPromoForRows(remainingRows, targetRow);
+
+    // Send to Apps Script — update col V + append new promo rows
+    await postToAppsScript({
+      action:            'updateOrderCancel',
+      orderId,
+      cancelledBarcodes: [barcode],
+      cancelAllPromos:   true,
+      newPromoRows,
+    });
+
+    // Update in-memory immediately (mutate existing objects)
+    targetRow['ยกเลิก'] = 'ยกเลิก';
+    activePromoRows.forEach(r => { r['ยกเลิก'] = 'ยกเลิก'; });
+    if (newPromoRows.length) {
+      SHEET_DATA.orders = SHEET_DATA.orders || [];
+      SHEET_DATA.orders.push(...newPromoRows);
+    }
+
     try { localStorage.removeItem('rsa_orders'); } catch {}
-
     showToast('✓ ยกเลิกรายการแล้ว', 'success');
     closeModal();
-
-    // Re-open the modal with updated data so user sees the change
-    setTimeout(() => {
-      viewSheetOrderDetail(orderId);
-      renderOrdersList();
-    }, 400);
+    setTimeout(() => { viewSheetOrderDetail(orderId); renderOrdersList(); }, 400);
   } catch (e) {
     console.error('deleteOrderRow:', e);
     showToast('ยกเลิกไม่สำเร็จ: ' + (e.message||e), 'error');
