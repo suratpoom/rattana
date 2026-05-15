@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.22</title>
+<title>Rattana Sales — v6.5.23</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -3016,7 +3016,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.22 · 2026-05-15</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.23 · 2026-05-15</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -3027,7 +3027,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.22</span>
+  <span class="demo-tag">v6.5.23</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -3077,10 +3077,18 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
   <div class="drawer-section-title">สินค้า</div>
   <button class="drawer-item" onclick="closeDrawer();goProductBrowse()">
-    <span class="drawer-item-icon">💰</span>
-    <span class="drawer-item-label">สินค้า</span>
+    <span class="drawer-item-icon">📦</span>
+    <span class="drawer-item-label">ดูสินค้าทั้งหมด</span>
     <span class="drawer-item-arrow">›</span>
   </button>
+  <div style="padding:0 16px 10px">
+    <div class="search-wrap" style="margin:0">
+      <input class="search-bar" type="text" id="drawerProductSearch" placeholder="ค้นหาสินค้า..." style="font-size:13px;padding:10px 36px"
+        oninput="toggleClearBtn('drawerProductSearch','drawerProductSearchClear')"
+        onkeydown="if(event.key==='Enter'&&this.value.trim()){closeDrawer();goProductBrowse();setTimeout(()=>{const el=document.getElementById('productSearch');if(el){el.value=this.value;el.dispatchEvent(new Event('input'));}},200)}">
+      <button id="drawerProductSearchClear" class="search-clear" onclick="document.getElementById('drawerProductSearch').value='';document.getElementById('drawerProductSearchClear').style.display='none'">✕</button>
+    </div>
+  </div>
 
   <div class="drawer-divider"></div>
 
@@ -3104,7 +3112,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.22<br>2026-05-15 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.23<br>2026-05-15 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -3142,9 +3150,9 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
   <!-- LIST VIEW -->
   <div id="routeListView" style="padding-top:12px">
-    <div class="search-wrap" style="margin-bottom:10px;position:relative">
+    <div class="search-wrap sticky-search" style="top:108px">
       <input class="search-bar" type="text" id="shopSearch" placeholder="ค้นหาชื่อร้าน หรือ ที่อยู่..." oninput="filterShops(this.value); toggleClearBtn('shopSearch','shopSearchClear')" style="padding-right:40px">
-      <button id="shopSearchClear" class="search-clear" style="right:10px" onclick="clearSearch('shopSearch','shopSearchClear', filterShops)">✕</button>
+      <button id="shopSearchClear" class="search-clear" onclick="clearSearch('shopSearch','shopSearchClear', filterShops)">✕</button>
     </div>
 
     <div class="route-tabs">
@@ -5834,7 +5842,7 @@ function getMyGPS() {
     navigator.geolocation.getCurrentPosition(
       pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy }),
       err => reject(err.message || 'ไม่สามารถเปิด GPS'),
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 }
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }  // maximumAge:0 = always fresh, never stale
     );
   });
 }
@@ -5875,7 +5883,12 @@ function showScreen(id) {
     document.getElementById('navHome').classList.add('active');
   } else if (['screenRoute','screenOrder','screenSummary','screenShop',
                'screenNoSale','screenReturn','screenNewShop'].includes(id)) {
-    document.getElementById('navRoute').classList.add('active');
+    // Browse mode (สินค้า tab) uses screenOrder but has no shop → highlight navPrice
+    if (id === 'screenOrder' && !currentShopId) {
+      document.getElementById('navPrice')?.classList.add('active');
+    } else {
+      document.getElementById('navRoute').classList.add('active');
+    }
   } else if (id === 'screenOrders') {
     document.getElementById('navOrders').classList.add('active');
   } else if (id === 'screenProductInfo') {
@@ -5913,6 +5926,10 @@ function goRoute() {
 
   // Default — go to shop list
   renderShopList(); showScreen('screenRoute'); updateCartBar();
+  // v6.5.23: proactively fetch fresh GPS in background so ใกล้ฉัน sort is ready immediately
+  refreshGPS(true)
+    .then(() => { if (_routeSort === 'near') renderShopList(); })
+    .catch(() => {}); // silent fail — user can tap ใกล้ฉัน to retry
 }
 // v5.0: Force reload orders from Sheet (clears cache first)
 window.forceReloadOrders = async function() {
@@ -6744,11 +6761,20 @@ function filterShops(text) {
 window.filterShops = filterShops;
 
 function setRouteSort(val) {
-  _routeSort = _routeSort === val ? 'default' : val;
+  // v6.5.23: don't toggle near OFF — near is always the default, clicking again re-fetches GPS
+  _routeSort = val;
   _updateRouteFilterChips();
   if (_routeSort === 'near') {
     showToast('📍 กำลังหาตำแหน่งคุณ...', 'info');
-    refreshGPS(true).then(() => renderShopList()).catch(() => renderShopList());
+    refreshGPS(true)
+      .then(loc => {
+        showToast(`📍 GPS ±${Math.round(loc.accuracy)}m`, 'success');
+        renderShopList();
+      })
+      .catch(() => {
+        showToast('⚠️ ไม่ได้รับ GPS — เปิดใช้งาน Location ในเบราว์เซอร์', 'warning');
+        renderShopList();
+      });
   } else {
     renderShopList();
   }
@@ -6941,7 +6967,7 @@ function _buildShopCardHTML(s) {
     <div class="shop-card-v2 ${cardStateCls}" onclick="goShop('${s.id}')">
       <div class="shc-banner">
         ${bannerImg}
-        <span class="shc-banner-emoji">🏪</span>
+        ${photoUrl ? '' : '<span class="shc-banner-emoji">🏪</span>'}
         ${debtChip}${distTag}
         <div class="shc-name-overlay">${escapeHtml(s.name)}</div>
       </div>
@@ -7060,18 +7086,17 @@ function initMap() {
   if (!mapEl) return;
 
   if (!routeMap) {
-    routeMap = L.map('routeMapEl', { zoomControl: true }).setView([13.6, 99.95], 10);
-    // OpenStreetMap standard tiles (universally accessible, no CDN issues)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    routeMap = L.map('routeMapEl', { zoomControl: true, preferCanvas: true }).setView([13.6, 99.95], 10);
+    // CartoDB Voyager — fast global CDN, crisp labels, works well in Thailand
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OSM</a> © <a href="https://carto.com/">CARTO</a>',
+      subdomains: 'abcd',
       maxZoom: 19,
     }).addTo(routeMap);
   }
 
-  // Belt-and-suspenders: fix tile rendering bug when map is in a hidden tab
-  setTimeout(() => routeMap.invalidateSize(), 50);
-  setTimeout(() => routeMap.invalidateSize(), 250);
-  setTimeout(() => routeMap.invalidateSize(), 500);
+  // Belt-and-suspenders: fix tile rendering when map is in a hidden tab
+  [50, 200, 500, 1000].forEach(t => setTimeout(() => routeMap.invalidateSize(), t));
 
   // clear old markers
   mapMarkers.forEach(m => m.remove());
@@ -7283,17 +7308,32 @@ function renderShopDetail(shopId) {
   `;
 }
 
-// Check in — silent within 50m, reason modal outside
+// Check in — always get fresh GPS first (v6.5.23: never use stale position for check-in)
 function doCheckIn(shopId) {
   const s = SHOPS.find(x => x.id === shopId);
   if (!s) return;
-  const distance = distanceToShop(s);
-  const inRange = distance !== null && distance <= 50;
-  if (!inRange && distance !== null) {
-    _showOutOfRangeModal(shopId, distance);
-    return;
-  }
-  _executeCheckIn(shopId, distance, inRange, null);
+  showToast('📍 กำลังตรวจสอบตำแหน่ง...', 'info');
+  refreshGPS(true)
+    .then(loc => {
+      const distance = distanceToShop(s);
+      const inRange  = distance !== null && distance <= 50;
+      if (!inRange && distance !== null) {
+        _showOutOfRangeModal(shopId, distance);
+        return;
+      }
+      _executeCheckIn(shopId, distance, inRange, null);
+    })
+    .catch(() => {
+      // GPS failed — use last known position with warning
+      const distance = distanceToShop(s);
+      const inRange  = distance !== null && distance <= 50;
+      showToast('⚠️ GPS ไม่แม่นยำ — ใช้ตำแหน่งล่าสุดแทน', 'warning');
+      if (!inRange && distance !== null) {
+        _showOutOfRangeModal(shopId, distance);
+        return;
+      }
+      _executeCheckIn(shopId, distance, inRange, null);
+    });
 }
 
 function _getOutOfRangeReasons() {
@@ -11076,8 +11116,8 @@ window.viewSheetOrderDetail = function(orderId) {
     const style = isCancelled ? 'opacity:.45;text-decoration:line-through' : '';
     const canDelete = !isCancelled && !isFree;
     const deleteBtn = canDelete
-      ? `<button onclick="deleteOrderRow('${orderId}','${escapeAttr(barcode)}','${escapeAttr(name)}')" style="padding:3px 8px;border:1.5px solid var(--danger);border-radius:6px;background:none;color:var(--danger);font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;font-family:inherit">🗑️</button>`
-      : (isCancelled ? '<span style="font-size:10px;color:var(--danger)">ยกเลิกแล้ว</span>' : '');
+      ? `<button onclick="deleteOrderRow(this,'${orderId}','${escapeAttr(barcode)}','${escapeAttr(name)}')" style="padding:3px 8px;border:1.5px solid var(--danger);border-radius:6px;background:none;color:var(--danger);font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;font-family:inherit">🗑️</button>`
+      : (isCancelled ? '<span style="font-size:10px;color:var(--danger);font-weight:700">✕ ยกเลิกแล้ว</span>' : '');
     return `
       <div style="${style};display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
         <div style="flex:1;min-width:0">
@@ -11206,9 +11246,21 @@ function recalcPromoForRows(remainingRows, templateRow) {
   return newPromoRows;
 }
 
-// v6.5.20: Cancel a line — write 'ยกเลิก' to col V of original row + void old แถม + recalc promo
-window.deleteOrderRow = async function(orderId, barcode, productName) {
+// v6.5.23: Cancel a line — optimistic UI + write ยกเลิก to col V + recalc promo
+window.deleteOrderRow = async function(btnEl, orderId, barcode, productName) {
   if (!confirm(`ยืนยันยกเลิก:\n"${productName}"\nออเดอร์ ${orderId}?`)) return;
+
+  // Optimistic UI — show strikethrough instantly, don't wait for API
+  const rowEl = btnEl?.closest('div[style]') || btnEl?.parentElement;
+  if (btnEl) {
+    btnEl.disabled = true;
+    btnEl.textContent = '⏳';
+    btnEl.style.opacity = '.5';
+  }
+  if (rowEl) {
+    rowEl.style.opacity = '.4';
+    rowEl.style.textDecoration = 'line-through';
+  }
   showToast('กำลังยกเลิกรายการ...', 'info');
   try {
     const allRows = (SHEET_DATA.orders || []).filter(r => String(r['orderId']||'').trim() === orderId);
