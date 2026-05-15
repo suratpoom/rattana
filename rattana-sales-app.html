@@ -12,8 +12,9 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.12 Desktop Layout</title>
+<title>Rattana Sales — v6.5.13 Order Card Premium Design</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -2645,6 +2646,317 @@ body.dark .text-gold { color: var(--gold-light); }
   /* ── 17. STICKY ROUTE HEADER inline styles fix ─────────── */
   #routeListView { padding-top: 16px; }
 }
+
+/* ══════════════════════════════════════════════════════════
+   ORDER CARD v2 (oc2) — Premium Design  v6.5.12
+   Font: IBM Plex Sans Thai. Mood: clean white + corporate navy.
+   All selectors scoped to .modal.oc2 to avoid bleed.
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Modal shell reset ── */
+#productModal .modal.oc2 {
+  font-family: 'IBM Plex Sans Thai','IBM Plex Sans','Sarabun',sans-serif !important;
+  padding: 0 !important;
+  max-width: 560px !important;
+  border-radius: 20px !important;
+  overflow: hidden !important;
+  background: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 1px 0 rgba(14,27,52,.04), 0 24px 48px -16px rgba(14,27,52,.28) !important;
+}
+
+/* ── CLOSE button ── */
+.oc2-close {
+  position: absolute; top: 14px; right: 14px; z-index: 20;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: rgba(14,27,52,.07); border: none;
+  color: #7785a0; font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s, color .15s;
+}
+.oc2-close:hover { background: rgba(14,27,52,.14); color: #0e1b34; }
+
+/* ── HEADER ── */
+.oc2-head {
+  display: grid;
+  grid-template-columns: 88px 1fr auto;
+  gap: 14px; align-items: start;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid #eef2fa;
+  position: relative;
+}
+.oc2-thumb {
+  width: 88px; height: 88px; border-radius: 14px;
+  overflow: hidden; flex-shrink: 0;
+  background: #eef3fe;
+  display: flex; align-items: center; justify-content: center;
+}
+.oc2-thumb img  { width:100%; height:100%; object-fit:cover; border-radius:14px; display:block; }
+.modal.oc2 .emoji-fallback {
+  width: 88px !important; height: 88px !important;
+  font-size: 38px !important; border-radius: 14px !important;
+  background: #eef3fe !important; margin: 0 !important;
+}
+.oc2-eyebrow {
+  font-size: 11px; font-weight: 600; color: #2557d6;
+  text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px;
+}
+.oc2-title {
+  font-size: 18px; font-weight: 700; color: #0e1b34;
+  line-height: 1.3; margin-bottom: 3px;
+}
+.oc2-sku  { font-size: 11px; color: #7785a0; font-variant-numeric: tabular-nums; margin-bottom: 4px; }
+.oc2-conv { font-size: 11px; color: #3d4d6b; font-variant-numeric: tabular-nums; }
+.oc2-conv-acc { color: #2557d6; font-weight: 700; text-transform: uppercase; }
+
+/* Side: stock badge + unit toggle */
+.oc2-side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.oc2-stock-btn {
+  background: #def1e6; color: #117a4e;
+  font-size: 12px; font-weight: 700;
+  padding: 5px 12px; border-radius: 999px;
+  cursor: pointer; border: 1px solid #b0ddc2;
+  font-variant-numeric: tabular-nums;
+  font-family: inherit;
+  transition: transform .12s, box-shadow .15s;
+}
+.oc2-stock-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(17,122,78,.2); }
+
+/* Unit toggle inside oc2 — override all old .unit-tab styles */
+.modal.oc2 .unit-tabs { display: flex; background: #f4f7fc; border-radius: 10px; padding: 3px; gap: 2px; }
+.modal.oc2 .unit-tab {
+  flex: initial !important; padding: 6px 10px !important;
+  border: none !important; border-radius: 8px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  display: flex !important; flex-direction: column !important;
+  align-items: center !important; gap: 1px !important;
+  min-width: 44px; cursor: pointer;
+  transition: background .15s !important;
+}
+.modal.oc2 .unit-tab-name { font-size: 13px !important; font-weight: 700 !important; color: #3d4d6b !important; }
+.modal.oc2 .unit-tab-price { display: none !important; }
+.modal.oc2 .unit-tab-stock { display: none !important; }
+.modal.oc2 .unit-tab.active { background: #0e1b34 !important; }
+.modal.oc2 .unit-tab.active .unit-tab-name { color: #fff !important; }
+.oc2-unit-sub { font-size: 9px; text-transform: uppercase; color: #7785a0; }
+.modal.oc2 .unit-tab.active .oc2-unit-sub { color: rgba(255,255,255,.6); }
+
+/* ── SCROLLABLE BODY ── */
+.oc2-body { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; }
+
+/* ── PROMO BANNER ── */
+.oc2-promo-wrap { padding: 12px 16px 0; }
+.oc2-promo-card {
+  background: linear-gradient(135deg, #eef3fe, #d9e5fb);
+  border-radius: 14px; padding: 13px 14px;
+  display: flex; align-items: center; gap: 12px;
+  position: relative; overflow: hidden;
+  border: 1px solid rgba(37,87,214,.12);
+}
+.oc2-promo-card.earned {
+  background: linear-gradient(135deg, #def1e6, #b0e4c0);
+  border-color: rgba(17,122,78,.18);
+}
+.oc2-promo-card.hint-card {
+  background: linear-gradient(135deg, #fef9e7, #fceca8);
+  border-color: rgba(162,91,7,.18);
+}
+.oc2-promo-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: #2557d6; color: #fff; font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.oc2-promo-card.earned .oc2-promo-icon { background: #117a4e; }
+.oc2-promo-card.hint-card .oc2-promo-icon { background: #a25b07; font-size: 14px; }
+.oc2-promo-body { flex: 1; min-width: 0; }
+.oc2-promo-tag {
+  font-size: 9px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .05em; color: #2557d6;
+  background: rgba(37,87,214,.1);
+  padding: 2px 7px; border-radius: 999px;
+  display: inline-block; margin-bottom: 4px;
+}
+.oc2-promo-card.earned .oc2-promo-tag { color: #117a4e; background: rgba(17,122,78,.12); }
+.oc2-promo-card.hint-card .oc2-promo-tag { color: #a25b07; background: rgba(162,91,7,.1); }
+.oc2-promo-deal { font-size: 12px; color: #0e1b34; line-height: 1.4; display: block; }
+.oc2-promo-vendor { font-size: 11px; color: #7785a0; margin-top: 2px; }
+.oc2-promo-chip {
+  flex-shrink: 0; font-size: 11px; font-weight: 700;
+  background: rgba(255,255,255,.7); color: #2557d6;
+  padding: 6px 11px; border-radius: 999px;
+  border: 1.5px solid rgba(37,87,214,.25);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.oc2-promo-chip.earned { background: #117a4e; color: #fff; border-color: #117a4e; }
+.oc2-promo-chip.hint { background: rgba(255,255,255,.5); color: #a25b07; border-color: rgba(162,91,7,.25); }
+.oc2-promo-spacer { height: 8px; }
+
+/* ── WAREHOUSE PILLS ── */
+.oc2-wh-section {
+  padding: 12px 16px;
+  background: #f4f7fc;
+  border-top: 1px solid #dde5f0;
+  border-bottom: 1px solid #dde5f0;
+  margin-top: 12px;
+}
+.oc2-wh-head {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 12px; color: #3d4d6b; margin-bottom: 10px;
+}
+.oc2-wh-head strong { color: #0e1b34; font-variant-numeric: tabular-nums; }
+.oc2-wh-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.oc2-wh-pill {
+  background: #fff; border: 1.5px solid #dde5f0;
+  border-radius: 12px; padding: 8px 4px 7px;
+  text-align: center; transition: border-color .15s, box-shadow .15s;
+}
+.oc2-wh-pill.empty { opacity: .4; }
+.oc2-wh-pill.mine  { border-color: #2557d6; box-shadow: 0 0 0 3px rgba(37,87,214,.1); }
+.oc2-wh-id   { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #7785a0; margin-bottom: 4px; }
+.oc2-wh-pill.mine .oc2-wh-id { color: #2557d6; }
+.oc2-wh-qty  { font-size: 14px; font-weight: 700; color: #0e1b34; font-variant-numeric: tabular-nums; line-height: 1.2; margin-bottom: 5px; }
+.oc2-wh-qty.zero { color: #b0b8cc; }
+.oc2-wh-bar-track { height: 3px; background: #dde5f0; border-radius: 999px; overflow: hidden; }
+.oc2-wh-bar-fill  { height: 100%; background: linear-gradient(90deg, #a8d4fb, #2557d6); border-radius: 999px; }
+
+/* ── ORDER ROW ── */
+.oc2-order-section { padding: 14px 16px 0; }
+.oc2-order-row {
+  display: flex; gap: 10px; align-items: center;
+  background: #f4f7fc; border: 1px solid #dde5f0;
+  border-radius: 14px; padding: 12px;
+}
+.oc2-stepper { flex: 1; display: flex; align-items: center; gap: 6px; }
+.oc2-step-btn {
+  width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+  border: 1.5px solid #dde5f0; background: #fff;
+  font-size: 24px; font-weight: 300; color: #2557d6; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-family: inherit;
+  transition: transform .1s, box-shadow .15s;
+}
+.oc2-step-btn:active { transform: scale(.93); }
+.oc2-step-btn:hover  { box-shadow: 0 2px 8px rgba(37,87,214,.15); }
+.oc2-qty-wrap { flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; }
+/* Override old .qty-input styles inside oc2 modal */
+.modal.oc2 .qty-input, #productModal .modal.oc2 #modalQty {
+  flex: none !important; width: 58px !important; height: auto !important;
+  padding: 0 !important; border: none !important;
+  background: transparent !important; border-radius: 0 !important;
+  text-align: center; font-size: 22px !important; font-weight: 700 !important;
+  color: #0e1b34; font-variant-numeric: tabular-nums;
+  font-family: 'IBM Plex Sans Thai','IBM Plex Sans','Sarabun',sans-serif;
+}
+.modal.oc2 .qty-input::placeholder { color: #b0b8cc !important; font-weight: 500 !important; }
+.oc2-unit-lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #7785a0; flex-shrink: 0; }
+.oc2-price-box {
+  display: flex; align-items: center; gap: 4px;
+  border: 1.5px solid #dde5f0; border-radius: 12px;
+  padding: 10px 12px; background: #fff; min-width: 120px;
+  transition: border-color .15s;
+}
+.oc2-price-box:focus-within { border-color: #2557d6; }
+.oc2-price-pfx  { font-size: 14px; font-weight: 600; color: #3d4d6b; flex-shrink: 0; }
+/* Override old .price-input styles inside oc2 modal */
+.modal.oc2 .price-input, #productModal .modal.oc2 #modalPrice {
+  width: 68px !important; max-width: 68px !important;
+  padding: 0 !important; border: none !important;
+  background: transparent !important; border-radius: 0 !important;
+  font-size: 18px !important; font-weight: 700 !important;
+  color: #0e1b34; text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-family: 'IBM Plex Sans Thai','IBM Plex Sans','Sarabun',sans-serif;
+}
+.modal.oc2 .price-input::placeholder { color: #b0b8cc !important; font-weight: 500 !important; opacity: 1 !important; }
+.oc2-price-sfx { font-size: 11px; color: #7785a0; white-space: nowrap; flex-shrink: 0; }
+.oc2-qty-hint { font-size: 11px; color: #7785a0; text-align: center; margin-top: 6px; font-variant-numeric: tabular-nums; min-height: 16px; }
+
+/* ── TIER CARDS ── */
+.oc2-tier-section { padding: 12px 16px; }
+.oc2-tier-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.oc2-tier-head-l { font-size: 12px; font-weight: 600; color: #0e1b34; }
+.oc2-tier-head-r { font-size: 11px; color: #7785a0; }
+.oc2-tier-rail { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.oc2-tier-rail.two-col { grid-template-columns: repeat(2, 1fr); }
+.oc2-tier-rail.one-col { grid-template-columns: 1fr; }
+.oc2-tier-card {
+  background: #f4f7fc; border: 1.5px solid #dde5f0;
+  border-radius: 14px; padding: 12px 10px;
+  cursor: pointer; text-align: left;
+  transition: transform .12s, border-color .15s, box-shadow .15s, background .15s;
+  position: relative; font-family: inherit;
+}
+.oc2-tier-card:hover   { transform: translateY(-1px); border-color: #c2cee0; }
+.oc2-tier-card.active  { background: #eef3fe; border-color: #2557d6; box-shadow: 0 0 0 3px rgba(37,87,214,.1); }
+.oc2-tier-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
+.oc2-tier-id   { font-size: 11px; font-weight: 700; color: #3d4d6b; text-transform: uppercase; }
+.oc2-tier-card.active .oc2-tier-id { color: #2557d6; }
+.oc2-tier-range {
+  font-size: 9px; color: #7785a0;
+  background: #e8eef7; padding: 2px 6px;
+  border-radius: 999px; font-variant-numeric: tabular-nums;
+}
+.oc2-tier-card.active .oc2-tier-range { background: rgba(37,87,214,.1); color: #2557d6; }
+.oc2-tier-price { font-size: 20px; font-weight: 700; color: #0e1b34; font-variant-numeric: tabular-nums; }
+.oc2-tier-pfx { font-size: 13px; }
+
+/* ── FOOTER ── */
+.oc2-footer {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px 20px;
+  border-top: 1px dashed #dde5f0;
+  background: #fff; flex-shrink: 0;
+}
+.oc2-foot-hint { font-size: 13px; color: #3d4d6b; flex: 1; line-height: 1.5; }
+.oc2-confirm-btn {
+  background: #0e1b34; color: #fff;
+  font-size: 14px; font-weight: 600;
+  padding: 12px 20px; border-radius: 12px; border: none;
+  cursor: pointer; display: flex; align-items: center; gap: 7px;
+  white-space: nowrap; font-family: inherit;
+  transition: background .15s, transform .12s, box-shadow .15s;
+}
+.oc2-confirm-btn:not(:disabled):hover { background: #2557d6; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(37,87,214,.3); }
+.oc2-confirm-btn:disabled { background: #dde5f0; color: #7785a0; cursor: not-allowed; }
+.oc2-delete-wrap { padding: 0 16px 16px; }
+.oc2-delete-btn {
+  width: 100%; background: transparent; border: 1.5px solid #dde5f0;
+  color: #7785a0; padding: 10px; border-radius: 12px;
+  font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
+  transition: border-color .15s, color .15s;
+}
+.oc2-delete-btn:hover { border-color: #ff4d6a; color: #ff4d6a; }
+/* Hidden compat layer */
+.oc2-compat { display: none !important; }
+/* dark mode oc2 */
+body.dark #productModal .modal.oc2 {
+  background: #0c1a35 !important;
+  box-shadow: 0 1px 0 rgba(0,0,0,.2), 0 24px 48px -16px rgba(0,0,0,.5) !important;
+}
+body.dark .oc2-head { border-color: #1a3060; }
+body.dark .oc2-eyebrow { color: #6b9fff; }
+body.dark .oc2-title { color: #dce6f7; }
+body.dark .oc2-sku, body.dark .oc2-conv { color: #7a90b8; }
+body.dark .oc2-conv-acc { color: #6b9fff; }
+body.dark .oc2-wh-section { background: #091526; border-color: #1a3060; }
+body.dark .oc2-wh-pill { background: #0c1a35; border-color: #1a3060; }
+body.dark .oc2-wh-qty { color: #dce6f7; }
+body.dark .oc2-wh-bar-track { background: #1a3060; }
+body.dark .oc2-order-row { background: #091526; border-color: #1a3060; }
+body.dark .oc2-step-btn { background: #0c1a35; border-color: #1a3060; }
+body.dark .oc2-price-box { background: #0c1a35; border-color: #1a3060; }
+body.dark .modal.oc2 .qty-input, body.dark #productModal .modal.oc2 #modalQty { color: #dce6f7; }
+body.dark .modal.oc2 .price-input, body.dark #productModal .modal.oc2 #modalPrice { color: #dce6f7; }
+body.dark .oc2-tier-card { background: #091526; border-color: #1a3060; }
+body.dark .oc2-tier-card.active { background: rgba(37,87,214,.15); border-color: #2557d6; }
+body.dark .oc2-tier-id { color: #7a90b8; }
+body.dark .oc2-tier-price { color: #dce6f7; }
+body.dark .oc2-tier-range { background: #1a3060; color: #7a90b8; }
+body.dark .oc2-footer { background: #0c1a35; border-color: #1a3060; }
+body.dark .oc2-foot-hint { color: #7a90b8; }
+body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 </style>
   <!-- Google Identity Services (v5.0 — real OAuth login) -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -2679,7 +2991,7 @@ body.dark .text-gold { color: var(--gold-light); }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.12 · 2026-05-15</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.13 · 2026-05-15</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -2690,7 +3002,7 @@ body.dark .text-gold { color: var(--gold-light); }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.12</span>
+  <span class="demo-tag">v6.5.13</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -2767,7 +3079,7 @@ body.dark .text-gold { color: var(--gold-light); }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.12<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.13<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -8271,6 +8583,103 @@ window.buildStockChips = buildStockChips;
 //   >30 days  → blue overstock (full bar + ↑ icon, alert: too much stock)
 //   0 stock   → gray + strikethrough qty
 // ═══════════════════════════════════════════════════════════════
+// ─── OC2: Warehouse pills (new premium design) ───────────────────────────────
+function buildOc2WarehousePills(sheet) {
+  const csSize  = getCsSize(sheet);
+  const myWh    = (currentUser && currentUser.warehouse) || SALESMAN.warehouseId || 'W1';
+  const depots  = WAREHOUSES.map(w => {
+    const parsed = parseStockCsEa(sheet[`STOCK ${w.id}`], csSize);
+    return { id: w.id, cs: parsed.cs || 0, isEmpty: parsed.empty || parsed.totalEa <= 0 };
+  });
+  const totalCs = depots.reduce((s, d) => s + d.cs, 0);
+  const maxCs   = Math.max(...depots.map(d => d.cs), 1);
+
+  const pillsHtml = depots.map(d => {
+    const fillPct = d.isEmpty ? 0 : Math.min(100, (d.cs / Math.max(maxCs, 2000)) * 100);
+    const isMine  = d.id === myWh;
+    const cls = ['oc2-wh-pill', d.isEmpty ? 'empty' : '', isMine ? 'mine' : ''].filter(Boolean).join(' ');
+    return `<div class="${cls}">
+      <div class="oc2-wh-id">${d.id}</div>
+      <div class="oc2-wh-qty${d.isEmpty ? ' zero' : ''}">${d.isEmpty ? '—' : d.cs.toLocaleString()}</div>
+      <div class="oc2-wh-bar-track"><div class="oc2-wh-bar-fill" style="width:${fillPct.toFixed(1)}%"></div></div>
+    </div>`;
+  }).join('');
+
+  return `<div class="oc2-wh-head">
+    <span>สต็อกในคลัง</span>
+    <span>รวม <strong>${totalCs.toLocaleString()}</strong> CS</span>
+  </div>
+  <div class="oc2-wh-grid">${pillsHtml}</div>`;
+}
+
+// ─── OC2: Tier cards ─────────────────────────────────────────────────────────
+function buildOc2TierCards(sheet, unitCode, currentQty) {
+  if (!sheet) return '';
+  const pr = productPrices(sheet, unitCode);
+  const tiers = [];
+  if (pr.S03) tiers.push({ key:'S03', label:'S03', range: unitCode==='CS' ? '< 10' : '< 10', min:1,  price:pr.S03 });
+  if (unitCode !== 'EA' && pr.S02) tiers.push({ key:'S02', label:'S02', range: unitCode==='CS' ? '10 – 19' : '≥ 10', min:10, price:pr.S02 });
+  if (unitCode === 'CS' && pr.S01) tiers.push({ key:'S01', label:'S01', range:'≥ 20', min:20, price:pr.S01 });
+  if (tiers.length < 2) return ''; // not worth showing if only 1 tier
+
+  // Derive auto-active tier
+  let autoKey = 'S03';
+  if (unitCode === 'CS') {
+    if (currentQty >= 20 && pr.S01) autoKey = 'S01';
+    else if (currentQty >= 10 && pr.S02) autoKey = 'S02';
+  } else if (unitCode !== 'EA') {
+    if (currentQty >= 10 && pr.S02) autoKey = 'S02';
+  }
+
+  const colCls = tiers.length === 2 ? 'two-col' : tiers.length === 1 ? 'one-col' : '';
+  const cardsHtml = tiers.map(t => `
+    <button class="oc2-tier-card${t.key === autoKey ? ' active' : ''}" data-tier="${t.key}"
+            onclick="selectOc2Tier('${t.key}',${t.min},${t.price})">
+      <div class="oc2-tier-top">
+        <span class="oc2-tier-id">${t.label}</span>
+        <span class="oc2-tier-range">${t.range}</span>
+      </div>
+      <div class="oc2-tier-price"><span class="oc2-tier-pfx">฿</span>${t.price.toLocaleString()}</div>
+    </button>`).join('');
+
+  return `<div class="oc2-tier-head">
+    <span class="oc2-tier-head-l">ระดับราคาตามจำนวน</span>
+    <span class="oc2-tier-head-r">ราคาจะปรับอัตโนมัติเมื่อเพิ่มจำนวน</span>
+  </div>
+  <div class="oc2-tier-rail ${colCls}">${cardsHtml}</div>`;
+}
+
+// ─── OC2: Tier card click ─────────────────────────────────────────────────────
+window.selectOc2Tier = function(tierKey, tierMin, tierPrice) {
+  const qtyInput   = document.getElementById('modalQty');
+  const priceInput = document.getElementById('modalPrice');
+  if (!qtyInput || !priceInput) return;
+  const currentQty = parseInt(qtyInput.value) || 0;
+  qtyInput.value   = Math.max(currentQty, tierMin);
+  priceInput.value = tierPrice;
+  priceInput._userEdited = true;
+  // Mark active card
+  document.querySelectorAll('.oc2-tier-card').forEach(c =>
+    c.classList.toggle('active', c.dataset.tier === tierKey)
+  );
+  updateModalTotal();
+};
+
+// ─── OC2: Stock badge click → switch to CS unit + set qty to total stock ─────
+window.selectOc2StockAll = function(totalCs) {
+  setUnit('case');
+  const qtyInput = document.getElementById('modalQty');
+  if (qtyInput && totalCs > 0) { qtyInput.value = totalCs; updateModalTotal(); }
+};
+
+// ─── OC2: Sync tier active state to current auto-tier ────────────────────────
+function _oc2SyncTierActive(qty, unit) {
+  const { tier } = getSuggestedTierPrice(currentModalProduct, unit, qty);
+  document.querySelectorAll('.oc2-tier-card').forEach(c =>
+    c.classList.toggle('active', c.dataset.tier === tier)
+  );
+}
+
 function buildDepotChips(p) {
   const csSize = getCsSize(p);
   const myWh = (currentUser && currentUser.warehouse) || SALESMAN.warehouseId || 'W1';
@@ -8794,86 +9203,130 @@ function openProductModal(productId, editIdx = -1) {
   // v6.0: stock chips moved out of header → into stock section in body
   const stockSectionHtml = p._sheet ? buildDepotChips(p._sheet) : '';
 
+  // ── OC2: build header meta ──
+  const sh2        = p._sheet || {};
+  const brand2     = String(sh2['CAT BRAND']||'').trim();
+  const catSize2   = String(sh2['CAT SIZE']||'').trim();
+  const eyebrow2   = [brand2, catSize2].filter(Boolean).join(' · ') || '';
+  const skuCode2   = sh2['CODE CS'] || sh2['CODE EA'] || sh2['CODE PA'] || '';
+  const qtyPA2     = numv(sh2['QTY PA']) || p.packSize || 0;
+  const qtyCS2     = getCsSize(sh2) || 1;
+  const convParts2 = [];
+  if (qtyPA2 > 1) convParts2.push(`<span class="oc2-conv-acc">PA</span>×${qtyPA2}`);
+  if (qtyCS2 > 1) convParts2.push(`<span class="oc2-conv-acc">CS</span>×${qtyCS2}`);
+  const convLine2  = convParts2.length ? `${convParts2.join(' · ')} <span style="color:#7785a0">EA / หน่วย</span>` : '';
+
+  // Total CS across all warehouses for stock badge
+  let totalCsAll = 0;
+  if (p._sheet) {
+    WAREHOUSES.forEach(w => {
+      const parsed = parseStockCsEa(sh2[`STOCK ${w.id}`], qtyCS2);
+      totalCsAll += parsed.cs || 0;
+    });
+  }
+  const stockBadgeHtml2 = totalCsAll > 0
+    ? `<button class="oc2-stock-btn" onclick="selectOc2StockAll(${totalCsAll})">${totalCsAll.toLocaleString()} CS</button>`
+    : '';
+
+  // Unit tabs for oc2 (EA code label + Thai sub)
+  const unitCodeLabelMap = { piece:'EA', pack:'PA', bigpack:'BP', case:'CS' };
+  const unitSubLabelMap  = { piece:'ชิ้น', pack:'แพ็ค', bigpack:'แพ็คใหญ่', case:'ลัง' };
+  const oc2UnitTabsHtml  = unitTabs.map(tab => {
+    // Re-render with code label on top + thai sub — keep same data-unit + onclick
+    const m = tab.match(/data-unit="([^"]+)"/);
+    const u = m ? m[1] : '';
+    const isActive = tab.includes('active');
+    const label = unitCodeLabelMap[u] || lbl(u, u.toUpperCase());
+    const sub   = unitSubLabelMap[u]  || '';
+    return `<button class="unit-tab${isActive?' active':''}" data-unit="${u}" onclick="setUnit('${u}')">
+      <div class="unit-tab-name">${label}</div>
+      <div class="oc2-unit-sub">${sub}</div>
+    </button>`;
+  }).join('');
+
+  // Tier cards (CS unit by default, will re-render when unit changes via updateModalTotal)
+  const oc2TierHtml = p._sheet ? buildOc2TierCards(sh2, unitCode2, editIdx >= 0 ? initialQty : 0) : '';
+
+  // Warehouse pills
+  const oc2WhHtml = p._sheet ? buildOc2WarehousePills(sh2) : '';
+
+  // Activate oc2 class on modal
+  document.getElementById('modalContent').className = 'modal oc2';
+
   document.getElementById('modalContent').innerHTML = `
-    <!-- HEADER: thumbnail + name + cat chips -->
-    <div class="modal-head">
-      <div class="modal-thumb">${modalThumbHtml}</div>
-      <div class="modal-head-info">
-        <div class="modal-title">${escapeHtml(p.name)}</div>
-        ${(()=>{
-          const sh = p._sheet || {};
-          const vendor = String(sh['CAT VENDOR']||'').trim();
-          const brand  = String(sh['CAT BRAND']||'').trim();
-          const size   = String(sh['CAT SIZE']||'').trim();
-          const chips = [];
-          if (vendor) chips.push(`<span class="cat-chip vendor">${escapeHtml(vendor)}</span>`);
-          if (brand)  chips.push(`<span class="cat-chip brand">${escapeHtml(brand)}</span>`);
-          if (size)   chips.push(`<span class="cat-chip size">${escapeHtml(size)}</span>`);
-          return chips.length ? `<div class="cat-chips">${chips.join('')}</div>` : '';
-        })()}
+    <!-- CLOSE -->
+    <button type="button" class="oc2-close" onclick="closeModal()" aria-label="ปิด">✕</button>
+
+    <!-- HEADER: photo | brand+title+sku | stock badge + unit toggle -->
+    <div class="oc2-head">
+      <div class="oc2-thumb">${modalThumbHtml}</div>
+      <div class="oc2-meta">
+        ${eyebrow2 ? `<div class="oc2-eyebrow">${escapeHtml(eyebrow2)}</div>` : ''}
+        <div class="oc2-title">${escapeHtml(p.name)}</div>
+        ${skuCode2 ? `<div class="oc2-sku">SKU ${escapeHtml(skuCode2)}</div>` : ''}
+        ${convLine2 ? `<div class="oc2-conv">${convLine2}</div>` : ''}
       </div>
-      <button type="button" class="modal-close-x" onclick="closeModal()" aria-label="ปิด">✕</button>
+      <div class="oc2-side">
+        ${stockBadgeHtml2}
+        <div class="unit-tabs">${oc2UnitTabsHtml}</div>
+      </div>
     </div>
 
-    <!-- BODY: scrollable -->
-    <div class="modal-body">
-      ${p.promo ? `
-      <div style="background:linear-gradient(135deg,#e74c3c,#ff6b6b);color:#fff;padding:9px 12px;border-radius:10px;margin-bottom:12px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:7px">
-        <span style="font-size:18px">🎉</span>
-        <span>โปรโมชั่น: ${p.promo.text}</span>
-      </div>` : ''}
+    <!-- SCROLLABLE BODY -->
+    <div class="oc2-body">
 
-      ${stockSectionHtml ? `<div class="modal-stock-section">${stockSectionHtml}</div>` : ''}
+      <!-- PROMO BANNER (populated by updateModalPromoHint) -->
+      <div id="modalPromoHint" class="oc2-promo-wrap" style="display:none"></div>
 
-      ${p._sheet ? `
-      <div class="modal-section">
-        <label class="modal-label">💰 ราคาขาย (รวม VAT)</label>
-        <div style="display:flex;flex-wrap:wrap;gap:5px">${buildPriceLine(p._sheet)}</div>
-      </div>
-      ` : ''}
+      <!-- WAREHOUSE PILLS -->
+      ${oc2WhHtml ? `<div class="oc2-wh-section">${oc2WhHtml}</div>` : ''}
 
-      <!-- v5.0: promo hint ABOVE unit tabs -->
-      <div id="modalPromoHint" style="display:none;margin-bottom:10px"></div>
-
-      <div class="modal-section">
-        <label class="modal-label">📦 เลือกหน่วยที่ขาย</label>
-        <div class="unit-tabs">
-          ${unitTabs.join('')}
+      <!-- ORDER ROW: stepper + price box -->
+      <div class="oc2-order-section">
+        <div class="oc2-order-row">
+          <div class="oc2-stepper">
+            <button class="oc2-step-btn" onclick="adjQty(-1)">−</button>
+            <div class="oc2-qty-wrap">
+              <input class="qty-input" type="number" inputmode="numeric" pattern="[0-9]*"
+                     id="modalQty" value="${editIdx >= 0 ? initialQty : ''}"
+                     placeholder="0" min="0"
+                     oninput="updateModalTotal()" onfocus="this.select()">
+              <span class="oc2-unit-lbl" id="oc2UnitLabel">${unitCode2}</span>
+            </div>
+            <button class="oc2-step-btn" onclick="adjQty(1)">+</button>
+          </div>
+          <div class="oc2-price-box">
+            <span class="oc2-price-pfx">฿</span>
+            <input class="price-input" type="number" inputmode="decimal"
+                   id="modalPrice" value="${initialPrice}"
+                   placeholder="${initialPlaceholder}"
+                   step="0.5" oninput="this._userEdited=true;updateModalTotal()">
+            <span class="oc2-price-sfx" id="oc2PriceUnit">/ ${unitCode2}</span>
+          </div>
         </div>
-      </div>
-
-      <div class="modal-section">
-        <label class="modal-label">🔢 จำนวน</label>
-        <div class="qty-row">
-          <button class="qty-btn" onclick="adjQty(-1)">−</button>
-          <input class="qty-input" type="number" inputmode="numeric" pattern="[0-9]*" id="modalQty" value="${editIdx >= 0 ? initialQty : ''}" placeholder="1" min="1" oninput="updateModalTotal()">
-          <button class="qty-btn" onclick="adjQty(1)">+</button>
-        </div>
-        <div class="text-muted" style="font-size:11px;margin-top:6px" id="modalQtyHint"></div>
+        <div class="oc2-qty-hint" id="modalQtyHint"></div>
         <div id="modalStockWarn"></div>
       </div>
 
-      <div class="modal-section">
-        <label class="modal-label">💰 ราคาต่อหน่วย <span style="font-weight:400;color:var(--muted);text-transform:none">(รวม VAT · ว่าง=ปกติ)</span></label>
-        <div class="price-input-wrap">
-          <span class="price-prefix">฿</span>
-          <input class="price-input" type="number" inputmode="decimal" id="modalPrice" value="${initialPrice}" placeholder="${initialPlaceholder}" step="0.5" oninput="this._userEdited=true;updateModalTotal()">
-        </div>
-        <div class="price-hint" id="modalPriceHint"></div>
-      </div>
+      <!-- TIER CARDS -->
+      ${oc2TierHtml ? `<div class="oc2-tier-section">${oc2TierHtml}</div>` : ''}
+
+    </div><!-- /.oc2-body -->
+
+    <!-- FOOTER -->
+    <div class="oc2-footer">
+      <div class="oc2-foot-hint" id="oc2FootHint">ตั้งจำนวนเพื่อยืนยันคำสั่ง</div>
+      <span id="modalTotal" class="oc2-compat">฿ 0</span>
+      <span id="modalPriceHint" class="oc2-compat"></span>
+      <button class="oc2-confirm-btn" id="modalAddBtn" onclick="addToCart()" disabled>
+        ${editIdx >= 0 ? '✓ บันทึก' : 'ยืนยันคำสั่ง'}
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
     </div>
 
-    <!-- FOOTER: sticky total + confirm button -->
-    <div class="modal-foot">
-      <div class="total-row" style="margin-bottom:8px">
-        <span class="total-label">รวม</span>
-        <span class="total-value" id="modalTotal">฿ 0</span>
-      </div>
-      <button class="btn btn-success btn-lg btn-block" onclick="addToCart()" id="modalAddBtn">
-        ${editIdx >= 0 ? '✓ บันทึกการแก้ไข' : '+ ใส่ตะกร้า'}
-      </button>
-      ${editIdx >= 0 ? `<button class="btn btn-outline btn-block" style="margin-top:6px;color:var(--danger)" onclick="removeFromCart(${editIdx})">🗑️ ลบจากตะกร้า</button>` : ''}
-    </div>
+    ${editIdx >= 0 ? `<div class="oc2-delete-wrap">
+      <button class="oc2-delete-btn" onclick="removeFromCart(${editIdx})">🗑️ ลบจากตะกร้า</button>
+    </div>` : ''}
   `;
 
   // v6.0: warm beige backdrop only for Order context (shop session active)
@@ -8924,8 +9377,10 @@ function getSuggestedTierPrice(p, unit, qty) {
 
 function setUnit(unit) {
   if (!currentModalProduct) return;
-  document.querySelectorAll('.unit-tab').forEach(t => t.classList.remove('active'));
-  event.target.closest('.unit-tab').classList.add('active');
+  // Toggle active by data-unit attribute — no event dependency (safe for programmatic calls)
+  document.querySelectorAll('.unit-tab').forEach(t =>
+    t.classList.toggle('active', t.getAttribute('data-unit') === unit)
+  );
   const p = currentModalProduct;
   const qty = parseInt((document.getElementById('modalQty')||{}).value) || 1;
   const { price } = getSuggestedTierPrice(p, unit, qty);
@@ -9048,8 +9503,35 @@ function updateModalTotal() {
   }
   if (hint) hint.innerHTML = hintHTML;
 
-  const isOverMin = price > 0;
+  // ── oc2: button enabled only when user has entered a qty > 0 ──
+  const rawQtyNum = qtyRaw === '' ? 0 : (parseInt(qtyRaw) || 0);
+  const isOverMin = price > 0 && rawQtyNum > 0;
   if (addBtn) addBtn.disabled = !isOverMin;
+
+  // ── oc2: footer hint ──
+  const footHint = document.getElementById('oc2FootHint');
+  if (footHint) {
+    const unitLabelMap = { piece:'ชิ้น', pack:'แพ็ค', bigpack:'แพ็คใหญ่', case:'ลัง' };
+    const unitLbl = unitLabelMap[unit] || unit;
+    if (rawQtyNum === 0) {
+      footHint.innerHTML = 'ตั้งจำนวนเพื่อยืนยันคำสั่ง';
+    } else {
+      const totalFmt = total.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0});
+      footHint.innerHTML = `คุณกำลังจะสั่ง <strong>${rawQtyNum}</strong> ${unitLbl} รวม <strong>฿${totalFmt}</strong>`;
+    }
+  }
+
+  // ── oc2: update unit label + price suffix when unit changes ──
+  const unitCodeMap = { piece:'EA', pack:'PA', bigpack:'BP', case:'CS' };
+  const uc = unitCodeMap[unit] || unit.toUpperCase();
+  const lbEl = document.getElementById('oc2UnitLabel');
+  const sfEl = document.getElementById('oc2PriceUnit');
+  if (lbEl) lbEl.textContent = uc;
+  if (sfEl) sfEl.textContent = '/ ' + uc;
+
+  // ── oc2: sync active tier card (only when price not manually set) ──
+  if (priceInput && !priceInput._userEdited) _oc2SyncTierActive(qty, unit);
+
   showPromoHintInModal();
 }
 
@@ -9093,78 +9575,73 @@ function updateModalPromoHint(p, qty, unit, price) {
 
   // Block 0 — product eligible but qty not yet enough
   if (productPromo && !matched && !nextTier) {
-    const name = productPromo['ชื่อโปร'] || 'โปรโมชั่น';
+    const name      = productPromo['ชื่อโปร'] || 'โปรโมชั่น';
     const threshold = numv(productPromo['จำนวน']);
-    const sellMode = String(productPromo['รูปแบบขาย']||'').trim() || 'ลัง';
-    const giftQty = numv(productPromo['จำนวนแถม']) || 1;
-    const giftName = String(productPromo['แถมสินค้า']||'').trim();
-    const giftUnit = String(productPromo['หน่วยแถม']||productPromo['หน่วย']||'').trim();
-    const giftDesc = giftName ? `${giftName} × ${giftQty} ${giftUnit}` : describeReward(productPromo);
+    const sellMode  = String(productPromo['รูปแบบขาย']||'').trim() || 'ลัง';
+    const giftQty   = numv(productPromo['จำนวนแถม']) || 1;
+    const giftName  = String(productPromo['แถมสินค้า']||'').trim();
+    const giftUnit  = String(productPromo['หน่วยแถม']||productPromo['หน่วย']||'').trim();
+    const giftDesc  = giftName ? `${giftName} × ${giftQty} ${giftUnit}` : describeReward(productPromo);
     blocks.push(`
-      <div style="background:linear-gradient(135deg,#fff5e6,#ffe9c2);border:1.5px solid #f0a830;border-radius:9px;padding:8px 10px;display:flex;align-items:center;gap:8px">
-        <span style="font-size:16px">🎁</span>
-        <div style="flex:1;font-size:11px;color:#7a4a00;line-height:1.4">
-          <span style="font-weight:800">${escapeHtml(name)}</span>
-          <span style="font-weight:400"> · ซื้อครบ ${threshold} ${escapeHtml(sellMode)} แถม ${escapeHtml(giftDesc)}</span>
+      <div class="oc2-promo-card">
+        <div class="oc2-promo-icon">🎁</div>
+        <div class="oc2-promo-body">
+          <div><span class="oc2-promo-tag">โปรโมชั่น</span></div>
+          <div class="oc2-promo-deal">ซื้อครบ <strong>${threshold} ${escapeHtml(sellMode)}</strong> → แถม <strong>${escapeHtml(giftDesc)}</strong></div>
+          <div class="oc2-promo-vendor">โดย ${escapeHtml(name)}</div>
         </div>
-      </div>
-    `);
+      </div>`);
   }
 
-  // Block 1 — Earned (v5.0: รอบ → ชุด)
+  // Block 1 — Earned
   if (matched) {
-    const pr = matched.promo;
-    const name = pr['ชื่อโปร'] || 'โปรโมชั่น';
+    const pr          = matched.promo;
+    const name        = pr['ชื่อโปร'] || 'โปรโมชั่น';
     const tiersEarned = matched.threshold > 0 ? Math.floor(matched.currentValue / matched.threshold) : 1;
-    const giftQty = numv(pr['จำนวนแถม']) || 1;
-    const giftName = String(pr['แถมสินค้า']||'').trim();
-    const giftUnit = String(pr['หน่วยแถม']||pr['หน่วย']||'').trim();
-    const totalGift = tiersEarned * giftQty;
-    const giftDesc = giftName ? `${giftName} × ${totalGift} ${giftUnit}` : describeReward(pr);
-    const chutNote = tiersEarned > 1 ? ` · ${tiersEarned} ชุด` : '';
-    const valFmt = matched.currentUnit === 'บาท'
+    const giftQty     = numv(pr['จำนวนแถม']) || 1;
+    const giftName    = String(pr['แถมสินค้า']||'').trim();
+    const giftUnit    = String(pr['หน่วยแถม']||pr['หน่วย']||'').trim();
+    const totalGift   = tiersEarned * giftQty;
+    const giftDesc    = giftName ? `${giftName} × ${totalGift} ${giftUnit}` : describeReward(pr);
+    const chutNote    = tiersEarned > 1 ? ` · ${tiersEarned} ชุด` : '';
+    const valFmt      = matched.currentUnit === 'บาท'
       ? `${Math.round(matched.currentValue).toLocaleString()} / ${matched.threshold.toLocaleString()} บาท`
       : `${Math.round(matched.currentValue*10)/10} / ${matched.threshold} ${matched.currentUnit}`;
     blocks.push(`
-      <div style="background:linear-gradient(135deg,#d4edda,#a8e6b6);border:1.5px solid #28a745;border-radius:9px;padding:8px 10px">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:16px">🎁</span>
-          <div style="flex:1;font-size:11px;color:#155724;line-height:1.4">
-            <span style="font-weight:800">ครบ ${escapeHtml(name)}${chutNote}</span>
-            <span style="font-weight:400"> · แถม ${escapeHtml(giftDesc)}</span>
-          </div>
+      <div class="oc2-promo-card earned">
+        <div class="oc2-promo-icon">🎁</div>
+        <div class="oc2-promo-body">
+          <div><span class="oc2-promo-tag">ครบโปร${chutNote}</span></div>
+          <div class="oc2-promo-deal">แถม <strong>${escapeHtml(giftDesc)}</strong></div>
+          <div class="oc2-promo-vendor">${valFmt} · เลือกรับที่หน้าสรุปออเดอร์</div>
         </div>
-        <div style="margin-top:5px;padding:3px 8px;background:rgba(21,87,36,.12);border-radius:5px;font-size:10px;font-weight:700;color:#155724;text-align:center">
-          ✓ รวม ${valFmt} · เลือกรับที่หน้าสรุปออเดอร์
-        </div>
-      </div>
-    `);
+        <span class="oc2-promo-chip earned">✓ ใช้โปรแล้ว</span>
+      </div>`);
   }
 
-  // Block 2 — Next tier hint (v5.0: compact single line, no double product name)
+  // Block 2 — Next tier hint
   if (nextTier) {
-    const pr = nextTier.promo;
-    const name = pr['ชื่อโปร'] || 'โปรโมชั่น';
-    const giftQty = numv(pr['จำนวนแถม']) || 1;
-    const giftName = String(pr['แถมสินค้า']||'').trim();
-    const giftUnit = String(pr['หน่วยแถม']||pr['หน่วย']||'').trim();
-    // Short gift description — avoid repeating product name
+    const pr        = nextTier.promo;
+    const name      = pr['ชื่อโปร'] || 'โปรโมชั่น';
+    const giftQty   = numv(pr['จำนวนแถม']) || 1;
+    const giftName  = String(pr['แถมสินค้า']||'').trim();
+    const giftUnit  = String(pr['หน่วยแถม']||pr['หน่วย']||'').trim();
     const shortGift = giftName ? `${giftName} × ${giftQty} ${giftUnit}` : describeReward(pr);
     const remainFmt = nextTier.currentUnit === 'บาท'
       ? `อีก ฿${Math.round(nextTier.remaining).toLocaleString()}`
       : `อีก ${Math.round(nextTier.remaining*10)/10} ${nextTier.currentUnit}`;
     blocks.push(`
-      <div style="background:linear-gradient(135deg,#fef9e7,#fceca8);border:1px solid #f0d878;border-radius:9px;padding:7px 10px;display:flex;align-items:center;gap:8px">
-        <span style="font-size:14px">💡</span>
-        <div style="flex:1;font-size:11px;color:#6b4f00;font-weight:700;line-height:1.4">
-          ${escapeHtml(remainFmt)} → แถม ${escapeHtml(shortGift)}
-          <span style="font-weight:400;font-size:10px"> (${escapeHtml(name)})</span>
+      <div class="oc2-promo-card hint-card">
+        <div class="oc2-promo-icon">💡</div>
+        <div class="oc2-promo-body">
+          <div><span class="oc2-promo-tag">${escapeHtml(name)}</span></div>
+          <div class="oc2-promo-deal">${escapeHtml(remainFmt)} → แถม <strong>${escapeHtml(shortGift)}</strong></div>
         </div>
-      </div>
-    `);
+        <span class="oc2-promo-chip hint">${escapeHtml(remainFmt)}</span>
+      </div>`);
   }
 
-  el.innerHTML = blocks.join('<div style="height:5px"></div>');
+  el.innerHTML = blocks.join('<div class="oc2-promo-spacer"></div>');
 }
 
 // Stable identity for a promo (used to track applied state)
@@ -9303,6 +9780,9 @@ function closeModal() {
   m.classList.remove('active');
   m.classList.remove('order-context'); // v6.0: clear beige theme
   document.body.style.overflow = '';  // reset any inline override
+  // Reset oc2 class so fresh modal opens cleanly
+  const mc = document.getElementById('modalContent');
+  if (mc) mc.className = 'modal';
   currentModalProduct = null;
   editingCartIdx = -1;
 }
