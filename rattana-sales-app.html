@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.8 KPI Fix + Cart Crash Recovery</title>
+<title>Rattana Sales — v6.5.9 Check-in Flow + Modal X + Address Fix</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -868,7 +868,7 @@ body.dark .debt-warn { background: #2a1816; border-color: #5a2a26; }
 .debt-icon { font-size: 22px; }
 .debt-text { flex: 1; font-size: 13px; }
 .debt-amount { font-size: 16px; font-weight: 800; color: var(--danger); }
-/* Debt detail card (v6.5.8 — live SQL Data) */
+/* Debt detail card (v6.5.9 — live SQL Data) */
 .debt-detail-card { background: linear-gradient(135deg,#fff5f3,#fee); border: 1px solid #fcc; border-radius: 14px; margin-top: 12px; overflow: hidden; }
 body.dark .debt-detail-card { background: #2a1816; border-color: #5a2a26; }
 .debt-header { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px 10px; }
@@ -1218,6 +1218,7 @@ body:has(.modal-backdrop.active) .back-to-top { opacity: 0 !important; pointer-e
 
 /* Centered modal — popup style (not bottom sheet anymore) */
 .modal {
+  position: relative;                           /* needed for .modal-close-x absolute positioning */
   background: var(--card-bg);
   width: 100%; max-width: 340px;
   border-radius: 20px;
@@ -1964,9 +1965,9 @@ body.dark .oc-tier-badge.tier-S02 { color: var(--gold); }
   flex-shrink: 0;
 }
 
-/* Sticky floating close button — always visible at modal top-right */
+/* Close button — always top-right corner (v6.5.9) */
 .modal-close-x {
-  position: sticky; top: 0; float: right;
+  position: absolute; top: 12px; right: 12px;
   width: 34px; height: 34px;
   border-radius: 50%;
   background: var(--card-bg); color: var(--text);
@@ -2527,7 +2528,7 @@ body.dark .text-gold { color: var(--gold-light); }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.8 · 2026-05-15</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.9 · 2026-05-15</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -2538,7 +2539,7 @@ body.dark .text-gold { color: var(--gold-light); }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.8</span>
+  <span class="demo-tag">v6.5.9</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -2615,7 +2616,7 @@ body.dark .text-gold { color: var(--gold-light); }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.8<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.9<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -2755,7 +2756,7 @@ body.dark .text-gold { color: var(--gold-light); }
     <div class="summary-row total"><span class="lbl">ยอดรวม <span style="font-size:11px;color:var(--muted);font-weight:400">(รวม VAT)</span></span><span class="val" id="sumTotal">฿ 0</span></div>
   </div>
 
-  <!-- v5.0 Promo Picker — rendered by renderPromoPickerSection() — placed ABOVE หมายเหตุ (v6.5.8) -->
+  <!-- v5.0 Promo Picker — rendered by renderPromoPickerSection() — placed ABOVE หมายเหตุ (v6.5.9) -->
   <div id="promoPickerSection"></div>
 
   <!-- หมายเหตุ (optional) — บันทึกลง Order tab column Q "หมายเหตุ" (Surat 2026-05-10 v4.3) -->
@@ -3543,7 +3544,7 @@ async function enterApp() {
     rerenderCurrentScreen();
   }
 
-  // ─── Cart draft restore — before loading so cart bar shows immediately (v6.5.8) ───
+  // ─── Cart draft restore — before loading so cart bar shows immediately (v6.5.9) ───
   _loadCartDraft();
 
   // ─── PROGRESSIVE LOADING — 3 waves, no blocking ───
@@ -3985,7 +3986,7 @@ function hydrateVisitsFromSheet(rows) {
   }
 }
 
-// ─── SHOP STATUS HYDRATION FROM ORDERS SHEET (v6.5.8) ───────────────────────
+// ─── SHOP STATUS HYDRATION FROM ORDERS SHEET (v6.5.9) ───────────────────────
 // On boot, restore s.status='visited' + s.visitedAmount for shops where today's
 // orders already exist in the Sheet (so progress bar + ✅ chips survive reload).
 
@@ -5219,7 +5220,7 @@ let cart = []; // {productId, unit, qty, price, shopId, isFree?, promoKey?}
 // Key = promo's "ชื่อโปร" (or hash of promo row). Cleared on confirmOrder + new shop.
 let appliedPromos = new Set();
 
-// ─── CART DRAFT PERSISTENCE (v6.5.8) ─────────────────────────────────────────
+// ─── CART DRAFT PERSISTENCE (v6.5.9) ─────────────────────────────────────────
 // Auto-saves cart to localStorage on every change so iOS/Android crashes don't
 // lose work in progress. Restored on next boot same calendar day only.
 
@@ -6290,10 +6291,8 @@ function _buildShopCardHTML(s) {
     ? `<span class="sc-dist" style="position:absolute;top:10px;left:10px;z-index:2">${dist < 1000 ? Math.round(dist)+'m' : (dist/1000).toFixed(1)+'km'}</span>`
     : '';
 
-  // Address
-  const muBan   = s._raw?.['หมู่'] ? `ม.${s._raw['หมู่']} ` : '';
-  const addrNum = s._raw?.['ที่อยู่'] || '';
-  const addrLine = [addrNum ? `${addrNum}` : '', s.subdistrict, s.district, s.province].filter(Boolean).join(', ') || s.addr || '';
+  // Address — show subdistrict/district/province only (house number removed per v6.5.9)
+  const addrLine = [s.subdistrict, s.district, s.province].filter(Boolean).join(', ') || s.addr || '';
 
   // GPS / Maps
   const lat = numv(s.lat || s._raw?.['Latitude']);
@@ -6392,8 +6391,8 @@ function _updateRouteProgress() {
 
 // Direct action handlers from Rich Card — no shop detail page needed (per Surat 2026-05-08, v4.1)
 window.handleShopCheckIn = function(shopId) {
+  // _executeCheckIn handles all navigation after check-in (v6.5.9)
   if (typeof doCheckIn === 'function') doCheckIn(shopId);
-  setTimeout(() => renderShopList(), 150);
 };
 window.handleShopCheckOut = function(shopId) {
   // Per Surat 2026-05-10 v4.3: show suggestions modal BEFORE proceeding to checkout
@@ -6704,8 +6703,21 @@ function doCheckIn(shopId) {
   _executeCheckIn(shopId, distance, inRange, null);
 }
 
+function _getOutOfRangeReasons() {
+  // Read from Data Center column AG (33rd column, index 32) — fallback to hardcoded
+  const dc = SHEET_DATA.dataCenter;
+  if (dc) {
+    const keys = Object.keys(dc);
+    if (keys.length >= 33) {
+      const vals = (dc[keys[32]] || []).filter(v => v && String(v).trim());
+      if (vals.length) return vals;
+    }
+  }
+  return ['GPS ไม่แม่นยำ', 'ร้านย้ายที่ (ชั่วคราว)', 'ลูกค้ายืนยันอยู่ที่ร้าน', 'อื่นๆ'];
+}
+
 function _showOutOfRangeModal(shopId, distance) {
-  const reasons = ['GPS ไม่แม่นยำ', 'ร้านย้ายที่ (ชั่วคราว)', 'ลูกค้ายืนยันอยู่ที่ร้าน', 'อื่นๆ'];
+  const reasons = _getOutOfRangeReasons();
   const btns = reasons.map(r =>
     `<button class="modal-option-btn" onclick="_confirmOutOfRange('${shopId}',${Math.round(distance)},'${r}')">${r}</button>`
   ).join('');
@@ -6747,8 +6759,8 @@ function _executeCheckIn(shopId, distance, inRange, outOfRangeReason) {
     refusalReason: null,
   };
   showToast(`✓ เช็คอินสำเร็จ ${visits[shopId].checkInTime}${!inRange ? ' (นอกพิกัด)' : ''}`, inRange ? 'success' : 'warning');
-  if (document.getElementById('screenShop')?.classList.contains('active')) renderShopDetail(shopId);
-  else renderShopList();
+  // After check-in → go straight to order screen (v6.5.9)
+  setTimeout(() => openShopForAction(shopId, 'order'), 350);
 }
 
 // Manual check-out (no order/refusal — just visit)
@@ -9182,7 +9194,7 @@ function removeFromCart(idx) {
 // CART
 // ═══════════════════════════════════════════════════════════
 function updateCartBar() {
-  // Auto-persist cart on every state change (v6.5.8 crash recovery)
+  // Auto-persist cart on every state change (v6.5.9 crash recovery)
   if (cart.length > 0) _saveCartDraft();
   else _clearCartDraft();
 
@@ -9555,7 +9567,7 @@ function confirmOrder() {
 
   cart = [];
   appliedPromos.clear();
-  _clearCartDraft();  // order confirmed — no need to recover this draft (v6.5.8)
+  _clearCartDraft();  // order confirmed — no need to recover this draft (v6.5.9)
   // Clear notes textarea for next order
   const notesElAfter = document.getElementById('orderNotes');
   if (notesElAfter) notesElAfter.value = '';
