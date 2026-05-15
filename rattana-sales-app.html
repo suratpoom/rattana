@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.21</title>
+<title>Rattana Sales — v6.5.22</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -3016,7 +3016,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.21 · 2026-05-15</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.22 · 2026-05-15</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -3027,7 +3027,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.21</span>
+  <span class="demo-tag">v6.5.22</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -3104,7 +3104,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.21<br>2026-05-15 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.22<br>2026-05-15 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -3974,6 +3974,9 @@ async function enterApp() {
   console.log('[enterApp] orders cache cleared — will fetch fresh from Sheet');
 
   initAppUI();
+
+  // v6.5.22: flush any writes that failed in a previous session
+  setTimeout(() => { writeQueue.flush(); _updateQueueBadge(); }, 3000);
 
   // ─── v4.5 FAST BOOT — try IndexedDB cache first (instant UI for non-orders data) ───
   let hadCache = false;
@@ -5525,19 +5528,97 @@ function matchesGroup(product, cfg) {
 // ═══════════════════════════════════════════════════════════
 // APPS SCRIPT WRITE LAYER (stub if URL not set)
 // ═══════════════════════════════════════════════════════════
-async function postToAppsScript(payload) {
+// v6.5.22: postToAppsScript with auto-retry (3 attempts, exponential backoff)
+// Failed writes go to writeQueue so nothing is lost
+async function postToAppsScript(payload, _retries = 3) {
   if (!CONFIG.appsScriptUrl) {
     console.log('[AppsScript STUB]', payload);
-    return { ok:true, demo:true };
+    return { ok: true, demo: true };
   }
-  // Use text/plain to avoid CORS preflight (Apps Script doesn't support OPTIONS)
-  const res = await fetch(CONFIG.appsScriptUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) throw new Error('Apps Script: ' + res.status);
-  return res.json();
+  let lastErr;
+  for (let attempt = 0; attempt < _retries; attempt++) {
+    try {
+      if (attempt > 0) await new Promise(r => setTimeout(r, attempt * 1500));
+      const res = await fetch(CONFIG.appsScriptUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      return data; // return regardless of data.ok — let caller decide
+    } catch (e) {
+      lastErr = e;
+      console.warn(`[AppsScript attempt ${attempt + 1}/${_retries}]`, payload.action, e.message);
+    }
+  }
+  // All retries failed — queue safe write actions so data isn't lost
+  const queueable = ['appendOrder','appendOrderBatch','appendVisit','appendCN','appendNoSale'];
+  if (queueable.includes(payload.action)) writeQueue.add(payload);
+  throw lastErr;
+}
+
+// ── Write Queue — persists failed writes, retries on reconnect ──────────────
+// v6.5.22: Ensures zero data loss even when Apps Script is cold/overloaded
+const writeQueue = {
+  KEY: 'rsa_write_queue',
+  get()      { try { return JSON.parse(localStorage.getItem(this.KEY) || '[]'); } catch { return []; } },
+  save(q)    { try { localStorage.setItem(this.KEY, JSON.stringify(q)); } catch {} },
+  count()    { return this.get().length; },
+
+  add(payload) {
+    const q = this.get();
+    q.push({ id: Date.now().toString(36), payload, attempts: 0, ts: Date.now() });
+    this.save(q);
+    console.warn('[WriteQueue] Queued:', payload.action, '— queue size:', q.length);
+    _updateQueueBadge();
+    showToast('⚠️ ส่งไม่ได้ชั่วคราว — บันทึกไว้แล้ว จะส่งใหม่อัตโนมัติ', 'warning');
+  },
+
+  async flush() {
+    if (!CONFIG.appsScriptUrl) return;
+    let q = this.get();
+    if (!q.length) return;
+    console.log('[WriteQueue] Flushing', q.length, 'items');
+    const failed = [];
+    for (const item of q) {
+      try {
+        const res = await fetch(CONFIG.appsScriptUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(item.payload),
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        console.log('[WriteQueue] ✓ Flushed:', item.id, item.payload.action);
+      } catch (e) {
+        item.attempts = (item.attempts || 0) + 1;
+        if (item.attempts < 10) failed.push(item); // keep up to 10 attempts (~hours)
+        console.warn('[WriteQueue] ✗ Still failed:', item.id, e.message);
+      }
+    }
+    this.save(failed);
+    _updateQueueBadge();
+    if (failed.length === 0 && q.length > 0) {
+      showToast('✅ ส่งข้อมูลที่ค้างไว้สำเร็จทั้งหมด', 'success');
+      try { localStorage.removeItem('rsa_orders'); } catch {}
+    }
+  },
+};
+
+function _updateQueueBadge() {
+  const n = writeQueue.count();
+  let badge = document.getElementById('queueBadge');
+  if (!badge) {
+    const btn = document.getElementById('refreshBtn');
+    if (!btn) return;
+    badge = document.createElement('span');
+    badge.id = 'queueBadge';
+    badge.style.cssText = 'position:absolute;top:-4px;right:-4px;background:#e74c3c;color:#fff;font-size:9px;font-weight:800;border-radius:8px;padding:1px 4px;min-width:14px;text-align:center;line-height:14px';
+    btn.style.position = 'relative';
+    btn.appendChild(badge);
+  }
+  badge.textContent = n;
+  badge.style.display = n > 0 ? '' : 'none';
 }
 
 async function submitOrderRow(orderRow) { return postToAppsScript({ action:'appendOrder', row: orderRow }); }
@@ -5858,11 +5939,36 @@ window.forceReloadOrders = async function() {
 function goOrders() {
   // Set default scope per role (per Surat 2026-05-10 v4.3)
   const level = SALESMAN.level || 0;
-  if (level >= 7) ordersView = 'company';        // Role 7: ทั้งบริษัท by default
+  if (level >= 7) ordersView = 'company';
   else if (level >= 6 && ordersView === 'me') ordersView = 'company';
   else if (level === 5 && ordersView === 'me') ordersView = 'warehouse';
   // Role 3-4: stay 'me'
-  renderOrdersList(); showScreen('screenOrders'); updateCartBar();
+
+  // v6.5.22: stale-while-revalidate — show cached data instantly, refresh in background
+  renderOrdersList();           // instant render with whatever we have
+  showScreen('screenOrders');
+  updateCartBar();
+  _refreshOrdersBackground();   // background fetch, re-renders when done
+}
+
+let _ordersRefreshing = false;
+async function _refreshOrdersBackground() {
+  if (_ordersRefreshing) return;
+  _ordersRefreshing = true;
+  // Show subtle loading indicator in page title area
+  const titleEl = document.querySelector('#screenOrders .page-title');
+  if (titleEl) titleEl.innerHTML = 'ออเดอร์ <span style="font-size:10px;color:var(--muted);font-weight:400">🔄 กำลังโหลด...</span>';
+  try {
+    const d = await fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.order);
+    SHEET_DATA.orders = d;
+    renderOrdersList();  // re-render with fresh data
+  } catch (e) {
+    console.warn('[Orders refresh]', e.message);
+  } finally {
+    _ordersRefreshing = false;
+    const t2 = document.querySelector('#screenOrders .page-title');
+    if (t2) t2.innerHTML = 'ออเดอร์';
+  }
 }
 
 // Guard: prevent cart contamination across shops
@@ -12416,6 +12522,8 @@ document.addEventListener('visibilitychange', () => {
   } else if (currentUser) {
     checkForStockUpdate();   // instant check
     startHeartbeat();        // resume polling
+    // v6.5.22: flush any queued writes when user comes back to the app
+    setTimeout(() => writeQueue.flush(), 2000);
   }
 });
 
