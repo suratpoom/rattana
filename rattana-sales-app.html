@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.10 Batch Write (1 POST per order)</title>
+<title>Rattana Sales — v6.5.11 DC Column by Name</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -2528,7 +2528,7 @@ body.dark .text-gold { color: var(--gold-light); }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.10 · 2026-05-15</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.11 · 2026-05-15</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -2539,7 +2539,7 @@ body.dark .text-gold { color: var(--gold-light); }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.10</span>
+  <span class="demo-tag">v6.5.11</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -2616,7 +2616,7 @@ body.dark .text-gold { color: var(--gold-light); }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.10<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.11<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -6704,9 +6704,19 @@ function doCheckIn(shopId) {
 }
 
 function _getOutOfRangeReasons() {
-  // Read from Data Center column AG (33rd column, index 32) — fallback to hardcoded
+  // Read from Data Center column AG header "Check in-out" — look up by name first (robust),
+  // fall back to position index 32 if header not found, then hardcoded list.
   const dc = SHEET_DATA.dataCenter;
   if (dc) {
+    // 1) Find by header name (exact match first, then case-insensitive)
+    const byName = Object.keys(dc).find(k =>
+      k.trim() === 'Check in-out' || k.trim().toLowerCase() === 'check in-out'
+    );
+    if (byName) {
+      const vals = (dc[byName] || []).filter(v => v && String(v).trim());
+      if (vals.length) return vals;
+    }
+    // 2) Fallback: try column AG by position (index 32 = 33rd key)
     const keys = Object.keys(dc);
     if (keys.length >= 33) {
       const vals = (dc[keys[32]] || []).filter(v => v && String(v).trim());
