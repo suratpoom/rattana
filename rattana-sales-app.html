@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.17 Desktop Layout Fix</title>
+<title>Rattana Sales — v6.5.18 Desktop Layout Fix</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -1657,7 +1657,7 @@ body.dark .oc-promo-detail { background: rgba(231,76,60,.1); color: #f5b8a8; bor
   box-shadow: 0 0 0 1.5px rgba(232,178,58,.4);
 }
 .oc-depot-bar-track {
-  width: 4px; height: 22px;
+  width: 4px; height: 28px;
   background: rgba(0,0,0,.08);
   border-radius: 2px;
   position: relative; overflow: hidden;
@@ -1692,13 +1692,13 @@ body.dark .oc-depot-bar-track { background: rgba(255,255,255,.1); }
   gap: 1px; min-width: 0; flex: 1;
 }
 .oc-depot-label {
-  font-size: 9px; font-weight: 700;
+  font-size: 10px; font-weight: 700;
   color: var(--muted); letter-spacing: .3px;
   line-height: 1;
 }
 .oc-depot.mine .oc-depot-label { color: var(--gold); }
 .oc-depot-qty {
-  font-size: 10px; font-weight: 800;
+  font-size: 14px; font-weight: 800;
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
   color: var(--text); line-height: 1;
 }
@@ -1836,7 +1836,7 @@ body.dark .oc-tier-badge.tier-S02 { color: var(--gold); }
   background: var(--card-bg);
   border: 1.5px solid var(--border);
   border-radius: 8px;
-  padding: 5px 4px 6px;
+  padding: 7px 4px 8px;
   text-align: center;
   cursor: pointer;
   transition: all .15s;
@@ -1853,7 +1853,7 @@ body.dark .oc-tier-badge.tier-S02 { color: var(--gold); }
   cursor: not-allowed;
 }
 .oc-tier-name {
-  font-size: 10px; font-weight: 800;
+  font-size: 11px; font-weight: 800;
   color: var(--text);
   letter-spacing: .2px;
   margin-bottom: 3px;
@@ -1865,12 +1865,12 @@ body.dark .oc-tier-badge.tier-S02 { color: var(--gold); }
   color: var(--muted);
   font-weight: 600;
   margin-left: 3px;
-  font-size: 9px;
+  font-size: 10px;
 }
 .oc-tier-tile.active .oc-tier-name .rng { color: #1F9D6B; }
 .oc-tier-price {
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 12.5px; font-weight: 800;
+  font-size: 16px; font-weight: 800;
   color: var(--text);
 }
 .oc-tier-tile.active .oc-tier-price { color: #1F9D6B; }
@@ -3016,7 +3016,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.17 · 2026-05-15</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.18 · 2026-05-15</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -3027,7 +3027,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.17</span>
+  <span class="demo-tag">v6.5.18</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -3104,7 +3104,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.17<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.18<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -8526,7 +8526,7 @@ function renderProductList(filterText = '') {
     if (titleEl) titleEl.innerHTML = `<span class="sec-title-icon">📦</span>สินค้าขายดี <span class="badge badge-gold" style="margin-left:6px">${products.length}</span>`;
   }
 
-  // v6.5.17: apply product filter chip (promo / focus / bu:XXX)
+  // v6.5.18: apply product filter chip (promo / focus / bu:XXX)
   if (_productActiveFilter === 'promo') {
     products = products.filter(p => getAllPromotionsFor(p).length > 0);
   } else if (_productActiveFilter === 'focus') {
@@ -8927,7 +8927,7 @@ window.buildPhotoImg = buildPhotoImg;
 // Store in module variable — never rely on DOM for the canonical query value
 // because DOM can be stale during re-render (causes "search resets to all products" bug)
 let _productSearchQuery = '';
-// v6.5.17: active filter chip — 'all' | 'promo' | 'focus' | 'bu:XXX'
+// v6.5.18: active filter chip — 'all' | 'promo' | 'focus' | 'bu:XXX'
 let _productActiveFilter = 'all';
 
 function setProductFilter(filter) {
@@ -8982,7 +8982,7 @@ function pickOrderFuzzy(name) {
   renderProductList(name);
 }
 
-function pickProductInfoFuzzy(name) { pickOrderFuzzy(name); } // v6.5.17 alias
+function pickProductInfoFuzzy(name) { pickOrderFuzzy(name); } // v6.5.18 alias
 
 function getReservedQty(productId) {
   // qty in cart (mock — would also include other salesmen's reservations from server)
@@ -11274,7 +11274,7 @@ function goNewShop() {
 
 
 // ═══════════════════════════════════════════════════════════
-// PRODUCT INFO — merged into screenOrder (v6.5.17)
+// PRODUCT INFO — merged into screenOrder (v6.5.18)
 // goProductBrowse() is the new entry point (in goOrder block above)
 // ═══════════════════════════════════════════════════════════
 function goProductInfo() { goProductBrowse(); } // backward-compat alias
@@ -11349,7 +11349,7 @@ function refreshPriceTab() {
   });
 }
 
-// v6.5.17: thin wrappers — screenProductInfo removed, unified into screenOrder
+// v6.5.18: thin wrappers — screenProductInfo removed, unified into screenOrder
 function renderPriceFilterChips() { renderProductFilterChips('productFilterChips'); }
 function applyPriceFilter(products) {
   // kept for any remaining callers; delegates to unified filter state
@@ -11400,7 +11400,7 @@ function getDefaultProductList() {
     .map(x => x.p);
 }
 
-// v6.5.17: onProductInfoSearch now redirects to the unified Order screen search
+// v6.5.18: onProductInfoSearch now redirects to the unified Order screen search
 let productInfoTimer = null;
 function onProductInfoSearch(query) {
   _priceSearchQuery = String(query||'').trim();
@@ -12376,7 +12376,7 @@ function onBarcodeFound(code) {
   if (!product) {
     // Not found — fill barcode into search box so user can edit/correct
     showToast(`ไม่พบบาร์โค้ด ${trimmed} — ใส่ในช่องค้นหาแล้ว`, 'warning');
-    // Both 'price' and 'order' contexts now use the same Order screen search (v6.5.17)
+    // Both 'price' and 'order' contexts now use the same Order screen search (v6.5.18)
     _productSearchQuery = trimmed;
     const inp = document.getElementById('productSearch');
     if (inp) { inp.value = trimmed; toggleClearBtn('productSearch','productSearchClear'); inp.focus(); }
@@ -12387,7 +12387,7 @@ function onBarcodeFound(code) {
   const productName = String(product['PRODUCT NAME'] || '').trim();
   console.log('[scan] matched:', productName);
 
-  // v6.5.17: both 'price' and 'order' contexts use Order screen search
+  // v6.5.18: both 'price' and 'order' contexts use Order screen search
   _productSearchQuery = productName;
   const inp = document.getElementById('productSearch');
   if (inp) { inp.value = productName; toggleClearBtn('productSearch','productSearchClear'); }
