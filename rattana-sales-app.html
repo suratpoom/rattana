@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.15 Desktop Layout Fix</title>
+<title>Rattana Sales — v6.5.16 Desktop Layout Fix</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -3016,7 +3016,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.15 · 2026-05-15</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.16 · 2026-05-15</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -3027,7 +3027,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.15</span>
+  <span class="demo-tag">v6.5.16</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -3076,7 +3076,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
   <div class="drawer-divider"></div>
 
   <div class="drawer-section-title">สินค้า</div>
-  <button class="drawer-item" onclick="closeDrawer();goProductInfo()">
+  <button class="drawer-item" onclick="closeDrawer();goProductBrowse()">
     <span class="drawer-item-icon">💰</span>
     <span class="drawer-item-label">สินค้า</span>
     <span class="drawer-item-arrow">›</span>
@@ -3104,7 +3104,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.15<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.16<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -3200,14 +3200,21 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 <!-- ═══════════════════════ ORDER SCREEN ═══════════════════════ -->
 <section class="screen" id="screenOrder">
   <div class="page-bar" style="margin:-16px -16px 16px;top:60px">
-    <button class="back-btn" onclick="confirmBackFromOrder()">←</button>
+    <button class="back-btn" id="orderBackBtn" onclick="confirmBackFromOrder()">←</button>
     <div>
-      <div class="page-title">สั่งซื้อ</div>
+      <div class="page-title" id="orderPageTitle">สั่งซื้อ</div>
       <div class="page-sub" id="orderShopName"></div>
     </div>
   </div>
 
-  <!-- Push list — สินค้าที่ต้องดันสำหรับร้านนี้ -->
+  <!-- Sync timestamp banner (moved from สินค้า tab — same IDs so JS still works) -->
+  <div id="priceSyncBanner" style="display:none;background:linear-gradient(135deg,#fef9e7,#ffe9b8);border:1px solid #f0d878;border-radius:8px;padding:6px 12px;margin-bottom:8px;align-items:center;gap:8px;font-size:11px;color:#6b4f00;cursor:pointer" onclick="refreshPriceTab()" title="กดเพื่อโหลดข้อมูลใหม่">
+    <span style="font-size:14px">🔄</span>
+    <span style="flex:1" id="priceSyncText">อัพเดทล่าสุด...</span>
+    <span style="font-size:10px;opacity:.75">กดเพื่อรีเฟรช</span>
+  </div>
+
+  <!-- Push list — สินค้าที่ต้องดันสำหรับร้านนี้ (hidden in browse mode) -->
   <div id="pushSection"></div>
 
   <div class="search-wrap sticky-search" style="display:flex;gap:8px;align-items:center">
@@ -3218,10 +3225,8 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
     <button class="search-scan-btn" onclick="openBarcodeScanner('order')" title="สแกนบาร์โค้ด">📷</button>
   </div>
 
-  <div class="product-filter-chips" id="productFilterChips">
-    <button class="filter-chip active" data-filter="all"   onclick="setProductFilter('all')">ทั้งหมด</button>
-    <button class="filter-chip"        data-filter="promo" onclick="setProductFilter('promo')">🎁 มีโปร</button>
-  </div>
+  <!-- Filter chips — rendered dynamically by renderProductFilterChips() -->
+  <div class="product-filter-chips" id="productFilterChips"></div>
 
   <div class="sec-title" id="productListTitle"><span class="sec-title-icon">📦</span>สินค้าทั้งหมด<span class="sec-title-link" onclick="showAllProducts()" id="toggleAllLink"></span></div>
   <div id="productList"></div>
@@ -3494,42 +3499,6 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
   </div>
 </section>
 
-<!-- ═══════════════════════ PRICE TAB SCREEN ═══════════════════════ -->
-<section class="screen" id="screenProductInfo">
-  <div class="page-bar" style="margin:-16px -16px 16px;top:60px">
-    <button class="back-btn" onclick="goHome()">←</button>
-    <div>
-      <div class="page-title">📦 สินค้า</div>
-      <div class="page-sub" id="productInfoSub">ค้นหาสินค้า + ดูราคา</div>
-    </div>
-  </div>
-
-  <!-- Sync timestamp banner -->
-  <div id="priceSyncBanner" style="display:none;background:linear-gradient(135deg,#fef9e7,#ffe9b8);border:1px solid #f0d878;border-radius:8px;padding:6px 12px;margin-bottom:8px;display:flex;align-items:center;gap:8px;font-size:11px;color:#6b4f00;cursor:pointer" onclick="refreshPriceTab()" title="กดเพื่อโหลดข้อมูลใหม่">
-    <span style="font-size:14px">🔄</span>
-    <span style="flex:1" id="priceSyncText">อัพเดทล่าสุด...</span>
-    <span style="font-size:10px;opacity:.75">กดเพื่อรีเฟรช</span>
-  </div>
-
-  <!-- Search — sticky (Surat 2026-05-10 v4.3) -->
-  <div class="sticky-search" style="background:var(--bg);margin:0 -16px 8px;padding:8px 16px 0;position:sticky;top:60px;z-index:60;box-shadow:0 4px 8px -6px rgba(0,0,0,.1)">
-    <div style="background:var(--card-bg);padding:10px 12px;border-radius:12px;border:1px solid var(--border)">
-      <div style="position:relative;display:flex;gap:8px;align-items:center">
-        <div style="flex:1;position:relative">
-          <input type="text" id="productInfoSearch" placeholder="🔍 ค้นหา ชื่อ / barcode / brand" oninput="onProductInfoSearch(this.value); toggleClearBtn('productInfoSearch','productInfoSearchClear')" style="width:100%;height:42px;padding:0 36px 0 14px;border-radius:21px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;outline:none;box-sizing:border-box">
-          <button id="productInfoSearchClear" class="search-clear" style="right:8px" onclick="clearSearch('productInfoSearch','productInfoSearchClear', onProductInfoSearch)">✕</button>
-        </div>
-        <button class="search-scan-btn" onclick="openBarcodeScanner('price')" title="สแกนบาร์โค้ด">📷</button>
-      </div>
-      <!-- Filter chips -->
-      <div id="priceFilterChips" style="display:flex;gap:6px;margin-top:8px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch">
-        <!-- chips render dynamically -->
-      </div>
-    </div>
-  </div>
-
-  <div id="productInfoResults"></div>
-</section>
 
 <!-- ═══════════════════════ CART BAR ═══════════════════════ -->
 <div class="cart-bar hide" id="cartBar" onclick="goSummary()">
@@ -3551,7 +3520,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
   <button class="bnav-item active" id="navHome" onclick="goHome()"><span class="ico">🏠</span>หน้าหลัก</button>
   <button class="bnav-item" id="navRoute" onclick="goRoute()"><span class="ico">📍</span>ขาย</button>
   <button class="bnav-item" id="navOrders" onclick="goOrders()"><span class="ico">📋</span>ออเดอร์</button>
-  <button class="bnav-item" id="navPrice" onclick="goProductInfo()"><span class="ico">📦</span>สินค้า</button>
+  <button class="bnav-item" id="navPrice" onclick="goProductBrowse()"><span class="ico">📦</span>สินค้า</button>
 </nav>
 
 </div><!-- /.app-shell -->
@@ -4125,19 +4094,7 @@ function rerenderCurrentScreen() {
     else if (id === 'screenShopDetail' && typeof renderShopDetail === 'function' && currentShopId) {
       renderShopDetail(currentShopId);
     }
-    else if (id === 'screenProductInfo' && typeof renderPriceList === 'function') {
-      // Update subtitle to reflect new SKU count
-      const subEl = document.getElementById('productInfoSub');
-      if (subEl) {
-        const totalSku = (SHEET_DATA.products || []).length;
-        subEl.textContent = totalSku > 0 ? `${totalSku.toLocaleString()} SKU พร้อมใช้งาน` : 'ใช้ mock data (Sheet ยังไม่โหลด)';
-      }
-      renderPriceSyncBanner();
-      renderPriceFilterChips();
-      const q = (document.getElementById('productInfoSearch')||{}).value || '';
-      if (q.trim()) onProductInfoSearch(q);
-      else renderPriceList();
-    }
+    // screenProductInfo removed — product browsing now uses screenOrder via goProductBrowse()
   });
   updateCartBar();
 }
@@ -6014,23 +5971,40 @@ function confirmBackFromOrder() {
 }
 
 function goOrder() {
-  const shop = SHOPS.find(s => s.id === currentShopId);
-  document.getElementById('orderShopName').textContent = shop ? shop.name : '';
-  // Only reset search when entering a DIFFERENT shop (v5.0 fix — don't clear on back from Summary)
+  const browseMode = !currentShopId;
+  const shop = currentShopId ? SHOPS.find(s => s.id === currentShopId) : null;
+
+  // ── Page-bar: title + back button adapt to mode
+  const titleEl = document.getElementById('orderPageTitle');
+  const subEl   = document.getElementById('orderShopName');
+  const backBtn = document.getElementById('orderBackBtn');
+  if (titleEl) titleEl.textContent = browseMode ? 'สินค้า' : 'สั่งซื้อ';
+  if (subEl)   subEl.textContent   = browseMode
+    ? `${(SHEET_DATA.products||[]).length.toLocaleString()} SKU พร้อมใช้งาน`
+    : (shop ? shop.name : '');
+  if (backBtn) backBtn.setAttribute('onclick', browseMode ? 'goHome()' : 'confirmBackFromOrder()');
+
+  // ── Push section + cart bar: hidden in browse mode
+  const pushSection = document.getElementById('pushSection');
+  if (pushSection) pushSection.style.display = browseMode ? 'none' : '';
+  const cartBar = document.getElementById('cartBar');
+  if (cartBar && browseMode) cartBar.classList.add('hide');
+
+  // ── Sync banner: show in both modes
+  renderPriceSyncBanner();
+
+  // ── Reset search only when entering a DIFFERENT shop (v5.0 fix)
   if (_orderScreenForShopId !== currentShopId) {
     _orderScreenForShopId = currentShopId;
     _productSearchQuery = '';
-    _promoPicks = {}; // v5.0: reset promo picks for new shop
+    _promoPicks = {};
     const searchEl = document.getElementById('productSearch');
-    if (searchEl) { searchEl.value = ''; }
+    if (searchEl) searchEl.value = '';
     const clearBtn = document.getElementById('productSearchClear');
     if (clearBtn) clearBtn.classList.remove('show');
-    // v6.5.5: reset filter chip to 'all' for new shop
     _productActiveFilter = 'all';
-    document.querySelectorAll('#productFilterChips .filter-chip')
-      .forEach(el => el.classList.toggle('active', el.dataset.filter === 'all'));
   } else {
-    // Same shop — restore input value from module var in case DOM was stale
+    // Same shop — restore input value
     const searchEl = document.getElementById('productSearch');
     if (searchEl && _productSearchQuery) {
       searchEl.value = _productSearchQuery;
@@ -6038,10 +6012,19 @@ function goOrder() {
       if (clearBtn) clearBtn.classList.add('show');
     }
   }
-  renderPushSection();
+
+  renderProductFilterChips('productFilterChips');
+  if (!browseMode) renderPushSection();
   renderProductList(_productSearchQuery);
   showScreen('screenOrder');
-  updateCartBar();
+  if (!browseMode) updateCartBar();
+}
+
+// ── Entry point for สินค้า tab (browse without a shop)
+function goProductBrowse() {
+  currentShopId = null;
+  _orderScreenForShopId = '__browse__'; // force reset search on entry
+  goOrder();
 }
 function goSummary() {
   // Block if a product card has qty entered but not yet confirmed
@@ -8038,6 +8021,7 @@ function buildOrderCardV6(p, idx) {
     ? `<button class="oc-remove-btn" onclick="orderRemove('${safeId}')">🗑 ลบ</button>`
     : '';
 
+  const browseMode = !currentShopId;
   const cardCls = isSaved ? 'confirmed' : (qtyNum > 0 ? 'pending' : '');
 
   // CSS-safe tier badge class (no '+' in class name)
@@ -8064,6 +8048,7 @@ function buildOrderCardV6(p, idx) {
 
       <div class="oc-stock-box">${buildDepotChipsCompact(p)}</div>
 
+      ${browseMode ? '' : `
       <div class="oc-action-row">
         <div class="oc-qty-stepper">
           <button class="oc-qty-btn" onclick="orderQtyAdj('${safeId}',-1)" ${qtyNum<=0?'disabled':''}>−</button>
@@ -8101,7 +8086,7 @@ function buildOrderCardV6(p, idx) {
             ${isReady || isSaved ? '' : 'disabled'}
             onclick="orderConfirm('${safeId}')">${btnLabel}</button>
         </div>
-      </div>
+      </div>`}
     </div>
   `;
 }
@@ -8533,17 +8518,32 @@ function renderProductList(filterText = '') {
     if (titleEl) titleEl.innerHTML = `<span class="sec-title-icon">📦</span>สินค้าขายดี <span class="badge badge-gold" style="margin-left:6px">${products.length}</span>`;
   }
 
-  // v6.5.5: apply product filter chip
+  // v6.5.16: apply product filter chip (promo / focus / bu:XXX)
   if (_productActiveFilter === 'promo') {
     products = products.filter(p => getAllPromotionsFor(p).length > 0);
+  } else if (_productActiveFilter === 'focus') {
+    products = products.filter(isFocusProduct);
+  } else if (_productActiveFilter.startsWith('bu:')) {
+    const bu = _productActiveFilter.slice(3);
+    // When filtering by brand, search all products not just top 200
+    if (!filterText || !filterText.trim()) products = SHEET_DATA.products || [];
+    products = products.filter(p => String(p['CAT BU']||'').trim() === bu);
   }
+
+  const filterLabels = { all: '', promo: '🎁 มีโปร', focus: '🎯 สินค้าโฟกัส' };
+  const activeSuffix = filterLabels[_productActiveFilter] ||
+    (_productActiveFilter.startsWith('bu:') ? _productActiveFilter.slice(3) : '');
 
   if (titleEl) {
     if (filterText && filterText.trim()) {
-      const promoSuffix = _productActiveFilter === 'promo' ? ' · 🎁 มีโปร' : '';
-      titleEl.innerHTML = `<span class="sec-title-icon">🔍</span>ผลการค้นหา (${products.length})${promoSuffix}`;
+      const sf = activeSuffix ? ` · ${activeSuffix}` : '';
+      titleEl.innerHTML = `<span class="sec-title-icon">🔍</span>ผลการค้นหา (${products.length})${sf}`;
     } else if (_productActiveFilter === 'promo') {
       titleEl.innerHTML = `<span class="sec-title-icon">🎁</span>สินค้ามีโปร <span class="badge badge-gold" style="margin-left:6px">${products.length}</span>`;
+    } else if (_productActiveFilter === 'focus') {
+      titleEl.innerHTML = `<span class="sec-title-icon">🎯</span>สินค้าโฟกัส <span class="badge badge-gold" style="margin-left:6px">${products.length}</span>`;
+    } else if (_productActiveFilter.startsWith('bu:')) {
+      titleEl.innerHTML = `<span class="sec-title-icon">📦</span>${_productActiveFilter.slice(3)} <span class="badge badge-gold" style="margin-left:6px">${products.length}</span>`;
     }
   }
 
@@ -8919,7 +8919,7 @@ window.buildPhotoImg = buildPhotoImg;
 // Store in module variable — never rely on DOM for the canonical query value
 // because DOM can be stale during re-render (causes "search resets to all products" bug)
 let _productSearchQuery = '';
-// v6.5.5: active filter chip on Order screen ('all' | 'promo')
+// v6.5.16: active filter chip — 'all' | 'promo' | 'focus' | 'bu:XXX'
 let _productActiveFilter = 'all';
 
 function setProductFilter(filter) {
@@ -8927,6 +8927,29 @@ function setProductFilter(filter) {
   document.querySelectorAll('#productFilterChips .filter-chip')
     .forEach(el => el.classList.toggle('active', el.dataset.filter === filter));
   renderProductList(_productSearchQuery);
+}
+
+// Builds dynamic chip row: ทั้งหมด · มีโปร · สินค้าโฟกัส · [top CAT BU brands]
+function renderProductFilterChips(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const chips = [
+    { id: 'all',   label: 'ทั้งหมด' },
+    { id: 'promo', label: '🎁 มีโปร' },
+    { id: 'focus', label: '🎯 สินค้าโฟกัส' },
+  ];
+  const buCount = {};
+  for (const p of (SHEET_DATA.products || []).slice(0, 5000)) {
+    const bu = String(p['CAT BU'] || '').trim();
+    if (bu) buCount[bu] = (buCount[bu] || 0) + 1;
+  }
+  Object.entries(buCount).sort((a, b) => b[1] - a[1]).slice(0, 6)
+    .forEach(([bu]) => chips.push({ id: 'bu:' + bu, label: bu }));
+  el.innerHTML = chips.map(c =>
+    `<button class="filter-chip${_productActiveFilter === c.id ? ' active' : ''}"
+       data-filter="${c.id.replace(/"/g,'&quot;')}"
+       onclick="setProductFilter('${c.id.replace(/'/g,"\\'")}')">${c.label}</button>`
+  ).join('');
 }
 
 // ─── Price/Product-Info tab search state (v5.0)
@@ -8951,12 +8974,7 @@ function pickOrderFuzzy(name) {
   renderProductList(name);
 }
 
-function pickProductInfoFuzzy(name) {
-  _priceSearchQuery = name;
-  const inp = document.getElementById('productInfoSearch');
-  if (inp) { inp.value = name; toggleClearBtn('productInfoSearch', 'productInfoSearchClear'); }
-  onProductInfoSearch(name);
-}
+function pickProductInfoFuzzy(name) { pickOrderFuzzy(name); } // v6.5.16 alias
 
 function getReservedQty(productId) {
   // qty in cart (mock — would also include other salesmen's reservations from server)
@@ -11248,42 +11266,13 @@ function goNewShop() {
 
 
 // ═══════════════════════════════════════════════════════════
-// PRODUCT INFO SCREEN (read-only product detail browser)
+// PRODUCT INFO — merged into screenOrder (v6.5.16)
+// goProductBrowse() is the new entry point (in goOrder block above)
 // ═══════════════════════════════════════════════════════════
-function goProductInfo() {
-  showScreen('screenProductInfo');
-  updateCartBar();
-  // Reset filter
-  priceTabFilter = 'all';
-  // Restore search from module variable (v5.0 fix — don't clear on tab navigate)
-  const inp = document.getElementById('productInfoSearch');
-  if (inp) {
-    inp.value = _priceSearchQuery;
-    toggleClearBtn('productInfoSearch', 'productInfoSearchClear');
-  }
-  // Subtitle
-  const totalSku = (SHEET_DATA.products || []).length;
-  document.getElementById('productInfoSub').textContent =
-    totalSku > 0 ? `${totalSku.toLocaleString()} SKU พร้อมใช้งาน` : 'ใช้ mock data (Sheet ยังไม่โหลด)';
-  // Sync banner + filter chips
-  renderPriceSyncBanner();
-  renderPriceFilterChips();
-  // Restore last search result or show default list
-  if (_priceSearchQuery) onProductInfoSearch(_priceSearchQuery);
-  else renderPriceList();
-}
+function goProductInfo() { goProductBrowse(); } // backward-compat alias
 
-// Currently selected filter chip — 'all', 'promo', 'focus', or a CAT BU value
-let priceTabFilter = 'all';
-
-function setPriceFilter(filter) {
-  priceTabFilter = filter;
-  renderPriceFilterChips();
-  // Re-run current search/list
-  const q = (document.getElementById('productInfoSearch')||{}).value || '';
-  if (q.trim()) onProductInfoSearch(q);
-  else renderPriceList();
-}
+let priceTabFilter = 'all'; // kept to avoid ReferenceError in any remaining calls
+function setPriceFilter(filter) { setProductFilter(filter); }
 
 function renderPriceSyncBanner() {
   const banner = document.getElementById('priceSyncBanner');
@@ -11333,7 +11322,6 @@ function formatTimeAgo(thaiTs) {
 
 function refreshPriceTab() {
   showToast('🔄 โหลดข้อมูลใหม่...', 'info');
-  // Clear caches for products + syncStatus
   try {
     localStorage.removeItem('rsa_products');
     localStorage.removeItem('rsa_syncStatus');
@@ -11342,89 +11330,31 @@ function refreshPriceTab() {
   } catch {}
   loadAllSheetData().then(() => {
     renderPriceSyncBanner();
-    renderPriceFilterChips();
-    const q = (document.getElementById('productInfoSearch')||{}).value || '';
-    if (q.trim()) onProductInfoSearch(q);
-    else renderPriceList();
+    renderProductFilterChips('productFilterChips');
+    renderProductList(_productSearchQuery);
+    // Update subtitle in browse mode
+    const subEl = document.getElementById('orderShopName');
+    if (!currentShopId && subEl) {
+      subEl.textContent = `${(SHEET_DATA.products||[]).length.toLocaleString()} SKU พร้อมใช้งาน`;
+    }
     showToast('✓ โหลดข้อมูลเรียบร้อย', 'success');
   });
 }
 
-function renderPriceFilterChips() {
-  const el = document.getElementById('priceFilterChips');
-  if (!el) return;
-  const chips = [
-    { id: 'all',   label: 'ทั้งหมด' },
-    { id: 'promo', label: '🎁 มีโปร' },
-    { id: 'focus', label: '🎯 สินค้าโฟกัส' },
-  ];
-  // Add unique CAT BU values from loaded products (top 5 by count)
-  const buCount = {};
-  for (const p of (SHEET_DATA.products || []).slice(0, 5000)) {
-    const bu = String(p['CAT BU']||'').trim();
-    if (bu) buCount[bu] = (buCount[bu]||0) + 1;
-  }
-  const topBus = Object.entries(buCount).sort((a,b) => b[1]-a[1]).slice(0, 6).map(([bu]) => bu);
-  for (const bu of topBus) {
-    chips.push({ id: 'bu:'+bu, label: bu });
-  }
-  el.innerHTML = chips.map(c => {
-    const active = c.id === priceTabFilter;
-    return `<button onclick="setPriceFilter('${c.id.replace(/'/g,"\\'")}')" style="font-size:11px;padding:5px 12px;min-height:0;border-radius:14px;border:1.5px solid ${active?'var(--gold)':'var(--border)'};background:${active?'var(--gold)':'var(--card-bg)'};color:${active?'var(--navy)':'var(--text)'};font-weight:${active?'700':'500'};white-space:nowrap;cursor:pointer">${c.label}</button>`;
-  }).join('');
-}
-
-// Apply current filter to a product list
+// v6.5.16: thin wrappers — screenProductInfo removed, unified into screenOrder
+function renderPriceFilterChips() { renderProductFilterChips('productFilterChips'); }
 function applyPriceFilter(products) {
-  if (priceTabFilter === 'all') return products;
-  if (priceTabFilter === 'promo') return products.filter(hasPromotion);
-  if (priceTabFilter === 'focus') return products.filter(isFocusProduct);
-  if (priceTabFilter.startsWith('bu:')) {
-    const bu = priceTabFilter.slice(3);
+  // kept for any remaining callers; delegates to unified filter state
+  if (_productActiveFilter === 'all') return products;
+  if (_productActiveFilter === 'promo') return products.filter(hasPromotion);
+  if (_productActiveFilter === 'focus') return products.filter(isFocusProduct);
+  if (_productActiveFilter.startsWith('bu:')) {
+    const bu = _productActiveFilter.slice(3);
     return products.filter(p => String(p['CAT BU']||'').trim() === bu);
   }
   return products;
 }
-
-// Render the default price list (no search query)
-function renderPriceList() {
-  const el = document.getElementById('productInfoResults');
-  if (!el) return;
-
-  const totalLoaded = (SHEET_DATA.products || []).length;
-  // When filter chip is active, search across ALL 12K SKUs (not top 200)
-  let list;
-  if (priceTabFilter === 'all') {
-    list = getDefaultProductList();   // top 200 by 30D avg
-  } else {
-    list = SHEET_DATA.products || [];   // all
-  }
-  list = applyPriceFilter(list);
-
-  if (list.length === 0) {
-    el.innerHTML = `<div style="padding:48px 20px;text-align:center;color:var(--muted)">
-      <div style="font-size:48px;margin-bottom:8px;opacity:.5">📦</div>
-      <div style="font-size:13px;margin-bottom:8px">${
-        totalLoaded === 0
-          ? '⚠️ ยังไม่ได้โหลดสินค้าจาก Sheet'
-          : `โหลดได้ ${totalLoaded.toLocaleString()} SKU แต่ไม่ผ่านตัวกรอง`
-      }</div>
-      ${totalLoaded === 0
-        ? '<div style="font-size:11px">กดปุ่ม 🔄 ด้านบนเพื่อลองใหม่<br>ตรวจ Sheet permission "Anyone with link can view"</div>'
-        : '<div style="font-size:11px">ลองเปลี่ยนตัวกรองด้านบน หรือพิมพ์ค้นหา</div>'}
-    </div>`;
-    return;
-  }
-
-  // Cap to 60 in default view (no search)
-  const capped = list.slice(0, 60);
-  // Store for index-based click lookup
-  window._lastPriceProducts = capped;
-  el.innerHTML = `
-    <div style="font-size:11px;color:var(--muted);margin:8px 0">📦 รวม ${totalLoaded.toLocaleString()} SKU · แสดง ${capped.length} จาก ${list.length} หลังกรอง</div>
-    ${capped.map((p, idx) => renderProductInfoCard(p, idx)).join('')}
-  `;
-}
+function renderPriceList() { renderProductList(_productSearchQuery); }
 
 function getDefaultProductList() {
   const all = SHEET_DATA.products || [];
@@ -11462,48 +11392,13 @@ function getDefaultProductList() {
     .map(x => x.p);
 }
 
+// v6.5.16: onProductInfoSearch now redirects to the unified Order screen search
 let productInfoTimer = null;
 function onProductInfoSearch(query) {
-  _priceSearchQuery = String(query||'').trim(); // v5.0: persist across tab navigation
+  _priceSearchQuery = String(query||'').trim();
+  _productSearchQuery = _priceSearchQuery;
   clearTimeout(productInfoTimer);
-  productInfoTimer = setTimeout(() => {
-    const q = _priceSearchQuery;
-    if (q.length === 0) {
-      renderPriceList();
-      return;
-    }
-    if (q.length < 2) {
-      document.getElementById('productInfoResults').innerHTML =
-        '<div style="text-align:center;padding:30px;color:var(--muted);font-size:12px">พิมพ์อย่างน้อย 2 ตัวอักษร</div>';
-      return;
-    }
-    // v4.6: Thai-aware fuzzy search (3 layers — per MD spec)
-    const allProducts = SHEET_DATA.products && SHEET_DATA.products.length > 0
-      ? SHEET_DATA.products
-      : getDefaultProductList();
-    const { results, didYouMean } = doThaiSearch(allProducts, q);
-    let filtered = applyPriceFilter(results.slice(0, 200));
-
-    // If nothing found, show fuzzy "did you mean?" chips
-    if (filtered.length === 0 && didYouMean.length > 0) {
-      const chips = didYouMean.map(p => {
-        const safeName = String(p['PRODUCT NAME']||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
-        return `<span class="fuzzy-chip" onclick="pickProductInfoFuzzy('${safeName}')">${escapeHtml(p['PRODUCT NAME']||'—')}</span>`;
-      }).join('');
-      document.getElementById('productInfoResults').innerHTML = `
-        <div class="fuzzy-box">
-          <div class="fuzzy-label">
-            <span style="font-size:14px">💡</span>
-            ไม่พบ "${escapeHtml(q)}" — คุณหมายถึง?
-          </div>
-          <div class="fuzzy-chips">${chips}</div>
-        </div>
-      `;
-      return;
-    }
-
-    renderProductInfoList(filtered, q);
-  }, 250);
+  productInfoTimer = setTimeout(() => filterProducts(_productSearchQuery), 250);
 }
 
 function renderProductInfoList(products, query) {
@@ -12473,48 +12368,27 @@ function onBarcodeFound(code) {
   if (!product) {
     // Not found — fill barcode into search box so user can edit/correct
     showToast(`ไม่พบบาร์โค้ด ${trimmed} — ใส่ในช่องค้นหาแล้ว`, 'warning');
-    if (_scanContext === 'price') {
-      _priceSearchQuery = trimmed;
-      const inp = document.getElementById('productInfoSearch');
-      if (inp) { inp.value = trimmed; toggleClearBtn('productInfoSearch','productInfoSearchClear'); inp.focus(); }
-      onProductInfoSearch(trimmed);
-    } else {
-      _productSearchQuery = trimmed;
-      const inp = document.getElementById('productSearch');
-      if (inp) { inp.value = trimmed; toggleClearBtn('productSearch','productSearchClear'); inp.focus(); }
-      filterProducts(trimmed);
-    }
+    // Both 'price' and 'order' contexts now use the same Order screen search (v6.5.16)
+    _productSearchQuery = trimmed;
+    const inp = document.getElementById('productSearch');
+    if (inp) { inp.value = trimmed; toggleClearBtn('productSearch','productSearchClear'); inp.focus(); }
+    filterProducts(trimmed);
     return;
   }
 
   const productName = String(product['PRODUCT NAME'] || '').trim();
   console.log('[scan] matched:', productName);
 
-  if (_scanContext === 'price') {
-    // สินค้า tab — fill name into search box + scroll to card
-    _priceSearchQuery = productName;
-    const inp = document.getElementById('productInfoSearch');
-    if (inp) { inp.value = productName; toggleClearBtn('productInfoSearch','productInfoSearchClear'); }
-    onProductInfoSearch(productName);
-    // Scroll to matched card after render
-    setTimeout(() => {
-      const id = product['CODE EA'] || product['CODE CS'] || productName;
-      const card = document.querySelector(`[data-pid="${CSS.escape(id)}"]`);
-      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 350);
-  } else {
-    // Order tab — fill name into search box + scroll to card
-    _productSearchQuery = productName;
-    const inp = document.getElementById('productSearch');
-    if (inp) { inp.value = productName; toggleClearBtn('productSearch','productSearchClear'); }
-    filterProducts(productName);
-    // Scroll to matched card after render
-    setTimeout(() => {
-      const id = product['CODE EA'] || product['CODE CS'] || productName;
-      const card = document.querySelector(`[data-pid="${CSS.escape(id)}"]`);
-      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 350);
-  }
+  // v6.5.16: both 'price' and 'order' contexts use Order screen search
+  _productSearchQuery = productName;
+  const inp = document.getElementById('productSearch');
+  if (inp) { inp.value = productName; toggleClearBtn('productSearch','productSearchClear'); }
+  filterProducts(productName);
+  setTimeout(() => {
+    const id = product['CODE EA'] || product['CODE CS'] || productName;
+    const card = document.querySelector(`[data-pid="${CSS.escape(id)}"]`);
+    if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 350);
 }
 
 // Simple toast (if not already defined)
