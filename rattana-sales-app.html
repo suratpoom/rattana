@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.6 Live Debt</title>
+<title>Rattana Sales — v6.5.7 Price Labels + Cart Photo + Shop Restore</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -868,7 +868,7 @@ body.dark .debt-warn { background: #2a1816; border-color: #5a2a26; }
 .debt-icon { font-size: 22px; }
 .debt-text { flex: 1; font-size: 13px; }
 .debt-amount { font-size: 16px; font-weight: 800; color: var(--danger); }
-/* Debt detail card (v6.5.6 — live SQL Data) */
+/* Debt detail card (v6.5.7 — live SQL Data) */
 .debt-detail-card { background: linear-gradient(135deg,#fff5f3,#fee); border: 1px solid #fcc; border-radius: 14px; margin-top: 12px; overflow: hidden; }
 body.dark .debt-detail-card { background: #2a1816; border-color: #5a2a26; }
 .debt-header { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px 10px; }
@@ -2027,7 +2027,8 @@ body.dark .total-value { color: var(--gold-light); }
 
 /* ─── CART/SUMMARY ─── */
 .cart-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 8px; display: flex; gap: 10px; align-items: center; }
-.cart-item-emoji { font-size: 28px; }
+.cart-item-emoji { font-size: 24px; width:48px; height:48px; display:flex; align-items:center; justify-content:center; border-radius:10px; flex-shrink:0; }
+.cart-item-thumb { width:48px; height:48px; object-fit:cover; border-radius:10px; flex-shrink:0; }
 .cart-item-info { flex: 1; min-width: 0; }
 .cart-item-name { font-size: 13px; font-weight: 700; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cart-item-meta { font-size: 11px; color: var(--muted); }
@@ -2526,7 +2527,7 @@ body.dark .text-gold { color: var(--gold-light); }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.6 · 2026-05-15</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.7 · 2026-05-15</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -2537,7 +2538,7 @@ body.dark .text-gold { color: var(--gold-light); }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.6</span>
+  <span class="demo-tag">v6.5.7</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -2614,7 +2615,7 @@ body.dark .text-gold { color: var(--gold-light); }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.6<br>2026-05-15<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.7<br>2026-05-16<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -2754,6 +2755,9 @@ body.dark .text-gold { color: var(--gold-light); }
     <div class="summary-row total"><span class="lbl">ยอดรวม <span style="font-size:11px;color:var(--muted);font-weight:400">(รวม VAT)</span></span><span class="val" id="sumTotal">฿ 0</span></div>
   </div>
 
+  <!-- v5.0 Promo Picker — rendered by renderPromoPickerSection() — placed ABOVE หมายเหตุ (v6.5.7) -->
+  <div id="promoPickerSection"></div>
+
   <!-- หมายเหตุ (optional) — บันทึกลง Order tab column Q "หมายเหตุ" (Surat 2026-05-10 v4.3) -->
   <div style="margin:12px 0 8px">
     <label style="font-size:12px;font-weight:700;color:var(--muted);display:block;margin-bottom:6px">
@@ -2765,9 +2769,6 @@ body.dark .text-gold { color: var(--gold-light); }
              outline:none;resize:none;line-height:1.5;transition:border-color .2s"
       onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'"></textarea>
   </div>
-
-  <!-- v5.0 Promo Picker — rendered by renderPromoPickerSection() -->
-  <div id="promoPickerSection"></div>
 
   <button class="btn btn-success btn-lg btn-block" id="btnConfirmOrder" onclick="confirmOrderWithPromos()">🎁 ยืนยันแถมและส่งออเดอร์</button>
   <button class="btn btn-outline btn-block" style="margin-top:8px" onclick="goOrder()">+ เพิ่มสินค้า</button>
@@ -3567,7 +3568,7 @@ async function loadProgressively() {
       .then(d => { SHEET_DATA.dataCenter = parseDataCenter(d); markLoaded('dataCenter'); })
       .catch(e => { console.warn('dataCenter:', e.message); markLoaded('dataCenter'); }),
     fetchWithCache('orders', () => fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.order), 2*60*1000)
-      .then(d => { SHEET_DATA.orders = d; markLoaded('orders'); console.log('[boot] Orders loaded:', d.length, 'rows for', SALESMAN.email); })
+      .then(d => { SHEET_DATA.orders = d; hydrateShopStatusFromOrders(d); markLoaded('orders'); console.log('[boot] Orders loaded:', d.length, 'rows for', SALESMAN.email); })
       .catch(e => { console.warn('orders:', e.message); markLoaded('orders'); }),
     fetchWithCache('syncStatus', () => fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.syncStatus), 60*1000)
       .then(d => { SHEET_DATA.syncStatus = d || []; markLoaded('syncStatus'); })
@@ -3978,6 +3979,39 @@ function hydrateVisitsFromSheet(rows) {
   if (count > 0) {
     if (document.getElementById('screenRoute')?.classList.contains('active')) renderShopList();
     if (document.getElementById('screenShop')?.classList.contains('active') && currentShopId) renderShopDetail(currentShopId);
+  }
+}
+
+// ─── SHOP STATUS HYDRATION FROM ORDERS SHEET (v6.5.7) ───────────────────────
+// On boot, restore s.status='visited' + s.visitedAmount for shops where today's
+// orders already exist in the Sheet (so progress bar + ✅ chips survive reload).
+
+function hydrateShopStatusFromOrders(rows) {
+  const myCode = (SALESMAN.salesmanCode || SALESMAN.code || '').trim();
+  // Aggregate: { shopId → totalAmount }
+  const totals = {};
+  (rows || []).forEach(r => {
+    const date   = String(r['วัน'] || '').trim();
+    const code   = String(r['รหัสเซลล์'] || '').trim();
+    const shopId = String(r['รหัสร้าน'] || '').trim();
+    const mode   = String(r['รูปแบบ'] || '').trim();   // ขาย | แถม
+    if (!shopId || !isToday(date)) return;
+    if (myCode && code && code !== myCode) return;
+    if (mode === 'แถม') return;  // free lines contribute ฿0
+    const amount = numv(r['ยอดเงินรวม']);
+    totals[shopId] = (totals[shopId] || 0) + amount;
+  });
+  let count = 0;
+  Object.entries(totals).forEach(([shopId, total]) => {
+    const shop = SHOPS.find(s => String(s.id).trim() === shopId);
+    if (!shop) return;
+    shop.status = 'visited';
+    shop.visitedAmount = total;
+    count++;
+  });
+  console.log('[hydrateShopStatusFromOrders] restored', count, 'shops');
+  if (count > 0) {
+    if (document.getElementById('screenRoute')?.classList.contains('active')) renderShopList();
   }
 }
 
@@ -9145,9 +9179,13 @@ function renderCart() {
     const p = findProduct(c.productId);
     if (!p) return '';
     const unitLabel = c.unit === 'piece' ? 'ชิ้น' : c.unit === 'pack' ? 'แพ็ค' : c.unit === 'bigpack' ? 'แพ็คใหญ่' : 'ลัง';
+    const photoUrl = p['SKU_USAGE'] || p['PHOTO_SQL'] || p['PHOTO'] || p['รูป'] || '';
+    const thumbHtml = photoUrl
+      ? buildPhotoImg(photoUrl, { size: 48, cls: 'cart-item-thumb', emojiCls: 'cart-item-emoji', emoji: '📦', name: p.name || p['PRODUCT NAME'] || '' })
+      : `<div class="cart-item-emoji">${p.emoji || p['_emoji'] || '📦'}</div>`;
     return `
       <div class="cart-item" onclick="openProductModal('${p.id}', ${idx})">
-        <div class="cart-item-emoji">${p.emoji}</div>
+        ${thumbHtml}
         <div class="cart-item-info">
           <div class="cart-item-name">${p.name}</div>
           <div class="cart-item-meta">${c.qty} ${unitLabel} × ฿${c.price}</div>
@@ -10890,9 +10928,9 @@ function _piBuildPriceBlock(unitCode) {
   const pr = productPrices(p, unitCode);
   const isCS = unitCode === 'CS';
   const rows = [];
-  if (pr.S03) rows.push({ label: isCS ? '1 CS' : `1 ${escapeHtml(u.label)}`, price: pr.S03, highlight: true });
-  if (pr.S02 && pr.S02 !== pr.S03) rows.push({ label: isCS ? '10 CS+' : '10+', price: pr.S02 });
-  if (isCS && pr.S01 && pr.S01 !== pr.S02) rows.push({ label: '20 CS+', price: pr.S01 });
+  if (pr.S03) rows.push({ label: isCS ? '1 CS · S03' : 'S03', price: pr.S03, highlight: true });
+  if (pr.S02 && pr.S02 !== pr.S03) rows.push({ label: isCS ? '10 CS+ · S02' : 'S02', price: pr.S02 });
+  if (isCS && pr.S01 && pr.S01 !== pr.S02) rows.push({ label: '20 CS+ · S01', price: pr.S01 });
   if (isManager && pr.S00) rows.push({ label: 'ควบคุม', price: pr.S00, danger: true });
   const priceRows = rows.map(r =>
     `<div class="pi-price-row${r.highlight ? ' highlight' : ''}${r.danger ? ' danger' : ''}">
