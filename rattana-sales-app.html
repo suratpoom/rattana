@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.7 Price Labels + Cart Photo + Shop Restore</title>
+<title>Rattana Sales — v6.5.8 KPI Fix + Cart Crash Recovery</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -868,7 +868,7 @@ body.dark .debt-warn { background: #2a1816; border-color: #5a2a26; }
 .debt-icon { font-size: 22px; }
 .debt-text { flex: 1; font-size: 13px; }
 .debt-amount { font-size: 16px; font-weight: 800; color: var(--danger); }
-/* Debt detail card (v6.5.7 — live SQL Data) */
+/* Debt detail card (v6.5.8 — live SQL Data) */
 .debt-detail-card { background: linear-gradient(135deg,#fff5f3,#fee); border: 1px solid #fcc; border-radius: 14px; margin-top: 12px; overflow: hidden; }
 body.dark .debt-detail-card { background: #2a1816; border-color: #5a2a26; }
 .debt-header { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px 10px; }
@@ -2527,7 +2527,7 @@ body.dark .text-gold { color: var(--gold-light); }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.7 · 2026-05-15</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.8 · 2026-05-15</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -2538,7 +2538,7 @@ body.dark .text-gold { color: var(--gold-light); }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.7</span>
+  <span class="demo-tag">v6.5.8</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -2615,7 +2615,7 @@ body.dark .text-gold { color: var(--gold-light); }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.7<br>2026-05-16<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.8<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -2665,8 +2665,8 @@ body.dark .text-gold { color: var(--gold-light); }
 
     <!-- KPI Strip -->
     <div class="route-kpi-strip">
-      <div class="rk-cell kpi-ok"><div class="rk-val" id="kpiCheckin">0</div><div class="rk-label">เช็คอินแล้ว</div></div>
-      <div class="rk-cell kpi-warn"><div class="rk-val" id="kpiPending">0</div><div class="rk-label">ยังไม่ได้เช็คอิน</div></div>
+      <div class="rk-cell kpi-ok"><div class="rk-val" id="kpiCheckin">0</div><div class="rk-label">เสร็จแล้ว</div></div>
+      <div class="rk-cell kpi-warn"><div class="rk-val" id="kpiPending">0</div><div class="rk-label">ยังไม่เสร็จ</div></div>
       <div class="rk-cell"><div class="rk-val" id="kpiTotal">0</div><div class="rk-label">รวม</div></div>
     </div>
 
@@ -2755,7 +2755,7 @@ body.dark .text-gold { color: var(--gold-light); }
     <div class="summary-row total"><span class="lbl">ยอดรวม <span style="font-size:11px;color:var(--muted);font-weight:400">(รวม VAT)</span></span><span class="val" id="sumTotal">฿ 0</span></div>
   </div>
 
-  <!-- v5.0 Promo Picker — rendered by renderPromoPickerSection() — placed ABOVE หมายเหตุ (v6.5.7) -->
+  <!-- v5.0 Promo Picker — rendered by renderPromoPickerSection() — placed ABOVE หมายเหตุ (v6.5.8) -->
   <div id="promoPickerSection"></div>
 
   <!-- หมายเหตุ (optional) — บันทึกลง Order tab column Q "หมายเหตุ" (Surat 2026-05-10 v4.3) -->
@@ -3543,6 +3543,9 @@ async function enterApp() {
     rerenderCurrentScreen();
   }
 
+  // ─── Cart draft restore — before loading so cart bar shows immediately (v6.5.8) ───
+  _loadCartDraft();
+
   // ─── PROGRESSIVE LOADING — 3 waves, no blocking ───
   loadProgressively();
 }
@@ -3982,7 +3985,7 @@ function hydrateVisitsFromSheet(rows) {
   }
 }
 
-// ─── SHOP STATUS HYDRATION FROM ORDERS SHEET (v6.5.7) ───────────────────────
+// ─── SHOP STATUS HYDRATION FROM ORDERS SHEET (v6.5.8) ───────────────────────
 // On boot, restore s.status='visited' + s.visitedAmount for shops where today's
 // orders already exist in the Sheet (so progress bar + ✅ chips survive reload).
 
@@ -5215,6 +5218,44 @@ let cart = []; // {productId, unit, qty, price, shopId, isFree?, promoKey?}
 // Track which promos have been redeemed in current cart (per Surat 2026-05-08)
 // Key = promo's "ชื่อโปร" (or hash of promo row). Cleared on confirmOrder + new shop.
 let appliedPromos = new Set();
+
+// ─── CART DRAFT PERSISTENCE (v6.5.8) ─────────────────────────────────────────
+// Auto-saves cart to localStorage on every change so iOS/Android crashes don't
+// lose work in progress. Restored on next boot same calendar day only.
+
+function _saveCartDraft() {
+  try {
+    localStorage.setItem('rsa_cart_draft', JSON.stringify({
+      cart, currentShopId, ts: Date.now(),
+    }));
+  } catch(e) { console.warn('[cart draft] save failed:', e); }
+}
+
+function _clearCartDraft() {
+  try { localStorage.removeItem('rsa_cart_draft'); } catch(e) {}
+}
+
+function _loadCartDraft() {
+  try {
+    const raw = localStorage.getItem('rsa_cart_draft');
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (!d || !d.cart || !d.cart.length) return;
+    // Discard if saved on a different calendar day
+    if (new Date(d.ts).toDateString() !== new Date().toDateString()) {
+      _clearCartDraft(); return;
+    }
+    cart = d.cart;
+    currentShopId = d.currentShopId;
+    console.log('[cart draft] restored', cart.length, 'items for shop', currentShopId);
+    // Delay toast so app UI is ready
+    setTimeout(() => {
+      updateCartBar();
+      showToast(`🔄 กู้คืนตะกร้า ${cart.length} รายการ — กดตะกร้าเพื่อดู`, 'info');
+    }, 1800);
+  } catch(e) { console.warn('[cart draft] load failed:', e); }
+}
+// ─────────────────────────────────────────────────────────────────────────────
 let currentModalProduct = null;
 let editingCartIdx = -1;
 // visits[shopId] = full visit record (in-progress or completed)
@@ -6342,8 +6383,8 @@ function _updateRouteProgress() {
   set('routeDoneCount', done);
   set('routeTotalCount', total);
   set('routePctPill', pct + '%');
-  set('kpiCheckin', activeCI);
-  set('kpiPending', pending);
+  set('kpiCheckin', done);           // matches top "เสร็จ" counter
+  set('kpiPending', total - done);   // everything not yet done (active + pending)
   set('kpiTotal', total);
   const bar = document.getElementById('routeProgressBar');
   if (bar) bar.style.width = pct + '%';
@@ -9141,6 +9182,10 @@ function removeFromCart(idx) {
 // CART
 // ═══════════════════════════════════════════════════════════
 function updateCartBar() {
+  // Auto-persist cart on every state change (v6.5.8 crash recovery)
+  if (cart.length > 0) _saveCartDraft();
+  else _clearCartDraft();
+
   const bar = document.getElementById('cartBar');
   const onSummary = document.getElementById('screenSummary').classList.contains('active');
   if (cart.length === 0 || onSummary) {
@@ -9510,6 +9555,7 @@ function confirmOrder() {
 
   cart = [];
   appliedPromos.clear();
+  _clearCartDraft();  // order confirmed — no need to recover this draft (v6.5.8)
   // Clear notes textarea for next order
   const notesElAfter = document.getElementById('orderNotes');
   if (notesElAfter) notesElAfter.value = '';
