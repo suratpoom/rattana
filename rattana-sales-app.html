@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.26</title>
+<title>Rattana Sales — v6.5.27</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -2983,7 +2983,7 @@ body.dark .oc2-footer { background: #0c1a35; border-color: #1a3060; }
 body.dark .oc2-foot-hint { color: #7a90b8; }
 body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
-/* ─── Route Plan Panel (วางแผนรูท v6.5.26) ─── */
+/* ─── Route Plan Panel (วางแผนรูท v6.5.27) ─── */
 .route-plan-btn {
   display: flex; align-items: center; justify-content: center; gap: 8px;
   background: linear-gradient(135deg, rgba(201,168,76,.12), rgba(201,168,76,.06));
@@ -3038,7 +3038,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 .reroute-btn { display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(52,152,219,.1); color: #3498db; border: 1.5px solid rgba(52,152,219,.3); border-radius: 8px; padding: 8px 12px; font-size: 13px; font-weight: 700; font-family: Sarabun, sans-serif; cursor: pointer; width: 100%; margin-top: 6px; }
 .reroute-btn:active { opacity: .8; }
 
-/* ─── Team Map Screen (แผนที่ทีม v6.5.26) ─── */
+/* ─── Team Map Screen (แผนที่ทีม v6.5.27) ─── */
 #teamMapEl { height: calc(100vh - 176px); min-height: 300px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
 .team-map-legend { display: flex; gap: 12px; flex-wrap: wrap; padding: 8px 0; font-size: 12px; color: var(--muted); }
 .tm-leg-item { display: flex; align-items: center; gap: 5px; }
@@ -3047,7 +3047,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 .team-map-btn:active { opacity: .8; }
 @keyframes pulse { 0%{transform:scale(1);opacity:1} 50%{transform:scale(1.4);opacity:.5} 100%{transform:scale(1);opacity:1} }
 
-/* Team map filter chips (v6.5.26) */
+/* Team map filter chips (v6.5.27) */
 #teamMapChips { padding: 6px 4px 10px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
 .tm-chip-row { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0; scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
 .tm-chip-row::-webkit-scrollbar { height: 4px; }
@@ -3091,7 +3091,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.26 · 2026-05-15</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.27 · 2026-05-15</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -3102,7 +3102,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.26</span>
+  <span class="demo-tag">v6.5.27</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -3187,7 +3187,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.26<br>2026-05-15 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.27<br>2026-05-15 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -6007,7 +6007,7 @@ function goRoute() {
 
   // Default — go to shop list
   renderShopList(); showScreen('screenRoute'); updateCartBar();
-  // v6.5.26: proactively fetch fresh GPS in background so ใกล้ฉัน sort is ready immediately
+  // v6.5.27: proactively fetch fresh GPS in background so ใกล้ฉัน sort is ready immediately
   refreshGPS(true)
     .then(() => { if (_routeSort === 'near') renderShopList(); })
     .catch(() => {}); // silent fail — user can tap ใกล้ฉัน to retry
@@ -6846,7 +6846,7 @@ function filterShops(text) {
 window.filterShops = filterShops;
 
 function setRouteSort(val) {
-  // v6.5.26: don't toggle near OFF — near is always the default, clicking again re-fetches GPS
+  // v6.5.27: don't toggle near OFF — near is always the default, clicking again re-fetches GPS
   _routeSort = val;
   _updateRouteFilterChips();
   if (_routeSort === 'near') {
@@ -6882,7 +6882,7 @@ function _updateRouteFilterChips() {
   if (doneEl)    doneEl.classList.toggle('active', _routeStatusFilter === 'done');
 }
 
-// renderShopList — moved below initMap (v6.5.26) with plan-sort support
+// renderShopList — moved below initMap (v6.5.27) with plan-sort support
 
 function _buildShopCardHTML(s) {
   const visit      = visits[s.id];
@@ -7152,7 +7152,7 @@ function initMap() {
 }
 
 // ═══════════════════════════════════════════════════════════
-// TSP ROUTE PLANNING (v6.5.26)
+// TSP ROUTE PLANNING (v6.5.27)
 // Algorithm: Nearest Neighbor → 2-opt → Or-opt → double-bridge
 // Adapted from rattana-route-optimizer.html
 // ═══════════════════════════════════════════════════════════
@@ -7253,6 +7253,32 @@ function _tspThorough(route, cost, restarts) {
     if (l < bestLen - 1e-6) { best = c; bestLen = l; }
   }
   return best;
+}
+
+// Fetch OSRM road geometry (GeoJSON polyline) — same as route optimizer
+// Returns array of [lat,lng] pairs for the actual road path, or null on failure
+const _roadGeoCache = new Map();
+async function _fetchRoadGeometry(points) {
+  if (!points || points.length < 2) return null;
+  const hash = points.map(p => `${(+p.lat).toFixed(5)},${(+p.lng).toFixed(5)}`).join('|');
+  if (_roadGeoCache.has(hash)) return _roadGeoCache.get(hash);
+  if (points.length > 100) return null;  // OSRM limit
+  const coords = points.map(p => `${p.lng},${p.lat}`).join(';');
+  const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 12000);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal });
+    if (!res.ok) throw new Error('OSRM ' + res.status);
+    const d = await res.json();
+    if (d.code !== 'Ok' || !d.routes || !d.routes[0]) throw new Error('OSRM not OK');
+    const latlngs = d.routes[0].geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+    _roadGeoCache.set(hash, latlngs);
+    return latlngs;
+  } catch(e) {
+    console.warn('[OSRM road] failed:', e.message);
+    return null;
+  } finally { clearTimeout(timer); }
 }
 
 // Fetch OSRM road distance matrix for an array of {lat,lng} points
@@ -7462,14 +7488,16 @@ async function runRoutePlanning() {
 }
 window.runRoutePlanning = runRoutePlanning;
 
+let _planGen = 0;
 function _drawPlanPolyline(route, locations) {
   if (!routeMap) return;
-  // Remove old plan markers + polyline
+  const myGen = ++_planGen;
   _planMapMarkers.forEach(m => m.remove()); _planMapMarkers = [];
   if (_planPolyline) { _planPolyline.remove(); _planPolyline = null; }
 
   const latlngs = route.map(i => [locations[i].lat, locations[i].lng]);
-  _planPolyline = L.polyline(latlngs, { color: '#c9a84c', weight: 3, opacity: .8, dashArray: '6,4' }).addTo(routeMap);
+  // Fast straight-line placeholder
+  _planPolyline = L.polyline(latlngs, { color: '#c9a84c', weight: 3, opacity: .45, dashArray: '6,4' }).addTo(routeMap);
 
   route.forEach((locIdx, order) => {
     const loc = locations[locIdx];
@@ -7486,6 +7514,14 @@ function _drawPlanPolyline(route, locations) {
   });
 
   routeMap.fitBounds(L.latLngBounds(latlngs), { padding: [30,30], maxZoom: 13 });
+
+  // Async upgrade to actual road path
+  _fetchRoadGeometry(route.map(i => locations[i])).then(roadGeo => {
+    if (myGen !== _planGen) return;  // newer plan started, abort
+    if (!roadGeo || !_planPolyline) return;
+    _planPolyline.remove();
+    _planPolyline = L.polyline(roadGeo, { color: '#c9a84c', weight: 4, opacity: .85 }).addTo(routeMap);
+  });
 }
 
 function applyPlanToRoute() {
@@ -7637,15 +7673,16 @@ function _updatePlanBtnVisibility() {
 }
 
 // ═══════════════════════════════════════════════════════════
-// TEAM MAP — Supervisor view (level 5+, v6.5.26)
+// TEAM MAP — Supervisor view (level 5+, v6.5.27)
 // Shows last known position of each salesman from Visits sheet
 // ═══════════════════════════════════════════════════════════
 
 let teamMap = null;
 let _teamMapMarkers = [];
 let _teamMapPolylines = [];
+let _tmGen = 0;   // render generation — guards async OSRM upgrades against stale callbacks
 
-// Filter state for team map (v6.5.26)
+// Filter state for team map (v6.5.27)
 let _tmWh = 'all';   // 'all' or warehouse id
 let _tmSm = 'all';   // 'all' or salesman code
 
@@ -7710,6 +7747,7 @@ function initTeamMap() {
 function renderTeamMap() {
   initTeamMap();
   if (!teamMap) return;
+  const myGen = ++_tmGen;
 
   _teamMapMarkers.forEach(m => m.remove()); _teamMapMarkers = [];
   _teamMapPolylines.forEach(p => p.remove()); _teamMapPolylines = [];
@@ -7874,8 +7912,18 @@ function renderTeamMap() {
       _teamMapMarkers.push(m);
 
       if (stops.length >= 2) {
-        const line = L.polyline(stops.map(s => [s.lat, s.lng]), { color: myColor, weight: 3, opacity: .7, dashArray: '6,5' }).addTo(teamMap);
+        // Fast straight-line placeholder (dashed, lighter)
+        let line = L.polyline(stops.map(s => [s.lat, s.lng]), { color: myColor, weight: 2, opacity: .35, dashArray: '5,4' }).addTo(teamMap);
         _teamMapPolylines.push(line);
+        // Upgrade to real road path
+        _fetchRoadGeometry(stops).then(roadGeo => {
+          if (myGen !== _tmGen || !roadGeo) return;
+          const idx = _teamMapPolylines.indexOf(line);
+          if (idx === -1) return;   // already removed by a newer render
+          line.remove();
+          const roadLine = L.polyline(roadGeo, { color: myColor, weight: 3.5, opacity: .8 }).addTo(teamMap);
+          _teamMapPolylines[idx] = roadLine;
+        });
       }
     }
 
@@ -8079,7 +8127,7 @@ function renderShopDetail(shopId) {
   `;
 }
 
-// Check in — always get fresh GPS first (v6.5.26: never use stale position for check-in)
+// Check in — always get fresh GPS first (v6.5.27: never use stale position for check-in)
 function doCheckIn(shopId) {
   const s = SHOPS.find(x => x.id === shopId);
   if (!s) return;
@@ -12017,7 +12065,7 @@ function recalcPromoForRows(remainingRows, templateRow) {
   return newPromoRows;
 }
 
-// v6.5.26: Cancel a line — optimistic UI + write ยกเลิก to col V + recalc promo
+// v6.5.27: Cancel a line — optimistic UI + write ยกเลิก to col V + recalc promo
 window.deleteOrderRow = async function(btnEl, orderId, barcode, productName) {
   if (!confirm(`ยืนยันยกเลิก:\n"${productName}"\nออเดอร์ ${orderId}?`)) return;
 
