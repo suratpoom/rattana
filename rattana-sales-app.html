@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.20</title>
+<title>Rattana Sales — v6.5.21</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -3016,7 +3016,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.20 · 2026-05-15</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.21 · 2026-05-15</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -3027,7 +3027,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.20</span>
+  <span class="demo-tag">v6.5.21</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -3104,7 +3104,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.20<br>2026-05-15 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.21<br>2026-05-15 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -10842,9 +10842,8 @@ function renderOrdersList() {
       : '';
     // v5.0: ALL cards clickable — show transaction detail + delete row
     const onClick = `viewSheetOrderDetail('${o.id}')`;
-    const shareBtn = (o.source === 'local' && submittedOrders.findIndex(x=>x.id===o.id) >= 0)
-      ? `<button class="btn btn-line btn-sm" style="padding:8px 10px;min-height:36px;flex-shrink:0" onclick="event.stopPropagation();shareLine(${submittedOrders.findIndex(x=>x.id===o.id)})" title="ส่ง LINE">📱</button>`
-      : '';
+    // v6.5.21: LINE share on every order card — uses Sheet data so works across sessions
+    const shareBtn = `<button class="btn btn-line btn-sm" style="padding:8px 10px;min-height:36px;flex-shrink:0;background:#06C755;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer" onclick="event.stopPropagation();shareLineFromSheet('${o.id}')" title="ส่ง LINE">📱</button>`;
     // Date badge — show on multi-day views inside the card
     const showDateInCard = !showDateHeaders && o.date;
     const dateBadge = showDateInCard
@@ -11181,6 +11180,76 @@ function buildOrderText(orderIdx) {
   lines.push(`ติดต่อ: ${SALESMAN.name}`);
   return lines.join('\n');
 }
+
+// v6.5.21: Build LINE message from Sheet rows (works for ALL orders, not just local session)
+function buildOrderTextFromSheet(orderId) {
+  const allRows = (SHEET_DATA.orders || []).filter(r => String(r['orderId']||'').trim() === orderId);
+  if (!allRows.length) return '';
+
+  const first     = allRows[0];
+  const shopName  = String(first['ชื่อร้าน']  || '');
+  const salesman  = String(first['ชื่อ-สกุล'] || first['ชื่อ - สกุล'] || '');
+  const warehouse = String(first['คลัง']       || first['คลังส่ง']      || '');
+  const date      = String(first['วัน']        || '');
+  const time      = String(first['เวลา']       || '');
+
+  // Old-style cancel rows (รูปแบบ = ยกเลิก)
+  const oldCancelBarcodes = new Set(
+    allRows.filter(r => String(r['รูปแบบ']||'').trim() === 'ยกเลิก')
+           .map(r => String(r['Barcode']||'').trim())
+  );
+  const isCancelledRow = r =>
+    String(r['ยกเลิก']||'').trim() === 'ยกเลิก' ||
+    oldCancelBarcodes.has(String(r['Barcode']||'').trim());
+
+  const saleRows = allRows.filter(r =>
+    String(r['รูปแบบ']||'ขาย').trim() === 'ขาย' && !isCancelledRow(r)
+  );
+  const freeRows = allRows.filter(r =>
+    String(r['รูปแบบ']||'').trim() === 'แถม' && !isCancelledRow(r)
+  );
+
+  const total = saleRows.reduce((s, r) => s + numv(r['ยอดเงินรวม']), 0);
+
+  const lines = [];
+  lines.push(`📋 ออเดอร์ ${orderId}`);
+  lines.push(`🏪 ${shopName}`);
+  if (salesman) lines.push(`👤 ${salesman}${warehouse ? ` · ${warehouse}` : ''}`);
+  lines.push(`📅 ${date}  ⏰ ${time}`);
+  lines.push('');
+  let idx = 1;
+  saleRows.forEach(r => {
+    const name  = String(r['ชื่อสินค้า'] || r['Barcode'] || '?');
+    const qty   = numv(r['จำนวน']);
+    const unit  = String(r['หน่วย'] || '');
+    const price = numv(r['ราคา']);
+    const tot   = numv(r['ยอดเงินรวม']);
+    lines.push(`${idx++}. ${name}`);
+    lines.push(`   ${qty} ${unit} × ฿${price.toLocaleString()} = ฿${Math.round(tot).toLocaleString()}`);
+  });
+  freeRows.forEach(r => {
+    const name = String(r['ชื่อสินค้า'] || r['Barcode'] || '?');
+    const qty  = numv(r['จำนวน']);
+    const unit = String(r['หน่วย'] || '');
+    lines.push(`🎁 ${name}  ${qty} ${unit} (แถม)`);
+  });
+  lines.push('─────────────────');
+  lines.push(`💰 ยอดรวม ฿${Math.round(total).toLocaleString()} (รวม VAT 7%)`);
+  return lines.join('\n');
+}
+
+// v6.5.21: Share from Sheet data — works on any order card in History
+window.shareLineFromSheet = function(orderId) {
+  const text = buildOrderTextFromSheet(orderId);
+  if (!text) { showToast('ไม่พบข้อมูลออเดอร์', 'error'); return; }
+  if (navigator.share) {
+    navigator.share({ text }).catch(err => {
+      if (err.name !== 'AbortError') openLineDeepLink(text);
+    });
+  } else {
+    openLineDeepLink(text);
+  }
+};
 
 function shareLine(orderIdx) {
   const text = buildOrderText(orderIdx);
