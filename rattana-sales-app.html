@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.11 DC Column by Name</title>
+<title>Rattana Sales — v6.5.12 Desktop Layout</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -2494,6 +2494,157 @@ body.dark .text-gold { color: var(--gold-light); }
   }
   .modal { max-width: 480px !important; }
 }
+
+/* ══════════════════════════════════════════════════════════
+   DESKTOP LAYOUT  ≥ 1024 px
+   Strategy: drawer becomes a permanent sidebar; content
+   shifts right by sidebar width; product/shop lists grid.
+   Mobile experience is untouched (no !important leakage).
+   ══════════════════════════════════════════════════════════ */
+@media (min-width: 1024px) {
+
+  /* ── 1. SIDEBAR: always-visible left panel ─────────────── */
+  .drawer {
+    transform: translateX(0)           !important;
+    transition: none                   !important;
+    position: fixed                    !important;
+    top: 0 !important; left: 0         !important;
+    height: 100dvh                     !important;
+    width: 260px                       !important;
+    z-index: 50                        !important;
+    box-shadow: 2px 0 20px rgba(0,0,0,.2) !important;
+    border-right: 1px solid rgba(255,255,255,.07);
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: var(--navy)            !important; /* full dark sidebar */
+  }
+  /* Hide drawer-close X (drawer is permanent) */
+  .drawer-header > .icon-btn { display: none !important; }
+  /* Drawer items: white text on dark background */
+  .drawer-item {
+    color: rgba(255,255,255,.82) !important;
+    font-size: 14px; padding: 10px 18px;
+    border-radius: 10px; margin: 1px 8px;
+  }
+  .drawer-item:hover {
+    background: rgba(255,255,255,.08) !important;
+    color: #fff !important;
+  }
+  .drawer-item-icon { font-size: 18px; }
+  .drawer-item-arrow { color: rgba(255,255,255,.3) !important; }
+  .drawer-section-title {
+    color: rgba(255,255,255,.38) !important;
+    font-size: 10px !important;
+    padding: 10px 20px 4px !important;
+    letter-spacing: 1px;
+  }
+  .drawer-divider { background: rgba(255,255,255,.07) !important; margin: 6px 16px; }
+  .drawer-footer { border-top: 1px solid rgba(255,255,255,.07); }
+  /* Backdrop never visible */
+  .drawer-backdrop { display: none !important; }
+
+  /* ── 2. HIDE MOBILE-ONLY ELEMENTS ─────────────────────── */
+  #hamburgerBtn      { display: none !important; }
+  .bottom-nav        { display: none !important; }
+
+  /* ── 3. HEADER: shift right + slight height increase ───── */
+  header {
+    margin-left: 260px;
+    padding: 14px 28px !important;
+  }
+  .logo-text { font-size: 18px; }
+
+  /* ── 4. APP-SHELL: shift right, remove mobile centering ── */
+  .app-shell {
+    margin: 0 0 0 260px     !important;
+    max-width: none         !important;
+    padding: 0 32px 48px    !important;
+    min-height: 100dvh;
+  }
+
+  /* ── 5. SCREENS: clean padding, remove bottom-nav space ── */
+  .screen { padding: 20px 0 40px !important; }
+  .screen.active { padding: 20px 0 40px !important; }
+
+  /* ── 6. PAGE-BAR: account for taller header on desktop ─── */
+  .page-bar {
+    top: 64px               !important;
+    margin: -20px -32px 20px !important;
+    padding: 13px 32px      !important;
+  }
+
+  /* ── 7. STICKY SEARCH: below header (order/product screens) */
+  .search-wrap.sticky-search {
+    top: 64px               !important;
+    margin: 0 -32px 12px    !important;
+    padding: 10px 32px      !important;
+  }
+  .search-wrap.sticky-search::before { left: 44px !important; }
+  .search-wrap.sticky-search .search-clear { right: 36px !important; }
+
+  /* ── 8. MODALS: wider on desktop ──────────────────────── */
+  .modal { max-width: 640px !important; }
+
+  /* ── 9. PRODUCT LIST → 2-column grid ──────────────────── */
+  #productList {
+    display: grid                    !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px                        !important;
+  }
+  /* Remove per-card bottom margin (gap handles spacing) */
+  #productList .product-card-v2 { margin-bottom: 0 !important; }
+
+  /* ── 10. SHOP LIST → 2-column grid ────────────────────── */
+  #shopList {
+    display: grid                    !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px                        !important;
+  }
+  #shopList .shop-card-v2,
+  #shopList .rich-card { margin-bottom: 0 !important; }
+
+  /* ── 11. KPI GRID: 4 columns (was already in 768px block) */
+  .kpi-grid { grid-template-columns: repeat(4, 1fr) !important; }
+
+  /* ── 12. ROUTE HERO: more breathing room ──────────────── */
+  .route-hero { padding: 20px 28px; border-radius: 16px; margin-bottom: 20px; }
+
+  /* ── 13. HOVER EFFECTS (desktop has pointer precision) ─── */
+  .product-card-v2:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(8,20,46,.18);
+    transition: transform .15s, box-shadow .15s;
+  }
+  .shop-card-v2:hover,
+  .rich-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(8,20,46,.22);
+    transition: transform .15s, box-shadow .15s;
+  }
+  .order-card:hover {
+    box-shadow: 0 8px 24px rgba(8,20,46,.15);
+    transition: box-shadow .15s;
+  }
+
+  /* ── 14. PUSH SECTION: 2-column grid ──────────────────── */
+  .push-products {
+    display: grid                    !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px                         !important;
+  }
+  .push-products .push-product-row { margin-bottom: 0 !important; }
+
+  /* ── 15. DASHBOARD CARDS: use full width nicely ────────── */
+  .group-rows-wrap { column-count: 2; column-gap: 20px; }
+  .group-row       { break-inside: avoid; }
+
+  /* ── 16. ROUTE FILTER CHIPS: more visible ──────────────── */
+  .route-filter-chips { gap: 10px; padding: 8px 0; }
+  .filter-chip { padding: 8px 18px; font-size: 13px; }
+
+  /* ── 17. STICKY ROUTE HEADER inline styles fix ─────────── */
+  #routeListView { padding-top: 16px; }
+}
 </style>
   <!-- Google Identity Services (v5.0 — real OAuth login) -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -2528,7 +2679,7 @@ body.dark .text-gold { color: var(--gold-light); }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.11 · 2026-05-15</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.12 · 2026-05-15</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -2539,7 +2690,7 @@ body.dark .text-gold { color: var(--gold-light); }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.11</span>
+  <span class="demo-tag">v6.5.12</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -2616,7 +2767,7 @@ body.dark .text-gold { color: var(--gold-light); }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.11<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.12<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -5108,6 +5259,14 @@ function initAppUI() {
     document.body.classList.add('dark');
     const btn = document.getElementById('darkBtn');
     if (btn) btn.textContent = '☀️';
+  }
+  // Populate sidebar user info on desktop (hamburger is hidden, so openDrawer() never fires)
+  const drawerName = document.getElementById('drawerName');
+  const drawerMeta = document.getElementById('drawerMeta');
+  if (drawerName) drawerName.textContent = SALESMAN.name || 'ผู้ใช้งาน';
+  if (drawerMeta) {
+    const whName = SALESMAN.warehouse || '';
+    drawerMeta.textContent = `${SALESMAN.code || ''} • ระดับ ${SALESMAN.level || ''} • คลัง${whName}`;
   }
 }
 
@@ -10544,15 +10703,20 @@ function confirmNoSale() {
 // ═══════════════════════════════════════════════════════════
 // HAMBURGER DRAWER
 // ═══════════════════════════════════════════════════════════
+function _isDesktop() { return window.innerWidth >= 1024; }
+
 function openDrawer() {
-  document.getElementById('drawer').classList.add('open');
-  document.getElementById('drawerBackdrop').classList.add('open');
+  if (!_isDesktop()) {
+    document.getElementById('drawer').classList.add('open');
+    document.getElementById('drawerBackdrop').classList.add('open');
+  }
   document.getElementById('drawerName').textContent = SALESMAN.name;
   document.getElementById('drawerMeta').textContent =
     `${SALESMAN.code} • ระดับ ${SALESMAN.level} • คลัง${SALESMAN.warehouse}`;
 }
 
 function closeDrawer() {
+  if (_isDesktop()) return; // sidebar is permanent on desktop — never close
   document.getElementById('drawer').classList.remove('open');
   document.getElementById('drawerBackdrop').classList.remove('open');
 }
