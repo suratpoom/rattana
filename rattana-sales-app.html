@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.25</title>
+<title>Rattana Sales — v6.5.26</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -2983,7 +2983,7 @@ body.dark .oc2-footer { background: #0c1a35; border-color: #1a3060; }
 body.dark .oc2-foot-hint { color: #7a90b8; }
 body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
-/* ─── Route Plan Panel (วางแผนรูท v6.5.25) ─── */
+/* ─── Route Plan Panel (วางแผนรูท v6.5.26) ─── */
 .route-plan-btn {
   display: flex; align-items: center; justify-content: center; gap: 8px;
   background: linear-gradient(135deg, rgba(201,168,76,.12), rgba(201,168,76,.06));
@@ -3038,7 +3038,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 .reroute-btn { display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(52,152,219,.1); color: #3498db; border: 1.5px solid rgba(52,152,219,.3); border-radius: 8px; padding: 8px 12px; font-size: 13px; font-weight: 700; font-family: Sarabun, sans-serif; cursor: pointer; width: 100%; margin-top: 6px; }
 .reroute-btn:active { opacity: .8; }
 
-/* ─── Team Map Screen (แผนที่ทีม v6.5.25) ─── */
+/* ─── Team Map Screen (แผนที่ทีม v6.5.26) ─── */
 #teamMapEl { height: calc(100vh - 176px); min-height: 300px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
 .team-map-legend { display: flex; gap: 12px; flex-wrap: wrap; padding: 8px 0; font-size: 12px; color: var(--muted); }
 .tm-leg-item { display: flex; align-items: center; gap: 5px; }
@@ -3046,6 +3046,17 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 .team-map-btn { display: flex; align-items: center; gap: 6px; background: linear-gradient(135deg, rgba(52,152,219,.15), rgba(52,152,219,.08)); color: #3498db; border: 1.5px solid rgba(52,152,219,.3); border-radius: 10px; padding: 10px 14px; font-size: 14px; font-weight: 700; font-family: Sarabun, sans-serif; cursor: pointer; width: 100%; margin-top: 14px; justify-content: center; }
 .team-map-btn:active { opacity: .8; }
 @keyframes pulse { 0%{transform:scale(1);opacity:1} 50%{transform:scale(1.4);opacity:.5} 100%{transform:scale(1);opacity:1} }
+
+/* Team map filter chips (v6.5.26) */
+#teamMapChips { padding: 6px 4px 10px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+.tm-chip-row { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0; scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
+.tm-chip-row::-webkit-scrollbar { height: 4px; }
+.tm-chip-row::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.tm-chip-label { font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; margin: 4px 0 3px; padding: 0 4px; }
+.tm-chip { white-space: nowrap; padding: 5px 11px; border: 1.5px solid var(--border); border-radius: 14px; font-size: 11px; font-weight: 700; cursor: pointer; background: var(--surface); color: var(--muted); font-family: Sarabun, sans-serif; flex-shrink: 0; transition: all .15s; }
+.tm-chip:active { transform: scale(.96); }
+.tm-chip.active { background: var(--gold); color: #0d1b3e; border-color: var(--gold); }
+.tm-chip-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
 </style>
   <!-- Google Identity Services (v5.0 — real OAuth login) -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -3080,7 +3091,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.25 · 2026-05-15</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.26 · 2026-05-15</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -3091,7 +3102,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.25</span>
+  <span class="demo-tag">v6.5.26</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -3176,7 +3187,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.25<br>2026-05-15 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.26<br>2026-05-15 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -5996,7 +6007,7 @@ function goRoute() {
 
   // Default — go to shop list
   renderShopList(); showScreen('screenRoute'); updateCartBar();
-  // v6.5.25: proactively fetch fresh GPS in background so ใกล้ฉัน sort is ready immediately
+  // v6.5.26: proactively fetch fresh GPS in background so ใกล้ฉัน sort is ready immediately
   refreshGPS(true)
     .then(() => { if (_routeSort === 'near') renderShopList(); })
     .catch(() => {}); // silent fail — user can tap ใกล้ฉัน to retry
@@ -6835,7 +6846,7 @@ function filterShops(text) {
 window.filterShops = filterShops;
 
 function setRouteSort(val) {
-  // v6.5.25: don't toggle near OFF — near is always the default, clicking again re-fetches GPS
+  // v6.5.26: don't toggle near OFF — near is always the default, clicking again re-fetches GPS
   _routeSort = val;
   _updateRouteFilterChips();
   if (_routeSort === 'near') {
@@ -6871,7 +6882,7 @@ function _updateRouteFilterChips() {
   if (doneEl)    doneEl.classList.toggle('active', _routeStatusFilter === 'done');
 }
 
-// renderShopList — moved below initMap (v6.5.25) with plan-sort support
+// renderShopList — moved below initMap (v6.5.26) with plan-sort support
 
 function _buildShopCardHTML(s) {
   const visit      = visits[s.id];
@@ -7141,7 +7152,7 @@ function initMap() {
 }
 
 // ═══════════════════════════════════════════════════════════
-// TSP ROUTE PLANNING (v6.5.25)
+// TSP ROUTE PLANNING (v6.5.26)
 // Algorithm: Nearest Neighbor → 2-opt → Or-opt → double-bridge
 // Adapted from rattana-route-optimizer.html
 // ═══════════════════════════════════════════════════════════
@@ -7626,13 +7637,47 @@ function _updatePlanBtnVisibility() {
 }
 
 // ═══════════════════════════════════════════════════════════
-// TEAM MAP — Supervisor view (level 5+, v6.5.25)
+// TEAM MAP — Supervisor view (level 5+, v6.5.26)
 // Shows last known position of each salesman from Visits sheet
 // ═══════════════════════════════════════════════════════════
 
 let teamMap = null;
 let _teamMapMarkers = [];
 let _teamMapPolylines = [];
+
+// Filter state for team map (v6.5.26)
+let _tmWh = 'all';   // 'all' or warehouse id
+let _tmSm = 'all';   // 'all' or salesman code
+
+// Deterministic per-salesman color (same code → same color always)
+const _TM_PALETTE = ['#e74c3c','#3498db','#9b59b6','#1abc9c','#f39c12','#16a085','#2980b9','#8e44ad','#d35400','#27ae60','#c0392b','#e67e22','#2c3e50','#1f6391','#7d3c98'];
+function _smColor(code) {
+  let h = 0;
+  const s = String(code||'');
+  for (let i = 0; i < s.length; i++) h = ((h * 31) + s.charCodeAt(i)) >>> 0;
+  return _TM_PALETTE[h % _TM_PALETTE.length];
+}
+
+// Short display label for the avatar circle (3-4 Thai chars max)
+function _smLabel(sm) {
+  const nick = String(sm.nickname||'').trim();
+  if (nick) return nick.length > 4 ? nick.slice(0,4) : nick;
+  const first = String(sm.name||'').trim().split(/\s+/)[0] || String(sm.code||'?');
+  return first.length > 4 ? first.slice(0,3) : first;
+}
+
+function setTmWh(wh) {
+  _tmWh = wh;
+  _tmSm = 'all';
+  renderTeamMap();
+}
+window.setTmWh = setTmWh;
+
+function setTmSm(code) {
+  _tmSm = _tmSm === code ? 'all' : code;
+  renderTeamMap();
+}
+window.setTmSm = setTmSm;
 
 function goTeamMap() {
   showScreen('screenTeamMap');
@@ -7666,15 +7711,12 @@ function renderTeamMap() {
   initTeamMap();
   if (!teamMap) return;
 
-  // Clear existing markers
   _teamMapMarkers.forEach(m => m.remove()); _teamMapMarkers = [];
   _teamMapPolylines.forEach(p => p.remove()); _teamMapPolylines = [];
 
-  // Build last-known-position per salesman from Visits sheet rows
   const visitRows = SHEET_DATA.visits || [];
   const todayVisits = visitRows.filter(r => isToday(String(r['วัน']||'')));
 
-  // Map: salesmanCode → array of visit rows (sorted by check-in time)
   const byCode = new Map();
   for (const r of todayVisits) {
     const code = String(r['รหัสเซลล์']||'').trim();
@@ -7682,55 +7724,68 @@ function renderTeamMap() {
     if (!byCode.has(code)) byCode.set(code, []);
     byCode.get(code).push(r);
   }
+  byCode.forEach(rows => rows.sort((a, b) => String(a['เวลาเช็คอิน']||'').localeCompare(String(b['เวลาเช็คอิน']||''))));
 
-  // Sort each salesman's visits by check-in time
-  byCode.forEach((rows, code) => {
-    rows.sort((a, b) => String(a['เวลาเช็คอิน']||'').localeCompare(String(b['เวลาเช็คอิน']||'')));
-  });
-
-  // Get salesman list for this warehouse / all (based on role)
   const allSalesmen = allSalesmenFromSheet();
-  const viewSalesmen = SALESMAN.level >= 6
-    ? allSalesmen
-    : allSalesmen.filter(s => s.warehouseId === SALESMAN.warehouseId);
+  const viewSalesmen = SALESMAN.level >= 6 ? allSalesmen : allSalesmen.filter(s => s.warehouseId === SALESMAN.warehouseId);
+
+  // Render filter chips
+  const chipsEl = document.getElementById('teamMapChips');
+  if (chipsEl) {
+    const whSet = new Set(viewSalesmen.map(s => s.warehouseId).filter(Boolean));
+    const whChipsRow = (SALESMAN.level >= 6 && whSet.size > 1) ? `
+      <div class="tm-chip-label">🏭 คลัง</div>
+      <div class="tm-chip-row">
+        <button class="tm-chip ${_tmWh==='all'?'active':''}" onclick="setTmWh('all')">ทุกคลัง</button>
+        ${[...whSet].sort().map(wh => `<button class="tm-chip ${_tmWh===wh?'active':''}" onclick="setTmWh('${wh}')">${wh}</button>`).join('')}
+      </div>` : '';
+
+    const smChipPool = _tmWh==='all' ? viewSalesmen : viewSalesmen.filter(s => s.warehouseId === _tmWh);
+    const smChipsRow = `
+      <div class="tm-chip-label">👤 เซลล์ (${smChipPool.length} คน)</div>
+      <div class="tm-chip-row">
+        <button class="tm-chip ${_tmSm==='all'?'active':''}" onclick="setTmSm('all')">ทุกคน</button>
+        ${smChipPool.map(s => {
+          const c = _smColor(s.code);
+          const isActive = _tmSm === s.code;
+          const activeStyle = isActive ? `background:${c};border-color:${c};color:#fff` : '';
+          return `<button class="tm-chip" style="${activeStyle}" onclick="setTmSm('${s.code}')"><span class="tm-chip-dot" style="background:${c}"></span>${escapeHtml(s.name)}</button>`;
+        }).join('')}
+      </div>`;
+    chipsEl.innerHTML = whChipsRow + smChipsRow;
+  }
+
+  // Apply filters
+  let displaySalesmen = viewSalesmen;
+  if (_tmWh !== 'all') displaySalesmen = displaySalesmen.filter(s => s.warehouseId === _tmWh);
+  if (_tmSm !== 'all') displaySalesmen = displaySalesmen.filter(s => s.code === _tmSm);
 
   const allPoints = [];
   let cardHtml = '';
 
-  viewSalesmen.forEach(sm => {
+  displaySalesmen.forEach(sm => {
     const smRows = byCode.get(sm.code) || [];
-    // Last position = most recent check-in with coords
-    let lastLat = null, lastLng = null, lastShopName = '', lastTime = '', hasOutOfRange = false;
+    const myColor = _smColor(sm.code);
+    const myLabel = _smLabel(sm);
 
+    let lastLat = null, lastLng = null;
     smRows.forEach(r => {
       const coordStr = String(r['พิกัดเช็คอิน']||'').trim();
       if (coordStr && coordStr.includes(',')) {
         const [latS, lngS] = coordStr.split(',');
         const lat = parseFloat(latS), lng = parseFloat(lngS);
-        if (!isNaN(lat) && !isNaN(lng)) {
-          lastLat = lat; lastLng = lng;
-          lastShopName = String(r['ชื่อร้าน']||'').trim();
-          lastTime = String(r['เวลาเช็คอิน']||'').trim();
-        }
-      }
-      // Check for any out-of-range check-ins
-      if (String(r['หมายเหตุ']||'').includes('นอก') || String(r['พิกัดเช็คอิน']||'').trim() === '') {
-        /* heuristic — we don't have outOfRangeReason in sheet yet */
+        if (!isNaN(lat) && !isNaN(lng)) { lastLat = lat; lastLng = lng; }
       }
     });
 
-    // Determine status
     const lastRow = smRows[smRows.length - 1];
     const isCheckedIn = lastRow && lastRow['เวลาเช็คอิน'] && !lastRow['เวลาเช็คเอาท์'];
     const hasAnyVisit = smRows.length > 0;
 
-    let dotColor = '#95a5a6'; // no visits
-    let statusLabel = 'ยังไม่เริ่ม';
-    let statusClass = 'none';
-    if (isCheckedIn)    { dotColor = '#2ecc71'; statusLabel = 'กำลังเยี่ยม'; statusClass = 'active'; }
-    else if (hasAnyVisit) { dotColor = '#3498db'; statusLabel = `${smRows.length} ร้าน`; statusClass = 'idle'; }
+    let statusLabel = 'ยังไม่เริ่ม', statusClass = 'none';
+    if (isCheckedIn) { statusLabel = 'กำลังเยี่ยม'; statusClass = 'active'; }
+    else if (hasAnyVisit) { statusLabel = `เยี่ยมแล้ว ${smRows.length} ร้าน`; statusClass = 'idle'; }
 
-    // Build per-stop list: each check-in with coords + time + shop name
     const stops = smRows.map(r => {
       const c = String(r['พิกัดเช็คอิน']||'').trim();
       if (!c.includes(',')) return null;
@@ -7748,7 +7803,6 @@ function renderTeamMap() {
       };
     }).filter(Boolean);
 
-    // Build full history HTML for big popup + sidebar card
     const historyHtml = stops.length === 0
       ? '<div style="color:#888;font-size:11px;padding:4px 0">— ยังไม่มีการเช็คอินวันนี้</div>'
       : stops.map((st, i) => {
@@ -7757,7 +7811,7 @@ function renderTeamMap() {
           const durTxt = st.duration ? ` · ${st.duration} น.` : '';
           const resTxt = st.result ? ` · ${escapeHtml(st.result)}` : '';
           return `<div style="display:flex;gap:8px;padding:5px 0;border-top:${i?'1px solid #eee':'none'};font-size:12px">
-            <div style="width:20px;height:20px;border-radius:50%;background:${isCurrent?'#2ecc71':'#3498db'};color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${i+1}</div>
+            <div style="width:20px;height:20px;border-radius:50%;background:${myColor};color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;${isCurrent?'box-shadow:0 0 0 2px #2ecc71':''}">${i+1}</div>
             <div style="flex:1;min-width:0">
               <div style="font-weight:700;color:#222">${escapeHtml(st.shopName)}</div>
               <div style="font-size:11px;color:#666">⏰ ${escapeHtml(timeRange)}${durTxt}${resTxt}</div>
@@ -7765,22 +7819,20 @@ function renderTeamMap() {
           </div>`;
         }).join('');
 
-    // Place a small numbered marker at EACH check-in stop
     stops.forEach((st, i) => {
       allPoints.push([st.lat, st.lng]);
       const isCurrent = (i === stops.length - 1) && !st.outTime;
-      const stopColor = isCurrent ? '#2ecc71' : '#3498db';
       const stopIcon = L.divIcon({
         className: '',
-        html: `<div style="width:22px;height:22px;border-radius:50%;background:${stopColor};border:2px solid #fff;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;box-shadow:0 2px 5px rgba(0,0,0,.3);margin-left:-11px;margin-top:-11px">${i+1}</div>`,
-        iconSize: [22,22], iconAnchor: [11,11]
+        html: `<div style="width:24px;height:24px;border-radius:50%;background:${myColor};border:2px solid #fff;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;box-shadow:0 2px 5px rgba(0,0,0,.3);margin-left:-12px;margin-top:-12px;${isCurrent?'outline:2px solid #2ecc71;outline-offset:1px':''}">${i+1}</div>`,
+        iconSize: [24,24], iconAnchor: [12,12]
       });
       const sm2 = L.marker([st.lat, st.lng], { icon: stopIcon, zIndexOffset: 100 }).addTo(teamMap);
-      sm2.bindTooltip(`${st.inTime}${st.outTime?' - '+st.outTime:''} · ${escapeHtml(st.shopName)}`, { direction: 'top', offset: [0,-10] });
+      sm2.bindTooltip(`<b>${escapeHtml(sm.name)}</b> · ${st.inTime}${st.outTime?' - '+st.outTime:''} · ${escapeHtml(st.shopName)}`, { direction: 'top', offset: [0,-12] });
       sm2.bindPopup(`
         <div style="font-family:Sarabun,sans-serif;min-width:180px">
           <b style="font-size:13px">${i+1}. ${escapeHtml(st.shopName)}</b><br>
-          <span style="font-size:11px;color:#666">เซลล์: ${escapeHtml(sm.name)} (${sm.code})</span><br>
+          <span style="font-size:11px;color:#666"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${myColor};margin-right:4px;vertical-align:middle"></span>${escapeHtml(sm.name)} (${sm.code})</span><br>
           <div style="margin-top:6px;font-size:12px">
             ⏰ เช็คอิน <b>${escapeHtml(st.inTime||'—')}</b>${st.outTime?`<br>🏁 เช็คเอาท์ <b>${escapeHtml(st.outTime)}</b>`:''}
             ${st.duration?`<br>⌛ ${st.duration} นาที`:''}
@@ -7792,21 +7844,26 @@ function renderTeamMap() {
       _teamMapMarkers.push(sm2);
     });
 
-    // Big salesman avatar marker at LATEST position
     if (lastLat && lastLng) {
       const icon = L.divIcon({
         className: '',
         html: `<div style="position:relative">
-          <div style="width:38px;height:38px;border-radius:50%;background:${dotColor};border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 3px 10px rgba(0,0,0,.4);margin-left:-19px;margin-top:-19px">👤</div>
-          ${isCheckedIn ? '<div style="position:absolute;top:-2px;right:-2px;width:11px;height:11px;border-radius:50%;background:#2ecc71;border:2px solid #fff;animation:pulse 1.4s infinite"></div>' : ''}
+          <div style="width:48px;height:48px;border-radius:50%;background:${myColor};border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;font-family:Sarabun,sans-serif;box-shadow:0 3px 10px rgba(0,0,0,.45);margin-left:-24px;margin-top:-24px;text-align:center;line-height:1.05;letter-spacing:.5px">${escapeHtml(myLabel)}</div>
+          ${isCheckedIn ? '<div style="position:absolute;top:-3px;right:-3px;width:13px;height:13px;border-radius:50%;background:#2ecc71;border:2px solid #fff;animation:pulse 1.4s infinite"></div>' : ''}
         </div>`,
-        iconSize: [38,38], iconAnchor: [19,19]
+        iconSize: [48,48], iconAnchor: [24,24]
       });
       const m = L.marker([lastLat, lastLng], { icon, zIndexOffset: 500 }).addTo(teamMap);
+      m.bindTooltip(`<b>${escapeHtml(sm.name)}</b> · ${statusLabel}`, { direction: 'top', offset: [0,-26] });
       m.bindPopup(`
-        <div style="font-family:Sarabun,sans-serif;min-width:220px;max-width:280px">
-          <b style="font-size:14px">👤 ${escapeHtml(sm.name)}</b><br>
-          <span style="font-size:11px;color:#666">${sm.code} · คลัง${sm.warehouseId} · <span style="color:${dotColor};font-weight:700">${statusLabel}</span></span>
+        <div style="font-family:Sarabun,sans-serif;min-width:230px;max-width:300px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <div style="width:32px;height:32px;border-radius:50%;background:${myColor};color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800">${escapeHtml(myLabel)}</div>
+            <div>
+              <b style="font-size:14px">${escapeHtml(sm.name)}</b><br>
+              <span style="font-size:11px;color:#666">${sm.code} · คลัง${sm.warehouseId} · <span style="color:${myColor};font-weight:700">${statusLabel}</span></span>
+            </div>
+          </div>
           <div style="margin:6px 0;font-size:12px;padding:6px 8px;background:#f7f7f7;border-radius:6px">
             💰 วันนี้ ฿${Math.round(sm.todaySales).toLocaleString()} · ${stops.length} ร้านที่เช็คอิน
           </div>
@@ -7816,14 +7873,12 @@ function renderTeamMap() {
       `);
       _teamMapMarkers.push(m);
 
-      // Breadcrumb polyline
       if (stops.length >= 2) {
-        const line = L.polyline(stops.map(s => [s.lat, s.lng]), { color: dotColor, weight: 2.5, opacity: .55, dashArray: '5,4' }).addTo(teamMap);
+        const line = L.polyline(stops.map(s => [s.lat, s.lng]), { color: myColor, weight: 3, opacity: .7, dashArray: '6,5' }).addTo(teamMap);
         _teamMapPolylines.push(line);
       }
     }
 
-    // Compact check-in summary for the card
     const stopsSummary = stops.length === 0
       ? '<div style="font-size:11px;color:var(--muted);margin-top:4px">— ยังไม่เช็คอิน</div>'
       : `<div style="margin-top:6px;display:flex;flex-direction:column;gap:3px">
@@ -7831,7 +7886,7 @@ function renderTeamMap() {
             const isCurrent = (i === stops.length - 1) && !st.outTime;
             const timeLabel = st.outTime ? `${st.inTime}-${st.outTime}` : `${st.inTime} →`;
             return `<div style="font-size:11px;display:flex;gap:6px;align-items:center">
-              <span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:${isCurrent?'#2ecc71':'#3498db'};color:#fff;font-size:9px;font-weight:800;text-align:center;line-height:16px;flex-shrink:0">${i+1}</span>
+              <span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:${myColor};color:#fff;font-size:9px;font-weight:800;text-align:center;line-height:16px;flex-shrink:0;${isCurrent?'box-shadow:0 0 0 2px #2ecc71':''}">${i+1}</span>
               <span style="color:var(--muted);font-family:monospace">${timeLabel}</span>
               <span style="color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(st.shopName)}</span>
             </div>`;
@@ -7841,8 +7896,8 @@ function renderTeamMap() {
     cardHtml += `
       <div class="tm-salesman-card" onclick="if(${lastLat||'null'}&&${lastLng||'null'})teamMap.flyTo([${lastLat||0},${lastLng||0}],14)">
         <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:10px;height:10px;border-radius:50%;background:${dotColor};flex-shrink:0"></div>
-          <div style="flex:1">
+          <div style="width:32px;height:32px;border-radius:50%;background:${myColor};color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;font-family:Sarabun,sans-serif">${escapeHtml(myLabel)}</div>
+          <div style="flex:1;min-width:0">
             <div class="tm-sm-name">${escapeHtml(sm.name)}</div>
             <div class="tm-sm-meta">${sm.code} · คลัง${sm.warehouseId} · วันนี้ ฿${Math.round(sm.todaySales).toLocaleString()}</div>
           </div>
@@ -7852,16 +7907,16 @@ function renderTeamMap() {
       </div>`;
   });
 
-  // Fit map
   if (allPoints.length > 0) {
     teamMap.fitBounds(L.latLngBounds(allPoints), { padding: [40,40], maxZoom: 13 });
   }
 
-  // Update sub-title
   const sub = document.getElementById('teamMapSub');
-  if (sub) sub.textContent = `${viewSalesmen.filter(s=>s.todaySales>0).length} active จาก ${viewSalesmen.length} คน • ${formatDateISO(new Date())}`;
+  if (sub) {
+    const activeCount = displaySalesmen.filter(s => byCode.has(s.code)).length;
+    sub.textContent = `${activeCount} active จาก ${displaySalesmen.length} คน • ${formatDateISO(new Date())}`;
+  }
 
-  // Render salesman list
   const listEl = document.getElementById('teamMapSalesmenList');
   if (listEl) listEl.innerHTML = cardHtml || `<div class="card text-center" style="color:var(--muted);padding:30px">ยังไม่มีข้อมูลเซลล์วันนี้</div>`;
 }
@@ -8024,7 +8079,7 @@ function renderShopDetail(shopId) {
   `;
 }
 
-// Check in — always get fresh GPS first (v6.5.25: never use stale position for check-in)
+// Check in — always get fresh GPS first (v6.5.26: never use stale position for check-in)
 function doCheckIn(shopId) {
   const s = SHOPS.find(x => x.id === shopId);
   if (!s) return;
@@ -11962,7 +12017,7 @@ function recalcPromoForRows(remainingRows, templateRow) {
   return newPromoRows;
 }
 
-// v6.5.25: Cancel a line — optimistic UI + write ยกเลิก to col V + recalc promo
+// v6.5.26: Cancel a line — optimistic UI + write ยกเลิก to col V + recalc promo
 window.deleteOrderRow = async function(btnEl, orderId, barcode, productName) {
   if (!confirm(`ยืนยันยกเลิก:\n"${productName}"\nออเดอร์ ${orderId}?`)) return;
 
@@ -13816,13 +13871,14 @@ window.addEventListener('load', () => {
     <button style="background:none;border:none;color:var(--gold);font-size:13px;font-weight:700;cursor:pointer;font-family:Sarabun,sans-serif" onclick="renderTeamMap()">🔄</button>
   </div>
 
+  <div id="teamMapChips"></div>
+
   <div id="teamMapEl"></div>
 
   <div class="team-map-legend">
-    <div class="tm-leg-item"><div class="tm-dot" style="background:#2ecc71"></div>กำลังเยี่ยม</div>
-    <div class="tm-leg-item"><div class="tm-dot" style="background:#3498db"></div>เช็คเอาท์แล้ว</div>
-    <div class="tm-leg-item"><div class="tm-dot" style="background:#95a5a6"></div>ยังไม่เริ่ม</div>
-    <div class="tm-leg-item"><div class="tm-dot" style="background:#e74c3c"></div>เช็คอินนอกพื้นที่</div>
+    <div class="tm-leg-item"><span style="font-weight:700;color:var(--text)">👤</span> = ตำแหน่งล่าสุดของเซลล์ (สีของใครของมัน)</div>
+    <div class="tm-leg-item"><span style="display:inline-block;width:14px;height:0;border-top:2px dashed #888;vertical-align:middle"></span> เส้นประ = เส้นทางการเช็คอินวันนี้ (1→2→3...)</div>
+    <div class="tm-leg-item"><div class="tm-dot" style="background:#2ecc71;animation:pulse 1.4s infinite"></div>จุดสีเขียวกะพริบ = กำลังเช็คอินอยู่</div>
   </div>
 
   <div id="teamMapSalesmenList" style="margin-top:8px"></div>
