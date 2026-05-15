@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.14 Desktop Layout Fix</title>
+<title>Rattana Sales — v6.5.15 Desktop Layout Fix</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -2609,6 +2609,8 @@ body.dark .text-gold { color: var(--gold-light); }
   }
   #shopList .shop-card-v2,
   #shopList .rich-card { margin-bottom: 0 !important; }
+  /* Section headers must span full row or they push 1st card to col 2 */
+  #shopList .route-section-hdr { grid-column: 1 / -1 !important; }
 
   /* ── 11. KPI GRID: 4 columns (was already in 768px block) */
   .kpi-grid { grid-template-columns: repeat(4, 1fr) !important; }
@@ -2617,9 +2619,9 @@ body.dark .text-gold { color: var(--gold-light); }
   .route-hero {
     position: relative !important;   /* cancel mobile sticky */
     top: auto          !important;
-    padding: 20px 28px;
+    margin: 0 0 20px   !important;   /* cancel mobile -16px bleed */
+    padding: 20px 28px !important;
     border-radius: 16px;
-    margin-bottom: 20px;
   }
 
   /* ── 13. HOVER EFFECTS (desktop has pointer precision) ─── */
@@ -3014,7 +3016,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.14 · 2026-05-15</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.15 · 2026-05-15</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -3025,7 +3027,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.14</span>
+  <span class="demo-tag">v6.5.15</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -3102,7 +3104,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.14<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.15<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
