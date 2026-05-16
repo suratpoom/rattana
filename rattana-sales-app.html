@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.58</title>
+<title>Rattana Sales — v6.5.59</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -1854,12 +1854,22 @@ body.dark .oc-depot-bar-track { background: rgba(255,255,255,.1); }
 .oc-price-warn.danger { color: var(--danger); }
 .oc-price-warn.warn { color: var(--warning); }
 .oc-price-prefix {
-  padding: 0 4px 0 9px;
+  padding: 0 2px 0 8px;
   display: flex; align-items: center;
   font-size: 15px; font-weight: 800;
   color: var(--muted);
   flex-shrink: 0;
 }
+.oc-price-step {
+  flex: 0 0 30px;
+  height: 100%;
+  background: transparent;
+  border: none;
+  font-size: 18px; font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+}
+.oc-price-step:hover { background: var(--row-alt); }
 .oc-price-input {
   flex: 1; min-width: 0; width: 100%;
   height: 100%; border: none;
@@ -2130,6 +2140,12 @@ body.dark .summary-row.total .val { color: var(--gold-light); }
 /* ─── BOTTOM NAV ─── */
 .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); border-top: 1px solid var(--border); padding: 8px 8px 12px; display: flex; z-index: 150; box-shadow: 0 -2px 10px rgba(0,0,0,.05); padding-bottom: max(12px, env(safe-area-inset-bottom)); pointer-events: auto; }
 .bottom-nav .bnav-item { pointer-events: auto; cursor: pointer; }
+
+/* v6.5.59: drop cart-bar + back-to-top closer to bottom when bottom-nav is hidden (PC ≥1024) */
+@media (min-width: 1024px) {
+  .cart-bar    { bottom: 20px  !important; }
+  .back-to-top { bottom: 80px  !important; }
+}
 .bnav-item { flex: 1; padding: 8px 4px 6px; background: transparent; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 10px; font-weight: 600; border-radius: 12px; transition: background .18s ease, color .18s ease; position: relative; }
 .bnav-item .ico { font-size: 22px; transition: transform .18s ease; }
 .bnav-item.active { color: #fff; background: linear-gradient(180deg, var(--accent) 0%, #1565cc 100%); font-weight: 800; box-shadow: 0 4px 12px rgba(30,127,255,.4); }
@@ -3332,7 +3348,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.58 · 2026-05-16</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.59 · 2026-05-16</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -3343,7 +3359,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.58</span>
+  <span class="demo-tag">v6.5.59</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -3433,7 +3449,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.58<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.59<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -9750,7 +9766,7 @@ function _buildPromoBarsHtml(p, productId, safeId, unit, qty) {
     productId, unit, qty, price: 0, shopId: currentShopId, isDraft: true,
   } : null;
 
-  // v6.5.58: browse mode = info only. No auto-pick, no "selected", no picker button.
+  // v6.5.59: browse mode = info only. No auto-pick, no "selected", no picker button.
   if (browseMode) {
     return allPromos.map((promo, idx) =>
       _buildOnePromoBar(promo, p, productId, safeId, idx, false, null, unit, false, true)
@@ -9822,12 +9838,12 @@ function _buildOnePromoBar(promo, p, productId, safeId, idx, isSelected, draftLi
   }
 
   // v6.5.57: read-only badge (auto-picked by qty, no manual selection needed)
-  // v6.5.58: hide picker entirely in browse mode (info-only)
+  // v6.5.59: hide picker entirely in browse mode (info-only)
   const pickerHtml = (!browseMode && isSelected)
     ? `<button class="oc-promo-pick on" disabled title="โปรนี้ใช้งานตามจำนวน">✓ ใช้โปรนี้</button>`
     : '';
 
-  // v6.5.58: browse mode → always render simple info bar (no progress, no selected color)
+  // v6.5.59: browse mode → always render simple info bar (no progress, no selected color)
   if (browseMode) {
     return `
       <div class="oc-promo-bar" data-promo-idx="${idx}">
@@ -10125,11 +10141,14 @@ function buildOrderCardV6(p, idx) {
         </div>
         <div class="oc-price-wrap">
           <span class="oc-price-prefix">฿</span>
+          <button class="oc-qty-btn oc-price-step" onclick="orderPriceAdj('${safeId}',-1)" title="ลดราคา 1 บาท">−</button>
           <input class="oc-price-input" type="number" inputmode="decimal"
             value="${state.price !== '' ? state.price : ''}"
             placeholder="${pricePlaceholder}"
             step="0.5"
-            oninput="orderPriceChange('${safeId}',this.value)">
+            oninput="orderPriceChange('${safeId}',this.value)"
+            onfocus="this.select()">
+          <button class="oc-qty-btn oc-price-step" onclick="orderPriceAdj('${safeId}',1)" title="เพิ่มราคา 1 บาท">+</button>
           <div class="oc-tier-badge tier-${tierBadgeCls}">${displayKey}</div>
         </div>
       </div>
@@ -10263,6 +10282,24 @@ window.orderPriceChange = function(safeId, value) {
   d.price = value === '' ? '' : (parseFloat(value) || 0);
   window._orderDraft[pid] = d;
   _updateCardLive(safeId);  // v6.0: refresh button state on price change too
+};
+
+// v6.5.59: −/+ buttons inside price box (step ฿1)
+window.orderPriceAdj = function(safeId, delta) {
+  const el = document.getElementById('orderCard-' + safeId);
+  if (!el) return;
+  const pid = el.getAttribute('data-pid');
+  const d = window._orderDraft[pid] || { unit: 'case', qty: 0, price: '' };
+  const input = el.querySelector('.oc-price-input');
+  // Use current value (typed or placeholder/suggested) as base
+  let base = (d.price !== '' && d.price !== undefined && d.price !== null)
+    ? parseFloat(d.price) || 0
+    : (input && input.placeholder ? parseFloat(input.placeholder) || 0 : 0);
+  let next = Math.max(0, Math.round((base + delta) * 2) / 2);  // step 0.5-safe
+  d.price = next;
+  window._orderDraft[pid] = d;
+  if (input) input.value = next;
+  _updateCardLive(safeId);
 };
 
 window.orderTierSelect = function(safeId, tierKey) {
