@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.30</title>
+<title>Rattana Sales — v6.5.31</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -2983,7 +2983,7 @@ body.dark .oc2-footer { background: #0c1a35; border-color: #1a3060; }
 body.dark .oc2-foot-hint { color: #7a90b8; }
 body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
-/* ─── Route Plan Panel (วางแผนรูท v6.5.30) ─── */
+/* ─── Route Plan Panel (วางแผนรูท v6.5.31) ─── */
 .route-plan-btn {
   display: flex; align-items: center; justify-content: center; gap: 8px;
   background: linear-gradient(135deg, rgba(201,168,76,.12), rgba(201,168,76,.06));
@@ -3038,7 +3038,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 .reroute-btn { display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(52,152,219,.1); color: #3498db; border: 1.5px solid rgba(52,152,219,.3); border-radius: 8px; padding: 8px 12px; font-size: 13px; font-weight: 700; font-family: Sarabun, sans-serif; cursor: pointer; width: 100%; margin-top: 6px; }
 .reroute-btn:active { opacity: .8; }
 
-/* ─── Team Map Screen (แผนที่ทีม v6.5.30) ─── */
+/* ─── Team Map Screen (แผนที่ทีม v6.5.31) ─── */
 #teamMapEl { height: calc(100vh - 176px); min-height: 300px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
 .team-map-legend { display: flex; gap: 12px; flex-wrap: wrap; padding: 8px 0; font-size: 12px; color: var(--muted); }
 .tm-leg-item { display: flex; align-items: center; gap: 5px; }
@@ -3047,7 +3047,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 .team-map-btn:active { opacity: .8; }
 @keyframes pulse { 0%{transform:scale(1);opacity:1} 50%{transform:scale(1.4);opacity:.5} 100%{transform:scale(1);opacity:1} }
 
-/* Team map filter chips (v6.5.30) */
+/* Team map filter chips (v6.5.31) */
 #teamMapChips { padding: 6px 4px 10px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
 .tm-chip-row { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0; scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
 .tm-chip-row::-webkit-scrollbar { height: 4px; }
@@ -3058,7 +3058,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 .tm-chip.active { background: var(--gold); color: #0d1b3e; border-color: var(--gold); }
 .tm-chip-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
 
-/* Team map focus panel (v6.5.30) */
+/* Team map focus panel (v6.5.31) */
 .tm-focus { background: linear-gradient(135deg, var(--surface), var(--row-alt)); border: 1.5px solid var(--border); border-radius: 14px; padding: 14px; margin: 12px 0 4px; box-shadow: var(--shadow-sm); }
 .tm-focus-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
 .tm-focus-avatar { width: 56px; height: 56px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; font-family: Sarabun, sans-serif; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,.2); text-align: center; line-height: 1.1; }
@@ -3086,7 +3086,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 .tm-focus-stop-name { color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tm-focus-stop.unvisited .tm-focus-stop-name { color: var(--muted); font-style: italic; }
 
-/* Threshold reference card (v6.5.30) — visible below the map so user remembers rules */
+/* Threshold reference card (v6.5.31) — visible below the map so user remembers rules */
 .tm-thresh-card { background: var(--surface); border: 1.5px solid var(--border); border-left: 4px solid var(--gold); border-radius: 10px; padding: 10px 12px; margin: 12px 0; font-size: 12px; }
 .tm-thresh-title { font-size: 11px; font-weight: 800; color: var(--gold); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
 .tm-thresh-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; color: var(--text); }
@@ -3099,6 +3099,38 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 .tm-thresh-line-dash { display: inline-block; width: 18px; height: 0; border-top: 2px dashed #888; }
 .tm-long-visit-alert { background: rgba(231,76,60,.12) !important; border-color: rgba(231,76,60,.4) !important; }
 .tm-long-visit-alert .tm-focus-current-icon { background: #e74c3c !important; }
+
+/* Team dashboard totals + salesman buttons (v6.5.31) */
+.tm-dash-totals { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.tm-dash-total { background: var(--row-alt); border: 1px solid var(--border); border-radius: 8px; padding: 10px 8px; text-align: center; }
+.tm-dash-total-val { font-size: 18px; font-weight: 800; color: var(--text); font-family: 'IBM Plex Mono', monospace; line-height: 1.1; }
+.tm-dash-total-val.warn { color: #e74c3c; }
+.tm-dash-total-lbl { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.tm-sm-btn { background: var(--surface); border: 2px solid var(--border); border-radius: 12px; padding: 10px 12px; cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 10px; }
+.tm-sm-btn:hover { border-color: var(--gold); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+.tm-sm-btn:active { transform: translateY(0); }
+.tm-sm-btn.active { border-color: var(--gold); background: linear-gradient(135deg, rgba(201,168,76,.08), transparent); box-shadow: 0 2px 8px rgba(201,168,76,.2); }
+.tm-sm-btn.alert { border-color: #e74c3c !important; background: linear-gradient(135deg, rgba(231,76,60,.08), transparent); }
+.tm-sm-btn-avatar { width: 40px; height: 40px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; font-family: Sarabun, sans-serif; flex-shrink: 0; text-align: center; line-height: 1.1; position: relative; }
+.tm-sm-btn-info { flex: 1; min-width: 0; }
+.tm-sm-btn-name { font-size: 13px; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tm-sm-btn-meta { font-size: 11px; color: var(--muted); }
+.tm-sm-btn-stats { display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
+.tm-sm-btn-stat { text-align: right; font-size: 11px; }
+.tm-sm-btn-stat-val { font-weight: 800; color: var(--text); font-family: 'IBM Plex Mono', monospace; }
+.tm-sm-btn-arrow { color: var(--muted); font-size: 18px; }
+.tm-sm-btn.active .tm-sm-btn-arrow { color: var(--gold); }
+
+/* Collapsible details in focus panel */
+.tm-focus-toggle { width: 100%; background: var(--row-alt); border: 1px solid var(--border); border-radius: 8px; padding: 8px; cursor: pointer; font-size: 12px; font-weight: 700; color: var(--muted); display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 8px; font-family: Sarabun, sans-serif; }
+.tm-focus-toggle:hover { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+.tm-focus-toggle-arrow { display: inline-block; transition: transform .2s; font-size: 14px; }
+.tm-focus-toggle.open .tm-focus-toggle-arrow { transform: rotate(180deg); }
+.tm-focus-collapsible { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
+.tm-focus-collapsible.open { max-height: 1200px; transition: max-height .5s ease; }
+@media (max-width: 600px) {
+  .tm-dash-totals { grid-template-columns: repeat(2, 1fr); }
+}
 </style>
   <!-- Google Identity Services (v5.0 — real OAuth login) -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -3133,7 +3165,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.30 · 2026-05-15</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.31 · 2026-05-15</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -3144,7 +3176,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.30</span>
+  <span class="demo-tag">v6.5.31</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -3229,7 +3261,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.30<br>2026-05-15 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.31<br>2026-05-15 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -6049,7 +6081,7 @@ function goRoute() {
 
   // Default — go to shop list
   renderShopList(); showScreen('screenRoute'); updateCartBar();
-  // v6.5.30: proactively fetch fresh GPS in background so ใกล้ฉัน sort is ready immediately
+  // v6.5.31: proactively fetch fresh GPS in background so ใกล้ฉัน sort is ready immediately
   refreshGPS(true)
     .then(() => { if (_routeSort === 'near') renderShopList(); })
     .catch(() => {}); // silent fail — user can tap ใกล้ฉัน to retry
@@ -6888,7 +6920,7 @@ function filterShops(text) {
 window.filterShops = filterShops;
 
 function setRouteSort(val) {
-  // v6.5.30: don't toggle near OFF — near is always the default, clicking again re-fetches GPS
+  // v6.5.31: don't toggle near OFF — near is always the default, clicking again re-fetches GPS
   _routeSort = val;
   _updateRouteFilterChips();
   if (_routeSort === 'near') {
@@ -6924,7 +6956,7 @@ function _updateRouteFilterChips() {
   if (doneEl)    doneEl.classList.toggle('active', _routeStatusFilter === 'done');
 }
 
-// renderShopList — moved below initMap (v6.5.30) with plan-sort support
+// renderShopList — moved below initMap (v6.5.31) with plan-sort support
 
 function _buildShopCardHTML(s) {
   const visit      = visits[s.id];
@@ -7194,7 +7226,7 @@ function initMap() {
 }
 
 // ═══════════════════════════════════════════════════════════
-// TSP ROUTE PLANNING (v6.5.30)
+// TSP ROUTE PLANNING (v6.5.31)
 // Algorithm: Nearest Neighbor → 2-opt → Or-opt → double-bridge
 // Adapted from rattana-route-optimizer.html
 // ═══════════════════════════════════════════════════════════
@@ -7715,7 +7747,7 @@ function _updatePlanBtnVisibility() {
 }
 
 // ═══════════════════════════════════════════════════════════
-// TEAM MAP — Supervisor view (level 5+, v6.5.30)
+// TEAM MAP — Supervisor view (level 5+, v6.5.31)
 // Shows last known position of each salesman from Visits sheet
 // ═══════════════════════════════════════════════════════════
 
@@ -7724,14 +7756,26 @@ let _teamMapMarkers = [];
 let _teamMapPolylines = [];
 let _tmGen = 0;   // render generation — guards async OSRM upgrades against stale callbacks
 
-// ── Team-map thresholds (v6.5.30) ──
+// ── Team-map thresholds (v6.5.31) ──
 // CHANGE THESE to adjust alert behavior. Values are mirrored to UI card below map.
 const TM_LONG_VISIT_MIN = 60;    // ▶ red alert if checked-in for more than this (minutes)
 const TM_NO_BUY_VALUES = ['no_buy','refused','ไม่ซื้อ'];  // ▶ ผลลัพธ์ values that mean "didn't buy" → black marker
 
-// Filter state for team map (v6.5.30)
+// Filter state for team map (v6.5.31)
 let _tmWh = 'all';   // 'all' or warehouse id
 let _tmSm = 'all';   // 'all' or salesman code
+let _tmFocusExpanded = false;   // focus-panel details collapsed by default (v6.5.31)
+
+function toggleFocusDetails() {
+  _tmFocusExpanded = !_tmFocusExpanded;
+  const btn = document.getElementById('tmFocusToggleBtn');
+  const body = document.getElementById('tmFocusBody');
+  if (btn) btn.classList.toggle('open', _tmFocusExpanded);
+  if (body) body.classList.toggle('open', _tmFocusExpanded);
+  const lbl = btn && btn.querySelector('.tm-focus-toggle-label');
+  if (lbl) lbl.textContent = _tmFocusExpanded ? 'ซ่อนรายละเอียด' : 'ดูรายละเอียด';
+}
+window.toggleFocusDetails = toggleFocusDetails;
 
 // Deterministic per-salesman color (same code → same color always)
 const _TM_PALETTE = ['#e74c3c','#3498db','#9b59b6','#1abc9c','#f39c12','#16a085','#2980b9','#8e44ad','#d35400','#27ae60','#c0392b','#e67e22','#2c3e50','#1f6391','#7d3c98'];
@@ -8133,32 +8177,34 @@ function renderTeamMap() {
       }
     }
 
-    const stopsSummary = stops.length === 0
-      ? '<div style="font-size:11px;color:var(--muted);margin-top:4px">— ยังไม่เช็คอิน</div>'
-      : `<div style="margin-top:6px;display:flex;flex-direction:column;gap:3px">
-          ${stops.map((st, i) => {
-            const isCurrent = (i === stops.length - 1) && !st.outTime;
-            const timeLabel = st.outTime ? `${st.inTime}-${st.outTime}` : `${st.inTime} →`;
-            return `<div style="font-size:11px;display:flex;gap:6px;align-items:center">
-              <span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:${myColor};color:#fff;font-size:9px;font-weight:800;text-align:center;line-height:16px;flex-shrink:0;${isCurrent?'box-shadow:0 0 0 2px #2ecc71':''}">${i+1}</span>
-              <span style="color:var(--muted);font-family:monospace">${timeLabel}</span>
-              <span style="color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(st.shopName)}</span>
-            </div>`;
-          }).join('')}
-        </div>`;
+    const totalShopsForCard = routeShops.length || stops.length;
+    const pctForCard = totalShopsForCard > 0 ? Math.round(stops.length / totalShopsForCard * 100) : 0;
+    const isActiveBtn = _tmSm === sm.code;
+    const currentElapsedForCard = isCheckedIn && stops.length > 0 ? _minutesSince(stops[stops.length-1].inTime) : 0;
+    const cardLongVisit = isCheckedIn && typeof currentElapsedForCard === 'number' && currentElapsedForCard > TM_LONG_VISIT_MIN;
 
     cardHtml += `
-      <div class="tm-salesman-card" onclick="setTmSm('${sm.code}')">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:32px;height:32px;border-radius:50%;background:${myColor};color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;font-family:Sarabun,sans-serif">${escapeHtml(myLabel)}</div>
-          <div style="flex:1;min-width:0">
-            <div class="tm-sm-name">${escapeHtml(sm.name)}</div>
-            <div class="tm-sm-meta">${sm.code} · คลัง${sm.warehouseId} · ${stops.length}/${routeShops.length||stops.length} ร้าน · ฿${Math.round(sm.todaySales).toLocaleString()}</div>
-          </div>
-          <span class="tm-sm-status ${statusClass}">${statusLabel}</span>
+      <button class="tm-sm-btn ${isActiveBtn?'active':''} ${cardLongVisit?'alert':''}" onclick="setTmSm('${sm.code}')">
+        <div class="tm-sm-btn-avatar" style="background:${myColor}">
+          ${escapeHtml(myLabel)}
+          ${isCheckedIn ? `<div style="position:absolute;top:-2px;right:-2px;width:10px;height:10px;border-radius:50%;background:${cardLongVisit?'#e74c3c':'#2ecc71'};border:2px solid #fff;animation:pulse 1.4s infinite"></div>` : ''}
         </div>
-        ${stopsSummary}
-      </div>`;
+        <div class="tm-sm-btn-info">
+          <div class="tm-sm-btn-name">${escapeHtml(sm.name)} ${cardLongVisit?'<span style="color:#e74c3c">⚠️</span>':''}</div>
+          <div class="tm-sm-btn-meta">${sm.code} · คลัง${sm.warehouseId} · <span style="color:${myColor};font-weight:700">${statusLabel}</span></div>
+        </div>
+        <div class="tm-sm-btn-stats">
+          <div class="tm-sm-btn-stat">
+            <div class="tm-sm-btn-stat-val">${stops.length}/${totalShopsForCard||'—'}</div>
+            <div style="color:var(--muted);font-size:10px">${pctForCard}%</div>
+          </div>
+          <div class="tm-sm-btn-stat">
+            <div class="tm-sm-btn-stat-val" style="color:var(--gold)">฿${Math.round(sm.todaySales).toLocaleString()}</div>
+            <div style="color:var(--muted);font-size:10px">ยอด</div>
+          </div>
+          <div class="tm-sm-btn-arrow">${isActiveBtn?'▲':'▶'}</div>
+        </div>
+      </button>`;
 
     // Build detailed focus panel when this is the selected salesman
     if (_tmSm === sm.code) {
@@ -8242,43 +8288,62 @@ function renderTeamMap() {
             </div>
           ` : '<div style="background:var(--row-alt);padding:8px 10px;border-radius:8px;font-size:12px;color:var(--muted)">— ยังไม่เริ่มเยี่ยมร้านวันนี้ —</div>'}
 
-          <div class="tm-focus-kpi" style="margin-top:10px">
-            <div class="tm-focus-kpi-cell">
-              <div class="tm-focus-kpi-val">${doneCount}/${totalShops||'—'}</div>
-              <div class="tm-focus-kpi-lbl">เยี่ยมแล้ว · ${pctDone}%</div>
+          <!-- Compact quick stats — always visible -->
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+            <div style="flex:1;min-width:90px;background:var(--row-alt);border-radius:6px;padding:6px 8px;text-align:center">
+              <div style="font-size:14px;font-weight:800;color:var(--text)">${doneCount}/${totalShops||'—'}</div>
+              <div style="font-size:10px;color:var(--muted)">ร้าน · ${pctDone}%</div>
             </div>
-            <div class="tm-focus-kpi-cell">
-              <div class="tm-focus-kpi-val">฿${Math.round(sm.todaySales).toLocaleString()}</div>
-              <div class="tm-focus-kpi-lbl">ยอดวันนี้</div>
-            </div>
-            <div class="tm-focus-kpi-cell">
-              <div class="tm-focus-kpi-val">${cumulKm.toFixed(1)} กม.</div>
-              <div class="tm-focus-kpi-lbl">ระยะทางรวม</div>
-            </div>
-            <div class="tm-focus-kpi-cell">
-              <div class="tm-focus-kpi-val">${cumulMinAtShops} นาที</div>
-              <div class="tm-focus-kpi-lbl">เวลาที่ร้านรวม</div>
-            </div>
-            <div class="tm-focus-kpi-cell">
-              <div class="tm-focus-kpi-val" style="color:#27ae60">${buyCount}</div>
-              <div class="tm-focus-kpi-lbl">ซื้อ</div>
-            </div>
-            <div class="tm-focus-kpi-cell">
-              <div class="tm-focus-kpi-val" style="color:#000">${noBuyCount}</div>
-              <div class="tm-focus-kpi-lbl">ไม่ซื้อ</div>
+            <div style="flex:1;min-width:90px;background:var(--row-alt);border-radius:6px;padding:6px 8px;text-align:center">
+              <div style="font-size:14px;font-weight:800;color:var(--gold)">฿${Math.round(sm.todaySales).toLocaleString()}</div>
+              <div style="font-size:10px;color:var(--muted)">ยอดวันนี้</div>
             </div>
           </div>
-          ${totalShops > 0 ? `<div class="tm-focus-progress"><div class="tm-focus-progress-fill" style="width:${pctDone}%"></div></div>` : ''}
+          ${totalShops > 0 ? `<div class="tm-focus-progress" style="margin-top:8px"><div class="tm-focus-progress-fill" style="width:${pctDone}%"></div></div>` : ''}
 
-          ${stops.length > 0 ? `
-            <div class="tm-focus-section-hdr">✅ เยี่ยมแล้ววันนี้ (${stops.length})</div>
-            <div class="tm-focus-list">${timeline}</div>
-          ` : ''}
+          <!-- Collapsible details -->
+          <button id="tmFocusToggleBtn" class="tm-focus-toggle ${_tmFocusExpanded?'open':''}" onclick="toggleFocusDetails()">
+            <span class="tm-focus-toggle-label">${_tmFocusExpanded?'ซ่อนรายละเอียด':'ดูรายละเอียด'}</span>
+            <span class="tm-focus-toggle-arrow">▼</span>
+          </button>
+          <div id="tmFocusBody" class="tm-focus-collapsible ${_tmFocusExpanded?'open':''}">
+            <div class="tm-focus-kpi" style="margin-top:10px">
+              <div class="tm-focus-kpi-cell">
+                <div class="tm-focus-kpi-val">${cumulKm.toFixed(1)} กม.</div>
+                <div class="tm-focus-kpi-lbl">ระยะทางรวม</div>
+              </div>
+              <div class="tm-focus-kpi-cell">
+                <div class="tm-focus-kpi-val">${cumulMinAtShops} นาที</div>
+                <div class="tm-focus-kpi-lbl">เวลาที่ร้านรวม</div>
+              </div>
+              <div class="tm-focus-kpi-cell">
+                <div class="tm-focus-kpi-val" style="color:#27ae60">${buyCount}</div>
+                <div class="tm-focus-kpi-lbl">ซื้อ</div>
+              </div>
+              <div class="tm-focus-kpi-cell">
+                <div class="tm-focus-kpi-val" style="color:#000">${noBuyCount}</div>
+                <div class="tm-focus-kpi-lbl">ไม่ซื้อ</div>
+              </div>
+              <div class="tm-focus-kpi-cell">
+                <div class="tm-focus-kpi-val">${unvisitedShops.length}</div>
+                <div class="tm-focus-kpi-lbl">เหลือร้าน</div>
+              </div>
+              <div class="tm-focus-kpi-cell">
+                <div class="tm-focus-kpi-val">${pctDone}%</div>
+                <div class="tm-focus-kpi-lbl">ความคืบหน้า</div>
+              </div>
+            </div>
 
-          ${unvisitedShops.length > 0 ? `
-            <div class="tm-focus-section-hdr">⏳ ยังไม่เยี่ยม (${unvisitedShops.length}) — แสดงเป็นจุดเทาบนแผนที่</div>
-            <div class="tm-focus-list">${unvisitedList}</div>
-          ` : ''}
+            ${stops.length > 0 ? `
+              <div class="tm-focus-section-hdr">✅ เยี่ยมแล้ววันนี้ (${stops.length}) — คลิกเพื่อดูออเดอร์</div>
+              <div class="tm-focus-list">${timeline}</div>
+            ` : ''}
+
+            ${unvisitedShops.length > 0 ? `
+              <div class="tm-focus-section-hdr">⏳ ยังไม่เยี่ยม (${unvisitedShops.length}) — แสดงเป็นจุดเทาบนแผนที่</div>
+              <div class="tm-focus-list">${unvisitedList}</div>
+            ` : ''}
+          </div>
         </div>`;
     }
   });
@@ -8295,6 +8360,44 @@ function renderTeamMap() {
 
   const focusEl = document.getElementById('teamMapFocusPanel');
   if (focusEl) focusEl.innerHTML = focusPanelHtml;
+
+  // Team totals — sum across displayed salesmen
+  const totActive   = displaySalesmen.filter(s => byCode.has(s.code)).length;
+  const totVisits   = displaySalesmen.reduce((sum, s) => sum + (byCode.get(s.code)||[]).length, 0);
+  const totSales    = displaySalesmen.reduce((sum, s) => sum + (s.todaySales||0), 0);
+  let totAlerts = 0;
+  displaySalesmen.forEach(s => {
+    const rows = byCode.get(s.code) || [];
+    const lr = rows[rows.length - 1];
+    if (lr && lr['เวลาเช็คอิน'] && !lr['เวลาเช็คเอาท์']) {
+      const m = _minutesSince(lr['เวลาเช็คอิน']);
+      if (typeof m === 'number' && m > TM_LONG_VISIT_MIN) totAlerts++;
+    }
+  });
+  const totalsEl = document.getElementById('teamDashTotals');
+  if (totalsEl) {
+    totalsEl.innerHTML = `
+      <div class="tm-dash-totals">
+        <div class="tm-dash-total">
+          <div class="tm-dash-total-val">${totActive}/${displaySalesmen.length}</div>
+          <div class="tm-dash-total-lbl">เซลล์ active</div>
+        </div>
+        <div class="tm-dash-total">
+          <div class="tm-dash-total-val">${totVisits}</div>
+          <div class="tm-dash-total-lbl">ร้านเยี่ยมรวม</div>
+        </div>
+        <div class="tm-dash-total">
+          <div class="tm-dash-total-val" style="color:var(--gold)">฿${Math.round(totSales).toLocaleString()}</div>
+          <div class="tm-dash-total-lbl">ยอดรวมวันนี้</div>
+        </div>
+        <div class="tm-dash-total">
+          <div class="tm-dash-total-val ${totAlerts>0?'warn':''}">${totAlerts}</div>
+          <div class="tm-dash-total-lbl">⚠️ เกินเวลา</div>
+        </div>
+      </div>`;
+  }
+  const dashCntEl = document.getElementById('teamDashCount');
+  if (dashCntEl) dashCntEl.textContent = `(${displaySalesmen.length} คน · คลิกเพื่อดู detail)`;
 
   const listEl = document.getElementById('teamMapSalesmenList');
   if (listEl) listEl.innerHTML = cardHtml || `<div class="card text-center" style="color:var(--muted);padding:30px">ยังไม่มีข้อมูลเซลล์วันนี้</div>`;
@@ -8458,7 +8561,7 @@ function renderShopDetail(shopId) {
   `;
 }
 
-// Check in — always get fresh GPS first (v6.5.30: never use stale position for check-in)
+// Check in — always get fresh GPS first (v6.5.31: never use stale position for check-in)
 function doCheckIn(shopId) {
   const s = SHOPS.find(x => x.id === shopId);
   if (!s) return;
@@ -12396,7 +12499,7 @@ function recalcPromoForRows(remainingRows, templateRow) {
   return newPromoRows;
 }
 
-// v6.5.30: Cancel a line — optimistic UI + write ยกเลิก to col V + recalc promo
+// v6.5.31: Cancel a line — optimistic UI + write ยกเลิก to col V + recalc promo
 window.deleteOrderRow = async function(btnEl, orderId, barcode, productName) {
   if (!confirm(`ยืนยันยกเลิก:\n"${productName}"\nออเดอร์ ${orderId}?`)) return;
 
@@ -14273,7 +14376,14 @@ window.addEventListener('load', () => {
 
   <div id="teamMapFocusPanel"></div>
 
-  <div id="teamMapSalesmenList" style="margin-top:8px"></div>
+  <div id="teamDashboard" class="card" style="margin-top:12px;padding:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="font-size:14px;font-weight:800;color:var(--text)">👥 สรุปทีม <span id="teamDashCount" style="color:var(--muted);font-weight:400;font-size:12px"></span></div>
+      <button class="tm-chip" onclick="setTmSm('all')" style="font-size:10px">↻ ดูทุกคน</button>
+    </div>
+    <div id="teamDashTotals"></div>
+    <div id="teamMapSalesmenList" style="margin-top:10px"></div>
+  </div>
 </section>
 
 </body>
