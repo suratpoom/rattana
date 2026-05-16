@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.72</title>
+<title>Rattana Sales — v6.5.73</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -492,7 +492,7 @@ body.dark .sc-chip-debt { background: rgba(231,76,60,.2); color: #ff8a7e; }
 .route-hero-bar-fill { height: 100%; background: var(--gold); border-radius: 2px; transition: width .6s ease; }
 
 /* v6.5.57: compact route hero — tabs + KPI inline */
-/* v6.5.72: kill inherited white bg from .route-tabs so inactive tab is readable on dark hero */
+/* v6.5.73: kill inherited white bg from .route-tabs so inactive tab is readable on dark hero */
 .route-tabs.route-tabs-compact {
   background: transparent !important;
   border: none !important;
@@ -2149,7 +2149,7 @@ body.dark .summary-row.total .val { color: var(--gold-light); }
 .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); border-top: 1px solid var(--border); padding: 8px 8px 12px; display: flex; z-index: 150; box-shadow: 0 -2px 10px rgba(0,0,0,.05); padding-bottom: max(12px, env(safe-area-inset-bottom)); pointer-events: auto; }
 .bottom-nav .bnav-item { pointer-events: auto; cursor: pointer; }
 
-/* v6.5.72: lower cart-bar + back-to-top further on PC ≥1024 (bottom-nav hidden anyway) */
+/* v6.5.73: lower cart-bar + back-to-top further on PC ≥1024 (bottom-nav hidden anyway) */
 @media (min-width: 1024px) {
   .cart-bar    { bottom: 12px  !important; }
   .back-to-top { bottom: 68px  !important; right: 20px !important; }
@@ -3356,7 +3356,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.72 · 2026-05-16</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.73 · 2026-05-16</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -3367,7 +3367,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.72</span>
+  <span class="demo-tag">v6.5.73</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -3457,7 +3457,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.72<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.73<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -3690,13 +3690,13 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
   <div id="cartList"></div>
 
+  <!-- v6.5.73: Promo picker BEFORE summary so user picks gifts first, then sees final total -->
+  <div id="promoPickerSection"></div>
+
   <div class="summary-card">
     <div class="summary-row"><span class="lbl">จำนวนรายการ</span><span class="val" id="sumCount">0</span></div>
     <div class="summary-row total"><span class="lbl">ยอดรวม <span style="font-size:11px;color:var(--muted);font-weight:400">(รวม VAT)</span></span><span class="val" id="sumTotal">฿ 0</span></div>
   </div>
-
-  <!-- v5.0 Promo Picker — rendered by renderPromoPickerSection() — placed ABOVE หมายเหตุ (v6.5.10) -->
-  <div id="promoPickerSection"></div>
 
   <!-- หมายเหตุ (optional) — บันทึกลง Order tab column Q "หมายเหตุ" (Surat 2026-05-10 v4.3) -->
   <div style="margin:12px 0 8px">
@@ -5411,7 +5411,7 @@ function cartMatchesPromo(promo, draftItem) {
   const _targetUnit = (_sellMode === 'EA' || _sellMode === 'PA' || _sellMode === 'BP' || _sellMode === 'CS')
     ? _sellMode : null;
 
-  // v6.5.72: cart unit code mapper (piece→EA, pack→PA, bigpack→BP, case→CS)
+  // v6.5.73: cart unit code mapper (piece→EA, pack→PA, bigpack→BP, case→CS)
   const _cartUnitToCode = (u) => {
     if (u === 'piece' || u === 'EA') return 'EA';
     if (u === 'pack'  || u === 'PA') return 'PA';
@@ -5437,7 +5437,7 @@ function cartMatchesPromo(promo, draftItem) {
     })().trim();
     if (pVal !== matchValue) continue;
 
-    // v6.5.72: STRICT unit match — promo only applies when cart line is in the exact same unit as รูปแบบขาย.
+    // v6.5.73: STRICT unit match — promo only applies when cart line is in the exact same unit as รูปแบบขาย.
     // Exception: 'บาท' mode accepts any unit (it sums baht, not qty).
     if (_targetUnit && _cartUnitToCode(c.unit) !== _targetUnit) continue;
 
@@ -5446,7 +5446,7 @@ function cartMatchesPromo(promo, draftItem) {
     const linePieces = (c.qty || 0) * piecesPerUnit;
     totalPieces += linePieces;
     totalBaht   += (c.qty || 0) * (c.price || 0);
-    // v6.5.72: with strict unit gate, totalInTargetUnit is just the raw qty (no conversion needed).
+    // v6.5.73: with strict unit gate, totalInTargetUnit is just the raw qty (no conversion needed).
     if (_targetUnit) {
       totalInTargetUnit += (c.qty || 0);
     }
@@ -5472,7 +5472,7 @@ function cartMatchesPromo(promo, draftItem) {
   ratio = threshold > 0 ? currentValue / threshold : 0;
   let matches = currentValue >= threshold;
 
-  // v6.5.72: ราคาขายกำหนด — minimum sell price per รูปแบบขาย unit.
+  // v6.5.73: ราคาขายกำหนด — minimum sell price per รูปแบบขาย unit.
   // If empty/0 → any price OK. If set → every matching line's price (converted to target unit) must be ≥ floor.
   const priceFloorRaw = String(promo['ราคาขายกำหนด']||'').trim();
   const priceFloor = priceFloorRaw === '' ? 0 : (parseFloat(priceFloorRaw) || 0);
@@ -6444,7 +6444,7 @@ function goRoute() {
   const currentActive = document.querySelector('.screen.active');
   const currentId = currentActive ? currentActive.id : '';
 
-  // v6.5.72: only short-circuit when actually in a shop-bound sales flow.
+  // v6.5.73: only short-circuit when actually in a shop-bound sales flow.
   // Browse mode (screenOrder with no currentShopId) must still navigate to route screen.
   if (salesScreens.includes(currentId) && currentShopId) return;
 
@@ -6464,7 +6464,7 @@ function goRoute() {
     }
   }
 
-  // v6.5.72: navigate FIRST so a downstream render error never blocks the screen change
+  // v6.5.73: navigate FIRST so a downstream render error never blocks the screen change
   showScreen('screenRoute');
   try { renderShopList(); } catch (e) { console.warn('[goRoute] renderShopList failed:', e); }
   try { updateCartBar(); } catch (e) {}
@@ -8096,7 +8096,7 @@ function applyPlannedRoute() {
   showToast('✓ ใช้รูทใหม่แล้ว', 'success');
   closeRoutePlanner();
   renderShopList();
-  // v6.5.72: if map view is active, re-render markers + redraw polyline (force visible)
+  // v6.5.73: if map view is active, re-render markers + redraw polyline (force visible)
   try {
     const mapView = document.getElementById('routeMapView');
     if (mapView && mapView.style.display !== 'none' && typeof initMap === 'function') {
@@ -9819,7 +9819,7 @@ function _buildPromoBarsHtml(p, productId, safeId, unit, qty) {
     productId, unit, qty, price: 0, shopId: currentShopId, isDraft: true,
   } : null;
 
-  // v6.5.72: browse mode = info only. No auto-pick, no "selected", no picker button.
+  // v6.5.73: browse mode = info only. No auto-pick, no "selected", no picker button.
   if (browseMode) {
     return allPromos.map((promo, idx) =>
       _buildOnePromoBar(promo, p, productId, safeId, idx, false, null, unit, false, true)
@@ -9891,12 +9891,12 @@ function _buildOnePromoBar(promo, p, productId, safeId, idx, isSelected, draftLi
   }
 
   // v6.5.57: read-only badge (auto-picked by qty, no manual selection needed)
-  // v6.5.72: hide picker entirely in browse mode (info-only)
+  // v6.5.73: hide picker entirely in browse mode (info-only)
   const pickerHtml = (!browseMode && isSelected)
     ? `<button class="oc-promo-pick on" disabled title="โปรนี้ใช้งานตามจำนวน">✓ ใช้โปรนี้</button>`
     : '';
 
-  // v6.5.72: browse mode → always render simple info bar (no progress, no selected color)
+  // v6.5.73: browse mode → always render simple info bar (no progress, no selected color)
   if (browseMode) {
     return `
       <div class="oc-promo-bar" data-promo-idx="${idx}">
@@ -9938,7 +9938,7 @@ function _buildOnePromoBar(promo, p, productId, safeId, idx, isSelected, draftLi
     console.warn('[promo] cartMatchesPromo failed', promoName, e);
   }
 
-  // v6.5.72: ราคาขายกำหนด violated — show red warning bar, promo disqualified
+  // v6.5.73: ราคาขายกำหนด violated — show red warning bar, promo disqualified
   if (result.priceFloorViolated) {
     const floor = result.priceFloor;
     return `
@@ -10074,7 +10074,7 @@ function buildOrderCardV6(p, idx) {
   const _eaPA = numv(p['QTY PA']) || 0;
   const _eaBP = numv(p['QTY BP']) || 0;
   const _eaCS = numv(p['QTY CS']) || 0;
-  // v6.5.72: inline style on active chip — guaranteed bypass of any CSS cascade issue
+  // v6.5.73: inline style on active chip — guaranteed bypass of any CSS cascade issue
   const _activeStyle = 'background:#08142e !important;color:#fff !important;border-color:#d4a843 !important;box-shadow:0 2px 8px rgba(8,20,46,.4), inset 0 0 0 1.5px #d4a843 !important;';
   const _multActiveStyle = 'color:#d4a843 !important;opacity:1 !important;';
   const _chipHtml = (unitKey, label, mult) => {
@@ -10094,7 +10094,7 @@ function buildOrderCardV6(p, idx) {
   // Tap → switches to CS unit + sets qty=pallet + price=S01.
   const palletCs = numv(p['CS PALLET']);
   const _browseModeForPallet = !currentShopId;
-  // v6.5.72: pallet "active" = user already tapped it (CS unit + qty === palletCs)
+  // v6.5.73: pallet "active" = user already tapped it (CS unit + qty === palletCs)
   const _palletActive = !_browseModeForPallet && state.unit === 'case' && parseInt(state.qty) === palletCs;
   const _palletActiveStyle = _palletActive
     ? ` style="background:#08142e !important;color:#fff !important;border-color:#d4a843 !important;box-shadow:0 2px 8px rgba(8,20,46,.4), inset 0 0 0 1.5px #d4a843 !important;"`
@@ -10136,7 +10136,7 @@ function buildOrderCardV6(p, idx) {
   const role = Number((currentUser && currentUser.role) || 0);
   const prU = productPrices(p, unitCode);
   const showLadder = true;
-  const _browseModeForLadder = !currentShopId;  // v6.5.72: browse mode → info only, no selected/active tier
+  const _browseModeForLadder = !currentShopId;  // v6.5.73: browse mode → info only, no selected/active tier
   const ladderTiers = (unitCode === 'CS') ? tiers : [
     { key: 'S03', price: prU.S03, range: '' },
     { key: 'S02', price: prU.S02, range: '' },
@@ -10146,7 +10146,7 @@ function buildOrderCardV6(p, idx) {
   const tierLadder = showLadder ? `
     <div class="oc-tier-ladder">
       ${ladderTiers.map(t => {
-        // v6.5.72: in browse mode, never mark a tier as active (no shop = no selection)
+        // v6.5.73: in browse mode, never mark a tier as active (no shop = no selection)
         const isActive = !_browseModeForLadder && t.active;
         const cls = [isActive ? 'active' : '', t.disabled ? 'disabled' : ''].filter(Boolean).join(' ');
         const onClick = (!_browseModeForLadder && unitCode === 'CS' && !t.disabled) ? `onclick="orderTierSelect('${safeId}','${t.key}')"` : '';
@@ -10305,7 +10305,7 @@ window.orderUnitChange = function(safeId, unit) {
   if (!window._orderDraft[pid]) window._orderDraft[pid] = { unit, qty: 0, price: '' };
   const prevUnit = window._orderDraft[pid].unit;
   window._orderDraft[pid].unit = unit;
-  // v6.5.72: switching CS → non-CS resets qty to 0 (CS tier auto-bumps qty to 5/20, irrelevant for PA/BP/EA)
+  // v6.5.73: switching CS → non-CS resets qty to 0 (CS tier auto-bumps qty to 5/20, irrelevant for PA/BP/EA)
   if (prevUnit === 'case' && unit !== 'case' && window._orderDraft[pid].status !== 'confirmed') {
     window._orderDraft[pid].qty = 0;
   }
@@ -10377,7 +10377,7 @@ window.orderPriceChange = function(safeId, value) {
   _updateCardLive(safeId);  // v6.0: refresh button state on price change too
 };
 
-// v6.5.72: −/+ buttons inside price box (step ฿1)
+// v6.5.73: −/+ buttons inside price box (step ฿1)
 window.orderPriceAdj = function(safeId, delta) {
   const el = document.getElementById('orderCard-' + safeId);
   if (!el) return;
@@ -10800,7 +10800,7 @@ function renderProductList(filterText = '') {
     products = products.filter(isFocusProduct);
   } else if (_productActiveFilter.startsWith('bu:')) {
     const bu = _productActiveFilter.slice(3);
-    // v6.5.72: filter all products by CAT BU, but CAP at 200 to prevent browser crash on 20K SKU brands
+    // v6.5.73: filter all products by CAT BU, but CAP at 200 to prevent browser crash on 20K SKU brands
     if (!filterText || !filterText.trim()) products = SHEET_DATA.products || [];
     products = products.filter(p => String(p['CAT BU']||'').trim() === bu);
     if (products.length > 200) products = products.slice(0, 200);
@@ -12084,7 +12084,7 @@ window.applyPromoFromModal = function(safeKey) {
   else if (giftUnitRaw === 'PA' || giftUnitRaw.includes('แพ็ค')) giftUnit = 'pack';
   else if (giftUnitRaw === 'BP') giftUnit = 'bigpack';
 
-  // v6.5.72: prefer Barcode สินค้าแถม from promo sheet (authoritative) — fall back to name match
+  // v6.5.73: prefer Barcode สินค้าแถม from promo sheet (authoritative) — fall back to name match
   const giftBarcode = String(promo['Barcode สินค้าแถม']||promo['บาร์โค้ดแถม']||'').trim();
   let giftP = null;
   if (giftBarcode && SHEET_DATA.products) {
@@ -12110,7 +12110,7 @@ window.applyPromoFromModal = function(safeKey) {
       shopId: currentShopId,
       isFree: true,
       promoKey,
-      giftBarcode,  // v6.5.72: carry promo's barcode for sheet write
+      giftBarcode,  // v6.5.73: carry promo's barcode for sheet write
     });
   } else {
     cart.push({
@@ -12122,7 +12122,7 @@ window.applyPromoFromModal = function(safeKey) {
       isFree: true,
       promoKey,
       giftName: giftName || 'ของแถม',
-      giftBarcode,  // v6.5.72: even without product match, use promo barcode
+      giftBarcode,  // v6.5.73: even without product match, use promo barcode
     });
   }
 
@@ -12487,7 +12487,7 @@ function confirmOrderWithPromos() {
     else if (giftUnitRaw === 'PA' || giftUnitRaw.includes('แพ็ค')) giftUnit = 'pack';
     else if (giftUnitRaw === 'BP') giftUnit = 'bigpack';
 
-    // v6.5.72: prefer Barcode สินค้าแถม from promo sheet (authoritative) — fall back to name match
+    // v6.5.73: prefer Barcode สินค้าแถม from promo sheet (authoritative) — fall back to name match
     const giftBarcode = String(promo['Barcode สินค้าแถม']||promo['บาร์โค้ดแถม']||'').trim();
     let giftP = null;
     if (giftBarcode && SHEET_DATA.products) {
@@ -12670,7 +12670,7 @@ async function pushOrderToSheet(orderId, shop, items, now, notes) {
         x['CODE EA'] === c.productId || x['CODE CS'] === c.productId || x['PRODUCT NAME'] === c.productId);
     const productName = p ? (p.name || p['PRODUCT NAME']) : (c.giftName || c.productId);
     const unitLabel   = (p && p.unitLabels && p.unitLabels[c.unit]) || unitMap[c.unit] || c.unit;
-    // v6.5.72: gift lines prefer promo's Barcode สินค้าแถม when present (authoritative for free items)
+    // v6.5.73: gift lines prefer promo's Barcode สินค้าแถม when present (authoritative for free items)
     const promoGiftBc = (c.isFree && c.giftBarcode) ? c.giftBarcode : '';
     const barcode     = promoGiftBc
       || (p && p.barcodes && p.barcodes[c.unit])
