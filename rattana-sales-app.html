@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.24</title>
+<title>Rattana Sales — v6.5.25</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -3023,7 +3023,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.24 · 2026-05-16</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.25 · 2026-05-16</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -3034,7 +3034,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.24</span>
+  <span class="demo-tag">v6.5.25</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -3119,7 +3119,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.24<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.25<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -3550,6 +3550,9 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 const CONFIG = {
   // Backend Sheet (Customer / Order / Promotion / Data Center / Product Detail / Dashboard Config / Group Targets)
   backendSheetId: '1dAxF4Mz-zhJIVbuJ_Ql126gt08qvVS1wndJD50pqCZI',
+  // v6.5.25: Price Under Revision sheet — overrides Product Detail prices when matched by barcode
+  priceOverrideSheetId: '16mYDqAqqJma-_0vCIAajy6bcjdOZ7F6VagxkdkqAB2I',
+  priceOverrideTab:    'Sheet1',
   // Debt (SQL Data) Sheet — live AR from Bplus
   debtSheetId:   '1LqTqZg1z3e6FtPBbhZsKZd60DL6tZmCi78QQT1MoPq4',
   debtSheetTab:  'SQL Data',
@@ -3583,6 +3586,7 @@ let SHEET_DATA = {
   users:           [],
   customers:       [],
   products:        [],   // 20K SKUs
+  priceOverrides:  [],   // v6.5.25: rows from "Price Under Revision Sales App" sheet
   promotions:      [],
   dataCenter:      {},   // {col_name: [values...]}
   dashboardConfig: [],
@@ -4245,12 +4249,17 @@ async function loadAllSheetData() {
     fetchWithCache('syncStatus',() => fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.syncStatus),    60*1000).then(d => SHEET_DATA.syncStatus = d).catch(e => { console.warn('syncStatus:', e.message); SHEET_DATA.syncStatus = []; }),
     // Load 12K products IN PARALLEL with other tabs — no longer sequential block
     fetchWithCache('products',  () => fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.productDetail), CONFIG.cacheTTLLong).then(d => { SHEET_DATA.products = d; console.log('[Rattana Sales] products loaded:', d.length); }).catch(e => { console.warn('products:', e.message); SHEET_DATA.products = SHEET_DATA.products || []; }),
+    // v6.5.25: Price Under Revision — override layer for selected products
+    fetchWithCache('priceOverrides', () => fetchSheet(CONFIG.priceOverrideSheetId, CONFIG.priceOverrideTab), CONFIG.cacheTTLShort).then(d => { SHEET_DATA.priceOverrides = d || []; console.log('[Rattana Sales] price overrides loaded:', d.length); }).catch(e => { console.warn('priceOverrides:', e.message); SHEET_DATA.priceOverrides = []; }),
   ];
   // Race against timeout — if any tab is slow, show UI anyway after 20s
   await Promise.race([
     Promise.allSettled(tasks),
     new Promise(resolve => setTimeout(() => { console.warn('[Rattana Sales] Load timeout 20s — showing UI'); resolve(); }, MAX_WAIT))
   ]);
+
+  // v6.5.25: apply price overrides BEFORE hydrating (so any downstream code sees merged data)
+  applyPriceOverrides();
 
   SHEET_DATA.loaded = true;
 
@@ -4710,6 +4719,44 @@ function productUnits(p) {
   if (p['CODE CS']) units.push({ code:'CS', label:unitLabel('CS'), qty:numv(p['QTY CS'])||1, barcode:p['CODE CS'] });
   return units;
 }
+
+// v6.5.25: Apply Price Under Revision sheet → overrides Product Detail rows by barcode.
+// Match by CODE EA / CODE PA / CODE BP / CODE CS (any barcode hit = override).
+// Override row REPLACES the original product row entirely (same column structure).
+// Side effect: sets p._priceOverride = true on overridden rows (for UI tagging).
+function applyPriceOverrides() {
+  const overrides = SHEET_DATA.priceOverrides || [];
+  const products  = SHEET_DATA.products || [];
+  if (!overrides.length || !products.length) {
+    console.log('[priceOverride] skip — overrides:', overrides.length, 'products:', products.length);
+    return;
+  }
+  // Build lookup map: each barcode → override row
+  const map = new Map();
+  overrides.forEach(r => {
+    ['CODE EA','CODE PA','CODE BP','CODE CS'].forEach(col => {
+      const v = String(r[col] || '').trim();
+      if (v) map.set(v, r);
+    });
+  });
+  if (!map.size) { console.log('[priceOverride] no usable barcodes in override sheet'); return; }
+  let hits = 0;
+  for (let i = 0; i < products.length; i++) {
+    const p = products[i];
+    let ov = null;
+    for (const col of ['CODE EA','CODE PA','CODE BP','CODE CS']) {
+      const v = String(p[col] || '').trim();
+      if (v && map.has(v)) { ov = map.get(v); break; }
+    }
+    if (ov) {
+      const merged = { ...ov, _priceOverride: true };
+      products[i] = merged;
+      hits++;
+    }
+  }
+  console.log(`[priceOverride] applied: ${hits} / ${products.length} products overridden`);
+}
+window.applyPriceOverrides = applyPriceOverrides;
 
 // VAT rate (7% — Thai standard) — kept for backend compat only
 const VAT_RATE = 0.07;
@@ -7833,7 +7880,7 @@ function buildDepotChipsCompact(p) {
     return numv(p[`AVERAGE 30D_${w}`]) || numv(p[`AVERAGE 30D ${w}`]) || numv(p[`AVG 30D ${w}`]);
   };
 
-  // v6.5.24: role gate — role >= 4 sees avg for all WH, role < 4 sees only own WH avg
+  // v6.5.25: role gate — role >= 4 sees avg for all WH, role < 4 sees only own WH avg
   const role = Number((currentUser && currentUser.role) || 0);
   const canSeeAllAvg = role >= 4;
   const depots = WAREHOUSES.map(w => {
@@ -7909,7 +7956,7 @@ function _buildPromoBarsHtml(p, productId, safeId, unit, qty) {
     productId, unit, qty, price: 0, shopId: currentShopId, isDraft: true,
   } : null;
 
-  // v6.5.24: AUTO-PICK highest matching tier (step-promo fix).
+  // v6.5.25: AUTO-PICK highest matching tier (step-promo fix).
   // Old: user had to click "เลือก" first when 2+ promos existed → confusing when qty
   // dropped below the picked tier's threshold (state stuck on Step 2 while qty=10 only
   // qualifies for Step 1). New: every render recomputes, picks highest threshold
@@ -7933,7 +7980,7 @@ function _buildPromoBarsHtml(p, productId, safeId, unit, qty) {
   else delete draft.selectedPromoIdx;
   window._orderDraft[productId] = draft;
 
-  // v6.5.24: no more "isMulti force-pick" mode — always show all tiers' progress as info
+  // v6.5.25: no more "isMulti force-pick" mode — always show all tiers' progress as info
   return allPromos.map((promo, idx) => {
     const isSelected = (selectedIdx === idx);
     return _buildOnePromoBar(promo, p, productId, safeId, idx, isSelected, draftLine, unit, false);
@@ -7973,7 +8020,7 @@ function _buildOnePromoBar(promo, p, productId, safeId, idx, isSelected, draftLi
     `;
   }
 
-  // v6.5.24: read-only badge (auto-picked by qty, no manual selection needed)
+  // v6.5.25: read-only badge (auto-picked by qty, no manual selection needed)
   const pickerHtml = isSelected
     ? `<button class="oc-promo-pick on" disabled title="โปรนี้ใช้งานตามจำนวน">✓ ใช้โปรนี้</button>`
     : '';
@@ -12490,10 +12537,11 @@ async function globalRefresh() {
     delete _memCache['products'];
     delete _memCache['orders'];
 
-    // 2. Refetch _SyncStatus (~1KB) + ProductDetail (12K SKUs) in parallel
-    const [syncRows, prodRows] = await Promise.all([
+    // 2. Refetch _SyncStatus (~1KB) + ProductDetail (12K SKUs) + Price Override in parallel
+    const [syncRows, prodRows, overrideRows] = await Promise.all([
       fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.syncStatus).catch(e => { console.warn('syncStatus:', e.message); return null; }),
       fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.productDetail).catch(e => { console.warn('products:', e.message); return null; }),
+      fetchSheet(CONFIG.priceOverrideSheetId, CONFIG.priceOverrideTab).catch(e => { console.warn('priceOverrides:', e.message); return null; }),
     ]);
 
     if (prodRows) {
@@ -12501,6 +12549,12 @@ async function globalRefresh() {
       cacheSet('products', prodRows);
       console.log('[refresh] products refetched:', prodRows.length);
     }
+    if (overrideRows) {
+      SHEET_DATA.priceOverrides = overrideRows;
+      cacheSet('priceOverrides', overrideRows);
+    }
+    // v6.5.25: re-apply overrides after refetch
+    applyPriceOverrides();
     if (syncRows) {
       SHEET_DATA.syncStatus = syncRows;
       // Update timestamp tracker so heartbeat won't double-fire
