@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.28</title>
+<title>Rattana Sales — v6.5.29</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -2983,7 +2983,7 @@ body.dark .oc2-footer { background: #0c1a35; border-color: #1a3060; }
 body.dark .oc2-foot-hint { color: #7a90b8; }
 body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
-/* ─── Route Plan Panel (วางแผนรูท v6.5.28) ─── */
+/* ─── Route Plan Panel (วางแผนรูท v6.5.29) ─── */
 .route-plan-btn {
   display: flex; align-items: center; justify-content: center; gap: 8px;
   background: linear-gradient(135deg, rgba(201,168,76,.12), rgba(201,168,76,.06));
@@ -3038,7 +3038,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 .reroute-btn { display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(52,152,219,.1); color: #3498db; border: 1.5px solid rgba(52,152,219,.3); border-radius: 8px; padding: 8px 12px; font-size: 13px; font-weight: 700; font-family: Sarabun, sans-serif; cursor: pointer; width: 100%; margin-top: 6px; }
 .reroute-btn:active { opacity: .8; }
 
-/* ─── Team Map Screen (แผนที่ทีม v6.5.28) ─── */
+/* ─── Team Map Screen (แผนที่ทีม v6.5.29) ─── */
 #teamMapEl { height: calc(100vh - 176px); min-height: 300px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
 .team-map-legend { display: flex; gap: 12px; flex-wrap: wrap; padding: 8px 0; font-size: 12px; color: var(--muted); }
 .tm-leg-item { display: flex; align-items: center; gap: 5px; }
@@ -3047,7 +3047,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 .team-map-btn:active { opacity: .8; }
 @keyframes pulse { 0%{transform:scale(1);opacity:1} 50%{transform:scale(1.4);opacity:.5} 100%{transform:scale(1);opacity:1} }
 
-/* Team map filter chips (v6.5.28) */
+/* Team map filter chips (v6.5.29) */
 #teamMapChips { padding: 6px 4px 10px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
 .tm-chip-row { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0; scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
 .tm-chip-row::-webkit-scrollbar { height: 4px; }
@@ -3058,7 +3058,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 .tm-chip.active { background: var(--gold); color: #0d1b3e; border-color: var(--gold); }
 .tm-chip-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
 
-/* Team map focus panel (v6.5.28) */
+/* Team map focus panel (v6.5.29) */
 .tm-focus { background: linear-gradient(135deg, var(--surface), var(--row-alt)); border: 1.5px solid var(--border); border-radius: 14px; padding: 14px; margin: 12px 0 4px; box-shadow: var(--shadow-sm); }
 .tm-focus-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
 .tm-focus-avatar { width: 56px; height: 56px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; font-family: Sarabun, sans-serif; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,.2); text-align: center; line-height: 1.1; }
@@ -3085,6 +3085,20 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 .tm-focus-stop-time { color: var(--muted); font-family: monospace; font-size: 11px; min-width: 56px; }
 .tm-focus-stop-name { color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tm-focus-stop.unvisited .tm-focus-stop-name { color: var(--muted); font-style: italic; }
+
+/* Threshold reference card (v6.5.29) — visible below the map so user remembers rules */
+.tm-thresh-card { background: var(--surface); border: 1.5px solid var(--border); border-left: 4px solid var(--gold); border-radius: 10px; padding: 10px 12px; margin: 12px 0; font-size: 12px; }
+.tm-thresh-title { font-size: 11px; font-weight: 800; color: var(--gold); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+.tm-thresh-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; color: var(--text); }
+.tm-thresh-icon { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 800; color: #fff; }
+.tm-thresh-icon.black { background: #000; }
+.tm-thresh-icon.red-pulse { background: #e74c3c; animation: pulse 1.4s infinite; }
+.tm-thresh-icon.grey-dash { background: #bdc3c7; border: 1.5px dashed #7f8c8d; }
+.tm-thresh-icon.gold { background: var(--gold); color: var(--navy); }
+.tm-thresh-line-solid { display: inline-block; width: 18px; height: 0; border-top: 2.5px solid #888; }
+.tm-thresh-line-dash { display: inline-block; width: 18px; height: 0; border-top: 2px dashed #888; }
+.tm-long-visit-alert { background: rgba(231,76,60,.12) !important; border-color: rgba(231,76,60,.4) !important; }
+.tm-long-visit-alert .tm-focus-current-icon { background: #e74c3c !important; }
 </style>
   <!-- Google Identity Services (v5.0 — real OAuth login) -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -3119,7 +3133,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.28 · 2026-05-15</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.29 · 2026-05-15</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -3130,7 +3144,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.28</span>
+  <span class="demo-tag">v6.5.29</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -3215,7 +3229,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.28<br>2026-05-15 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.29<br>2026-05-15 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -6035,7 +6049,7 @@ function goRoute() {
 
   // Default — go to shop list
   renderShopList(); showScreen('screenRoute'); updateCartBar();
-  // v6.5.28: proactively fetch fresh GPS in background so ใกล้ฉัน sort is ready immediately
+  // v6.5.29: proactively fetch fresh GPS in background so ใกล้ฉัน sort is ready immediately
   refreshGPS(true)
     .then(() => { if (_routeSort === 'near') renderShopList(); })
     .catch(() => {}); // silent fail — user can tap ใกล้ฉัน to retry
@@ -6874,7 +6888,7 @@ function filterShops(text) {
 window.filterShops = filterShops;
 
 function setRouteSort(val) {
-  // v6.5.28: don't toggle near OFF — near is always the default, clicking again re-fetches GPS
+  // v6.5.29: don't toggle near OFF — near is always the default, clicking again re-fetches GPS
   _routeSort = val;
   _updateRouteFilterChips();
   if (_routeSort === 'near') {
@@ -6910,7 +6924,7 @@ function _updateRouteFilterChips() {
   if (doneEl)    doneEl.classList.toggle('active', _routeStatusFilter === 'done');
 }
 
-// renderShopList — moved below initMap (v6.5.28) with plan-sort support
+// renderShopList — moved below initMap (v6.5.29) with plan-sort support
 
 function _buildShopCardHTML(s) {
   const visit      = visits[s.id];
@@ -7180,7 +7194,7 @@ function initMap() {
 }
 
 // ═══════════════════════════════════════════════════════════
-// TSP ROUTE PLANNING (v6.5.28)
+// TSP ROUTE PLANNING (v6.5.29)
 // Algorithm: Nearest Neighbor → 2-opt → Or-opt → double-bridge
 // Adapted from rattana-route-optimizer.html
 // ═══════════════════════════════════════════════════════════
@@ -7701,7 +7715,7 @@ function _updatePlanBtnVisibility() {
 }
 
 // ═══════════════════════════════════════════════════════════
-// TEAM MAP — Supervisor view (level 5+, v6.5.28)
+// TEAM MAP — Supervisor view (level 5+, v6.5.29)
 // Shows last known position of each salesman from Visits sheet
 // ═══════════════════════════════════════════════════════════
 
@@ -7710,7 +7724,12 @@ let _teamMapMarkers = [];
 let _teamMapPolylines = [];
 let _tmGen = 0;   // render generation — guards async OSRM upgrades against stale callbacks
 
-// Filter state for team map (v6.5.28)
+// ── Team-map thresholds (v6.5.29) ──
+// CHANGE THESE to adjust alert behavior. Values are mirrored to UI card below map.
+const TM_LONG_VISIT_MIN = 60;    // ▶ red alert if checked-in for more than this (minutes)
+const TM_NO_BUY_VALUES = ['no_buy','refused','ไม่ซื้อ'];  // ▶ ผลลัพธ์ values that mean "didn't buy" → black marker
+
+// Filter state for team map (v6.5.29)
 let _tmWh = 'all';   // 'all' or warehouse id
 let _tmSm = 'all';   // 'all' or salesman code
 
@@ -7810,6 +7829,10 @@ function renderTeamMap() {
   initTeamMap();
   if (!teamMap) return;
   const myGen = ++_tmGen;
+
+  // Mirror hardcoded thresholds to UI card so user always sees current values
+  const threshEl = document.getElementById('tmThreshLong');
+  if (threshEl) threshEl.textContent = String(TM_LONG_VISIT_MIN);
 
   _teamMapMarkers.forEach(m => m.remove()); _teamMapMarkers = [];
   _teamMapPolylines.forEach(p => p.remove()); _teamMapPolylines = [];
@@ -7949,13 +7972,23 @@ function renderTeamMap() {
     stops.forEach((st, i) => {
       allPoints.push([st.lat, st.lng]);
       const isCurrent = (i === stops.length - 1) && !st.outTime;
+      const noBuy = TM_NO_BUY_VALUES.some(v => String(st.result||'').toLowerCase().includes(String(v).toLowerCase()));
+      const elapsedMin = isCurrent ? _minutesSince(st.inTime) : 0;
+      const isLongVisit = isCurrent && typeof elapsedMin === 'number' && elapsedMin > TM_LONG_VISIT_MIN;
+
+      const fillColor = noBuy ? '#000' : myColor;
+      const ringStyle = isLongVisit
+        ? 'outline:3px solid #e74c3c;outline-offset:1px;animation:pulse 1.4s infinite'
+        : (isCurrent ? 'outline:2px solid #2ecc71;outline-offset:1px' : '');
+
       const stopIcon = L.divIcon({
         className: '',
-        html: `<div style="width:24px;height:24px;border-radius:50%;background:${myColor};border:2px solid #fff;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;box-shadow:0 2px 5px rgba(0,0,0,.3);margin-left:-12px;margin-top:-12px;${isCurrent?'outline:2px solid #2ecc71;outline-offset:1px':''}">${i+1}</div>`,
+        html: `<div style="width:24px;height:24px;border-radius:50%;background:${fillColor};border:2px solid #fff;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;box-shadow:0 2px 5px rgba(0,0,0,.3);margin-left:-12px;margin-top:-12px;${ringStyle}">${i+1}</div>`,
         iconSize: [24,24], iconAnchor: [12,12]
       });
-      const sm2 = L.marker([st.lat, st.lng], { icon: stopIcon, zIndexOffset: 100 }).addTo(teamMap);
-      sm2.bindTooltip(`<b>${escapeHtml(sm.name)}</b> · ${st.inTime}${st.outTime?' - '+st.outTime:''} · ${escapeHtml(st.shopName)}`, { direction: 'top', offset: [0,-12] });
+      const sm2 = L.marker([st.lat, st.lng], { icon: stopIcon, zIndexOffset: isLongVisit ? 300 : 100 }).addTo(teamMap);
+      const tipExtra = noBuy ? ' · ❌ ไม่ซื้อ' : (isLongVisit ? ` · ⚠️ ${elapsedMin} นาที!` : '');
+      sm2.bindTooltip(`<b>${escapeHtml(sm.name)}</b> · ${st.inTime}${st.outTime?' - '+st.outTime:''} · ${escapeHtml(st.shopName)}${tipExtra}`, { direction: 'top', offset: [0,-12] });
       sm2.bindPopup(`
         <div style="font-family:Sarabun,sans-serif;min-width:180px">
           <b style="font-size:13px">${i+1}. ${escapeHtml(st.shopName)}</b><br>
@@ -7963,20 +7996,41 @@ function renderTeamMap() {
           <div style="margin-top:6px;font-size:12px">
             ⏰ เช็คอิน <b>${escapeHtml(st.inTime||'—')}</b>${st.outTime?`<br>🏁 เช็คเอาท์ <b>${escapeHtml(st.outTime)}</b>`:''}
             ${st.duration?`<br>⌛ ${st.duration} นาที`:''}
-            ${st.result?`<br>📋 ${escapeHtml(st.result)}`:''}
-            ${isCurrent?'<br><span style="color:#2ecc71;font-weight:700">● กำลังเยี่ยมอยู่</span>':''}
+            ${st.result?`<br>📋 ${noBuy?'❌ ':''}${escapeHtml(st.result)}`:''}
+            ${isCurrent?`<br><span style="color:${isLongVisit?'#e74c3c':'#2ecc71'};font-weight:700">● ${isLongVisit?`อยู่นานแล้ว ${elapsedMin} นาที ⚠️`:'กำลังเยี่ยมอยู่'}</span>`:''}
           </div>
         </div>
       `);
       _teamMapMarkers.push(sm2);
     });
 
+    // Predicted route: dashed line from current position → next unvisited route shop
+    const nextShop = unvisitedShops[0];
+    if (lastLat && lastLng && nextShop) {
+      const predictStraight = L.polyline(
+        [[lastLat, lastLng], [nextShop.lat, nextShop.lng]],
+        { color: myColor, weight: 2, opacity: .4, dashArray: '8,6' }
+      ).addTo(teamMap);
+      _teamMapPolylines.push(predictStraight);
+      _fetchRoadGeometry([{lat:lastLat,lng:lastLng},{lat:nextShop.lat,lng:nextShop.lng}]).then(roadGeo => {
+        if (myGen !== _tmGen || !roadGeo) return;
+        const idx = _teamMapPolylines.indexOf(predictStraight);
+        if (idx === -1) return;
+        predictStraight.remove();
+        const roadDashed = L.polyline(roadGeo, { color: myColor, weight: 2.5, opacity: .65, dashArray: '8,6' }).addTo(teamMap);
+        _teamMapPolylines[idx] = roadDashed;
+      });
+    }
+
     if (lastLat && lastLng) {
+      const currentStopElapsed = isCheckedIn && stops.length > 0 ? _minutesSince(stops[stops.length-1].inTime) : 0;
+      const avatarLongVisit = isCheckedIn && typeof currentStopElapsed === 'number' && currentStopElapsed > TM_LONG_VISIT_MIN;
+      const avatarRing = avatarLongVisit ? 'box-shadow:0 0 0 3px #e74c3c, 0 3px 10px rgba(0,0,0,.45)' : 'box-shadow:0 3px 10px rgba(0,0,0,.45)';
       const icon = L.divIcon({
         className: '',
         html: `<div style="position:relative">
-          <div style="width:48px;height:48px;border-radius:50%;background:${myColor};border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;font-family:Sarabun,sans-serif;box-shadow:0 3px 10px rgba(0,0,0,.45);margin-left:-24px;margin-top:-24px;text-align:center;line-height:1.05;letter-spacing:.5px">${escapeHtml(myLabel)}</div>
-          ${isCheckedIn ? '<div style="position:absolute;top:-3px;right:-3px;width:13px;height:13px;border-radius:50%;background:#2ecc71;border:2px solid #fff;animation:pulse 1.4s infinite"></div>' : ''}
+          <div style="width:48px;height:48px;border-radius:50%;background:${myColor};border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;font-family:Sarabun,sans-serif;${avatarRing};margin-left:-24px;margin-top:-24px;text-align:center;line-height:1.05;letter-spacing:.5px">${escapeHtml(myLabel)}</div>
+          ${isCheckedIn ? `<div style="position:absolute;top:-3px;right:-3px;width:13px;height:13px;border-radius:50%;background:${avatarLongVisit?'#e74c3c':'#2ecc71'};border:2px solid #fff;animation:pulse 1.4s infinite"></div>` : ''}
         </div>`,
         iconSize: [48,48], iconAnchor: [24,24]
       });
@@ -8050,14 +8104,38 @@ function renderTeamMap() {
       const pctDone = totalShops > 0 ? Math.round(doneCount / totalShops * 100) : 0;
       const currentStop = isCheckedIn ? stops[stops.length - 1] : null;
       const lastStop = !isCheckedIn && stops.length > 0 ? stops[stops.length - 1] : null;
+      const currentElapsed = currentStop ? _minutesSince(currentStop.inTime) : 0;
+      const isLongVisit = typeof currentElapsed === 'number' && currentElapsed > TM_LONG_VISIT_MIN;
+
+      // Cumulative stats: distance traveled (haversine sum of stops) + time at shops + buy/no-buy count
+      let cumulKm = 0;
+      for (let i = 1; i < stops.length; i++) {
+        const a = stops[i-1], b = stops[i];
+        cumulKm += haversine(a.lat, a.lng, b.lat, b.lng) / 1000;
+      }
+      let cumulMinAtShops = 0;
+      stops.forEach(st => {
+        if (st.duration) cumulMinAtShops += parseInt(st.duration, 10) || 0;
+        else if (!st.outTime && st.inTime) {
+          const e = _minutesSince(st.inTime);
+          if (typeof e === 'number') cumulMinAtShops += e;
+        }
+      });
+      const noBuyCount = stops.filter(st => TM_NO_BUY_VALUES.some(v => String(st.result||'').toLowerCase().includes(String(v).toLowerCase()))).length;
+      const buyCount = stops.filter(st => st.result && !TM_NO_BUY_VALUES.some(v => String(st.result||'').toLowerCase().includes(String(v).toLowerCase()))).length;
 
       const timeline = stops.map((st, i) => {
         const isCurrent = (i === stops.length - 1) && !st.outTime;
+        const noBuy = TM_NO_BUY_VALUES.some(v => String(st.result||'').toLowerCase().includes(String(v).toLowerCase()));
+        const longHere = isCurrent && typeof currentElapsed === 'number' && currentElapsed > TM_LONG_VISIT_MIN;
         const t = st.outTime ? `${st.inTime}-${st.outTime}` : `${st.inTime} →`;
+        const bg = noBuy ? '#000' : myColor;
+        const ring = longHere ? 'box-shadow:0 0 0 2px #e74c3c' : (isCurrent ? 'box-shadow:0 0 0 2px #2ecc71' : '');
+        const badge = noBuy ? ' ❌' : (longHere ? ` ⚠️ ${currentElapsed}น.` : (isCurrent ? ' 🟢' : ''));
         return `<div class="tm-focus-stop">
-          <div class="tm-focus-stop-num" style="background:${myColor};${isCurrent?'box-shadow:0 0 0 2px #2ecc71':''}">${i+1}</div>
+          <div class="tm-focus-stop-num" style="background:${bg};${ring}">${i+1}</div>
           <div class="tm-focus-stop-time">${escapeHtml(t)}</div>
-          <div class="tm-focus-stop-name">${escapeHtml(st.shopName)}${isCurrent?' 🟢':''}</div>
+          <div class="tm-focus-stop-name">${escapeHtml(st.shopName)}${badge}</div>
         </div>`;
       }).join('');
 
@@ -8081,11 +8159,11 @@ function renderTeamMap() {
           </div>
 
           ${currentStop ? `
-            <div class="tm-focus-current">
+            <div class="tm-focus-current ${isLongVisit?'tm-long-visit-alert':''}">
               <div class="tm-focus-current-icon"></div>
               <div style="flex:1">
-                <div style="font-weight:700;color:var(--text)">📍 กำลังเยี่ยม: ${escapeHtml(currentStop.shopName)}</div>
-                <div style="font-size:11px;color:var(--muted)">⏰ เช็คอินตอน ${escapeHtml(currentStop.inTime)} · ผ่านมา ${_minutesSince(currentStop.inTime)} นาที</div>
+                <div style="font-weight:700;color:var(--text)">${isLongVisit?'⚠️ ':''}📍 กำลังเยี่ยม: ${escapeHtml(currentStop.shopName)}</div>
+                <div style="font-size:11px;color:${isLongVisit?'#e74c3c':'var(--muted)'};font-weight:${isLongVisit?'700':'400'}">⏰ เช็คอินตอน ${escapeHtml(currentStop.inTime)} · ผ่านมา <b>${currentElapsed} นาที</b>${isLongVisit?` (เกิน ${TM_LONG_VISIT_MIN} นาที!)`:''}</div>
               </div>
             </div>
           ` : lastStop ? `
@@ -8097,15 +8175,27 @@ function renderTeamMap() {
           <div class="tm-focus-kpi" style="margin-top:10px">
             <div class="tm-focus-kpi-cell">
               <div class="tm-focus-kpi-val">${doneCount}/${totalShops||'—'}</div>
-              <div class="tm-focus-kpi-lbl">ร้านที่เยี่ยม</div>
+              <div class="tm-focus-kpi-lbl">เยี่ยมแล้ว · ${pctDone}%</div>
             </div>
             <div class="tm-focus-kpi-cell">
               <div class="tm-focus-kpi-val">฿${Math.round(sm.todaySales).toLocaleString()}</div>
               <div class="tm-focus-kpi-lbl">ยอดวันนี้</div>
             </div>
             <div class="tm-focus-kpi-cell">
-              <div class="tm-focus-kpi-val">${pctDone}%</div>
-              <div class="tm-focus-kpi-lbl">ความคืบหน้า</div>
+              <div class="tm-focus-kpi-val">${cumulKm.toFixed(1)} กม.</div>
+              <div class="tm-focus-kpi-lbl">ระยะทางรวม</div>
+            </div>
+            <div class="tm-focus-kpi-cell">
+              <div class="tm-focus-kpi-val">${cumulMinAtShops} นาที</div>
+              <div class="tm-focus-kpi-lbl">เวลาที่ร้านรวม</div>
+            </div>
+            <div class="tm-focus-kpi-cell">
+              <div class="tm-focus-kpi-val" style="color:#27ae60">${buyCount}</div>
+              <div class="tm-focus-kpi-lbl">ซื้อ</div>
+            </div>
+            <div class="tm-focus-kpi-cell">
+              <div class="tm-focus-kpi-val" style="color:#000">${noBuyCount}</div>
+              <div class="tm-focus-kpi-lbl">ไม่ซื้อ</div>
             </div>
           </div>
           ${totalShops > 0 ? `<div class="tm-focus-progress"><div class="tm-focus-progress-fill" style="width:${pctDone}%"></div></div>` : ''}
@@ -8298,7 +8388,7 @@ function renderShopDetail(shopId) {
   `;
 }
 
-// Check in — always get fresh GPS first (v6.5.28: never use stale position for check-in)
+// Check in — always get fresh GPS first (v6.5.29: never use stale position for check-in)
 function doCheckIn(shopId) {
   const s = SHOPS.find(x => x.id === shopId);
   if (!s) return;
@@ -12236,7 +12326,7 @@ function recalcPromoForRows(remainingRows, templateRow) {
   return newPromoRows;
 }
 
-// v6.5.28: Cancel a line — optimistic UI + write ยกเลิก to col V + recalc promo
+// v6.5.29: Cancel a line — optimistic UI + write ยกเลิก to col V + recalc promo
 window.deleteOrderRow = async function(btnEl, orderId, barcode, productName) {
   if (!confirm(`ยืนยันยกเลิก:\n"${productName}"\nออเดอร์ ${orderId}?`)) return;
 
@@ -14099,6 +14189,16 @@ window.addEventListener('load', () => {
     <div class="tm-leg-item"><div class="tm-dot" style="background:#bdc3c7;border:1.5px dashed #95a5a6"></div>ร้านในรูทยังไม่เยี่ยม</div>
     <div class="tm-leg-item"><span style="display:inline-block;width:14px;height:0;border-top:2px solid #888;vertical-align:middle"></span> เส้นทาง = เช็คอินวันนี้ (1→2→3...)</div>
     <div class="tm-leg-item"><div class="tm-dot" style="background:#2ecc71;animation:pulse 1.4s infinite"></div>กำลังเช็คอินอยู่</div>
+  </div>
+
+  <div class="tm-thresh-card">
+    <div class="tm-thresh-title">📋 สัญลักษณ์และเกณฑ์เตือน</div>
+    <div class="tm-thresh-row"><span class="tm-thresh-icon" style="background:#3498db">N</span>เช็คอิน + <b>ซื้อ</b> = วงสีของเซลล์ พร้อมเลขลำดับ</div>
+    <div class="tm-thresh-row"><span class="tm-thresh-icon black">N</span>เช็คอินแต่ <b>ลูกค้าไม่ซื้อ</b> = วงดำ</div>
+    <div class="tm-thresh-row"><span class="tm-thresh-icon red-pulse">!</span>อยู่ร้านนานเกิน <b id="tmThreshLong">60</b> นาที = แดงกะพริบ + เตือนใน focus panel</div>
+    <div class="tm-thresh-row"><span class="tm-thresh-icon grey-dash"></span>ร้านในรูทวันนี้ <b>ยังไม่เยี่ยม</b> = วงเทาเส้นประ</div>
+    <div class="tm-thresh-row"><span class="tm-thresh-line-solid"></span>&nbsp;เส้นทึบ = เส้นทางที่เดินมาแล้ว (ตามถนนจริง)</div>
+    <div class="tm-thresh-row"><span class="tm-thresh-line-dash"></span>&nbsp;เส้นประ = ทำนายเส้นทางไปร้านถัดไปในรูท</div>
   </div>
 
   <div id="teamMapFocusPanel"></div>
