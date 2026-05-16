@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.83</title>
+<title>Rattana Sales — v6.5.84</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -348,7 +348,7 @@ body.dark .badge-gold { background: #2a2415; color: var(--gold-light); }
 
 /* ─── MAP LEGEND ─── */
 .map-legend { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; padding: 10px; margin-top: 8px; font-size: 11px; color: var(--muted); }
-/* v6.5.83: map filter bar */
+/* v6.5.84: map filter bar */
 .map-filters {
   display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
   margin-bottom: 10px;
@@ -521,7 +521,7 @@ body.dark .sc-chip-debt { background: rgba(231,76,60,.2); color: #ff8a7e; }
 .route-hero-bar-fill { height: 100%; background: var(--gold); border-radius: 2px; transition: width .6s ease; }
 
 /* v6.5.57: compact route hero — tabs + KPI inline */
-/* v6.5.83: kill inherited white bg from .route-tabs so inactive tab is readable on dark hero */
+/* v6.5.84: kill inherited white bg from .route-tabs so inactive tab is readable on dark hero */
 .route-tabs.route-tabs-compact {
   background: transparent !important;
   border: none !important;
@@ -860,7 +860,7 @@ body.dark .shc-btn.co { background: #1e3a6e; }
 }
 @media (max-width: 600px) { .shop-photo-card { height: 220px; } }
 
-/* v6.5.83: shop info card — grid of key facts (รหัสบีพลัส, รูท, วันส่ง ฯลฯ) */
+/* v6.5.84: shop info card — grid of key facts (รหัสบีพลัส, รูท, วันส่ง ฯลฯ) */
 .shop-info-card {
   background: var(--card-bg);
   border: 1px solid var(--border);
@@ -1736,11 +1736,41 @@ body.dark .oc-promo-detail { background: rgba(231,76,60,.1); color: #f5b8a8; bor
 }
 .oc-stock-header {
   display: flex; justify-content: space-between;
-  align-items: baseline;
+  align-items: center; gap: 8px;
   font-size: 10px; font-weight: 700;
   color: var(--muted);
   letter-spacing: .3px;
   margin-bottom: 5px;
+}
+/* v6.5.84 preview: urgent procurement buttons */
+.oc-stock-urgent-btn {
+  background: linear-gradient(135deg, #D63A3A, #B22222);
+  color: #fff; border: 1.5px solid #fff;
+  padding: 4px 10px; border-radius: 999px;
+  font-size: 10px; font-weight: 800;
+  cursor: pointer; font-family: inherit;
+  box-shadow: 0 2px 6px rgba(214,58,58,.4);
+  animation: urgentPulse 2s ease infinite;
+}
+.oc-stock-urgent-btn:hover { transform: scale(1.05); }
+.oc-depot-urgent {
+  position: absolute; top: -8px; right: -8px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: #D63A3A; color: #fff;
+  border: 2px solid #fff;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,.3);
+  z-index: 5;
+  font-family: inherit;
+  animation: urgentPulse 2s ease infinite;
+}
+.oc-depot-urgent:hover { transform: scale(1.15); }
+@keyframes urgentPulse {
+  0%,100% { box-shadow: 0 2px 6px rgba(214,58,58,.4); }
+  50%     { box-shadow: 0 2px 14px rgba(214,58,58,.85); }
 }
 .oc-stock-total {
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
@@ -2209,7 +2239,7 @@ body.dark .summary-row.total .val { color: var(--gold-light); }
 .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); border-top: 1px solid var(--border); padding: 8px 8px 12px; display: flex; z-index: 150; box-shadow: 0 -2px 10px rgba(0,0,0,.05); padding-bottom: max(12px, env(safe-area-inset-bottom)); pointer-events: auto; }
 .bottom-nav .bnav-item { pointer-events: auto; cursor: pointer; }
 
-/* v6.5.83: lower cart-bar + back-to-top further on PC ≥1024 (bottom-nav hidden anyway) */
+/* v6.5.84: lower cart-bar + back-to-top further on PC ≥1024 (bottom-nav hidden anyway) */
 @media (min-width: 1024px) {
   .cart-bar    { bottom: 12px  !important; }
   .back-to-top { bottom: 68px  !important; right: 20px !important; }
@@ -2384,7 +2414,7 @@ body.dark .plan-sheet { background: #0c1a35; color: #dce6f7; }
   box-shadow: 0 2px 8px rgba(201,168,76,.25);
 }
 
-/* v6.5.83: Shop checklist inside route planner */
+/* v6.5.84: Shop checklist inside route planner */
 .plan-checklist-head {
   display: flex; align-items: center; justify-content: space-between;
   margin: 10px 0 6px;
@@ -3455,7 +3485,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.83 · 2026-05-16</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.84 · 2026-05-16</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -3466,7 +3496,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.83</span>
+  <span class="demo-tag">v6.5.84</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -3556,7 +3586,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.83<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.84<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -3630,7 +3660,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
   <!-- MAP VIEW -->
   <div id="routeMapView" style="display:none">
-    <!-- v6.5.83: map filters — limit to 100 + province + search -->
+    <!-- v6.5.84: map filters — limit to 100 + province + search -->
     <div class="map-filters">
       <input id="mapSearchInput" class="map-search" placeholder="🔍 ค้นชื่อร้าน / บีพลัส / ที่อยู่..." oninput="_mapFilterChanged()">
       <select id="mapProvinceSelect" class="map-province" onchange="_mapFilterChanged()">
@@ -3655,7 +3685,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
     <button class="btn btn-outline btn-block" style="margin-top:8px" onclick="refreshGPS().then(()=>initMap())">🔄 อัพเดทตำแหน่งฉัน + แผนที่</button>
   </div>
 
-  <!-- ═══════ ROUTE PLANNER BOTTOM-SHEET (v6.5.57 Phase 1, v6.5.83 Checklist redesign) ═══════ -->
+  <!-- ═══════ ROUTE PLANNER BOTTOM-SHEET (v6.5.57 Phase 1, v6.5.84 Checklist redesign) ═══════ -->
   <div id="planSheetBackdrop" class="plan-backdrop" onclick="closeRoutePlanner()"></div>
   <div id="planSheet" class="plan-sheet">
     <div class="plan-handle"></div>
@@ -3677,7 +3707,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
       <span>🔁 วงรอบ (กลับมาที่จุดเริ่มต้น)</span>
     </label>
 
-    <!-- v6.5.83: shop checklist -->
+    <!-- v6.5.84: shop checklist -->
     <div class="plan-checklist-head">
       <div class="plan-checklist-title">🏪 เลือกร้าน <span id="planChecklistCount" style="color:var(--muted);font-weight:600">(0/0)</span></div>
       <div class="plan-checklist-actions">
@@ -3813,7 +3843,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
   <div id="cartList"></div>
 
-  <!-- v6.5.83: Promo picker BEFORE summary so user picks gifts first, then sees final total -->
+  <!-- v6.5.84: Promo picker BEFORE summary so user picks gifts first, then sees final total -->
   <div id="promoPickerSection"></div>
 
   <div class="summary-card">
@@ -4106,7 +4136,7 @@ const CONFIG = {
     cn:              'CN',
     dashboardConfig: 'Dashboard Config',
     groupTargets:    'Group Targets',
-    focusRules:      'Focus Rules',  // v6.5.83: category-level focus (MeasureBy/MeasureValue/Warehouses/Period)
+    focusRules:      'Focus Rules',  // v6.5.84: category-level focus (MeasureBy/MeasureValue/Warehouses/Period)
     syncStatus:      '_SyncStatus',
   },
 };
@@ -4121,7 +4151,7 @@ let SHEET_DATA = {
   dataCenter:      {},   // {col_name: [values...]}
   dashboardConfig: [],
   groupTargets:    [],
-  focusRules:      [],   // v6.5.83: category-level focus rules { MeasureBy, MeasureValue, Warehouses, Period?, Note? }
+  focusRules:      [],   // v6.5.84: category-level focus rules { MeasureBy, MeasureValue, Warehouses, Period?, Note? }
   orders:          [],   // Order tab rows (1 row = 1 line item)
   syncStatus:      [],   // _SyncStatus tab rows (latest = stock sync state)
   debtData:        [],   // SQL Data rows (1 row = 1 invoice/AR line)
@@ -4610,7 +4640,7 @@ async function loadProgressively() {
     fetchWithCache('groupTargets', () => fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.groupTargets), CONFIG.cacheTTLShort)
       .then(d => { SHEET_DATA.groupTargets = d; markLoaded('groupTargets'); })
       .catch(e => { console.warn('groupTargets:', e.message); markLoaded('groupTargets'); }),
-    // v6.5.83: Focus Rules — category-level focus per warehouse/period
+    // v6.5.84: Focus Rules — category-level focus per warehouse/period
     fetchWithCache('focusRules', () => fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.focusRules), CONFIG.cacheTTLShort)
       .then(d => { SHEET_DATA.focusRules = d || []; console.log('[Rattana Sales] focusRules loaded:', d.length); })
       .catch(e => { console.warn('focusRules:', e.message); SHEET_DATA.focusRules = []; }),
@@ -5336,7 +5366,7 @@ const withVat = (price) => price;  // No-op: prices in Product Detail Sheet alre
 
 // Get S-tier prices (already VAT-inclusive in Sheet) — falls back to CC-tier if S-tier is empty
 function productPrices(p, unitCode) {
-  // v6.5.83: when QTY CS=1 AND QTY PA=1 → product effectively has 1 unit, so prices across columns are equivalent.
+  // v6.5.84: when QTY CS=1 AND QTY PA=1 → product effectively has 1 unit, so prices across columns are equivalent.
   // If requested unit's price is empty, fallback to other unit columns (helps single-unit goods like sugar/rice bags).
   const qtyCs = numv(p['QTY CS']) || 1;
   const qtyPa = numv(p['QTY PA']) || 1;
@@ -5557,7 +5587,7 @@ function cartMatchesPromo(promo, draftItem) {
   const _targetUnit = (_sellMode === 'EA' || _sellMode === 'PA' || _sellMode === 'BP' || _sellMode === 'CS')
     ? _sellMode : null;
 
-  // v6.5.83: cart unit code mapper (piece→EA, pack→PA, bigpack→BP, case→CS)
+  // v6.5.84: cart unit code mapper (piece→EA, pack→PA, bigpack→BP, case→CS)
   const _cartUnitToCode = (u) => {
     if (u === 'piece' || u === 'EA') return 'EA';
     if (u === 'pack'  || u === 'PA') return 'PA';
@@ -5583,7 +5613,7 @@ function cartMatchesPromo(promo, draftItem) {
     })().trim();
     if (pVal !== matchValue) continue;
 
-    // v6.5.83: STRICT unit match — promo only applies when cart line is in the exact same unit as รูปแบบขาย.
+    // v6.5.84: STRICT unit match — promo only applies when cart line is in the exact same unit as รูปแบบขาย.
     // Exception: 'บาท' mode accepts any unit (it sums baht, not qty).
     if (_targetUnit && _cartUnitToCode(c.unit) !== _targetUnit) continue;
 
@@ -5592,7 +5622,7 @@ function cartMatchesPromo(promo, draftItem) {
     const linePieces = (c.qty || 0) * piecesPerUnit;
     totalPieces += linePieces;
     totalBaht   += (c.qty || 0) * (c.price || 0);
-    // v6.5.83: with strict unit gate, totalInTargetUnit is just the raw qty (no conversion needed).
+    // v6.5.84: with strict unit gate, totalInTargetUnit is just the raw qty (no conversion needed).
     if (_targetUnit) {
       totalInTargetUnit += (c.qty || 0);
     }
@@ -5618,7 +5648,7 @@ function cartMatchesPromo(promo, draftItem) {
   ratio = threshold > 0 ? currentValue / threshold : 0;
   let matches = currentValue >= threshold;
 
-  // v6.5.83: ราคาขายกำหนด — minimum sell price per รูปแบบขาย unit.
+  // v6.5.84: ราคาขายกำหนด — minimum sell price per รูปแบบขาย unit.
   // If empty/0 → any price OK. If set → every matching line's price (converted to target unit) must be ≥ floor.
   const priceFloorRaw = String(promo['ราคาขายกำหนด']||'').trim();
   const priceFloor = priceFloorRaw === '' ? 0 : (parseFloat(priceFloorRaw) || 0);
@@ -5785,7 +5815,7 @@ function getApplicablePromosForProduct(p, draftItem) {
   return { matched, nextTier };
 }
 
-// v6.5.83: Returns true if product is in Focus Rules sheet OR Group Targets (legacy auto-focus).
+// v6.5.84: Returns true if product is in Focus Rules sheet OR Group Targets (legacy auto-focus).
 // = "สินค้าโฟกัส"
 //   Focus Rules (new): admin-defined rules { MeasureBy, MeasureValue, Warehouses, Period }
 //   Group Targets (legacy): auto-focus from categories user has KPI on this month
@@ -5796,7 +5826,7 @@ function isFocusProduct(p) {
   const now = new Date();
   const period = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
 
-  // ───── 1. Focus Rules sheet (NEW v6.5.83) ─────
+  // ───── 1. Focus Rules sheet (NEW v6.5.84) ─────
   const rules = SHEET_DATA.focusRules || [];
   for (const r of rules) {
     const measureBy  = String(r['MeasureBy']||'').trim();
@@ -6627,7 +6657,7 @@ function goRoute() {
   const currentActive = document.querySelector('.screen.active');
   const currentId = currentActive ? currentActive.id : '';
 
-  // v6.5.83: only short-circuit when actually in a shop-bound sales flow.
+  // v6.5.84: only short-circuit when actually in a shop-bound sales flow.
   // Browse mode (screenOrder with no currentShopId) must still navigate to route screen.
   if (salesScreens.includes(currentId) && currentShopId) return;
 
@@ -6647,7 +6677,7 @@ function goRoute() {
     }
   }
 
-  // v6.5.83: navigate FIRST so a downstream render error never blocks the screen change
+  // v6.5.84: navigate FIRST so a downstream render error never blocks the screen change
   showScreen('screenRoute');
   try { renderShopList(); } catch (e) { console.warn('[goRoute] renderShopList failed:', e); }
   try { updateCartBar(); } catch (e) {}
@@ -7892,7 +7922,7 @@ function setRouteView(view) {
   document.getElementById('routeListView').style.display = view === 'list' ? '' : 'none';
   document.getElementById('routeMapView').style.display = view === 'map' ? '' : 'none';
   if (view === 'map') {
-    // v6.5.83: wait for layout reflow, then init + force invalidateSize repeatedly
+    // v6.5.84: wait for layout reflow, then init + force invalidateSize repeatedly
     requestAnimationFrame(() => {
       setTimeout(() => {
         initMap();
@@ -7905,7 +7935,7 @@ function setRouteView(view) {
   }
 }
 
-// v6.5.83: map filter helpers
+// v6.5.84: map filter helpers
 const _MAP_LIMIT = 100;
 let _mapProvincesPopulated = false;
 
@@ -8002,7 +8032,7 @@ function initMap() {
   if (!mapEl) return;
 
   if (!routeMap) {
-    // v6.5.83: OSM primary (more reliable than CARTO subdomain), remove noWrap (was blocking tile loads)
+    // v6.5.84: OSM primary (more reliable than CARTO subdomain), remove noWrap (was blocking tile loads)
     routeMap = L.map('routeMapEl', {
       zoomControl: true, preferCanvas: false,
       minZoom: 5,
@@ -8016,7 +8046,7 @@ function initMap() {
     tile.addTo(routeMap);
   }
 
-  // v6.5.83: invalidateSize FIRST (fix 0-width when shown), then setView
+  // v6.5.84: invalidateSize FIRST (fix 0-width when shown), then setView
   routeMap.invalidateSize();
   routeMap.setView([13.6, 99.95], 10);
   [50, 200, 500, 1000].forEach(t => setTimeout(() => {
@@ -8035,10 +8065,10 @@ function initMap() {
     return true;
   });
 
-  // v6.5.83: populate province dropdown (one-time per render) — extract from shop addresses
+  // v6.5.84: populate province dropdown (one-time per render) — extract from shop addresses
   _populateMapProvinces(validShops);
 
-  // v6.5.83: apply filters (search + province + status), then cap at 100 nearest to user
+  // v6.5.84: apply filters (search + province + status), then cap at 100 nearest to user
   validShops = _applyMapFilters(validShops);
   _updateMapCountPill(validShops.length, SHOPS.length);
   validShops.forEach((shop, idx) => {
@@ -8079,7 +8109,7 @@ function initMap() {
     mapMyMarker.bindPopup(`<b>📍 ตำแหน่งฉัน</b><br><small>${SALESMAN.gpsEnabled?'GPS จริง':'จุดจำลอง'}</small>`);
   }
 
-  // v6.5.83: fit bounds (defensive — never zoom out to world)
+  // v6.5.84: fit bounds (defensive — never zoom out to world)
   console.log('[initMap] SHOPS:', SHOPS.length, '| validShops (lat/lng OK):', validShops.length, '| salesmanGPS:', !!SALESMAN.currentLat);
   const allPoints = validShops.map(s => [s.lat, s.lng]);
   if (SALESMAN.currentLat) allPoints.push([SALESMAN.currentLat, SALESMAN.currentLng]);
@@ -8155,11 +8185,11 @@ function _populatePlanDropdowns() {
   const inRoute = _pendingRouteShops();
   const opts = inRoute.map(s => `<option value="${escapeAttr(s.id)}">${escapeHtml(s.name)}</option>`).join('');
   startSel.innerHTML = `<option value="gps">📍 ตำแหน่งฉัน (GPS)</option>${opts}`;
-  // v6.5.83: also render shop checklist
+  // v6.5.84: also render shop checklist
   _renderPlanChecklist();
 }
 
-// v6.5.83: build checkable shop list — all pending route shops (default: all checked)
+// v6.5.84: build checkable shop list — all pending route shops (default: all checked)
 let _planCheckedShopIds = null;   // Set of shop IDs to include; null = "all"
 function _renderPlanChecklist() {
   const el = document.getElementById('planChecklist');
@@ -8345,8 +8375,8 @@ async function runRoutePlanner(quality) {
   const gen = ++_planGen;
   const closedTour = !!document.getElementById('planClosedTour')?.checked;
   const startMode = document.getElementById('planStart')?.value || 'gps';
-  const endMode   = 'auto';  // v6.5.83: removed end-dropdown — TSP picks final stop
-  // v6.5.83: use checked shops from checklist instead of all pending
+  const endMode   = 'auto';  // v6.5.84: removed end-dropdown — TSP picks final stop
+  // v6.5.84: use checked shops from checklist instead of all pending
   let inRoute;
   if (_planCheckedShopIds && _planCheckedShopIds.size > 0) {
     inRoute = SHOPS.filter(s => {
@@ -8399,7 +8429,7 @@ async function runRoutePlanner(quality) {
   const totalDistance = _routeDistance(order, dm);
   const method = closedTour ? 'ละเอียด · วงรอบ' : 'ละเอียด';
   _planResult = { order, points, totalDistance, method, closedTour };
-  _gmapsChunkOffset = 0;  // v6.5.83: reset chunk pagination on new calc
+  _gmapsChunkOffset = 0;  // v6.5.84: reset chunk pagination on new calc
   _renderPlanResult();
   _drawRouteOnMap();
 
@@ -8491,14 +8521,14 @@ function applyPlannedRoute() {
   showToast('✓ ใช้รูทใหม่แล้ว — กำลังโชว์บนแผนที่', 'success');
   closeRoutePlanner();
   renderShopList();
-  // v6.5.83: auto-switch to MAP view + draw polyline so user sees the optimized route visually
+  // v6.5.84: auto-switch to MAP view + draw polyline so user sees the optimized route visually
   if (typeof setRouteView === 'function') {
     setRouteView('map');
     // After map renders + invalidates, draw the polyline
     setTimeout(() => { try { _drawRouteOnMap(); } catch (e) {} }, 800);
   }
   return;
-  // v6.5.83: if map view is active, re-render markers + redraw polyline (force visible)
+  // v6.5.84: if map view is active, re-render markers + redraw polyline (force visible)
   try {
     const mapView = document.getElementById('routeMapView');
     if (mapView && mapView.style.display !== 'none' && typeof initMap === 'function') {
@@ -8519,7 +8549,7 @@ function replanFromMe() {
 }
 window.replanFromMe = replanFromMe;
 
-// v6.5.83: chunk Google Maps export by 10 — each click opens next leg
+// v6.5.84: chunk Google Maps export by 10 — each click opens next leg
 let _gmapsChunkOffset = 0;
 function exportPlanToGoogleMaps() {
   if (!_planResult) { showToast('ยังไม่มีรูท — กดคำนวณก่อน', 'warning'); return; }
@@ -8553,7 +8583,7 @@ function exportPlanToGoogleMaps() {
 }
 window.exportPlanToGoogleMaps = exportPlanToGoogleMaps;
 
-// v6.5.83: save calculated route to localStorage for offline reference
+// v6.5.84: save calculated route to localStorage for offline reference
 function saveRouteToDevice() {
   if (!_planResult) { showToast('ยังไม่มีรูท — กดคำนวณก่อน', 'warning'); return; }
   const { order, points, totalDistance, method, closedTour } = _planResult;
@@ -10250,11 +10280,13 @@ function buildDepotChipsCompact(p) {
   const totalEa = depots.reduce((s, d) => s + d.stockEa, 0);
   const totalCs = csSize > 1 ? Math.floor(totalEa / csSize) : totalEa;
 
+  // v6.5.84: track if any depot is critically low (red) → show global request button
+  let anyRed = false;
   const chips = depots.map(d => {
     let lvl, heightPct, overstockBadge = '';
     if (d.stockEa <= 0) { lvl = 'out'; heightPct = 0; }
-    else if (d.days === null) { lvl = 'unknown'; heightPct = 60; } // v6.4: gray (not misleading green) when avg data missing
-    else if (d.days <= 3) { lvl = 'red';   heightPct = Math.max(8, (d.days/30)*100); }
+    else if (d.days === null) { lvl = 'unknown'; heightPct = 60; }
+    else if (d.days <= 3) { lvl = 'red';   heightPct = Math.max(8, (d.days/30)*100); anyRed = true; }
     else if (d.days <= 10){ lvl = 'amber'; heightPct = Math.max(8, (d.days/30)*100); }
     else if (d.days <= 30){ lvl = 'green'; heightPct = (d.days/30)*100; }
     else { lvl = 'over'; heightPct = 100; overstockBadge = '<div class="oc-depot-overstock">↑</div>'; }
@@ -10265,10 +10297,16 @@ function buildDepotChipsCompact(p) {
     const tip = `${d.id} • ${d.parsed.raw || '0'} CS.EA` +
       (d.days !== null ? ` • ${Math.round(d.days)}d of stock (avg ${Math.round(d.avgDailyEa)} EA/วัน)` : '');
 
+    // v6.5.84 PREVIEW: small "ขอด่วน" badge on RED chips (option A)
+    const urgentBtn = (lvl === 'red')
+      ? `<button class="oc-depot-urgent" onclick="event.stopPropagation();alert('🛒 ขอจัดซื้อด่วน คลัง ${d.id}\\nสินค้า: ${(p['PRODUCT NAME']||'').replace(/'/g,'')}\\n(ยังไม่ได้ wire ขึ้น Sheet — รอ confirm UX)')" title="ขอจัดซื้อด่วน">🛒</button>`
+      : '';
+
     return `<div class="oc-depot ${mineCls}" title="${tip}">
       <div class="oc-depot-bar-track">
         ${overstockBadge}
         <div class="oc-depot-bar-fill lvl-${lvl}" style="height:${heightPct.toFixed(1)}%"></div>
+        ${urgentBtn}
       </div>
       <div class="oc-depot-meta">
         <div class="oc-depot-label">${d.id}</div>
@@ -10280,9 +10318,15 @@ function buildDepotChipsCompact(p) {
     </div>`;
   }).join('');
 
+  // v6.5.84 PREVIEW: global request button on header (option B) — appears when any depot is red
+  const globalUrgentBtn = anyRed
+    ? `<button class="oc-stock-urgent-btn" onclick="alert('📦 ขอจัดซื้อด่วน\\nสินค้า: ${(p['PRODUCT NAME']||'').replace(/'/g,'')}\\n(ยังไม่ได้ wire ขึ้น Sheet — รอ confirm UX)')">🛒 ขอจัดซื้อด่วน</button>`
+    : '';
+
   return `
     <div class="oc-stock-header">
       <span>📦 สต็อกในคลัง</span>
+      ${globalUrgentBtn}
       <span class="oc-stock-total">รวม ${totalCs.toLocaleString()} CS</span>
     </div>
     <div class="oc-depot-row">${chips}</div>
@@ -10311,7 +10355,7 @@ function _buildPromoBarsHtml(p, productId, safeId, unit, qty) {
     productId, unit, qty, price: 0, shopId: currentShopId, isDraft: true,
   } : null;
 
-  // v6.5.83: browse mode = info only. No auto-pick, no "selected", no picker button.
+  // v6.5.84: browse mode = info only. No auto-pick, no "selected", no picker button.
   if (browseMode) {
     return allPromos.map((promo, idx) =>
       _buildOnePromoBar(promo, p, productId, safeId, idx, false, null, unit, false, true)
@@ -10383,12 +10427,12 @@ function _buildOnePromoBar(promo, p, productId, safeId, idx, isSelected, draftLi
   }
 
   // v6.5.57: read-only badge (auto-picked by qty, no manual selection needed)
-  // v6.5.83: hide picker entirely in browse mode (info-only)
+  // v6.5.84: hide picker entirely in browse mode (info-only)
   const pickerHtml = (!browseMode && isSelected)
     ? `<button class="oc-promo-pick on" disabled title="โปรนี้ใช้งานตามจำนวน">✓ ใช้โปรนี้</button>`
     : '';
 
-  // v6.5.83: browse mode → always render simple info bar (no progress, no selected color)
+  // v6.5.84: browse mode → always render simple info bar (no progress, no selected color)
   if (browseMode) {
     return `
       <div class="oc-promo-bar" data-promo-idx="${idx}">
@@ -10430,7 +10474,7 @@ function _buildOnePromoBar(promo, p, productId, safeId, idx, isSelected, draftLi
     console.warn('[promo] cartMatchesPromo failed', promoName, e);
   }
 
-  // v6.5.83: ราคาขายกำหนด violated — show red warning bar, promo disqualified
+  // v6.5.84: ราคาขายกำหนด violated — show red warning bar, promo disqualified
   if (result.priceFloorViolated) {
     const floor = result.priceFloor;
     return `
@@ -10566,7 +10610,7 @@ function buildOrderCardV6(p, idx) {
   const _eaPA = numv(p['QTY PA']) || 0;
   const _eaBP = numv(p['QTY BP']) || 0;
   const _eaCS = numv(p['QTY CS']) || 0;
-  // v6.5.83: inline style on active chip — guaranteed bypass of any CSS cascade issue
+  // v6.5.84: inline style on active chip — guaranteed bypass of any CSS cascade issue
   const _activeStyle = 'background:#08142e !important;color:#fff !important;border-color:#d4a843 !important;box-shadow:0 2px 8px rgba(8,20,46,.4), inset 0 0 0 1.5px #d4a843 !important;';
   const _multActiveStyle = 'color:#d4a843 !important;opacity:1 !important;';
   const _chipHtml = (unitKey, label, mult) => {
@@ -10586,7 +10630,7 @@ function buildOrderCardV6(p, idx) {
   // Tap → switches to CS unit + sets qty=pallet + price=S01.
   const palletCs = numv(p['CS PALLET']);
   const _browseModeForPallet = !currentShopId;
-  // v6.5.83: pallet "active" = user already tapped it (CS unit + qty === palletCs)
+  // v6.5.84: pallet "active" = user already tapped it (CS unit + qty === palletCs)
   const _palletActive = !_browseModeForPallet && state.unit === 'case' && parseInt(state.qty) === palletCs;
   const _palletActiveStyle = _palletActive
     ? ` style="background:#08142e !important;color:#fff !important;border-color:#d4a843 !important;box-shadow:0 2px 8px rgba(8,20,46,.4), inset 0 0 0 1.5px #d4a843 !important;"`
@@ -10628,7 +10672,7 @@ function buildOrderCardV6(p, idx) {
   const role = Number((currentUser && currentUser.role) || 0);
   const prU = productPrices(p, unitCode);
   const showLadder = true;
-  const _browseModeForLadder = !currentShopId;  // v6.5.83: browse mode → info only, no selected/active tier
+  const _browseModeForLadder = !currentShopId;  // v6.5.84: browse mode → info only, no selected/active tier
   const ladderTiers = (unitCode === 'CS') ? tiers : [
     { key: 'S03', price: prU.S03, range: '' },
     { key: 'S02', price: prU.S02, range: '' },
@@ -10638,7 +10682,7 @@ function buildOrderCardV6(p, idx) {
   const tierLadder = showLadder ? `
     <div class="oc-tier-ladder">
       ${ladderTiers.map(t => {
-        // v6.5.83: in browse mode, never mark a tier as active (no shop = no selection)
+        // v6.5.84: in browse mode, never mark a tier as active (no shop = no selection)
         const isActive = !_browseModeForLadder && t.active;
         const cls = [isActive ? 'active' : '', t.disabled ? 'disabled' : ''].filter(Boolean).join(' ');
         const onClick = (!_browseModeForLadder && unitCode === 'CS' && !t.disabled) ? `onclick="orderTierSelect('${safeId}','${t.key}')"` : '';
@@ -10797,7 +10841,7 @@ window.orderUnitChange = function(safeId, unit) {
   if (!window._orderDraft[pid]) window._orderDraft[pid] = { unit, qty: 0, price: '' };
   const prevUnit = window._orderDraft[pid].unit;
   window._orderDraft[pid].unit = unit;
-  // v6.5.83: switching CS → non-CS resets qty to 0 (CS tier auto-bumps qty to 5/20, irrelevant for PA/BP/EA)
+  // v6.5.84: switching CS → non-CS resets qty to 0 (CS tier auto-bumps qty to 5/20, irrelevant for PA/BP/EA)
   if (prevUnit === 'case' && unit !== 'case' && window._orderDraft[pid].status !== 'confirmed') {
     window._orderDraft[pid].qty = 0;
   }
@@ -10869,7 +10913,7 @@ window.orderPriceChange = function(safeId, value) {
   _updateCardLive(safeId);  // v6.0: refresh button state on price change too
 };
 
-// v6.5.83: −/+ buttons inside price box (step ฿1)
+// v6.5.84: −/+ buttons inside price box (step ฿1)
 window.orderPriceAdj = function(safeId, delta) {
   const el = document.getElementById('orderCard-' + safeId);
   if (!el) return;
@@ -11292,7 +11336,7 @@ function renderProductList(filterText = '') {
     products = products.filter(isFocusProduct);
   } else if (_productActiveFilter.startsWith('bu:')) {
     const bu = _productActiveFilter.slice(3);
-    // v6.5.83: filter all products by CAT BU, but CAP at 200 to prevent browser crash on 20K SKU brands
+    // v6.5.84: filter all products by CAT BU, but CAP at 200 to prevent browser crash on 20K SKU brands
     if (!filterText || !filterText.trim()) products = SHEET_DATA.products || [];
     products = products.filter(p => String(p['CAT BU']||'').trim() === bu);
     if (products.length > 200) products = products.slice(0, 200);
@@ -12576,7 +12620,7 @@ window.applyPromoFromModal = function(safeKey) {
   else if (giftUnitRaw === 'PA' || giftUnitRaw.includes('แพ็ค')) giftUnit = 'pack';
   else if (giftUnitRaw === 'BP') giftUnit = 'bigpack';
 
-  // v6.5.83: prefer Barcode สินค้าแถม from promo sheet (authoritative) — fall back to name match
+  // v6.5.84: prefer Barcode สินค้าแถม from promo sheet (authoritative) — fall back to name match
   const giftBarcode = String(promo['Barcode สินค้าแถม']||promo['บาร์โค้ดแถม']||'').trim();
   let giftP = null;
   if (giftBarcode && SHEET_DATA.products) {
@@ -12602,7 +12646,7 @@ window.applyPromoFromModal = function(safeKey) {
       shopId: currentShopId,
       isFree: true,
       promoKey,
-      giftBarcode,  // v6.5.83: carry promo's barcode for sheet write
+      giftBarcode,  // v6.5.84: carry promo's barcode for sheet write
     });
   } else {
     cart.push({
@@ -12614,7 +12658,7 @@ window.applyPromoFromModal = function(safeKey) {
       isFree: true,
       promoKey,
       giftName: giftName || 'ของแถม',
-      giftBarcode,  // v6.5.83: even without product match, use promo barcode
+      giftBarcode,  // v6.5.84: even without product match, use promo barcode
     });
   }
 
@@ -12979,7 +13023,7 @@ function confirmOrderWithPromos() {
     else if (giftUnitRaw === 'PA' || giftUnitRaw.includes('แพ็ค')) giftUnit = 'pack';
     else if (giftUnitRaw === 'BP') giftUnit = 'bigpack';
 
-    // v6.5.83: prefer Barcode สินค้าแถม from promo sheet (authoritative) — fall back to name match
+    // v6.5.84: prefer Barcode สินค้าแถม from promo sheet (authoritative) — fall back to name match
     const giftBarcode = String(promo['Barcode สินค้าแถม']||promo['บาร์โค้ดแถม']||'').trim();
     let giftP = null;
     if (giftBarcode && SHEET_DATA.products) {
@@ -13156,7 +13200,7 @@ async function pushOrderToSheet(orderId, shop, items, now, notes) {
   const codeMap = { piece: 'CODE EA', pack: 'CODE PA', bigpack: 'CODE BP', case: 'CODE CS' };
 
   // Build all rows first (sync — no awaits)
-  // v6.5.83: build promo lookup — used to resolve รายละเอียดโปร for sale & gift lines
+  // v6.5.84: build promo lookup — used to resolve รายละเอียดโปร for sale & gift lines
   const allPromos = (SHEET_DATA.promotions || []);
   const promoByKey = new Map();
   allPromos.forEach(pr => { const k = promoKeyOf(pr); if (k) promoByKey.set(k, pr); });
@@ -13186,7 +13230,7 @@ async function pushOrderToSheet(orderId, shop, items, now, notes) {
         x['CODE EA'] === c.productId || x['CODE CS'] === c.productId || x['PRODUCT NAME'] === c.productId);
     const productName = p ? (p.name || p['PRODUCT NAME']) : (c.giftName || c.productId);
     const unitLabel   = (p && p.unitLabels && p.unitLabels[c.unit]) || unitMap[c.unit] || c.unit;
-    // v6.5.83: gift lines prefer promo's Barcode สินค้าแถม when present (authoritative for free items)
+    // v6.5.84: gift lines prefer promo's Barcode สินค้าแถม when present (authoritative for free items)
     const promoGiftBc = (c.isFree && c.giftBarcode) ? c.giftBarcode : '';
     const barcode     = promoGiftBc
       || (p && p.barcodes && p.barcodes[c.unit])
@@ -13194,7 +13238,7 @@ async function pushOrderToSheet(orderId, shop, items, now, notes) {
       || (p && p['CODE EA'])
       || (c.productId === '__GIFT__' ? '' : c.productId);
 
-    // v6.5.83: resolve โปรที่ใช้ — for gift lines use stored promoKey; for sale lines lookup by matchValue
+    // v6.5.84: resolve โปรที่ใช้ — for gift lines use stored promoKey; for sale lines lookup by matchValue
     let promoDesc = '';
     if (c.isFree && c.promoKey && promoByKey.has(c.promoKey)) {
       const pr = promoByKey.get(c.promoKey);
@@ -13206,7 +13250,7 @@ async function pushOrderToSheet(orderId, shop, items, now, notes) {
     // Override with explicit user pick if present
     if (!c.isFree && c.selectedPromoName && !promoDesc) promoDesc = c.selectedPromoName;
 
-    // v6.5.83: ส่วนต่างราคา = ราคา - ราคาแนะนำ (gift lines = 0)
+    // v6.5.84: ส่วนต่างราคา = ราคา - ราคาแนะนำ (gift lines = 0)
     const suggested = c.suggestedPrice || c.price || 0;
     const priceDiff = c.isFree ? 0 : ((c.price || 0) - suggested);
 
