@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.25</title>
+<title>Rattana Sales — v6.5.26</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -3023,7 +3023,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.25 · 2026-05-16</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.26 · 2026-05-16</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -3034,7 +3034,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.25</span>
+  <span class="demo-tag">v6.5.26</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -3119,7 +3119,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.25<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.26<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -3550,7 +3550,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 const CONFIG = {
   // Backend Sheet (Customer / Order / Promotion / Data Center / Product Detail / Dashboard Config / Group Targets)
   backendSheetId: '1dAxF4Mz-zhJIVbuJ_Ql126gt08qvVS1wndJD50pqCZI',
-  // v6.5.25: Price Under Revision sheet — overrides Product Detail prices when matched by barcode
+  // v6.5.26: Price Under Revision sheet — overrides Product Detail prices when matched by barcode
   priceOverrideSheetId: '16mYDqAqqJma-_0vCIAajy6bcjdOZ7F6VagxkdkqAB2I',
   priceOverrideTab:    'Sheet1',
   // Debt (SQL Data) Sheet — live AR from Bplus
@@ -3586,7 +3586,7 @@ let SHEET_DATA = {
   users:           [],
   customers:       [],
   products:        [],   // 20K SKUs
-  priceOverrides:  [],   // v6.5.25: rows from "Price Under Revision Sales App" sheet
+  priceOverrides:  [],   // v6.5.26: rows from "Price Under Revision Sales App" sheet
   promotions:      [],
   dataCenter:      {},   // {col_name: [values...]}
   dashboardConfig: [],
@@ -4249,7 +4249,7 @@ async function loadAllSheetData() {
     fetchWithCache('syncStatus',() => fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.syncStatus),    60*1000).then(d => SHEET_DATA.syncStatus = d).catch(e => { console.warn('syncStatus:', e.message); SHEET_DATA.syncStatus = []; }),
     // Load 12K products IN PARALLEL with other tabs — no longer sequential block
     fetchWithCache('products',  () => fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.productDetail), CONFIG.cacheTTLLong).then(d => { SHEET_DATA.products = d; console.log('[Rattana Sales] products loaded:', d.length); }).catch(e => { console.warn('products:', e.message); SHEET_DATA.products = SHEET_DATA.products || []; }),
-    // v6.5.25: Price Under Revision — override layer for selected products
+    // v6.5.26: Price Under Revision — override layer for selected products
     fetchWithCache('priceOverrides', () => fetchSheet(CONFIG.priceOverrideSheetId, CONFIG.priceOverrideTab), CONFIG.cacheTTLShort).then(d => { SHEET_DATA.priceOverrides = d || []; console.log('[Rattana Sales] price overrides loaded:', d.length); }).catch(e => { console.warn('priceOverrides:', e.message); SHEET_DATA.priceOverrides = []; }),
   ];
   // Race against timeout — if any tab is slow, show UI anyway after 20s
@@ -4258,7 +4258,7 @@ async function loadAllSheetData() {
     new Promise(resolve => setTimeout(() => { console.warn('[Rattana Sales] Load timeout 20s — showing UI'); resolve(); }, MAX_WAIT))
   ]);
 
-  // v6.5.25: apply price overrides BEFORE hydrating (so any downstream code sees merged data)
+  // v6.5.26: apply price overrides BEFORE hydrating (so any downstream code sees merged data)
   applyPriceOverrides();
 
   SHEET_DATA.loaded = true;
@@ -4720,7 +4720,7 @@ function productUnits(p) {
   return units;
 }
 
-// v6.5.25: Apply Price Under Revision sheet → overrides Product Detail rows by barcode.
+// v6.5.26: Apply Price Under Revision sheet → overrides Product Detail rows by barcode.
 // Match by CODE EA / CODE PA / CODE BP / CODE CS (any barcode hit = override).
 // Override row REPLACES the original product row entirely (same column structure).
 // Side effect: sets p._priceOverride = true on overridden rows (for UI tagging).
@@ -6808,9 +6808,12 @@ function switchRouteTab(tab) {
 // Search filter state — applied on top of route tab (in/off)
 let _shopSearchQuery = '';
 
+// v6.5.26: debounce search input — typing was triggering re-render of 4500+ cards on each keystroke
+let _shopSearchTimer = null;
 function filterShops(text) {
   _shopSearchQuery = (text || '').trim().toLowerCase();
-  renderShopList();
+  if (_shopSearchTimer) clearTimeout(_shopSearchTimer);
+  _shopSearchTimer = setTimeout(() => renderShopList(), 180);
 }
 window.filterShops = filterShops;
 
@@ -6922,20 +6925,60 @@ function renderShopList() {
     filtered.sort((a, b) => (distanceToShop(a) ?? 999999) - (distanceToShop(b) ?? 999999));
   }
 
-  // Build sections (default sort only — near/filtered show flat)
+  // v6.5.26: incremental rendering — 4578 cards at once kills mobile.
+  // Render first PAGE_SIZE, then load more via IntersectionObserver when scrolled near bottom.
+  const PAGE_SIZE = 30;
+  window._routeRenderState = window._routeRenderState || { rendered: 0, queue: [] };
+
+  // Build flat queue (with section headers inlined as special items)
   const useSections = _routeSort === 'default' && _routeStatusFilter === 'all';
+  const queue = [];
   if (useSections) {
     const secActive  = filtered.filter(s => { const v = visits[s.id]; return v && !v.checkOutTime; });
     const secPending = filtered.filter(s => { const v = visits[s.id]; const ci = v && !v.checkOutTime; const co = v && !!v.checkOutTime; return !ci && !co && s.status !== 'visited' && s.status !== 'refused'; });
     const secDone    = filtered.filter(s => { const v = visits[s.id]; const co = v && !!v.checkOutTime; return s.status === 'visited' || co || s.status === 'refused'; });
-    let html = '';
-    if (secActive.length)  html += `<div class="route-section-hdr">📍 กำลังเยี่ยม (${secActive.length})</div>`  + secActive.map(_buildShopCardHTML).join('');
-    if (secPending.length) html += `<div class="route-section-hdr">⏳ ยังไม่เยี่ยม (${secPending.length})</div>` + secPending.map(_buildShopCardHTML).join('');
-    if (secDone.length)    html += `<div class="route-section-hdr">✓ เสร็จแล้ว (${secDone.length})</div>`       + secDone.map(_buildShopCardHTML).join('');
-    list.innerHTML = html;
+    if (secActive.length)  { queue.push({__hdr:`📍 กำลังเยี่ยม (${secActive.length})`}); secActive.forEach(s => queue.push(s)); }
+    if (secPending.length) { queue.push({__hdr:`⏳ ยังไม่เยี่ยม (${secPending.length})`}); secPending.forEach(s => queue.push(s)); }
+    if (secDone.length)    { queue.push({__hdr:`✓ เสร็จแล้ว (${secDone.length})`}); secDone.forEach(s => queue.push(s)); }
   } else {
-    list.innerHTML = filtered.map(_buildShopCardHTML).join('');
+    filtered.forEach(s => queue.push(s));
   }
+
+  window._routeRenderState = { rendered: 0, queue };
+  list.innerHTML = '';
+  _renderShopChunk(PAGE_SIZE);
+
+  // Setup sentinel + observer (once)
+  if (!window._routeObserver) {
+    window._routeObserver = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) _renderShopChunk(PAGE_SIZE);
+    }, { rootMargin: '400px' });
+  }
+  // Re-attach sentinel
+  let sentinel = document.getElementById('shopListSentinel');
+  if (!sentinel) {
+    sentinel = document.createElement('div');
+    sentinel.id = 'shopListSentinel';
+    sentinel.style.cssText = 'height:1px';
+    list.parentNode.appendChild(sentinel);
+  }
+  window._routeObserver.unobserve(sentinel);
+  window._routeObserver.observe(sentinel);
+}
+
+function _renderShopChunk(size) {
+  const list = document.getElementById('shopList');
+  const state = window._routeRenderState;
+  if (!list || !state) return;
+  const end = Math.min(state.rendered + size, state.queue.length);
+  let html = '';
+  for (let i = state.rendered; i < end; i++) {
+    const item = state.queue[i];
+    if (item.__hdr) html += `<div class="route-section-hdr">${item.__hdr}</div>`;
+    else            html += _buildShopCardHTML(item);
+  }
+  list.insertAdjacentHTML('beforeend', html);
+  state.rendered = end;
 }
 
 function _buildShopCardHTML(s) {
@@ -7880,7 +7923,7 @@ function buildDepotChipsCompact(p) {
     return numv(p[`AVERAGE 30D_${w}`]) || numv(p[`AVERAGE 30D ${w}`]) || numv(p[`AVG 30D ${w}`]);
   };
 
-  // v6.5.25: role gate — role >= 4 sees avg for all WH, role < 4 sees only own WH avg
+  // v6.5.26: role gate — role >= 4 sees avg for all WH, role < 4 sees only own WH avg
   const role = Number((currentUser && currentUser.role) || 0);
   const canSeeAllAvg = role >= 4;
   const depots = WAREHOUSES.map(w => {
@@ -7956,7 +7999,7 @@ function _buildPromoBarsHtml(p, productId, safeId, unit, qty) {
     productId, unit, qty, price: 0, shopId: currentShopId, isDraft: true,
   } : null;
 
-  // v6.5.25: AUTO-PICK highest matching tier (step-promo fix).
+  // v6.5.26: AUTO-PICK highest matching tier (step-promo fix).
   // Old: user had to click "เลือก" first when 2+ promos existed → confusing when qty
   // dropped below the picked tier's threshold (state stuck on Step 2 while qty=10 only
   // qualifies for Step 1). New: every render recomputes, picks highest threshold
@@ -7980,7 +8023,7 @@ function _buildPromoBarsHtml(p, productId, safeId, unit, qty) {
   else delete draft.selectedPromoIdx;
   window._orderDraft[productId] = draft;
 
-  // v6.5.25: no more "isMulti force-pick" mode — always show all tiers' progress as info
+  // v6.5.26: no more "isMulti force-pick" mode — always show all tiers' progress as info
   return allPromos.map((promo, idx) => {
     const isSelected = (selectedIdx === idx);
     return _buildOnePromoBar(promo, p, productId, safeId, idx, isSelected, draftLine, unit, false);
@@ -8020,7 +8063,7 @@ function _buildOnePromoBar(promo, p, productId, safeId, idx, isSelected, draftLi
     `;
   }
 
-  // v6.5.25: read-only badge (auto-picked by qty, no manual selection needed)
+  // v6.5.26: read-only badge (auto-picked by qty, no manual selection needed)
   const pickerHtml = isSelected
     ? `<button class="oc-promo-pick on" disabled title="โปรนี้ใช้งานตามจำนวน">✓ ใช้โปรนี้</button>`
     : '';
@@ -12553,7 +12596,7 @@ async function globalRefresh() {
       SHEET_DATA.priceOverrides = overrideRows;
       cacheSet('priceOverrides', overrideRows);
     }
-    // v6.5.25: re-apply overrides after refetch
+    // v6.5.26: re-apply overrides after refetch
     applyPriceOverrides();
     if (syncRows) {
       SHEET_DATA.syncStatus = syncRows;
