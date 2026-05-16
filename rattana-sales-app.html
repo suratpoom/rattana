@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.57</title>
+<title>Rattana Sales — v6.5.58</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -1549,12 +1549,12 @@ body.dark .oc-promo-pick:hover { background: rgba(255,255,255,.12); }
   margin-bottom: 8px;
 }
 .oc-thumb {
-  width: 72px; height: 72px;
-  border-radius: 10px;
+  width: 92px; height: 92px;
+  border-radius: 12px;
   background: linear-gradient(135deg, var(--row-alt), #e8edf7);
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  font-size: 34px; overflow: hidden;
+  font-size: 42px; overflow: hidden;
   border: 1px solid var(--border);
 }
 .oc-thumb img { width: 100%; height: 100%; object-fit: cover; }
@@ -1582,7 +1582,7 @@ body.dark .oc-promo-pick:hover { background: rgba(255,255,255,.12); }
   flex-shrink: 0;
 }
 .oc-unit-tab {
-  padding: 4px 13px;
+  padding: 5px 13px;
   border-radius: 6px;
   background: var(--row-alt);
   border: 1px solid transparent;
@@ -1590,21 +1590,25 @@ body.dark .oc-promo-pick:hover { background: rgba(255,255,255,.12); }
   color: var(--muted);
   cursor: pointer;
   transition: all .15s;
-  display: inline-flex; align-items: center; gap: 3px;
+  display: inline-flex; align-items: baseline; gap: 3px;
+  min-width: 38px;
+  text-align: center;
+  letter-spacing: .2px;
+  line-height: 1;
 }
 .oc-unit-mult {
   font-size: 9px; font-weight: 600; opacity: .7;
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  line-height: 1;
+  position: relative;
+  top: -1px;
 }
-.oc-unit-tab.active .oc-unit-mult { opacity: .85; }
-  min-width: 38px;
-  text-align: center;
-  letter-spacing: .2px;
-}
+.oc-unit-tab.active .oc-unit-mult { opacity: .9; }
 .oc-unit-tab.active {
   background: var(--navy);
   color: #fff;
   border-color: var(--navy);
+  box-shadow: 0 1px 4px rgba(13,27,62,.25);
 }
 body.dark .oc-unit-tab.active { background: var(--gold); color: var(--navy); border-color: var(--gold); }
 
@@ -2124,7 +2128,8 @@ body.dark .summary-row.total .val { color: var(--gold-light); }
 .chip:active, .chip.selected { background: var(--gold); color: var(--navy); border-color: var(--gold); }
 
 /* ─── BOTTOM NAV ─── */
-.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); border-top: 1px solid var(--border); padding: 8px 8px 12px; display: flex; z-index: 90; box-shadow: 0 -2px 10px rgba(0,0,0,.05); padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); border-top: 1px solid var(--border); padding: 8px 8px 12px; display: flex; z-index: 150; box-shadow: 0 -2px 10px rgba(0,0,0,.05); padding-bottom: max(12px, env(safe-area-inset-bottom)); pointer-events: auto; }
+.bottom-nav .bnav-item { pointer-events: auto; cursor: pointer; }
 .bnav-item { flex: 1; padding: 8px 4px 6px; background: transparent; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 10px; font-weight: 600; border-radius: 12px; transition: background .18s ease, color .18s ease; position: relative; }
 .bnav-item .ico { font-size: 22px; transition: transform .18s ease; }
 .bnav-item.active { color: #fff; background: linear-gradient(180deg, var(--accent) 0%, #1565cc 100%); font-weight: 800; box-shadow: 0 4px 12px rgba(30,127,255,.4); }
@@ -3327,7 +3332,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.57 · 2026-05-16</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.58 · 2026-05-16</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -3338,7 +3343,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.57</span>
+  <span class="demo-tag">v6.5.58</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -3428,7 +3433,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.57<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.58<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -9737,12 +9742,20 @@ function _buildPromoBarsHtml(p, productId, safeId, unit, qty) {
   const allPromos = getAllPromotionsFor(p);
   if (!allPromos.length) return '';
 
+  const browseMode = !currentShopId;
   const draft = window._orderDraft[productId] || {};
 
   // Build cart line snapshot for cartMatchesPromo (includes current draft qty as "preview")
-  const draftLine = qty > 0 ? {
+  const draftLine = (qty > 0 && !browseMode) ? {
     productId, unit, qty, price: 0, shopId: currentShopId, isDraft: true,
   } : null;
+
+  // v6.5.58: browse mode = info only. No auto-pick, no "selected", no picker button.
+  if (browseMode) {
+    return allPromos.map((promo, idx) =>
+      _buildOnePromoBar(promo, p, productId, safeId, idx, false, null, unit, false, true)
+    ).join('');
+  }
 
   // v6.5.57: AUTO-PICK highest matching tier (step-promo fix).
   // Old: user had to click "เลือก" first when 2+ promos existed → confusing when qty
@@ -9779,7 +9792,7 @@ window._buildPromoBarsHtml = _buildPromoBarsHtml;
 // Single promo bar — shown stacked when SKU has multiple promos
 // v6.5.4: isMulti=true means SKU has 2+ promos → unselected bars don't show progress
 // (per user spec: "ต้องรอ user พิจารณา / กดเลือก promo ก่อน ถึงจะปลดล็อก")
-function _buildOnePromoBar(promo, p, productId, safeId, idx, isSelected, draftLine, unit, isMulti) {
+function _buildOnePromoBar(promo, p, productId, safeId, idx, isSelected, draftLine, unit, isMulti, browseMode) {
   const promoName = String(promo['ชื่อโปร'] || 'โปรโมชั่น').trim();
   const measureBy = String(promo['วิธีวัด'] || '').trim();
   const threshold = numv(promo['จำนวน']) || 1;
@@ -9809,9 +9822,24 @@ function _buildOnePromoBar(promo, p, productId, safeId, idx, isSelected, draftLi
   }
 
   // v6.5.57: read-only badge (auto-picked by qty, no manual selection needed)
-  const pickerHtml = isSelected
+  // v6.5.58: hide picker entirely in browse mode (info-only)
+  const pickerHtml = (!browseMode && isSelected)
     ? `<button class="oc-promo-pick on" disabled title="โปรนี้ใช้งานตามจำนวน">✓ ใช้โปรนี้</button>`
     : '';
+
+  // v6.5.58: browse mode → always render simple info bar (no progress, no selected color)
+  if (browseMode) {
+    return `
+      <div class="oc-promo-bar" data-promo-idx="${idx}">
+        <div class="oc-promo-bar-emoji">🎁</div>
+        <div class="oc-promo-bar-text">
+          <span class="name">${escapeHtml(promoName)}</span>
+          ซื้อ <b>${threshold} ${escapeHtml(sellMode || 'หน่วย')}</b> → <span class="gift">${rewardText}</span>
+          <span class="meta-tag">${escapeHtml(measureBy)}</span>
+        </div>
+      </div>
+    `;
+  }
 
   // v6.5.4: when SKU has multiple promos AND this one is not selected → static info only.
   // Don't run cartMatchesPromo (would give wrong/misleading numbers before user commits to a promo).
