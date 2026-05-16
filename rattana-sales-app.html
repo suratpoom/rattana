@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.27</title>
+<title>Rattana Sales — v6.5.28</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -1711,6 +1711,32 @@ body.dark .oc-depot-bar-track { background: rgba(255,255,255,.1); }
 }
 .oc-depot.mine .oc-depot-avg { color: #1F9D6B; opacity: .85; }
 
+/* v6.5.28: PA group progress (combine PA across same CAT SIZE → unlock S02) */
+.oc-pa-group {
+  background: rgba(31,157,107,.06);
+  border: 1px solid rgba(31,157,107,.18);
+  border-radius: 8px;
+  padding: 6px 8px;
+  margin: 4px 0 6px;
+  font-size: 11px;
+}
+.oc-pa-group.unlocked {
+  background: rgba(31,157,107,.14);
+  border-color: rgba(31,157,107,.4);
+}
+.oc-pa-head { display: flex; align-items: center; gap: 6px; line-height: 1.3; }
+.oc-pa-emoji { font-size: 13px; }
+.oc-pa-text { flex: 1; color: var(--text); font-weight: 500; }
+.oc-pa-text b { color: #1F9D6B; font-weight: 700; }
+.oc-pa-bar {
+  height: 4px; margin-top: 4px;
+  background: rgba(0,0,0,.06); border-radius: 2px; overflow: hidden;
+}
+.oc-pa-bar-fill {
+  height: 100%; background: #1F9D6B;
+  border-radius: 2px; transition: width .3s ease;
+}
+
 /* Action row — qty stepper + price input + tier badge
    v6.2: true 50/50 split using minmax(0,1fr) + min-width:0 on items.
    Without minmax(0,1fr), price box wins because its min-content is wider
@@ -3023,7 +3049,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.27 · 2026-05-16</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.28 · 2026-05-16</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -3034,7 +3060,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.27</span>
+  <span class="demo-tag">v6.5.28</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -3119,7 +3145,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.27<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.28<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -3550,7 +3576,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 const CONFIG = {
   // Backend Sheet (Customer / Order / Promotion / Data Center / Product Detail / Dashboard Config / Group Targets)
   backendSheetId: '1dAxF4Mz-zhJIVbuJ_Ql126gt08qvVS1wndJD50pqCZI',
-  // v6.5.27: Price Under Revision sheet — overrides Product Detail prices when matched by barcode
+  // v6.5.28: Price Under Revision sheet — overrides Product Detail prices when matched by barcode
   priceOverrideSheetId: '16mYDqAqqJma-_0vCIAajy6bcjdOZ7F6VagxkdkqAB2I',
   priceOverrideTab:    'Sheet1',
   // Debt (SQL Data) Sheet — live AR from Bplus
@@ -3586,7 +3612,7 @@ let SHEET_DATA = {
   users:           [],
   customers:       [],
   products:        [],   // 20K SKUs
-  priceOverrides:  [],   // v6.5.27: rows from "Price Under Revision Sales App" sheet
+  priceOverrides:  [],   // v6.5.28: rows from "Price Under Revision Sales App" sheet
   promotions:      [],
   dataCenter:      {},   // {col_name: [values...]}
   dashboardConfig: [],
@@ -4249,7 +4275,7 @@ async function loadAllSheetData() {
     fetchWithCache('syncStatus',() => fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.syncStatus),    60*1000).then(d => SHEET_DATA.syncStatus = d).catch(e => { console.warn('syncStatus:', e.message); SHEET_DATA.syncStatus = []; }),
     // Load 12K products IN PARALLEL with other tabs — no longer sequential block
     fetchWithCache('products',  () => fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.productDetail), CONFIG.cacheTTLLong).then(d => { SHEET_DATA.products = d; console.log('[Rattana Sales] products loaded:', d.length); }).catch(e => { console.warn('products:', e.message); SHEET_DATA.products = SHEET_DATA.products || []; }),
-    // v6.5.27: Price Under Revision — override layer for selected products
+    // v6.5.28: Price Under Revision — override layer for selected products
     fetchWithCache('priceOverrides', () => fetchSheet(CONFIG.priceOverrideSheetId, CONFIG.priceOverrideTab), CONFIG.cacheTTLShort).then(d => { SHEET_DATA.priceOverrides = d || []; console.log('[Rattana Sales] price overrides loaded:', d.length); }).catch(e => { console.warn('priceOverrides:', e.message); SHEET_DATA.priceOverrides = []; }),
   ];
   // Race against timeout — if any tab is slow, show UI anyway after 20s
@@ -4258,7 +4284,7 @@ async function loadAllSheetData() {
     new Promise(resolve => setTimeout(() => { console.warn('[Rattana Sales] Load timeout 20s — showing UI'); resolve(); }, MAX_WAIT))
   ]);
 
-  // v6.5.27: apply price overrides BEFORE hydrating (so any downstream code sees merged data)
+  // v6.5.28: apply price overrides BEFORE hydrating (so any downstream code sees merged data)
   applyPriceOverrides();
 
   SHEET_DATA.loaded = true;
@@ -4720,7 +4746,7 @@ function productUnits(p) {
   return units;
 }
 
-// v6.5.27: Apply Price Under Revision sheet → overrides Product Detail rows by barcode.
+// v6.5.28: Apply Price Under Revision sheet → overrides Product Detail rows by barcode.
 // Match by CODE EA / CODE PA / CODE BP / CODE CS (any barcode hit = override).
 // Override row REPLACES the original product row entirely (same column structure).
 // Side effect: sets p._priceOverride = true on overridden rows (for UI tagging).
@@ -5902,7 +5928,7 @@ function getMyGPS() {
 }
 
 // Get distance from salesman current location to a shop
-// v6.5.27: cache distance per (lat,lng,gps-stamp) to avoid recomputing haversine 4500x per render
+// v6.5.28: cache distance per (lat,lng,gps-stamp) to avoid recomputing haversine 4500x per render
 let _distCache = new WeakMap();
 let _distCacheKey = '';
 function distanceToShop(shop) {
@@ -6816,7 +6842,7 @@ function switchRouteTab(tab) {
 // Search filter state — applied on top of route tab (in/off)
 let _shopSearchQuery = '';
 
-// v6.5.27: debounce search input — typing was triggering re-render of 4500+ cards on each keystroke
+// v6.5.28: debounce search input — typing was triggering re-render of 4500+ cards on each keystroke
 let _shopSearchTimer = null;
 function filterShops(text) {
   _shopSearchQuery = (text || '').trim().toLowerCase();
@@ -6933,7 +6959,7 @@ function renderShopList() {
     filtered.sort((a, b) => (distanceToShop(a) ?? 999999) - (distanceToShop(b) ?? 999999));
   }
 
-  // v6.5.27: incremental rendering — 4578 cards at once kills mobile.
+  // v6.5.28: incremental rendering — 4578 cards at once kills mobile.
   // Render first PAGE_SIZE, then load more via IntersectionObserver when scrolled near bottom.
   const PAGE_SIZE = 30;
   window._routeRenderState = window._routeRenderState || { rendered: 0, queue: [] };
@@ -6998,7 +7024,7 @@ function _buildShopCardHTML(s) {
 
   const cardStateCls = done ? 'shc-done' : noBuy ? 'shc-no-buy' : checkedIn ? 'shc-active' : '';
 
-  // Banner photo — v6.5.27: smaller thumbnail (200 vs 400) + async decode for less main-thread lag
+  // Banner photo — v6.5.28: smaller thumbnail (200 vs 400) + async decode for less main-thread lag
   const photoUrl = s.photo || s._raw?.['รูป'] || '';
   const bannerImg = photoUrl
     ? `<img src="${thumbnailUrl(photoUrl, 200)}" loading="lazy" decoding="async" onload="this.classList.add('loaded')" onerror="this.style.display='none'">`
@@ -7045,7 +7071,7 @@ function _buildShopCardHTML(s) {
     ciBtn = `<button class="shc-btn ci" onclick="event.stopPropagation();handleShopCheckIn('${s.id}')">⭐ เช็คอิน</button>`;
   }
 
-  // v6.5.27: ไม่ซื้อ + ใบลดหนี้ no longer require check-in (per Surat 2026-05-16)
+  // v6.5.28: ไม่ซื้อ + ใบลดหนี้ no longer require check-in (per Surat 2026-05-16)
   // Only 🛒 สั่งซื้อ still requires check-in (because cart needs an open visit to attach to)
   const orderLabel = s.visitedAmount > 0 ? 'สั่งเพิ่ม' : 'สั่งซื้อ';
   const canOrder = checkedIn || done;
@@ -7415,7 +7441,7 @@ function renderShopDetail(shopId) {
 function doCheckIn(shopId) {
   const s = SHOPS.find(x => x.id === shopId);
   if (!s) return;
-  // v6.5.27: enforce single active check-in — must check out previous shop first
+  // v6.5.28: enforce single active check-in — must check out previous shop first
   const activeId = Object.keys(visits).find(sid => visits[sid] && !visits[sid].checkOutTime);
   if (activeId && activeId !== shopId) {
     _showActiveCheckinModal(activeId, shopId);
@@ -7489,7 +7515,7 @@ window._confirmOutOfRange = function(shopId, distance, reason) {
   _executeCheckIn(shopId, distance, false, reason);
 };
 
-// v6.5.27: blocking modal when user tries to check in while another shop is still active
+// v6.5.28: blocking modal when user tries to check in while another shop is still active
 function _showActiveCheckinModal(activeId, nextId) {
   const active = SHOPS.find(s => s.id === activeId);
   const next   = SHOPS.find(s => s.id === nextId);
@@ -7521,7 +7547,7 @@ window._closeAsNoSaleAndCheckin = function(activeId, nextId) {
   setTimeout(() => doCheckIn(nextId), 250);
 };
 
-// v6.5.27: "ไม่ซื้อ" / "ร้านปิด" without prior check-in — auto check-in + immediate close
+// v6.5.28: "ไม่ซื้อ" / "ร้านปิด" without prior check-in — auto check-in + immediate close
 function quickNoSale(shopId, reason) {
   const v = visits[shopId];
   if (v && !v.checkOutTime) {
@@ -7925,14 +7951,87 @@ function _initOrderCardState(p) {
 //   ≥20 + AllowBelowSuggest=true  → S01
 // v6.2: If pickedTier given AND valid for current qty → use it instead of auto-suggest
 //        Click-to-select wins over auto, but qty changes that invalidate a pick fall back to auto.
-function getOrderTiers(p, unitCode, qty, pickedTier) {
+// ────────────────────────────────────────────────────────────────
+// v6.5.28: PA Group → S02 (combine across SKUs sharing CAT SIZE)
+// Rule:
+//   - When ordering in PA, sum (qty_PA / QTY_CS) across all PA-only cart items
+//     in same shop with same CAT SIZE.
+//   - If group total ≥ 1.0 CS-equivalent → ALL PA items in group get S02 price.
+//   - If group drops below 1.0 → revert to S03 (auto-managed prices only).
+//   - EA / BP / CS NOT counted in CS_eq.
+// ────────────────────────────────────────────────────────────────
+function getCatSize(p) {
+  const v = p && (p['CAT SIZE'] || p['CAT_SIZE']);
+  return v ? String(v).trim() : '';
+}
+window.getCatSize = getCatSize;
+
+// Sum CS_eq from PA-only cart items in `shopId` matching `catSize`.
+// Optional `extraDraft`: {productId, qtyPA, qtyCS} to include a not-yet-confirmed PA draft.
+// Optional `excludePid`: skip a productId (used when comparing against draft).
+function _paGroupCsEq(catSize, shopId, extraDraft, excludePid) {
+  if (!catSize) return 0;
+  let sum = 0;
+  const products = window._lastOrderProducts || SHEET_DATA.products || [];
+  cart.forEach(c => {
+    if (c.shopId !== shopId) return;
+    if (c.unit !== 'pack') return;            // PA only
+    if (c.isFree) return;                     // skip gift rows
+    if (excludePid && c.productId === excludePid) return;
+    const cp = products.find(x => (x['CODE EA']||x['CODE CS']||x['PRODUCT NAME']) === c.productId);
+    if (!cp) return;
+    if (getCatSize(cp) !== catSize) return;
+    const qtyCs = numv(cp['QTY CS']) || 0;
+    if (qtyCs <= 0) return;
+    sum += (c.qty || 0) / qtyCs;
+  });
+  if (extraDraft && extraDraft.qtyPA > 0 && extraDraft.qtyCS > 0) {
+    sum += extraDraft.qtyPA / extraDraft.qtyCS;
+  }
+  return sum;
+}
+window._paGroupCsEq = _paGroupCsEq;
+
+// After cart change → re-evaluate every PA item in this CAT SIZE group.
+// Bumps cart line price to S02 if group ≥ 1.0, else back to S03.
+// Skips items where user manually set a custom price (price !== suggestedPrice).
+function _recalcPaGroupPrices(catSize, shopId) {
+  if (!catSize) return;
+  const csEq = _paGroupCsEq(catSize, shopId);
+  const tierKey = csEq >= 1.0 ? 'S02' : 'S03';
+  const products = window._lastOrderProducts || SHEET_DATA.products || [];
+  let changed = false;
+  cart.forEach(c => {
+    if (c.shopId !== shopId || c.unit !== 'pack' || c.isFree) return;
+    const cp = products.find(x => (x['CODE EA']||x['CODE CS']||x['PRODUCT NAME']) === c.productId);
+    if (!cp || getCatSize(cp) !== catSize) return;
+    const pr = productPrices(cp, 'PA');
+    const newPrice = tierKey === 'S02' ? (pr.S02 || pr.S03) : pr.S03;
+    // Only auto-update if previously auto-managed (current price matches its suggestedPrice OR previous tier price)
+    const prevAuto = (c.suggestedPrice && Math.abs(c.price - c.suggestedPrice) < 0.5)
+                   || (c.suggestedTier && (c.price === pr[c.suggestedTier]));
+    if (prevAuto && newPrice > 0 && Math.abs(c.price - newPrice) > 0.5) {
+      c.price = newPrice;
+      c.suggestedPrice = newPrice;
+      c.suggestedTier = tierKey;
+      changed = true;
+    }
+  });
+  return changed;
+}
+window._recalcPaGroupPrices = _recalcPaGroupPrices;
+
+function getOrderTiers(p, unitCode, qty, pickedTier, paCsEq) {
   const pr = productPrices(p, unitCode);
   const allowBelow = !currentUser || currentUser.allowBelowSuggest !== false;
   const s01plus2 = pr.S01 > 0 ? Math.min(pr.S01 + 2, pr.S02 || (pr.S01 + 2)) : 0;
 
   // Auto-suggest from qty
   let autoKey;
-  if (unitCode !== 'CS') {
+  if (unitCode === 'PA' && paCsEq >= 1.0) {
+    // v6.5.28: PA group hit 1 CS-equivalent → unlock S02 across all PA items in CAT SIZE group
+    autoKey = 'S02';
+  } else if (unitCode !== 'CS') {
     autoKey = 'S03';
   } else if (qty < 5) {
     autoKey = 'S03';
@@ -7995,7 +8094,7 @@ function buildDepotChipsCompact(p) {
     return numv(p[`AVERAGE 30D_${w}`]) || numv(p[`AVERAGE 30D ${w}`]) || numv(p[`AVG 30D ${w}`]);
   };
 
-  // v6.5.27: role gate — role >= 4 sees avg for all WH, role < 4 sees only own WH avg
+  // v6.5.28: role gate — role >= 4 sees avg for all WH, role < 4 sees only own WH avg
   const role = Number((currentUser && currentUser.role) || 0);
   const canSeeAllAvg = role >= 4;
   const depots = WAREHOUSES.map(w => {
@@ -8071,7 +8170,7 @@ function _buildPromoBarsHtml(p, productId, safeId, unit, qty) {
     productId, unit, qty, price: 0, shopId: currentShopId, isDraft: true,
   } : null;
 
-  // v6.5.27: AUTO-PICK highest matching tier (step-promo fix).
+  // v6.5.28: AUTO-PICK highest matching tier (step-promo fix).
   // Old: user had to click "เลือก" first when 2+ promos existed → confusing when qty
   // dropped below the picked tier's threshold (state stuck on Step 2 while qty=10 only
   // qualifies for Step 1). New: every render recomputes, picks highest threshold
@@ -8095,7 +8194,7 @@ function _buildPromoBarsHtml(p, productId, safeId, unit, qty) {
   else delete draft.selectedPromoIdx;
   window._orderDraft[productId] = draft;
 
-  // v6.5.27: no more "isMulti force-pick" mode — always show all tiers' progress as info
+  // v6.5.28: no more "isMulti force-pick" mode — always show all tiers' progress as info
   return allPromos.map((promo, idx) => {
     const isSelected = (selectedIdx === idx);
     return _buildOnePromoBar(promo, p, productId, safeId, idx, isSelected, draftLine, unit, false);
@@ -8135,7 +8234,7 @@ function _buildOnePromoBar(promo, p, productId, safeId, idx, isSelected, draftLi
     `;
   }
 
-  // v6.5.27: read-only badge (auto-picked by qty, no manual selection needed)
+  // v6.5.28: read-only badge (auto-picked by qty, no manual selection needed)
   const pickerHtml = isSelected
     ? `<button class="oc-promo-pick on" disabled title="โปรนี้ใช้งานตามจำนวน">✓ ใช้โปรนี้</button>`
     : '';
@@ -8268,7 +8367,13 @@ function buildOrderCardV6(p, idx) {
   const qtyNum = parseInt(state.qty) || 0;
   // v6.2: respect user's tier pick (click overrides auto-suggest)
   const pickedTier = (window._orderDraft[id] || {}).pickedTier || null;
-  const { tiers, activeKey, autoKey, allowBelow } = getOrderTiers(p, unitCode, qtyNum, pickedTier);
+  // v6.5.28: PA group CS_eq (combines across SKUs sharing CAT SIZE → unlocks S02)
+  const catSize = getCatSize(p);
+  const qtyCsForP = numv(p['QTY CS']) || 0;
+  const paCsEq = (unitCode === 'PA' && catSize && currentShopId)
+    ? _paGroupCsEq(catSize, currentShopId, { qtyPA: qtyNum, qtyCS: qtyCsForP }, id)
+    : 0;
+  const { tiers, activeKey, autoKey, allowBelow } = getOrderTiers(p, unitCode, qtyNum, pickedTier, paCsEq);
   const activeTier = tiers.find(t => t.active) || tiers[0];
 
   // Detect available units
@@ -8411,6 +8516,25 @@ function buildOrderCardV6(p, idx) {
 
       <div class="oc-price-warn" style="display:none"></div>
 
+      ${(unitCode === 'PA' && catSize && qtyCsForP > 0) ? (() => {
+        const csEq = paCsEq;
+        const pct = Math.min(100, Math.round(csEq * 100));
+        const remainingCsEq = Math.max(0, 1 - csEq);
+        const remainingPA = Math.ceil(remainingCsEq * qtyCsForP);
+        const unlocked = csEq >= 1.0;
+        return `<div class="oc-pa-group ${unlocked ? 'unlocked' : ''}">
+          <div class="oc-pa-head">
+            <span class="oc-pa-emoji">${unlocked ? '✅' : '📊'}</span>
+            <span class="oc-pa-text">
+              ${unlocked
+                ? `ปลดล็อก S02 — กลุ่ม "<b>${escapeHtml(catSize)}</b>" รวม ${csEq.toFixed(2)} CS`
+                : `กลุ่ม "<b>${escapeHtml(catSize)}</b>" = ${csEq.toFixed(2)}/1.0 CS · อีก ${remainingPA} PA → ปลดล็อก S02`}
+            </span>
+          </div>
+          <div class="oc-pa-bar"><div class="oc-pa-bar-fill" style="width:${pct}%"></div></div>
+        </div>`;
+      })() : ''}
+
       <div class="oc-sub-row">
         <span>${subLeft}</span>
         <span>${subRight}</span>
@@ -8550,7 +8674,13 @@ window.orderConfirm = function(safeId) {
   // v6.5: capture suggested for supervisor to compare against actual price.
   const unitCode = _unitToCode(d.unit);
   const pr = productPrices(p, unitCode);
-  const { activeKey: suggestedTierKey } = getOrderTiers(p, unitCode, d.qty, d.pickedTier || null);
+  // v6.5.28: factor in PA group when deciding suggested tier
+  const catSize = getCatSize(p);
+  const qtyCsForP = numv(p['QTY CS']) || 0;
+  const paCsEq = (unitCode === 'PA' && catSize && currentShopId)
+    ? _paGroupCsEq(catSize, currentShopId, { qtyPA: d.qty, qtyCS: qtyCsForP }, pid)
+    : 0;
+  const { activeKey: suggestedTierKey } = getOrderTiers(p, unitCode, d.qty, d.pickedTier || null, paCsEq);
   let suggestedPrice;
   if (suggestedTierKey === 'S03')      suggestedPrice = pr.S03;
   else if (suggestedTierKey === 'S02') suggestedPrice = pr.S02;
@@ -8631,20 +8761,36 @@ window.orderConfirm = function(safeId) {
   // Sync draft with confirmed cart state (so subsequent edits know baseline)
   d.price = priceVat;
   window._orderDraft[pid] = d;
+  // v6.5.28: re-evaluate PA group → other PA items in same CAT SIZE may unlock S02
+  if (d.unit === 'pack') {
+    const csz = getCatSize(p);
+    const bumped = _recalcPaGroupPrices(csz, currentShopId);
+    if (bumped) showToast('💰 กลุ่ม "' + csz + '" ครบ 1 CS → ราคา PA = S02', 'success');
+  }
   updateCartBar();
-  _renderOneOrderCard(safeId);
+  // Re-render product list (other PA cards in same group may have price change)
+  if (typeof renderProductList === 'function' && d.unit === 'pack') renderProductList();
+  else _renderOneOrderCard(safeId);
 };
 
 window.orderRemove = function(safeId) {
   const el = document.getElementById('orderCard-' + safeId);
   if (!el) return;
   const pid = el.getAttribute('data-pid');
+  // v6.5.28: capture catSize BEFORE removing so we can recalc the group after
+  const removed = cart.find(c => c.productId === pid && c.shopId === currentShopId);
+  const p = (window._lastOrderProducts || []).find(x => (x['CODE EA']||x['CODE CS']||x['PRODUCT NAME']) === pid);
+  const wasInPaGroup = removed && removed.unit === 'pack' && p;
+  const csz = wasInPaGroup ? getCatSize(p) : '';
   const idx = cart.findIndex(c => c.productId === pid && c.shopId === currentShopId);
   if (idx >= 0) cart.splice(idx, 1);
   // Reset draft
   delete window._orderDraft[pid];
+  // v6.5.28: re-evaluate PA group after removal → may drop back to S03
+  if (wasInPaGroup) _recalcPaGroupPrices(csz, currentShopId);
   updateCartBar();
-  _renderOneOrderCard(safeId);
+  if (wasInPaGroup && typeof renderProductList === 'function') renderProductList();
+  else _renderOneOrderCard(safeId);
   showToast('ลบจากตะกร้าแล้ว', 'info');
 };
 
@@ -8660,8 +8806,15 @@ function _updateCardLive(safeId) {
   if (!d) return;
   const qtyNum = parseInt(d.qty) || 0;
   const unitCode = _unitToCode(d.unit);
+  // v6.5.28: include PA group CS_eq for S02 unlock
+  const pid2 = pid;
+  const catSize = getCatSize(p);
+  const qtyCsForP = numv(p['QTY CS']) || 0;
+  const paCsEq = (unitCode === 'PA' && catSize && currentShopId)
+    ? _paGroupCsEq(catSize, currentShopId, { qtyPA: qtyNum, qtyCS: qtyCsForP }, pid2)
+    : 0;
   // v6.2: respect user's tier pick during live updates (don't auto-flip)
-  const { tiers, activeKey, autoKey } = getOrderTiers(p, unitCode, qtyNum, d.pickedTier || null);
+  const { tiers, activeKey, autoKey } = getOrderTiers(p, unitCode, qtyNum, d.pickedTier || null, paCsEq);
   const activeTier = tiers.find(t => t.active);
   // CSS-safe badge class (S01+2 → S01p2; '+' isn't valid in class names)
   // v6.5.2: activeKey can be null (qty=0 + no pick) → badge neutral, shows autoKey
@@ -11727,7 +11880,7 @@ function confirmNoSale() {
     shop.status = 'refused';
     shop.refuseReason = reason;
   }
-  // v6.5.27: works whether user was checked in or not (auto check-in+out if needed)
+  // v6.5.28: works whether user was checked in or not (auto check-in+out if needed)
   const v = visits[currentShopId];
   if (v && !v.checkOutTime) {
     finishVisit(currentShopId, 'refused', { refusalReason: reason });
@@ -12673,7 +12826,7 @@ async function globalRefresh() {
       SHEET_DATA.priceOverrides = overrideRows;
       cacheSet('priceOverrides', overrideRows);
     }
-    // v6.5.27: re-apply overrides after refetch
+    // v6.5.28: re-apply overrides after refetch
     applyPriceOverrides();
     if (syncRows) {
       SHEET_DATA.syncStatus = syncRows;
