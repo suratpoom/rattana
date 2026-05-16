@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.36</title>
+<title>Rattana Sales — v6.5.37</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -1711,7 +1711,7 @@ body.dark .oc-depot-bar-track { background: rgba(255,255,255,.1); }
 }
 .oc-depot.mine .oc-depot-avg { color: #1F9D6B; opacity: .85; }
 
-/* v6.5.36: PA group progress (combine PA across same CAT SIZE → unlock S02) */
+/* v6.5.37: PA group progress (combine PA across same CAT SIZE → unlock S02) */
 .oc-pa-group {
   background: rgba(31,157,107,.06);
   border: 1px solid rgba(31,157,107,.18);
@@ -2198,7 +2198,7 @@ body.dark .range-confirm { background: #3a2e15; }
   box-shadow: 0 4px 12px rgba(201,168,76,.4);
 }
 
-/* ═══ Route Planner Bottom-Sheet (v6.5.36) ═══ */
+/* ═══ Route Planner Bottom-Sheet (v6.5.37) ═══ */
 .plan-backdrop {
   position: fixed; inset: 0; background: rgba(0,0,0,.5);
   z-index: 998; opacity: 0; pointer-events: none;
@@ -2297,7 +2297,7 @@ body.dark .range-confirm { background: #3a2e15; }
 }
 .plan-polyline { animation: plan-pulse 2s ease-in-out infinite; }
 
-/* ═══ Team Map (v6.5.36 Phase 2) ═══ */
+/* ═══ Team Map (v6.5.37 Phase 2) ═══ */
 .tm-totals {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
   margin-bottom: 12px;
@@ -3284,7 +3284,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.36 · 2026-05-16</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.37 · 2026-05-16</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -3295,7 +3295,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.36</span>
+  <span class="demo-tag">v6.5.37</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -3385,7 +3385,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.36<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.37<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -3466,7 +3466,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
     <button class="btn btn-outline btn-block" style="margin-top:8px" onclick="refreshGPS().then(()=>initMap())">🔄 อัพเดทตำแหน่งฉัน + แผนที่</button>
   </div>
 
-  <!-- ═══════ ROUTE PLANNER BOTTOM-SHEET (v6.5.36 Phase 1) ═══════ -->
+  <!-- ═══════ ROUTE PLANNER BOTTOM-SHEET (v6.5.37 Phase 1) ═══════ -->
   <div id="planSheetBackdrop" class="plan-backdrop" onclick="closeRoutePlanner()"></div>
   <div id="planSheet" class="plan-sheet">
     <div class="plan-handle"></div>
@@ -3518,7 +3518,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
   </div>
 </section>
 
-<!-- ═══════════════════════ TEAM MAP SCREEN (v6.5.36 Phase 2) ═══════════════════════ -->
+<!-- ═══════════════════════ TEAM MAP SCREEN (v6.5.37 Phase 2) ═══════════════════════ -->
 <section class="screen" id="screenTeamMap">
   <div class="page-bar" style="margin:-16px -16px 16px;top:60px">
     <button class="back-btn" onclick="goHome()">←</button>
@@ -3911,7 +3911,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 const CONFIG = {
   // Backend Sheet (Customer / Order / Promotion / Data Center / Product Detail / Dashboard Config / Group Targets)
   backendSheetId: '1dAxF4Mz-zhJIVbuJ_Ql126gt08qvVS1wndJD50pqCZI',
-  // v6.5.36: Price Under Revision sheet — overrides Product Detail prices when matched by barcode
+  // v6.5.37: Price Under Revision sheet — overrides Product Detail prices when matched by barcode
   priceOverrideSheetId: '16mYDqAqqJma-_0vCIAajy6bcjdOZ7F6VagxkdkqAB2I',
   priceOverrideTab:    'Sheet1',
   // Debt (SQL Data) Sheet — live AR from Bplus
@@ -3947,7 +3947,7 @@ let SHEET_DATA = {
   users:           [],
   customers:       [],
   products:        [],   // 20K SKUs
-  priceOverrides:  [],   // v6.5.36: rows from "Price Under Revision Sales App" sheet
+  priceOverrides:  [],   // v6.5.37: rows from "Price Under Revision Sales App" sheet
   promotions:      [],
   dataCenter:      {},   // {col_name: [values...]}
   dashboardConfig: [],
@@ -4345,7 +4345,7 @@ async function enterApp() {
   SALESMAN.level       = currentUser.role;
   SALESMAN.email       = currentUser.email;
   SALESMAN.nickname    = currentUser.nickname;
-  // v6.5.36: show Team Map drawer entry for Role 5+
+  // v6.5.37: show Team Map drawer entry for Role 5+
   if (typeof _maybeShowTeamMapDrawer === 'function') _maybeShowTeamMapDrawer();
 
   console.log('[enterApp] user hydrated:', SALESMAN.name, 'email:', SALESMAN.email, 'role=', SALESMAN.level);
@@ -4612,7 +4612,7 @@ async function loadAllSheetData() {
     fetchWithCache('syncStatus',() => fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.syncStatus),    60*1000).then(d => SHEET_DATA.syncStatus = d).catch(e => { console.warn('syncStatus:', e.message); SHEET_DATA.syncStatus = []; }),
     // Load 12K products IN PARALLEL with other tabs — no longer sequential block
     fetchWithCache('products',  () => fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.productDetail), CONFIG.cacheTTLLong).then(d => { SHEET_DATA.products = d; console.log('[Rattana Sales] products loaded:', d.length); }).catch(e => { console.warn('products:', e.message); SHEET_DATA.products = SHEET_DATA.products || []; }),
-    // v6.5.36: Price Under Revision — override layer for selected products
+    // v6.5.37: Price Under Revision — override layer for selected products
     fetchWithCache('priceOverrides', () => fetchSheet(CONFIG.priceOverrideSheetId, CONFIG.priceOverrideTab), CONFIG.cacheTTLShort).then(d => { SHEET_DATA.priceOverrides = d || []; console.log('[Rattana Sales] price overrides loaded:', d.length); }).catch(e => { console.warn('priceOverrides:', e.message); SHEET_DATA.priceOverrides = []; }),
   ];
   // Race against timeout — if any tab is slow, show UI anyway after 20s
@@ -4621,7 +4621,7 @@ async function loadAllSheetData() {
     new Promise(resolve => setTimeout(() => { console.warn('[Rattana Sales] Load timeout 20s — showing UI'); resolve(); }, MAX_WAIT))
   ]);
 
-  // v6.5.36: apply price overrides BEFORE hydrating (so any downstream code sees merged data)
+  // v6.5.37: apply price overrides BEFORE hydrating (so any downstream code sees merged data)
   applyPriceOverrides();
 
   SHEET_DATA.loaded = true;
@@ -5083,11 +5083,11 @@ function productUnits(p) {
   return units;
 }
 
-// v6.5.36: Apply Price Under Revision sheet → overrides Product Detail rows by barcode.
+// v6.5.37: Apply Price Under Revision sheet → overrides Product Detail rows by barcode.
 // Match by CODE EA / CODE PA / CODE BP / CODE CS (any barcode hit = override).
 // Override row REPLACES the original product row entirely (same column structure).
 // Side effect: sets p._priceOverride = true on overridden rows (for UI tagging).
-// v6.5.36: normalize for fuzzy name match — trim + collapse whitespace + lowercase
+// v6.5.37: normalize for fuzzy name match — trim + collapse whitespace + lowercase
 function _normName(s) {
   return String(s || '').trim().replace(/\s+/g, ' ').toLowerCase();
 }
@@ -6299,7 +6299,7 @@ function getMyGPS() {
 }
 
 // Get distance from salesman current location to a shop
-// v6.5.36: cache distance per (lat,lng,gps-stamp) to avoid recomputing haversine 4500x per render
+// v6.5.37: cache distance per (lat,lng,gps-stamp) to avoid recomputing haversine 4500x per render
 let _distCache = new WeakMap();
 let _distCacheKey = '';
 function distanceToShop(shop) {
@@ -6995,7 +6995,7 @@ function renderWarehouseDashboard() {
   const todayShops = new Set(todayRows.map(r => r['รหัสร้าน']||r['ชื่อร้าน'])).size;
   const activeSalesmen = team.filter(s => s.todaySales > 0).length;
 
-  // v6.5.36: Team Summary embed for Role 5+
+  // v6.5.37: Team Summary embed for Role 5+
   const teamSummary = (typeof buildHomeTeamSummaryHtml === 'function') ? buildHomeTeamSummaryHtml() : '';
 
   return `
@@ -7101,7 +7101,7 @@ function renderCompanyDashboard() {
     };
   }).sort((a,b) => b.sales - a.sales);
 
-  // v6.5.36: Team Summary embed for Role 5+
+  // v6.5.37: Team Summary embed for Role 5+
   const teamSummary = (typeof buildHomeTeamSummaryHtml === 'function') ? buildHomeTeamSummaryHtml() : '';
 
   return `
@@ -7221,7 +7221,7 @@ function switchRouteTab(tab) {
 // Search filter state — applied on top of route tab (in/off)
 let _shopSearchQuery = '';
 
-// v6.5.36: debounce search input — typing was triggering re-render of 4500+ cards on each keystroke
+// v6.5.37: debounce search input — typing was triggering re-render of 4500+ cards on each keystroke
 let _shopSearchTimer = null;
 function filterShops(text) {
   _shopSearchQuery = (text || '').trim().toLowerCase();
@@ -7338,7 +7338,7 @@ function renderShopList() {
     filtered.sort((a, b) => (distanceToShop(a) ?? 999999) - (distanceToShop(b) ?? 999999));
   }
 
-  // v6.5.36: incremental rendering — 4578 cards at once kills mobile.
+  // v6.5.37: incremental rendering — 4578 cards at once kills mobile.
   // Render first PAGE_SIZE, then load more via IntersectionObserver when scrolled near bottom.
   const PAGE_SIZE = 30;
   window._routeRenderState = window._routeRenderState || { rendered: 0, queue: [] };
@@ -7403,7 +7403,7 @@ function _buildShopCardHTML(s) {
 
   const cardStateCls = done ? 'shc-done' : noBuy ? 'shc-no-buy' : checkedIn ? 'shc-active' : '';
 
-  // Banner photo — v6.5.36: smaller thumbnail (200 vs 400) + async decode for less main-thread lag
+  // Banner photo — v6.5.37: smaller thumbnail (200 vs 400) + async decode for less main-thread lag
   const photoUrl = s.photo || s._raw?.['รูป'] || '';
   const bannerImg = photoUrl
     ? `<img src="${thumbnailUrl(photoUrl, 200)}" loading="lazy" decoding="async" onload="this.classList.add('loaded')" onerror="this.style.display='none'">`
@@ -7450,7 +7450,7 @@ function _buildShopCardHTML(s) {
     ciBtn = `<button class="shc-btn ci" onclick="event.stopPropagation();handleShopCheckIn('${s.id}')">⭐ เช็คอิน</button>`;
   }
 
-  // v6.5.36: ไม่ซื้อ + ใบลดหนี้ no longer require check-in (per Surat 2026-05-16)
+  // v6.5.37: ไม่ซื้อ + ใบลดหนี้ no longer require check-in (per Surat 2026-05-16)
   // Only 🛒 สั่งซื้อ still requires check-in (because cart needs an open visit to attach to)
   const orderLabel = s.visitedAmount > 0 ? 'สั่งเพิ่ม' : 'สั่งซื้อ';
   const canOrder = checkedIn || done;
@@ -7552,12 +7552,12 @@ window.openShopForAction = function(shopId, action) {
   } else if (action === 'cn') {
     if (typeof openCNModal === 'function') openCNModal();
   } else if (action === 'refuse') {
-    // v6.5.36: show no-sale picker as modal (no screen change — stays on shop list)
+    // v6.5.37: show no-sale picker as modal (no screen change — stays on shop list)
     showNoSaleModal(shopId);
   }
 };
 
-// v6.5.36: lightweight modal — no full screen change
+// v6.5.37: lightweight modal — no full screen change
 function showNoSaleModal(shopId) {
   const shop = SHOPS.find(s => s.id === shopId);
   const reasons = ['ปิดร้าน', 'สต็อกยังเยอะ', 'ติดเงิน', 'ไม่อยู่', 'ไม่ต้องการ', 'อื่นๆ'];
@@ -7696,7 +7696,7 @@ function initMap() {
 }
 
 // ═══════════════════════════════════════════════════════════
-// ROUTE PLANNER (v6.5.36 Phase 1)
+// ROUTE PLANNER (v6.5.37 Phase 1)
 // TSP: Nearest-Neighbor → 2-opt → or-opt → double-bridge perturbation
 // Distance: OSRM /table/v1 (preferred) → Haversine (fallback)
 // ═══════════════════════════════════════════════════════════
@@ -8025,7 +8025,7 @@ function exportPlanToGoogleMaps() {
 window.exportPlanToGoogleMaps = exportPlanToGoogleMaps;
 
 // ═══════════════════════════════════════════════════════════
-// TEAM MAP (v6.5.36 Phase 2 — base)
+// TEAM MAP (v6.5.37 Phase 2 — base)
 // Supervisor (Role 5+) view: all salesmen's positions + check-ins today
 // ═══════════════════════════════════════════════════════════
 const TM_LONG_VISIT_MIN = 60;
@@ -8039,7 +8039,7 @@ const _TM_PALETTE = [
 let teamMap = null;
 let _tmMarkers = [];
 let _tmAvatarMarkers = [];
-let _tmPolylines = [];      // v6.5.36: per-salesman polylines (breadcrumb + predicted)
+let _tmPolylines = [];      // v6.5.37: per-salesman polylines (breadcrumb + predicted)
 let _tmGeoCache = new Map(); // OSRM road-geometry cache, key = "lat1,lng1|lat2,lng2|..."
 let _tmGen = 0;
 let _tmWh = 'ALL';
@@ -8259,7 +8259,7 @@ function _tmInitMap() {
   [50, 200, 500].forEach(t => setTimeout(() => teamMap.invalidateSize(), t));
 }
 
-// v6.5.36: orders matching a specific shop+salesman+today (popup body)
+// v6.5.37: orders matching a specific shop+salesman+today (popup body)
 function _ordersForShopVisit(shopCode, smCode, dateStr) {
   return (SHEET_DATA.orders || []).filter(o => {
     if (!_matchToday(o['วัน'])) return false;
@@ -8496,7 +8496,7 @@ window.toggleThreshCard = function() {
 };
 
 // ═══════════════════════════════════════════════════════════
-// FOCUS PANEL (v6.5.36 Phase 4)
+// FOCUS PANEL (v6.5.37 Phase 4)
 // Shows detailed view of one salesman when _tmSm is set
 // ═══════════════════════════════════════════════════════════
 function _tmRenderFocus(snap) {
@@ -8711,6 +8711,49 @@ function buildHomeTeamSummaryHtml() {
 }
 window.buildHomeTeamSummaryHtml = buildHomeTeamSummaryHtml;
 
+// ═══════════════════════════════════════════════════════════
+// MOCK TEST DATA (v6.5.37 Phase 5) — paste window.testTeamMap() in console
+// ═══════════════════════════════════════════════════════════
+window.testTeamMap = function() {
+  const d = new Date();
+  const today = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+  const todayThai = (typeof getDayNameThai === 'function') ? getDayNameThai() : 'เสาร์';
+  SHEET_DATA.users = [
+    { 'E-mail':'pmw101@rattana.com','ชื่อ - สกุล':'ชัยสิทธิ์ ใจดี','รหัสเซลล์':'PMW101','คลัง':'W1','Role':3 },
+    { 'E-mail':'sw108@rattana.com','ชื่อ - สกุล':'สุภาพร แสงทอง','รหัสเซลล์':'SW108','คลัง':'W1','Role':3 },
+    { 'E-mail':'dw105@rattana.com','ชื่อ - สกุล':'ดวงเดือน ทองคำ','รหัสเซลล์':'DW105','คลัง':'W2','Role':3 },
+    { 'E-mail':'tk201@rattana.com','ชื่อ - สกุล':'ธีรพงษ์ ขยันยิ่ง','รหัสเซลล์':'TK201','คลัง':'W3','Role':3 },
+  ];
+  SHEET_DATA.customers = [
+    { 'รหัส บีพลัส':'C001','ชื่อร้านค้า':'ร้านป้าแดง','เซลล์ผู้ดูแล':'ชัยสิทธิ์ ใจดี','วันส่ง':todayThai,'Location':'13.4125,99.9533','ลำดับร้าน':1 },
+    { 'รหัส บีพลัส':'C002','ชื่อร้านค้า':'ร้านลุงพร','เซลล์ผู้ดูแล':'ชัยสิทธิ์ ใจดี','วันส่ง':todayThai,'Location':'13.4198,99.9612','ลำดับร้าน':2 },
+    { 'รหัส บีพลัส':'C003','ชื่อร้านค้า':'ร้านพี่นก','เซลล์ผู้ดูแล':'ชัยสิทธิ์ ใจดี','วันส่ง':todayThai,'Location':'13.4253,99.9701','ลำดับร้าน':3 },
+    { 'รหัส บีพลัส':'C004','ชื่อร้านค้า':'ร้านน้าหวาน','เซลล์ผู้ดูแล':'ชัยสิทธิ์ ใจดี','วันส่ง':todayThai,'Location':'13.4320,99.9805','ลำดับร้าน':4 },
+    { 'รหัส บีพลัส':'C011','ชื่อร้านค้า':'ร้านพี่ตู่','เซลล์ผู้ดูแล':'สุภาพร แสงทอง','วันส่ง':todayThai,'Location':'13.4055,99.9489','ลำดับร้าน':1 },
+    { 'รหัส บีพลัส':'C012','ชื่อร้านค้า':'ร้านเฮียมา','เซลล์ผู้ดูแล':'สุภาพร แสงทอง','วันส่ง':todayThai,'Location':'13.4080,99.9520','ลำดับร้าน':2 },
+  ];
+  const longAgo = new Date(Date.now() - 75*60000);
+  const longHHMM = `${String(longAgo.getHours()).padStart(2,'0')}:${String(longAgo.getMinutes()).padStart(2,'0')}`;
+  SHEET_DATA.visits = [
+    { 'วัน':today,'รหัสเซลล์':'PMW101','ชื่อร้าน':'ร้านป้าแดง','รหัสร้าน':'C001','เวลาเช็คอิน':'08:32','เวลาเช็คเอาท์':'09:05','ระยะเวลา(นาที)':33,'พิกัดเช็คอิน':'13.4125,99.9533','ผลลัพธ์':'ordered' },
+    { 'วัน':today,'รหัสเซลล์':'PMW101','ชื่อร้าน':'ร้านลุงพร','รหัสร้าน':'C002','เวลาเช็คอิน':'09:30','เวลาเช็คเอาท์':'10:15','ระยะเวลา(นาที)':45,'พิกัดเช็คอิน':'13.4198,99.9612','ผลลัพธ์':'ordered' },
+    { 'วัน':today,'รหัสเซลล์':'PMW101','ชื่อร้าน':'ร้านพี่นก','รหัสร้าน':'C003','เวลาเช็คอิน':longHHMM,'เวลาเช็คเอาท์':'','พิกัดเช็คอิน':'13.4253,99.9701','ผลลัพธ์':'' },
+    { 'วัน':today,'รหัสเซลล์':'SW108','ชื่อร้าน':'ร้านพี่ตู่','รหัสร้าน':'C011','เวลาเช็คอิน':'09:45','เวลาเช็คเอาท์':'10:30','ระยะเวลา(นาที)':45,'พิกัดเช็คอิน':'13.4055,99.9489','ผลลัพธ์':'no_buy' },
+    { 'วัน':today,'รหัสเซลล์':'DW105','ชื่อร้าน':'ร้านแม่ทิพย์','รหัสร้าน':'C031','เวลาเช็คอิน':'10:00','เวลาเช็คเอาท์':'10:45','ระยะเวลา(นาที)':45,'พิกัดเช็คอิน':'14.4720,100.1170','ผลลัพธ์':'ordered' },
+  ];
+  SHEET_DATA.orders = [
+    { 'วัน':today,'รหัสร้าน':'C001','รหัสเซลล์':'PMW101','รูปแบบ':'ขาย','ชื่อสินค้า':'Coke 325ml','จำนวน':5,'หน่วย':'CS','ราคา':240,'ยอดเงินรวม':1200 },
+    { 'วัน':today,'รหัสร้าน':'C001','รหัสเซลล์':'PMW101','รูปแบบ':'ขาย','ชื่อสินค้า':'Sprite 325ml','จำนวน':3,'หน่วย':'CS','ราคา':240,'ยอดเงินรวม':720 },
+    { 'วัน':today,'รหัสร้าน':'C001','รหัสเซลล์':'PMW101','รูปแบบ':'แถม','ชื่อสินค้า':'สติกเกอร์','จำนวน':1,'หน่วย':'EA','ราคา':0,'ยอดเงินรวม':0 },
+    { 'วัน':today,'รหัสร้าน':'C002','รหัสเซลล์':'PMW101','รูปแบบ':'ขาย','ชื่อสินค้า':'น้ำดื่ม Crystal','จำนวน':10,'หน่วย':'CS','ราคา':130,'ยอดเงินรวม':1300 },
+    { 'วัน':today,'รหัสร้าน':'C031','รหัสเซลล์':'DW105','รูปแบบ':'ขาย','ชื่อสินค้า':'Coke 1.5L','จำนวน':4,'หน่วย':'CS','ราคา':480,'ยอดเงินรวม':1920 },
+  ];
+  console.log('✓ Mock team data injected — opening Team Map');
+  if (currentUser) currentUser.role = Math.max(currentUser.role || 0, 7);
+  _maybeShowTeamMapDrawer();
+  goTeamMap();
+};
+
 // Show drawer entry for Role 5+ on login (called from hydrateUserUI or similar)
 function _maybeShowTeamMapDrawer() {
   const role = Number((currentUser && currentUser.role) || 0);
@@ -8859,7 +8902,7 @@ function renderShopDetail(shopId) {
     ${todayOrdersHtml}
 
     <div class="action-grid action-grid-3">
-      <button class="btn btn-danger action-btn" onclick="goNoSale()" ${!checkedIn || hasOrderedToday ? 'disabled' : ''}>
+      <button class="btn btn-danger action-btn" onclick="showNoSaleModal(currentShopId)" ${hasOrderedToday ? 'disabled' : ''}>
         <span class="ico">❌</span>ไม่ซื้อ
       </button>
       <button class="btn btn-outline action-btn" onclick="openCNModal()" ${!canTakeOrder ? 'disabled' : ''}>
@@ -8880,7 +8923,7 @@ function renderShopDetail(shopId) {
 function doCheckIn(shopId) {
   const s = SHOPS.find(x => x.id === shopId);
   if (!s) return;
-  // v6.5.36: enforce single active check-in — must check out previous shop first
+  // v6.5.37: enforce single active check-in — must check out previous shop first
   const activeId = Object.keys(visits).find(sid => visits[sid] && !visits[sid].checkOutTime);
   if (activeId && activeId !== shopId) {
     _showActiveCheckinModal(activeId, shopId);
@@ -8954,7 +8997,7 @@ window._confirmOutOfRange = function(shopId, distance, reason) {
   _executeCheckIn(shopId, distance, false, reason);
 };
 
-// v6.5.36: blocking modal when user tries to check in while another shop is still active
+// v6.5.37: blocking modal when user tries to check in while another shop is still active
 function _showActiveCheckinModal(activeId, nextId) {
   const active = SHOPS.find(s => s.id === activeId);
   const next   = SHOPS.find(s => s.id === nextId);
@@ -8986,7 +9029,7 @@ window._closeAsNoSaleAndCheckin = function(activeId, nextId) {
   setTimeout(() => doCheckIn(nextId), 250);
 };
 
-// v6.5.36: "ไม่ซื้อ" / "ร้านปิด" without prior check-in — auto check-in + immediate close
+// v6.5.37: "ไม่ซื้อ" / "ร้านปิด" without prior check-in — auto check-in + immediate close
 function quickNoSale(shopId, reason) {
   const v = visits[shopId];
   if (v && !v.checkOutTime) {
@@ -9073,7 +9116,7 @@ function manualCheckOut(shopId) {
 window._finishWithReason = function(shopId, reason) {
   closeModal();
   finishVisit(shopId, 'no-order', { reason });
-  // v6.5.36: ensure shop card reflects "เสร็จแล้ว" — update SHOPS.status for done check
+  // v6.5.37: ensure shop card reflects "เสร็จแล้ว" — update SHOPS.status for done check
   const sh = SHOPS.find(s => s.id === shopId);
   if (sh) { sh.status = 'refused'; sh.refuseReason = reason; }
   showToast('✓ บันทึกเหตุผลแล้ว', 'info');
@@ -9399,7 +9442,7 @@ function _initOrderCardState(p) {
 // v6.2: If pickedTier given AND valid for current qty → use it instead of auto-suggest
 //        Click-to-select wins over auto, but qty changes that invalidate a pick fall back to auto.
 // ────────────────────────────────────────────────────────────────
-// v6.5.36: PA Group → S02 (combine across SKUs sharing CAT SIZE)
+// v6.5.37: PA Group → S02 (combine across SKUs sharing CAT SIZE)
 // Rule:
 //   - When ordering in PA, sum (qty_PA / QTY_CS) across all PA-only cart items
 //     in same shop with same CAT SIZE.
@@ -9413,10 +9456,10 @@ function getCatSize(p) {
 }
 window.getCatSize = getCatSize;
 
-// v6.5.36: correct CS_eq math.
+// v6.5.37: correct CS_eq math.
 // 1 CS = QTY_CS / QTY_PA packs. So 1 PA contributes QTY_PA/QTY_CS of a CS.
 // CS_eq for a PA line = qty_PA × QTY_PA / QTY_CS  (NOT qty_PA / QTY_CS — that was wrong).
-// v6.5.36: include ALL drafts (not just cart) so cards see each other's pending PA qty.
+// v6.5.37: include ALL drafts (not just cart) so cards see each other's pending PA qty.
 // Previously each card saw only its own qty → both showed 0.5/1.0 when together = 1.0.
 function _paGroupCsEq(catSize, shopId) {
   if (!catSize) return 0;
@@ -9490,7 +9533,7 @@ function getOrderTiers(p, unitCode, qty, pickedTier, paCsEq) {
   // Auto-suggest from qty
   let autoKey;
   if (unitCode === 'PA' && paCsEq >= 1.0) {
-    // v6.5.36: PA group hit 1 CS-equivalent → unlock S02 across all PA items in CAT SIZE group
+    // v6.5.37: PA group hit 1 CS-equivalent → unlock S02 across all PA items in CAT SIZE group
     autoKey = 'S02';
   } else if (unitCode !== 'CS') {
     autoKey = 'S03';
@@ -9555,7 +9598,7 @@ function buildDepotChipsCompact(p) {
     return numv(p[`AVERAGE 30D_${w}`]) || numv(p[`AVERAGE 30D ${w}`]) || numv(p[`AVG 30D ${w}`]);
   };
 
-  // v6.5.36: role gate — role >= 4 sees avg for all WH, role < 4 sees only own WH avg
+  // v6.5.37: role gate — role >= 4 sees avg for all WH, role < 4 sees only own WH avg
   const role = Number((currentUser && currentUser.role) || 0);
   const canSeeAllAvg = role >= 4;
   const depots = WAREHOUSES.map(w => {
@@ -9631,7 +9674,7 @@ function _buildPromoBarsHtml(p, productId, safeId, unit, qty) {
     productId, unit, qty, price: 0, shopId: currentShopId, isDraft: true,
   } : null;
 
-  // v6.5.36: AUTO-PICK highest matching tier (step-promo fix).
+  // v6.5.37: AUTO-PICK highest matching tier (step-promo fix).
   // Old: user had to click "เลือก" first when 2+ promos existed → confusing when qty
   // dropped below the picked tier's threshold (state stuck on Step 2 while qty=10 only
   // qualifies for Step 1). New: every render recomputes, picks highest threshold
@@ -9655,7 +9698,7 @@ function _buildPromoBarsHtml(p, productId, safeId, unit, qty) {
   else delete draft.selectedPromoIdx;
   window._orderDraft[productId] = draft;
 
-  // v6.5.36: no more "isMulti force-pick" mode — always show all tiers' progress as info
+  // v6.5.37: no more "isMulti force-pick" mode — always show all tiers' progress as info
   return allPromos.map((promo, idx) => {
     const isSelected = (selectedIdx === idx);
     return _buildOnePromoBar(promo, p, productId, safeId, idx, isSelected, draftLine, unit, false);
@@ -9695,7 +9738,7 @@ function _buildOnePromoBar(promo, p, productId, safeId, idx, isSelected, draftLi
     `;
   }
 
-  // v6.5.36: read-only badge (auto-picked by qty, no manual selection needed)
+  // v6.5.37: read-only badge (auto-picked by qty, no manual selection needed)
   const pickerHtml = isSelected
     ? `<button class="oc-promo-pick on" disabled title="โปรนี้ใช้งานตามจำนวน">✓ ใช้โปรนี้</button>`
     : '';
@@ -9828,7 +9871,7 @@ function buildOrderCardV6(p, idx) {
   const qtyNum = parseInt(state.qty) || 0;
   // v6.2: respect user's tier pick (click overrides auto-suggest)
   const pickedTier = (window._orderDraft[id] || {}).pickedTier || null;
-  // v6.5.36: PA group sums all drafts + cart in same CAT SIZE (no extraDraft — _orderDraft is the source of truth)
+  // v6.5.37: PA group sums all drafts + cart in same CAT SIZE (no extraDraft — _orderDraft is the source of truth)
   const catSize = getCatSize(p);
   const eaPerCs = numv(p['QTY CS']) || 0;
   const eaPerPa = numv(p['QTY PA']) || 0;
@@ -9884,7 +9927,7 @@ function buildOrderCardV6(p, idx) {
   const subLeft = `${qtyNum} ${unitLabel} = ${pieceCount.toLocaleString()} ชิ้น`;
   const subRight = `ราคา / ${unitLabel}`;
 
-  // v6.5.36: show tier ladder for ALL units (was CS-only).
+  // v6.5.37: show tier ladder for ALL units (was CS-only).
   // For non-CS units, ranges (<5, 5-19, ≥20) are CS-tier labels — for EA/PA/BP show "ราคา" instead.
   // Pull S00/S01/S02/S03 from productPrices for the current unit, hide S00 for role<5.
   const role = Number((currentUser && currentUser.role) || 0);
@@ -9947,7 +9990,7 @@ function buildOrderCardV6(p, idx) {
   // v6.5.2: state classes simplified — promo/focus signal carried by inline promo bar, not card border
   const stateClasses = cardCls; // pending / confirmed only
 
-  // v6.5.36: visible badge when price override is active (from Price Under Revision sheet)
+  // v6.5.37: visible badge when price override is active (from Price Under Revision sheet)
   const overrideBadge = p._priceOverride
     ? `<span style="display:inline-block;font-size:9px;font-weight:700;background:#FF6B35;color:#fff;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle">🏷️ ราคาพิเศษ</span>`
     : '';
@@ -9995,7 +10038,7 @@ function buildOrderCardV6(p, idx) {
         const csEq = paCsEq;
         const pct = Math.min(100, Math.round(csEq * 100));
         const remainingCsEq = Math.max(0, 1 - csEq);
-        // v6.5.36: remaining PA = remainingCsEq × paPerCs (NOT × eaPerCs)
+        // v6.5.37: remaining PA = remainingCsEq × paPerCs (NOT × eaPerCs)
         const remainingPA = Math.ceil(remainingCsEq * paPerCs);
         const unlocked = csEq >= 1.0;
         return `<div class="oc-pa-group ${unlocked ? 'unlocked' : ''}">
@@ -10069,7 +10112,7 @@ window.orderQtyAdj = function(safeId, delta) {
   d.qty = Math.max(0, (parseInt(d.qty)||0) + delta);
   window._orderDraft[pid] = d;
   _renderOneOrderCard(safeId);
-  // v6.5.36: refresh sibling PA cards in same CAT SIZE
+  // v6.5.37: refresh sibling PA cards in same CAT SIZE
   if (d.unit === 'pack') {
     const p = (window._lastOrderProducts || []).find(x => (x['CODE EA']||x['CODE CS']||x['PRODUCT NAME']) === pid);
     const cs = p ? getCatSize(p) : '';
@@ -10092,7 +10135,7 @@ window.orderQtyChange = function(safeId, value) {
   const d = window._orderDraft[pid] || { unit: 'case', qty: 0, price: '' };
   d.qty = Math.max(0, parseInt(value) || 0);
   window._orderDraft[pid] = d;
-  // v6.5.36: when PA qty changes, refresh sibling cards in same CAT SIZE so group progress syncs
+  // v6.5.37: when PA qty changes, refresh sibling cards in same CAT SIZE so group progress syncs
   if (d.unit === 'pack') {
     const p = (window._lastOrderProducts || []).find(x => (x['CODE EA']||x['CODE CS']||x['PRODUCT NAME']) === pid);
     const cs = p ? getCatSize(p) : '';
@@ -10178,7 +10221,7 @@ window.orderConfirm = function(safeId) {
   // v6.5: capture suggested for supervisor to compare against actual price.
   const unitCode = _unitToCode(d.unit);
   const pr = productPrices(p, unitCode);
-  // v6.5.36: PA group from drafts+cart
+  // v6.5.37: PA group from drafts+cart
   const catSize = getCatSize(p);
   const paCsEq = (catSize && currentShopId) ? _paGroupCsEq(catSize, currentShopId) : 0;
   const { activeKey: suggestedTierKey } = getOrderTiers(p, unitCode, d.qty, d.pickedTier || null, paCsEq);
@@ -10262,7 +10305,7 @@ window.orderConfirm = function(safeId) {
   // Sync draft with confirmed cart state (so subsequent edits know baseline)
   d.price = priceVat;
   window._orderDraft[pid] = d;
-  // v6.5.36: re-evaluate PA group → other PA items in same CAT SIZE may unlock S02
+  // v6.5.37: re-evaluate PA group → other PA items in same CAT SIZE may unlock S02
   if (d.unit === 'pack') {
     const csz = getCatSize(p);
     const bumped = _recalcPaGroupPrices(csz, currentShopId);
@@ -10278,7 +10321,7 @@ window.orderRemove = function(safeId) {
   const el = document.getElementById('orderCard-' + safeId);
   if (!el) return;
   const pid = el.getAttribute('data-pid');
-  // v6.5.36: capture catSize BEFORE removing so we can recalc the group after
+  // v6.5.37: capture catSize BEFORE removing so we can recalc the group after
   const removed = cart.find(c => c.productId === pid && c.shopId === currentShopId);
   const p = (window._lastOrderProducts || []).find(x => (x['CODE EA']||x['CODE CS']||x['PRODUCT NAME']) === pid);
   const wasInPaGroup = removed && removed.unit === 'pack' && p;
@@ -10287,7 +10330,7 @@ window.orderRemove = function(safeId) {
   if (idx >= 0) cart.splice(idx, 1);
   // Reset draft
   delete window._orderDraft[pid];
-  // v6.5.36: re-evaluate PA group after removal → may drop back to S03
+  // v6.5.37: re-evaluate PA group after removal → may drop back to S03
   if (wasInPaGroup) _recalcPaGroupPrices(csz, currentShopId);
   updateCartBar();
   if (wasInPaGroup && typeof renderProductList === 'function') renderProductList();
@@ -10307,7 +10350,7 @@ function _updateCardLive(safeId) {
   if (!d) return;
   const qtyNum = parseInt(d.qty) || 0;
   const unitCode = _unitToCode(d.unit);
-  // v6.5.36: PA group from drafts+cart
+  // v6.5.37: PA group from drafts+cart
   const catSize = getCatSize(p);
   const paCsEq = (catSize && currentShopId) ? _paGroupCsEq(catSize, currentShopId) : 0;
   // v6.2: respect user's tier pick during live updates (don't auto-flip)
@@ -13377,7 +13420,7 @@ function confirmNoSale() {
     shop.status = 'refused';
     shop.refuseReason = reason;
   }
-  // v6.5.36: works whether user was checked in or not (auto check-in+out if needed)
+  // v6.5.37: works whether user was checked in or not (auto check-in+out if needed)
   const v = visits[currentShopId];
   if (v && !v.checkOutTime) {
     finishVisit(currentShopId, 'refused', { refusalReason: reason });
@@ -13386,7 +13429,7 @@ function confirmNoSale() {
   }
 
   showToast('บันทึกแล้ว — เช็คเอ้าอัตโนมัติ', 'info');
-  // v6.5.36: goRoute() returns early if current screen is screenNoSale → shop list never refreshes.
+  // v6.5.37: goRoute() returns early if current screen is screenNoSale → shop list never refreshes.
   // Force navigation + re-render directly so card flips to "เสร็จแล้ว"
   setTimeout(() => {
     currentShopId = null;
@@ -14330,7 +14373,7 @@ async function globalRefresh() {
       SHEET_DATA.priceOverrides = overrideRows;
       cacheSet('priceOverrides', overrideRows);
     }
-    // v6.5.36: re-apply overrides after refetch
+    // v6.5.37: re-apply overrides after refetch
     applyPriceOverrides();
     if (syncRows) {
       SHEET_DATA.syncStatus = syncRows;
