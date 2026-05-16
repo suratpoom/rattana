@@ -12,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Rattana Sales — v6.5.32</title>
+<title>Rattana Sales — v6.5.33</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -1711,7 +1711,7 @@ body.dark .oc-depot-bar-track { background: rgba(255,255,255,.1); }
 }
 .oc-depot.mine .oc-depot-avg { color: #1F9D6B; opacity: .85; }
 
-/* v6.5.32: PA group progress (combine PA across same CAT SIZE → unlock S02) */
+/* v6.5.33: PA group progress (combine PA across same CAT SIZE → unlock S02) */
 .oc-pa-group {
   background: rgba(31,157,107,.06);
   border: 1px solid rgba(31,157,107,.18);
@@ -2188,6 +2188,114 @@ body.dark .range-confirm { background: #3a2e15; }
   background: var(--navy); color: var(--gold);
   border-color: var(--navy); font-weight: 800;
 }
+.filter-chip.plan-cta {
+  background: linear-gradient(135deg, #c9a84c 0%, #e6c878 100%);
+  color: #0d1b3e; border-color: #c9a84c; font-weight: 800;
+  box-shadow: 0 2px 8px rgba(201,168,76,.3);
+}
+.filter-chip.plan-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(201,168,76,.4);
+}
+
+/* ═══ Route Planner Bottom-Sheet (v6.5.33) ═══ */
+.plan-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,.5);
+  z-index: 998; opacity: 0; pointer-events: none;
+  transition: opacity .25s ease;
+}
+.plan-backdrop.open { opacity: 1; pointer-events: auto; }
+.plan-sheet {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  background: var(--surface); border-radius: 18px 18px 0 0;
+  box-shadow: 0 -8px 32px rgba(0,0,0,.25);
+  padding: 8px 18px 22px; max-height: 88vh;
+  overflow-y: auto; z-index: 999;
+  transform: translateY(100%); transition: transform .3s cubic-bezier(.4,0,.2,1);
+  max-width: 640px; margin: 0 auto;
+}
+.plan-sheet.open { transform: translateY(0); }
+.plan-handle {
+  width: 44px; height: 4px; background: rgba(0,0,0,.18);
+  border-radius: 2px; margin: 4px auto 12px;
+}
+.plan-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 14px;
+}
+.plan-title { font-size: 18px; font-weight: 900; color: var(--text); }
+.plan-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.plan-close {
+  background: rgba(0,0,0,.06); border: none; width: 32px; height: 32px;
+  border-radius: 50%; font-size: 16px; cursor: pointer; color: var(--text);
+}
+.plan-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.plan-label { font-size: 13px; font-weight: 700; color: var(--text); min-width: 50px; }
+.plan-select {
+  flex: 1; padding: 10px 12px; border-radius: 10px;
+  border: 1.5px solid var(--border); background: var(--card-bg);
+  font-family: inherit; font-size: 14px; color: var(--text);
+}
+.plan-quality-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 14px 0 8px; }
+.plan-q-btn {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 12px 6px; gap: 2px;
+  border-radius: 12px; border: 2px solid var(--border);
+  background: var(--card-bg); cursor: pointer;
+  transition: transform .1s, border-color .15s, background .15s;
+  font-family: inherit;
+}
+.plan-q-btn:hover { border-color: var(--gold); }
+.plan-q-btn:active { transform: scale(.96); }
+.plan-q-btn.active {
+  background: var(--navy); border-color: var(--navy); color: #fff;
+}
+.plan-q-btn.active .q-text { color: var(--gold); }
+.plan-q-btn.active .q-sub { color: rgba(255,255,255,.7); }
+.q-emoji { font-size: 22px; }
+.q-text { font-size: 13px; font-weight: 800; color: var(--text); }
+.q-sub { font-size: 9px; color: var(--muted); font-family: ui-monospace, monospace; }
+
+.plan-result {
+  margin-top: 14px; padding-top: 14px;
+  border-top: 1px dashed var(--border);
+}
+.plan-stats {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;
+}
+.plan-stat {
+  background: var(--card-bg); padding: 10px 6px; border-radius: 10px;
+  text-align: center; border: 1px solid var(--border);
+}
+.ps-val { display: block; font-size: 18px; font-weight: 900; color: var(--gold); font-family: ui-monospace, monospace; }
+.ps-lbl { display: block; font-size: 10px; color: var(--muted); margin-top: 2px; }
+.plan-order-list {
+  max-height: 220px; overflow-y: auto;
+  background: var(--card-bg); border-radius: 10px;
+  border: 1px solid var(--border); padding: 6px; margin-bottom: 10px;
+}
+.plan-order-item {
+  display: flex; align-items: center; gap: 8px; padding: 6px 8px;
+  border-bottom: 1px dashed var(--border); font-size: 12px;
+}
+.plan-order-item:last-child { border-bottom: none; }
+.plan-order-num {
+  flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--navy); color: var(--gold);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 11px; font-family: ui-monospace, monospace;
+}
+.plan-order-name { flex: 1; min-width: 0; color: var(--text); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.plan-order-leg { color: var(--muted); font-size: 10px; font-family: ui-monospace, monospace; }
+.plan-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.plan-apply-btn { flex: 1 1 100%; }
+.plan-replan-btn, .plan-gmaps-btn { flex: 1 1 calc(50% - 4px); }
+
+/* Polyline pulse animation */
+@keyframes plan-pulse {
+  0% { opacity: .4; } 50% { opacity: .9; } 100% { opacity: .4; }
+}
+.plan-polyline { animation: plan-pulse 2s ease-in-out infinite; }
 .product-filter-chips {
   display: flex; gap: 6px; overflow-x: auto;
   padding: 6px 0 4px; scrollbar-width: none;
@@ -3049,7 +3157,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 
     <div id="loginError" style="background:rgba(231,76,60,.15);border:1px solid #e74c3c;color:#ff8a7e;padding:10px;border-radius:8px;margin-top:4px;font-size:12px;display:none;text-align:left"></div>
   </div>
-  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.32 · 2026-05-16</div>
+  <div style="margin-top:18px;font-size:10px;opacity:.5;text-align:center">v6.5.33 · 2026-05-16</div>
 </div>
 
 <!-- ════════════════ APP SCREEN ════════════════ -->
@@ -3060,7 +3168,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 <header>
   <button class="icon-btn" onclick="openDrawer()" id="hamburgerBtn" title="เมนู">☰</button>
   <div class="logo-text">RATTANA <span>SALES</span></div>
-  <span class="demo-tag">v6.5.32</span>
+  <span class="demo-tag">v6.5.33</span>
   <button class="icon-btn" onclick="globalRefresh()" id="refreshBtn" title="อัพเดทสต็อกล่าสุด">🔄</button>
   <button class="icon-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
   <button class="icon-btn" onclick="window.open('https://rattanaphaiboon.github.io/app/rattana-hub.html','_blank')" id="hubBtn" title="Rattana Hub — รวมแอปทั้งหมด">🏠</button>
@@ -3145,7 +3253,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
   </button>
 
   <div class="drawer-footer">
-    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.32<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
+    <div style="font-size:10px;color:var(--muted);text-align:center">Rattana Sales v6.5.33<br>2026-05-16 🔄<br><a href="https://rattanaphaiboon.github.io/app/" target="_blank" style="color:var(--gold);text-decoration:none">rattanaphaiboon.github.io/app</a></div>
   </div>
 </aside>
 
@@ -3204,6 +3312,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
       <button class="filter-chip active" id="rfNear" data-rf="near" onclick="setRouteSort('near')">🧭 ใกล้ฉัน</button>
       <button class="filter-chip" id="rfPending" data-rf="pending" onclick="setRouteStatusFilter('pending')">⏳ ยังไม่เช็คอิน</button>
       <button class="filter-chip" id="rfDone" data-rf="done" onclick="setRouteStatusFilter('done')">✅ เยี่ยมแล้ว</button>
+      <button class="filter-chip plan-cta" onclick="openRoutePlanner()">🗺️ วางแผนรูท</button>
     </div>
 
     <div id="shopList"></div>
@@ -3223,6 +3332,57 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
       <span class="map-legend-item"><span class="map-dot" style="background:#3498db;border:2px solid #fff"></span>ตำแหน่งฉัน</span>
     </div>
     <button class="btn btn-outline btn-block" style="margin-top:8px" onclick="refreshGPS().then(()=>initMap())">🔄 อัพเดทตำแหน่งฉัน + แผนที่</button>
+  </div>
+
+  <!-- ═══════ ROUTE PLANNER BOTTOM-SHEET (v6.5.33 Phase 1) ═══════ -->
+  <div id="planSheetBackdrop" class="plan-backdrop" onclick="closeRoutePlanner()"></div>
+  <div id="planSheet" class="plan-sheet">
+    <div class="plan-handle"></div>
+    <div class="plan-header">
+      <div>
+        <div class="plan-title">🗺️ วางแผนรูทวันนี้</div>
+        <div class="plan-sub">AI จัดเรียงร้านให้เดินทางสั้นที่สุด</div>
+      </div>
+      <button class="plan-close" onclick="closeRoutePlanner()">✕</button>
+    </div>
+
+    <div class="plan-row">
+      <label class="plan-label">เริ่มที่</label>
+      <select id="planStart" class="plan-select"></select>
+    </div>
+    <div class="plan-row">
+      <label class="plan-label">จบที่</label>
+      <select id="planEnd" class="plan-select"></select>
+    </div>
+
+    <div class="plan-quality-row">
+      <button class="plan-q-btn" data-q="fast" onclick="runRoutePlanner('fast')">
+        <span class="q-emoji">⚡</span><span class="q-text">เร็ว</span>
+        <span class="q-sub">NN</span>
+      </button>
+      <button class="plan-q-btn active" data-q="balanced" onclick="runRoutePlanner('balanced')">
+        <span class="q-emoji">⚖️</span><span class="q-text">สมดุล</span>
+        <span class="q-sub">+ 2-opt</span>
+      </button>
+      <button class="plan-q-btn" data-q="thorough" onclick="runRoutePlanner('thorough')">
+        <span class="q-emoji">🎯</span><span class="q-text">ละเอียด</span>
+        <span class="q-sub">+ or-opt</span>
+      </button>
+    </div>
+
+    <div id="planResult" class="plan-result" style="display:none">
+      <div class="plan-stats">
+        <div class="plan-stat"><span class="ps-val" id="planTotalKm">—</span><span class="ps-lbl">km</span></div>
+        <div class="plan-stat"><span class="ps-val" id="planStops">—</span><span class="ps-lbl">ร้าน</span></div>
+        <div class="plan-stat"><span class="ps-val" id="planMethod">—</span><span class="ps-lbl">วิธี</span></div>
+      </div>
+      <div class="plan-order-list" id="planOrderList"></div>
+      <div class="plan-actions">
+        <button class="btn btn-primary plan-apply-btn" onclick="applyPlannedRoute()">✓ ใช้รูทนี้</button>
+        <button class="btn btn-outline plan-replan-btn" onclick="replanFromMe()" title="ใช้ตำแหน่งฉันเป็นจุดเริ่มต้นใหม่">🔄 จากตำแหน่งฉัน</button>
+        <button class="btn btn-outline plan-gmaps-btn" onclick="exportPlanToGoogleMaps()" title="เปิดใน Google Maps">🗺️ Google Maps</button>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -3576,7 +3736,7 @@ body.dark .oc2-confirm-btn:disabled { background: #1a3060; color: #3d4d6b; }
 const CONFIG = {
   // Backend Sheet (Customer / Order / Promotion / Data Center / Product Detail / Dashboard Config / Group Targets)
   backendSheetId: '1dAxF4Mz-zhJIVbuJ_Ql126gt08qvVS1wndJD50pqCZI',
-  // v6.5.32: Price Under Revision sheet — overrides Product Detail prices when matched by barcode
+  // v6.5.33: Price Under Revision sheet — overrides Product Detail prices when matched by barcode
   priceOverrideSheetId: '16mYDqAqqJma-_0vCIAajy6bcjdOZ7F6VagxkdkqAB2I',
   priceOverrideTab:    'Sheet1',
   // Debt (SQL Data) Sheet — live AR from Bplus
@@ -3612,7 +3772,7 @@ let SHEET_DATA = {
   users:           [],
   customers:       [],
   products:        [],   // 20K SKUs
-  priceOverrides:  [],   // v6.5.32: rows from "Price Under Revision Sales App" sheet
+  priceOverrides:  [],   // v6.5.33: rows from "Price Under Revision Sales App" sheet
   promotions:      [],
   dataCenter:      {},   // {col_name: [values...]}
   dashboardConfig: [],
@@ -4275,7 +4435,7 @@ async function loadAllSheetData() {
     fetchWithCache('syncStatus',() => fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.syncStatus),    60*1000).then(d => SHEET_DATA.syncStatus = d).catch(e => { console.warn('syncStatus:', e.message); SHEET_DATA.syncStatus = []; }),
     // Load 12K products IN PARALLEL with other tabs — no longer sequential block
     fetchWithCache('products',  () => fetchSheet(CONFIG.backendSheetId, CONFIG.tabs.productDetail), CONFIG.cacheTTLLong).then(d => { SHEET_DATA.products = d; console.log('[Rattana Sales] products loaded:', d.length); }).catch(e => { console.warn('products:', e.message); SHEET_DATA.products = SHEET_DATA.products || []; }),
-    // v6.5.32: Price Under Revision — override layer for selected products
+    // v6.5.33: Price Under Revision — override layer for selected products
     fetchWithCache('priceOverrides', () => fetchSheet(CONFIG.priceOverrideSheetId, CONFIG.priceOverrideTab), CONFIG.cacheTTLShort).then(d => { SHEET_DATA.priceOverrides = d || []; console.log('[Rattana Sales] price overrides loaded:', d.length); }).catch(e => { console.warn('priceOverrides:', e.message); SHEET_DATA.priceOverrides = []; }),
   ];
   // Race against timeout — if any tab is slow, show UI anyway after 20s
@@ -4284,7 +4444,7 @@ async function loadAllSheetData() {
     new Promise(resolve => setTimeout(() => { console.warn('[Rattana Sales] Load timeout 20s — showing UI'); resolve(); }, MAX_WAIT))
   ]);
 
-  // v6.5.32: apply price overrides BEFORE hydrating (so any downstream code sees merged data)
+  // v6.5.33: apply price overrides BEFORE hydrating (so any downstream code sees merged data)
   applyPriceOverrides();
 
   SHEET_DATA.loaded = true;
@@ -4746,11 +4906,11 @@ function productUnits(p) {
   return units;
 }
 
-// v6.5.32: Apply Price Under Revision sheet → overrides Product Detail rows by barcode.
+// v6.5.33: Apply Price Under Revision sheet → overrides Product Detail rows by barcode.
 // Match by CODE EA / CODE PA / CODE BP / CODE CS (any barcode hit = override).
 // Override row REPLACES the original product row entirely (same column structure).
 // Side effect: sets p._priceOverride = true on overridden rows (for UI tagging).
-// v6.5.32: normalize for fuzzy name match — trim + collapse whitespace + lowercase
+// v6.5.33: normalize for fuzzy name match — trim + collapse whitespace + lowercase
 function _normName(s) {
   return String(s || '').trim().replace(/\s+/g, ' ').toLowerCase();
 }
@@ -5962,7 +6122,7 @@ function getMyGPS() {
 }
 
 // Get distance from salesman current location to a shop
-// v6.5.32: cache distance per (lat,lng,gps-stamp) to avoid recomputing haversine 4500x per render
+// v6.5.33: cache distance per (lat,lng,gps-stamp) to avoid recomputing haversine 4500x per render
 let _distCache = new WeakMap();
 let _distCacheKey = '';
 function distanceToShop(shop) {
@@ -6876,7 +7036,7 @@ function switchRouteTab(tab) {
 // Search filter state — applied on top of route tab (in/off)
 let _shopSearchQuery = '';
 
-// v6.5.32: debounce search input — typing was triggering re-render of 4500+ cards on each keystroke
+// v6.5.33: debounce search input — typing was triggering re-render of 4500+ cards on each keystroke
 let _shopSearchTimer = null;
 function filterShops(text) {
   _shopSearchQuery = (text || '').trim().toLowerCase();
@@ -6993,7 +7153,7 @@ function renderShopList() {
     filtered.sort((a, b) => (distanceToShop(a) ?? 999999) - (distanceToShop(b) ?? 999999));
   }
 
-  // v6.5.32: incremental rendering — 4578 cards at once kills mobile.
+  // v6.5.33: incremental rendering — 4578 cards at once kills mobile.
   // Render first PAGE_SIZE, then load more via IntersectionObserver when scrolled near bottom.
   const PAGE_SIZE = 30;
   window._routeRenderState = window._routeRenderState || { rendered: 0, queue: [] };
@@ -7058,7 +7218,7 @@ function _buildShopCardHTML(s) {
 
   const cardStateCls = done ? 'shc-done' : noBuy ? 'shc-no-buy' : checkedIn ? 'shc-active' : '';
 
-  // Banner photo — v6.5.32: smaller thumbnail (200 vs 400) + async decode for less main-thread lag
+  // Banner photo — v6.5.33: smaller thumbnail (200 vs 400) + async decode for less main-thread lag
   const photoUrl = s.photo || s._raw?.['รูป'] || '';
   const bannerImg = photoUrl
     ? `<img src="${thumbnailUrl(photoUrl, 200)}" loading="lazy" decoding="async" onload="this.classList.add('loaded')" onerror="this.style.display='none'">`
@@ -7105,7 +7265,7 @@ function _buildShopCardHTML(s) {
     ciBtn = `<button class="shc-btn ci" onclick="event.stopPropagation();handleShopCheckIn('${s.id}')">⭐ เช็คอิน</button>`;
   }
 
-  // v6.5.32: ไม่ซื้อ + ใบลดหนี้ no longer require check-in (per Surat 2026-05-16)
+  // v6.5.33: ไม่ซื้อ + ใบลดหนี้ no longer require check-in (per Surat 2026-05-16)
   // Only 🛒 สั่งซื้อ still requires check-in (because cart needs an open visit to attach to)
   const orderLabel = s.visitedAmount > 0 ? 'สั่งเพิ่ม' : 'สั่งซื้อ';
   const canOrder = checkedIn || done;
@@ -7207,12 +7367,12 @@ window.openShopForAction = function(shopId, action) {
   } else if (action === 'cn') {
     if (typeof openCNModal === 'function') openCNModal();
   } else if (action === 'refuse') {
-    // v6.5.32: show no-sale picker as modal (no screen change — stays on shop list)
+    // v6.5.33: show no-sale picker as modal (no screen change — stays on shop list)
     showNoSaleModal(shopId);
   }
 };
 
-// v6.5.32: lightweight modal — no full screen change
+// v6.5.33: lightweight modal — no full screen change
 function showNoSaleModal(shopId) {
   const shop = SHOPS.find(s => s.id === shopId);
   const reasons = ['ปิดร้าน', 'สต็อกยังเยอะ', 'ติดเงิน', 'ไม่อยู่', 'ไม่ต้องการ', 'อื่นๆ'];
@@ -7349,6 +7509,335 @@ function initMap() {
     routeMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 });
   }
 }
+
+// ═══════════════════════════════════════════════════════════
+// ROUTE PLANNER (v6.5.33 Phase 1)
+// TSP: Nearest-Neighbor → 2-opt → or-opt → double-bridge perturbation
+// Distance: OSRM /table/v1 (preferred) → Haversine (fallback)
+// ═══════════════════════════════════════════════════════════
+let _planResult = null;       // { order, points, totalDistance, method, geometry }
+let _planGen = 0;             // monotonic counter to discard stale async results
+let _planPolyline = null;     // Leaflet polyline ref
+const _OSRM = 'https://router.project-osrm.org';
+
+function openRoutePlanner() {
+  const sheet = document.getElementById('planSheet');
+  const back  = document.getElementById('planSheetBackdrop');
+  if (!sheet || !back) return;
+  _populatePlanDropdowns();
+  back.classList.add('open');
+  sheet.classList.add('open');
+}
+window.openRoutePlanner = openRoutePlanner;
+
+function closeRoutePlanner() {
+  document.getElementById('planSheet')?.classList.remove('open');
+  document.getElementById('planSheetBackdrop')?.classList.remove('open');
+}
+window.closeRoutePlanner = closeRoutePlanner;
+
+function _populatePlanDropdowns() {
+  const startSel = document.getElementById('planStart');
+  const endSel = document.getElementById('planEnd');
+  if (!startSel || !endSel) return;
+  const inRoute = SHOPS.filter(s => s.inRoute && s.lat && s.lng);
+  const opts = inRoute.map(s => `<option value="${escapeAttr(s.id)}">${escapeHtml(s.name)}</option>`).join('');
+  startSel.innerHTML = `<option value="gps">📍 ตำแหน่งฉัน (GPS)</option>${opts}`;
+  endSel.innerHTML   = `<option value="auto">↩ จุดสุดท้ายของ optimizer</option>${opts}`;
+}
+
+function _haversine(a, b) {
+  const R = 6371000;
+  const toRad = d => d * Math.PI / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const lat1 = toRad(a.lat), lat2 = toRad(b.lat);
+  const h = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLng/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+async function _buildDistanceMatrix(points) {
+  // Try OSRM /table/v1 — returns N×N drive durations in seconds, can also get distances
+  // Fallback to Haversine if request fails
+  const n = points.length;
+  const coordsStr = points.map(p => `${p.lng},${p.lat}`).join(';');
+  const url = `${_OSRM}/table/v1/driving/${coordsStr}?annotations=distance`;
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('osrm http ' + resp.status);
+    const data = await resp.json();
+    if (data.code !== 'Ok' || !data.distances) throw new Error('osrm no distances');
+    return data.distances;
+  } catch (e) {
+    console.warn('[plan] OSRM matrix failed, using Haversine:', e.message);
+    const dm = Array(n).fill(null).map(() => Array(n).fill(0));
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) if (i !== j) dm[i][j] = _haversine(points[i], points[j]);
+    return dm;
+  }
+}
+
+// TSP: Nearest Neighbor (starts from index 0 = start point)
+function _tspNN(dm) {
+  const n = dm.length;
+  const visited = new Array(n).fill(false);
+  const order = [0]; visited[0] = true;
+  for (let step = 1; step < n; step++) {
+    let cur = order[order.length - 1], best = -1, bestD = Infinity;
+    for (let j = 0; j < n; j++) if (!visited[j] && dm[cur][j] < bestD) { bestD = dm[cur][j]; best = j; }
+    if (best === -1) break;
+    order.push(best); visited[best] = true;
+  }
+  return order;
+}
+
+function _routeDistance(order, dm) {
+  let total = 0;
+  for (let i = 0; i < order.length - 1; i++) total += dm[order[i]][order[i+1]];
+  return total;
+}
+
+// 2-opt: try every pair (i,j), reverse segment if it shortens total
+function _tsp2Opt(order, dm) {
+  let improved = true, n = order.length, iters = 0;
+  while (improved && iters < 200) {
+    improved = false; iters++;
+    for (let i = 1; i < n - 2; i++) {
+      for (let j = i + 1; j < n - 1; j++) {
+        const a = order[i-1], b = order[i], c = order[j], d = order[j+1];
+        const before = dm[a][b] + dm[c][d];
+        const after = dm[a][c] + dm[b][d];
+        if (after + 1e-9 < before) {
+          // reverse [i..j]
+          const rev = order.slice(i, j+1).reverse();
+          order = order.slice(0, i).concat(rev).concat(order.slice(j+1));
+          improved = true;
+        }
+      }
+    }
+  }
+  return order;
+}
+
+// or-opt: relocate single nodes (segments of size 1) to better positions
+function _tspOrOpt(order, dm) {
+  let improved = true, n = order.length, iters = 0;
+  while (improved && iters < 100) {
+    improved = false; iters++;
+    for (let i = 1; i < n - 1; i++) {
+      const a = order[i-1], b = order[i], c = order[i+1];
+      const removeCost = dm[a][b] + dm[b][c] - dm[a][c];
+      for (let j = 0; j < n - 1; j++) {
+        if (j === i - 1 || j === i || j === i + 1) continue;
+        const u = order[j], v = order[j+1];
+        const insertCost = dm[u][b] + dm[b][v] - dm[u][v];
+        if (insertCost + 1e-9 < removeCost) {
+          const node = order.splice(i, 1)[0];
+          const insertPos = j < i ? j + 1 : j;
+          order.splice(insertPos, 0, node);
+          improved = true;
+          break;
+        }
+      }
+      if (improved) break;
+    }
+  }
+  return order;
+}
+
+// Double-bridge: 4-opt perturbation — escape local optima then re-run 2-opt
+function _tspDoubleBridge(order, dm) {
+  const n = order.length;
+  if (n < 8) return order;
+  let best = order.slice(); let bestD = _routeDistance(best, dm);
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const p1 = 1 + Math.floor(Math.random() * (n / 4));
+    const p2 = p1 + 1 + Math.floor(Math.random() * (n / 4));
+    const p3 = p2 + 1 + Math.floor(Math.random() * (n / 4));
+    if (p3 >= n) continue;
+    const perturbed = order.slice(0, p1)
+      .concat(order.slice(p3))
+      .concat(order.slice(p2, p3))
+      .concat(order.slice(p1, p2));
+    const refined = _tsp2Opt(perturbed, dm);
+    const d = _routeDistance(refined, dm);
+    if (d + 1e-9 < bestD) { best = refined; bestD = d; }
+  }
+  return best;
+}
+
+async function runRoutePlanner(quality) {
+  const gen = ++_planGen;
+  document.querySelectorAll('.plan-q-btn').forEach(b => b.classList.toggle('active', b.dataset.q === quality));
+  const startMode = document.getElementById('planStart')?.value || 'gps';
+  const endMode   = document.getElementById('planEnd')?.value || 'auto';
+  const inRoute   = SHOPS.filter(s => s.inRoute && s.lat && s.lng);
+  if (inRoute.length < 2) { showToast('ต้องมีร้านในรูทอย่างน้อย 2 ร้าน', 'warning'); return; }
+
+  // Resolve start
+  let start, startShop = null;
+  if (startMode === 'gps') {
+    if (!SALESMAN.currentLat || !SALESMAN.currentLng) { showToast('ยังไม่มี GPS — กดอัพเดทตำแหน่งก่อน', 'warning'); return; }
+    start = { lat: SALESMAN.currentLat, lng: SALESMAN.currentLng, name: '📍 ตำแหน่งฉัน' };
+  } else {
+    startShop = inRoute.find(s => s.id === startMode);
+    if (!startShop) { showToast('ไม่พบจุดเริ่มต้น', 'warning'); return; }
+    start = { lat: startShop.lat, lng: startShop.lng, name: startShop.name, shopId: startShop.id };
+  }
+
+  // Build points = [start] + shops (excluding start if start IS a shop)
+  const shops = startShop ? inRoute.filter(s => s.id !== startShop.id) : inRoute;
+  const points = [start, ...shops.map(s => ({ lat: s.lat, lng: s.lng, name: s.name, shopId: s.id }))];
+
+  showToast('🧮 กำลังคำนวณเส้นทาง...', 'info');
+  const dm = await _buildDistanceMatrix(points);
+  if (_planGen !== gen) return;
+
+  let order = _tspNN(dm);
+  if (quality === 'balanced' || quality === 'thorough') order = _tsp2Opt(order, dm);
+  if (quality === 'thorough') { order = _tspOrOpt(order, dm); order = _tspDoubleBridge(order, dm); }
+
+  // If user specified end → rotate to put it last (if it's in the route)
+  if (endMode !== 'auto') {
+    const endIdx = points.findIndex(p => p.shopId === endMode);
+    if (endIdx >= 0 && order[order.length - 1] !== endIdx) {
+      const cur = order.indexOf(endIdx);
+      if (cur >= 0) { order.splice(cur, 1); order.push(endIdx); }
+    }
+  }
+
+  const totalDistance = _routeDistance(order, dm);
+  const method = quality === 'fast' ? 'NN' : quality === 'balanced' ? 'NN+2-opt' : 'NN+2-opt+or-opt+DB';
+  _planResult = { order, points, totalDistance, method };
+  _renderPlanResult();
+  _drawRouteOnMap();
+
+  // Progressive enhancement: fetch road geometry async
+  const orderedPoints = order.map(i => points[i]);
+  _fetchOsrmGeometry(orderedPoints).then(geo => {
+    if (_planGen !== gen || !geo) return;
+    _planResult.geometry = geo;
+    _drawRouteOnMap();
+  });
+}
+window.runRoutePlanner = runRoutePlanner;
+
+function _renderPlanResult() {
+  if (!_planResult) return;
+  const { order, points, totalDistance, method } = _planResult;
+  document.getElementById('planResult').style.display = '';
+  document.getElementById('planTotalKm').textContent = (totalDistance / 1000).toFixed(1);
+  document.getElementById('planStops').textContent = order.length - 1;
+  document.getElementById('planMethod').textContent = method;
+  const items = order.map((pi, i) => {
+    const p = points[pi];
+    let leg = '';
+    if (i < order.length - 1) {
+      const dm = (_planResult.totalDistance > 0) ? null : null;
+      // approximate leg from points using haversine (good enough for list)
+      const next = points[order[i+1]];
+      const d = _haversine(p, next);
+      leg = `→ ${(d/1000).toFixed(1)}km`;
+    }
+    return `<div class="plan-order-item">
+      <span class="plan-order-num">${i === 0 ? '⌂' : i}</span>
+      <span class="plan-order-name">${escapeHtml(p.name)}</span>
+      <span class="plan-order-leg">${leg}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('planOrderList').innerHTML = items;
+}
+
+async function _fetchOsrmGeometry(points) {
+  if (!points || points.length < 2) return null;
+  const coords = points.map(p => `${p.lng},${p.lat}`).join(';');
+  const url = `${_OSRM}/route/v1/driving/${coords}?overview=full&geometries=geojson`;
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('osrm route http ' + resp.status);
+    const data = await resp.json();
+    if (data.code !== 'Ok' || !data.routes || !data.routes[0]) throw new Error('osrm route empty');
+    // GeoJSON coords are [lng,lat] — Leaflet wants [lat,lng]
+    return data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+  } catch (e) {
+    console.warn('[plan] OSRM geometry failed:', e.message);
+    return null;
+  }
+}
+
+function _drawRouteOnMap() {
+  if (!routeMap || !_planResult) return;
+  // Ensure map view is shown
+  setRouteView('map');
+  if (_planPolyline) { _planPolyline.remove(); _planPolyline = null; }
+  const { order, points, geometry } = _planResult;
+  // Use road geometry if available, else straight lines between points
+  const latlngs = geometry || order.map(i => [points[i].lat, points[i].lng]);
+  _planPolyline = L.polyline(latlngs, {
+    color: '#c9a84c', weight: 5, opacity: .85,
+    className: geometry ? '' : 'plan-polyline',
+  }).addTo(routeMap);
+  routeMap.fitBounds(_planPolyline.getBounds(), { padding: [40, 40] });
+}
+
+// Apply planned route — reorder SHOPS so list view matches optimizer
+function applyPlannedRoute() {
+  if (!_planResult) return;
+  const { order, points } = _planResult;
+  // Build ordered list of shopIds (skip index 0 if it's GPS, not a shop)
+  const orderedShopIds = order.map(i => points[i].shopId).filter(Boolean);
+  // Re-sort SHOPS array: in-route shops follow optimizer order, others stay
+  const idxMap = new Map();
+  orderedShopIds.forEach((id, i) => idxMap.set(id, i));
+  SHOPS.sort((a, b) => {
+    const ai = idxMap.has(a.id) ? idxMap.get(a.id) : 9999 + (a.inRoute ? 0 : 10000);
+    const bi = idxMap.has(b.id) ? idxMap.get(b.id) : 9999 + (b.inRoute ? 0 : 10000);
+    return ai - bi;
+  });
+  // Force "default" sort so user sees the new order (else "near" reorders by distance)
+  if (typeof _routeSort !== 'undefined') _routeSort = 'default';
+  document.querySelectorAll('.filter-chip[data-rf]').forEach(c => c.classList.remove('active'));
+  showToast('✓ ใช้รูทใหม่แล้ว', 'success');
+  closeRoutePlanner();
+  renderShopList();
+}
+window.applyPlannedRoute = applyPlannedRoute;
+
+function replanFromMe() {
+  const sel = document.getElementById('planStart');
+  if (sel) sel.value = 'gps';
+  refreshGPS(true).then(() => {
+    const activeQ = document.querySelector('.plan-q-btn.active')?.dataset.q || 'balanced';
+    runRoutePlanner(activeQ);
+  }).catch(() => showToast('GPS ไม่พร้อม', 'warning'));
+}
+window.replanFromMe = replanFromMe;
+
+function exportPlanToGoogleMaps() {
+  if (!_planResult) { showToast('ยังไม่มีรูท — กดคำนวณก่อน', 'warning'); return; }
+  const { order, points } = _planResult;
+  const wpts = order.map(i => `${points[i].lat},${points[i].lng}`);
+  // Google Maps: origin → waypoints → destination. Max 9 waypoints (10 stops). Truncate if needed.
+  let origin, destination, waypoints = [];
+  if (wpts.length <= 10) {
+    origin = wpts[0];
+    destination = wpts[wpts.length - 1];
+    waypoints = wpts.slice(1, -1);
+  } else {
+    origin = wpts[0];
+    destination = wpts[wpts.length - 1];
+    waypoints = wpts.slice(1, 10);
+    showToast(`⚠️ Google Maps จำกัด 10 จุด — ตัดเหลือ ${waypoints.length + 2} จาก ${wpts.length}`, 'warning');
+  }
+  const params = new URLSearchParams({
+    api: '1',
+    travelmode: 'driving',
+    origin, destination,
+  });
+  if (waypoints.length) params.set('waypoints', waypoints.join('|'));
+  const url = `https://www.google.com/maps/dir/?${params.toString()}`;
+  window.open(url, '_blank');
+}
+window.exportPlanToGoogleMaps = exportPlanToGoogleMaps;
 
 // ═══════════════════════════════════════════════════════════
 // SHOP DETAIL
@@ -7511,7 +8000,7 @@ function renderShopDetail(shopId) {
 function doCheckIn(shopId) {
   const s = SHOPS.find(x => x.id === shopId);
   if (!s) return;
-  // v6.5.32: enforce single active check-in — must check out previous shop first
+  // v6.5.33: enforce single active check-in — must check out previous shop first
   const activeId = Object.keys(visits).find(sid => visits[sid] && !visits[sid].checkOutTime);
   if (activeId && activeId !== shopId) {
     _showActiveCheckinModal(activeId, shopId);
@@ -7585,7 +8074,7 @@ window._confirmOutOfRange = function(shopId, distance, reason) {
   _executeCheckIn(shopId, distance, false, reason);
 };
 
-// v6.5.32: blocking modal when user tries to check in while another shop is still active
+// v6.5.33: blocking modal when user tries to check in while another shop is still active
 function _showActiveCheckinModal(activeId, nextId) {
   const active = SHOPS.find(s => s.id === activeId);
   const next   = SHOPS.find(s => s.id === nextId);
@@ -7617,7 +8106,7 @@ window._closeAsNoSaleAndCheckin = function(activeId, nextId) {
   setTimeout(() => doCheckIn(nextId), 250);
 };
 
-// v6.5.32: "ไม่ซื้อ" / "ร้านปิด" without prior check-in — auto check-in + immediate close
+// v6.5.33: "ไม่ซื้อ" / "ร้านปิด" without prior check-in — auto check-in + immediate close
 function quickNoSale(shopId, reason) {
   const v = visits[shopId];
   if (v && !v.checkOutTime) {
@@ -7704,7 +8193,7 @@ function manualCheckOut(shopId) {
 window._finishWithReason = function(shopId, reason) {
   closeModal();
   finishVisit(shopId, 'no-order', { reason });
-  // v6.5.32: ensure shop card reflects "เสร็จแล้ว" — update SHOPS.status for done check
+  // v6.5.33: ensure shop card reflects "เสร็จแล้ว" — update SHOPS.status for done check
   const sh = SHOPS.find(s => s.id === shopId);
   if (sh) { sh.status = 'refused'; sh.refuseReason = reason; }
   showToast('✓ บันทึกเหตุผลแล้ว', 'info');
@@ -8030,7 +8519,7 @@ function _initOrderCardState(p) {
 // v6.2: If pickedTier given AND valid for current qty → use it instead of auto-suggest
 //        Click-to-select wins over auto, but qty changes that invalidate a pick fall back to auto.
 // ────────────────────────────────────────────────────────────────
-// v6.5.32: PA Group → S02 (combine across SKUs sharing CAT SIZE)
+// v6.5.33: PA Group → S02 (combine across SKUs sharing CAT SIZE)
 // Rule:
 //   - When ordering in PA, sum (qty_PA / QTY_CS) across all PA-only cart items
 //     in same shop with same CAT SIZE.
@@ -8044,10 +8533,10 @@ function getCatSize(p) {
 }
 window.getCatSize = getCatSize;
 
-// v6.5.32: correct CS_eq math.
+// v6.5.33: correct CS_eq math.
 // 1 CS = QTY_CS / QTY_PA packs. So 1 PA contributes QTY_PA/QTY_CS of a CS.
 // CS_eq for a PA line = qty_PA × QTY_PA / QTY_CS  (NOT qty_PA / QTY_CS — that was wrong).
-// v6.5.32: include ALL drafts (not just cart) so cards see each other's pending PA qty.
+// v6.5.33: include ALL drafts (not just cart) so cards see each other's pending PA qty.
 // Previously each card saw only its own qty → both showed 0.5/1.0 when together = 1.0.
 function _paGroupCsEq(catSize, shopId) {
   if (!catSize) return 0;
@@ -8121,7 +8610,7 @@ function getOrderTiers(p, unitCode, qty, pickedTier, paCsEq) {
   // Auto-suggest from qty
   let autoKey;
   if (unitCode === 'PA' && paCsEq >= 1.0) {
-    // v6.5.32: PA group hit 1 CS-equivalent → unlock S02 across all PA items in CAT SIZE group
+    // v6.5.33: PA group hit 1 CS-equivalent → unlock S02 across all PA items in CAT SIZE group
     autoKey = 'S02';
   } else if (unitCode !== 'CS') {
     autoKey = 'S03';
@@ -8186,7 +8675,7 @@ function buildDepotChipsCompact(p) {
     return numv(p[`AVERAGE 30D_${w}`]) || numv(p[`AVERAGE 30D ${w}`]) || numv(p[`AVG 30D ${w}`]);
   };
 
-  // v6.5.32: role gate — role >= 4 sees avg for all WH, role < 4 sees only own WH avg
+  // v6.5.33: role gate — role >= 4 sees avg for all WH, role < 4 sees only own WH avg
   const role = Number((currentUser && currentUser.role) || 0);
   const canSeeAllAvg = role >= 4;
   const depots = WAREHOUSES.map(w => {
@@ -8262,7 +8751,7 @@ function _buildPromoBarsHtml(p, productId, safeId, unit, qty) {
     productId, unit, qty, price: 0, shopId: currentShopId, isDraft: true,
   } : null;
 
-  // v6.5.32: AUTO-PICK highest matching tier (step-promo fix).
+  // v6.5.33: AUTO-PICK highest matching tier (step-promo fix).
   // Old: user had to click "เลือก" first when 2+ promos existed → confusing when qty
   // dropped below the picked tier's threshold (state stuck on Step 2 while qty=10 only
   // qualifies for Step 1). New: every render recomputes, picks highest threshold
@@ -8286,7 +8775,7 @@ function _buildPromoBarsHtml(p, productId, safeId, unit, qty) {
   else delete draft.selectedPromoIdx;
   window._orderDraft[productId] = draft;
 
-  // v6.5.32: no more "isMulti force-pick" mode — always show all tiers' progress as info
+  // v6.5.33: no more "isMulti force-pick" mode — always show all tiers' progress as info
   return allPromos.map((promo, idx) => {
     const isSelected = (selectedIdx === idx);
     return _buildOnePromoBar(promo, p, productId, safeId, idx, isSelected, draftLine, unit, false);
@@ -8326,7 +8815,7 @@ function _buildOnePromoBar(promo, p, productId, safeId, idx, isSelected, draftLi
     `;
   }
 
-  // v6.5.32: read-only badge (auto-picked by qty, no manual selection needed)
+  // v6.5.33: read-only badge (auto-picked by qty, no manual selection needed)
   const pickerHtml = isSelected
     ? `<button class="oc-promo-pick on" disabled title="โปรนี้ใช้งานตามจำนวน">✓ ใช้โปรนี้</button>`
     : '';
@@ -8459,7 +8948,7 @@ function buildOrderCardV6(p, idx) {
   const qtyNum = parseInt(state.qty) || 0;
   // v6.2: respect user's tier pick (click overrides auto-suggest)
   const pickedTier = (window._orderDraft[id] || {}).pickedTier || null;
-  // v6.5.32: PA group sums all drafts + cart in same CAT SIZE (no extraDraft — _orderDraft is the source of truth)
+  // v6.5.33: PA group sums all drafts + cart in same CAT SIZE (no extraDraft — _orderDraft is the source of truth)
   const catSize = getCatSize(p);
   const eaPerCs = numv(p['QTY CS']) || 0;
   const eaPerPa = numv(p['QTY PA']) || 0;
@@ -8515,7 +9004,7 @@ function buildOrderCardV6(p, idx) {
   const subLeft = `${qtyNum} ${unitLabel} = ${pieceCount.toLocaleString()} ชิ้น`;
   const subRight = `ราคา / ${unitLabel}`;
 
-  // v6.5.32: show tier ladder for ALL units (was CS-only).
+  // v6.5.33: show tier ladder for ALL units (was CS-only).
   // For non-CS units, ranges (<5, 5-19, ≥20) are CS-tier labels — for EA/PA/BP show "ราคา" instead.
   // Pull S00/S01/S02/S03 from productPrices for the current unit, hide S00 for role<5.
   const role = Number((currentUser && currentUser.role) || 0);
@@ -8578,7 +9067,7 @@ function buildOrderCardV6(p, idx) {
   // v6.5.2: state classes simplified — promo/focus signal carried by inline promo bar, not card border
   const stateClasses = cardCls; // pending / confirmed only
 
-  // v6.5.32: visible badge when price override is active (from Price Under Revision sheet)
+  // v6.5.33: visible badge when price override is active (from Price Under Revision sheet)
   const overrideBadge = p._priceOverride
     ? `<span style="display:inline-block;font-size:9px;font-weight:700;background:#FF6B35;color:#fff;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle">🏷️ ราคาพิเศษ</span>`
     : '';
@@ -8626,7 +9115,7 @@ function buildOrderCardV6(p, idx) {
         const csEq = paCsEq;
         const pct = Math.min(100, Math.round(csEq * 100));
         const remainingCsEq = Math.max(0, 1 - csEq);
-        // v6.5.32: remaining PA = remainingCsEq × paPerCs (NOT × eaPerCs)
+        // v6.5.33: remaining PA = remainingCsEq × paPerCs (NOT × eaPerCs)
         const remainingPA = Math.ceil(remainingCsEq * paPerCs);
         const unlocked = csEq >= 1.0;
         return `<div class="oc-pa-group ${unlocked ? 'unlocked' : ''}">
@@ -8700,7 +9189,7 @@ window.orderQtyAdj = function(safeId, delta) {
   d.qty = Math.max(0, (parseInt(d.qty)||0) + delta);
   window._orderDraft[pid] = d;
   _renderOneOrderCard(safeId);
-  // v6.5.32: refresh sibling PA cards in same CAT SIZE
+  // v6.5.33: refresh sibling PA cards in same CAT SIZE
   if (d.unit === 'pack') {
     const p = (window._lastOrderProducts || []).find(x => (x['CODE EA']||x['CODE CS']||x['PRODUCT NAME']) === pid);
     const cs = p ? getCatSize(p) : '';
@@ -8723,7 +9212,7 @@ window.orderQtyChange = function(safeId, value) {
   const d = window._orderDraft[pid] || { unit: 'case', qty: 0, price: '' };
   d.qty = Math.max(0, parseInt(value) || 0);
   window._orderDraft[pid] = d;
-  // v6.5.32: when PA qty changes, refresh sibling cards in same CAT SIZE so group progress syncs
+  // v6.5.33: when PA qty changes, refresh sibling cards in same CAT SIZE so group progress syncs
   if (d.unit === 'pack') {
     const p = (window._lastOrderProducts || []).find(x => (x['CODE EA']||x['CODE CS']||x['PRODUCT NAME']) === pid);
     const cs = p ? getCatSize(p) : '';
@@ -8809,7 +9298,7 @@ window.orderConfirm = function(safeId) {
   // v6.5: capture suggested for supervisor to compare against actual price.
   const unitCode = _unitToCode(d.unit);
   const pr = productPrices(p, unitCode);
-  // v6.5.32: PA group from drafts+cart
+  // v6.5.33: PA group from drafts+cart
   const catSize = getCatSize(p);
   const paCsEq = (catSize && currentShopId) ? _paGroupCsEq(catSize, currentShopId) : 0;
   const { activeKey: suggestedTierKey } = getOrderTiers(p, unitCode, d.qty, d.pickedTier || null, paCsEq);
@@ -8893,7 +9382,7 @@ window.orderConfirm = function(safeId) {
   // Sync draft with confirmed cart state (so subsequent edits know baseline)
   d.price = priceVat;
   window._orderDraft[pid] = d;
-  // v6.5.32: re-evaluate PA group → other PA items in same CAT SIZE may unlock S02
+  // v6.5.33: re-evaluate PA group → other PA items in same CAT SIZE may unlock S02
   if (d.unit === 'pack') {
     const csz = getCatSize(p);
     const bumped = _recalcPaGroupPrices(csz, currentShopId);
@@ -8909,7 +9398,7 @@ window.orderRemove = function(safeId) {
   const el = document.getElementById('orderCard-' + safeId);
   if (!el) return;
   const pid = el.getAttribute('data-pid');
-  // v6.5.32: capture catSize BEFORE removing so we can recalc the group after
+  // v6.5.33: capture catSize BEFORE removing so we can recalc the group after
   const removed = cart.find(c => c.productId === pid && c.shopId === currentShopId);
   const p = (window._lastOrderProducts || []).find(x => (x['CODE EA']||x['CODE CS']||x['PRODUCT NAME']) === pid);
   const wasInPaGroup = removed && removed.unit === 'pack' && p;
@@ -8918,7 +9407,7 @@ window.orderRemove = function(safeId) {
   if (idx >= 0) cart.splice(idx, 1);
   // Reset draft
   delete window._orderDraft[pid];
-  // v6.5.32: re-evaluate PA group after removal → may drop back to S03
+  // v6.5.33: re-evaluate PA group after removal → may drop back to S03
   if (wasInPaGroup) _recalcPaGroupPrices(csz, currentShopId);
   updateCartBar();
   if (wasInPaGroup && typeof renderProductList === 'function') renderProductList();
@@ -8938,7 +9427,7 @@ function _updateCardLive(safeId) {
   if (!d) return;
   const qtyNum = parseInt(d.qty) || 0;
   const unitCode = _unitToCode(d.unit);
-  // v6.5.32: PA group from drafts+cart
+  // v6.5.33: PA group from drafts+cart
   const catSize = getCatSize(p);
   const paCsEq = (catSize && currentShopId) ? _paGroupCsEq(catSize, currentShopId) : 0;
   // v6.2: respect user's tier pick during live updates (don't auto-flip)
@@ -12008,7 +12497,7 @@ function confirmNoSale() {
     shop.status = 'refused';
     shop.refuseReason = reason;
   }
-  // v6.5.32: works whether user was checked in or not (auto check-in+out if needed)
+  // v6.5.33: works whether user was checked in or not (auto check-in+out if needed)
   const v = visits[currentShopId];
   if (v && !v.checkOutTime) {
     finishVisit(currentShopId, 'refused', { refusalReason: reason });
@@ -12017,7 +12506,7 @@ function confirmNoSale() {
   }
 
   showToast('บันทึกแล้ว — เช็คเอ้าอัตโนมัติ', 'info');
-  // v6.5.32: goRoute() returns early if current screen is screenNoSale → shop list never refreshes.
+  // v6.5.33: goRoute() returns early if current screen is screenNoSale → shop list never refreshes.
   // Force navigation + re-render directly so card flips to "เสร็จแล้ว"
   setTimeout(() => {
     currentShopId = null;
@@ -12961,7 +13450,7 @@ async function globalRefresh() {
       SHEET_DATA.priceOverrides = overrideRows;
       cacheSet('priceOverrides', overrideRows);
     }
-    // v6.5.32: re-apply overrides after refetch
+    // v6.5.33: re-apply overrides after refetch
     applyPriceOverrides();
     if (syncRows) {
       SHEET_DATA.syncStatus = syncRows;
